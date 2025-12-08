@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Galáxia Interativa - MHC3000</title>
+<style>
+  html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif}
+  canvas{display:block; touch-action: none}
+  #fallback{position:fixed;left:10px;bottom:10px;background:rgba(0,0,0,0.4);padding:8px;border-radius:6px;font-size:13px}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="fallback">Toque ou clique em uma estrela para viajar • Esc para sair do sistema</div>
+
+<script>
+/* --- Configurações gerais (seguindo o seu código original) --- */
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+let DPR = Math.max(1, window.devicePixelRatio || 1);
+
+function resizeCanvas(){
+  canvas.width = Math.floor(window.innerWidth * DPR);
+  canvas.height = Math.floor(window.innerHeight * DPR);
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  centerX = canvas.width/2;
+  centerY = canvas.height/2;
+  GALAXY_RADIUS = Math.min(canvas.width, canvas.height)/2 - 80*DPR;
+}
+window.addEventListener('resize', () => { DPR = Math.max(1, window.devicePixelRatio || 1); resizeCanvas(); });
+
+let centerX=0, centerY=0;
+let WIDTH = () => canvas.width;
+let HEIGHT = () => canvas.height;
+
+let NUM_PARTICLES = 2000;
+const NUM_ARMS = 7;
+let GALAXY_RADIUS = 0;
+const SPIRAL_FACTOR = 5;
+const ARM_SPREAD = 0.12;
+const CAMERA_SPEED = 0.009;
+
+let INCLINATION_START = 0 * Math.PI/180;
+let INCLINATION_END = 0;
+
+let camera_angle = 0;
+let inclination = INCLINATION_START;
+
+/* viagem interestelar */
+let traveling = false;
+let travel_progress = 0;
+let travel_target = null;
+
+/* estado visualização */
+let viewing_system = null;
+let zoom_progress = 0;
+
+/* botão X */
+let button_size = Math.round(72*DPR);
+let button_rect = { x:0, y:0, w:button_size, h:button_size };
+
+/* fonte simples - usaremos desenho com fillText */
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+/* --- BURACO NEGRO MHC3000 --- */
+function make_black_hole(){
+  let accretion = [];
+  const num_acc = 700;
+  for(let i=0;i<num_acc;i++){
+    accretion.push({
+      radius: 60 + Math.random()*160,
+      angle: Math.random()*Math.PI*2,
+      speed: 0.002 + Math.random()*0.006,
+      size: Math.random()>0.75?2:1
+    });
+  }
+  return {
+    is_black_hole: true,
+    name: 'MHC3000',
+    accretion: accretion,
+    color: [255,255,255],
+    size: 8 * DPR
+  };
+}
+
+/* --- SISTEMAS NORMAIS --- */
+function make_system(index){
+  let arm_index = index % NUM_ARMS;
+  let r = GALAXY_RADIUS * Math.pow(Math.random(), 1.5);
+  let base_angle = arm_index * 2 * Math.PI / NUM_ARMS;
+  let theta = base_angle + SPIRAL_FACTOR * (r / GALAXY_RADIUS) + gaussianRandom(0, ARM_SPREAD);
+  let angular_speed = 0.05 / (r + 5);
+
+  let brightness = Math.max(50, Math.floor(255 * (1 - r / GALAXY_RADIUS)));
+  let color = [brightness, brightness, brightness];
+
+  let num_planets = 2 + Math.floor(Math.random()*3); // 2-4
+  let planets = [];
+  let orbit_start = 40 + Math.floor(Math.random()*30);
+  let gap_min = 40, gap_max = 90;
+
+  for(let p_i=0; p_i<num_planets; p_i++){
+    let orbit;
+    if(p_i === 0) orbit = orbit_start + Math.floor((Math.random()*16)-8);
+    else orbit = planets[planets.length-1].radius + gap_min + Math.floor(Math.random()*(gap_max-gap_min));
+    let size = 6 + Math.floor(Math.random()*9); // 6-14
+    let speed = 0.006 + (Math.random()*0.005 - 0.002);
+    let angle = Math.random()*Math.PI*2;
+    let ptype = randomChoiceWeighted(['rocky','gas','ringed'], [55,30,15]);
+
+    let moons = [];
+    let num_moons = randomChoiceWeighted([0,1,2],[60,30,10]);
+    for(let m=0;m<num_moons;m++){
+      moons.push({
+        radius: 6 + Math.floor(Math.random()*9),
+        size: 1 + Math.floor(Math.random()*3),
+        angle: Math.random()*Math.PI*2,
+        speed: 0.01 + Math.random()*0.03
+      });
+    }
+
+    planets.push({
+      radius: orbit,
+      size: size * DPR,
+      angle: angle,
+      speed: speed,
+      type: ptype,
+      moons: moons
+    });
+  }
+
+  // cinturão
+  let inner, outer;
+  if(planets.length >= 2){
+    inner = planets[planets.length-2].radius + 20;
+    outer = planets[planets.length-1].radius + 30;
+  } else {
+    inner = planets[planets.length-1].radius + 25;
+    outer = planets[planets.length-1].radius + 80;
+  }
+  let belt_radius = (inner + outer)/2;
+  let belt_width = Math.max(8, (outer - inner)/2);
+  let num_asteroids = 80 + Math.floor(Math.random()*61);
+
+  let asteroids = [];
+  for(let i=0;i<num_asteroids;i++){
+    asteroids.push({
+      radius: belt_radius + (Math.random()*belt_width - belt_width/2),
+      angle: Math.random()*Math.PI*2,
+      speed: 0.0006 + Math.random()*0.001,
+      size: Math.random()>0.8?2:1
+    });
+  }
+
+  return {
+    r: r,
+    theta: theta,
+    angular_speed: angular_speed,
+    color: color,
+    planets: planets,
+    asteroids: asteroids,
+    name: `MH°${index+1}`
+  };
+}
+
+/* --- criar galáxia --- */
+let particles = [];
+function rebuildParticles(){
+  particles = [];
+  for(let i=0;i<NUM_PARTICLES;i++){
+    particles.push(make_system(i));
+  }
+  particles.push(make_black_hole());
+}
+resizeCanvas();
+rebuildParticles();
+
+/* --- utilitários --- */
+function gaussianRandom(mean=0, stddev=1){
+  // Box-Muller
+  let u=0,v=0;
+  while(u===0) u = Math.random();
+  while(v===0) v = Math.random();
+  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  return num*stddev + mean;
+}
+function randomChoiceWeighted(arr, weights){
+  if(typeof weights === 'number') return arr[Math.floor(Math.random()*arr.length)];
+  let sum = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*sum;
+  for(let i=0;i<arr.length;i++){
+    r -= weights[i];
+    if(r<=0) return arr[i];
+  }
+  return arr[arr.length-1];
+}
+
+/* --- desenho de planeta (com luas, anéis) --- */
+function drawPlanet(px, py, planet, scale){
+  // planeta
+  let planet_size = Math.max(1, Math.round((planet.size * scale) / 6));
+  ctx.beginPath();
+  ctx.arc(px, py, planet_size, 0, Math.PI*2);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+
+  // ringed
+  if(planet.type === 'ringed'){
+    ctx.beginPath();
+    ctx.ellipse(px, py, planet_size*2.2, planet_size*0.9, 0, 0, Math.PI*2);
+    ctx.lineWidth = Math.max(1, Math.round(1*DPR*scale*0.6));
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.stroke();
+    ctx.lineWidth = 1;
+  }
+
+  // luas
+  for(let moon of planet.moons){
+    moon.angle += moon.speed;
+    let mx = px + moon.radius * Math.cos(moon.angle) * scale * 0.6;
+    let my = py + moon.radius * Math.sin(moon.angle) * scale * 0.6;
+    let msize = Math.max(1, Math.round(moon.size * scale / 6));
+    ctx.beginPath();
+    ctx.arc(mx, my, msize, 0, Math.PI*2);
+    ctx.fillStyle = 'rgb(180,180,180)';
+    ctx.fill();
+
+    // desenha orbita sutil para referência (como no seu Pygame)
+    ctx.beginPath();
+    ctx.arc(px, py, Math.max(1, Math.round(moon.radius * scale * 0.6)), 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(60,60,60,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
+
+/* --- input (mouse/touch/keyboard) --- */
+function pointerToCanvas(e){
+  if(e.touches && e.touches.length) return { x: e.touches[0].clientX * DPR, y: e.touches[0].clientY * DPR };
+  return { x: (e.clientX || e.pageX) * DPR, y: (e.clientY || e.pageY) * DPR };
+}
+
+canvas.addEventListener('pointerdown', (ev)=>{
+  let p = pointerToCanvas(ev);
+  handleClick(p.x, p.y);
+});
+window.addEventListener('keydown', (ev)=>{
+  if(ev.key === 'Escape' || ev.key === 'Esc'){
+    if(viewing_system){ viewing_system = null; zoom_progress = 0; }
+  }
+});
+
+/* --- detectar clique nas partículas (como no Pygame) --- */
+function handleClick(mx, my){
+  // botão fechar quando em view
+  if(viewing_system){
+    let bx = canvas.width - button_rect.w - Math.round(20*DPR);
+    let by = Math.round(20*DPR);
+    if(mx >= bx && mx <= bx + button_rect.w && my >= by && my <= by + button_rect.h){
+      viewing_system = null; zoom_progress = 0;
+      return;
+    }
+  }
+
+  for(let p of particles){
+    let screen_x, screen_y, hitbox = 6 * DPR;
+    if(p.is_black_hole){
+      screen_x = centerX;
+      screen_y = centerY;
+      hitbox = 90 * DPR;
+    } else {
+      let x = p.r * Math.cos(p.theta);
+      let y = p.r * Math.sin(p.theta);
+      y *= Math.cos(inclination);
+      let x_rot = x*Math.cos(camera_angle) - y*Math.sin(camera_angle);
+      let y_rot = x*Math.sin(camera_angle) + y*Math.cos(camera_angle);
+      screen_x = centerX + x_rot;
+      screen_y = centerY + y_rot;
+      hitbox = 6 * DPR;
+    }
+    if(Math.hypot(mx - screen_x, my - screen_y) < hitbox){
+      traveling = true;
+      travel_progress = 0;
+      travel_target = p;
+      return;
+    }
+  }
+}
+
+/* --- main loop e estados: galaxia, viajando, visualizando sistema --- */
+let lastTime = performance.now();
+function update(dt){
+  camera_angle += CAMERA_SPEED * dt * 0.06;
+  if(inclination > INCLINATION_END) inclination -= Math.PI/180 * 0.05 * dt * 0.06;
+
+  if(traveling){
+    travel_progress += 0.02 * dt * 0.06;
+    travel_progress = clamp(travel_progress, 0, 1);
+    if(travel_progress >= 1.0){
+      traveling = false;
+      viewing_system = travel_target;
+      zoom_progress = 0;
+    }
+  }
+
+  // atualiza particulas, angulos etc.
+  for(let p of particles){
+    if(p.is_black_hole) continue;
+    p.theta += p.angular_speed * dt * 0.06;
+    // atualiza asteroides
+    for(let a of p.asteroids) a.angle += a.speed * dt * 0.06;
+    // atualiza planetas (os planetas são atualizados na renderização)
+  }
+  // atualiza disco do buraco negro
+  let bh = particles.find(x => x.is_black_hole);
+  if(bh){
+    for(let a of bh.accretion) a.angle += a.speed * dt * 0.06;
+  }
+}
+
+function draw(){
+  // fundo
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // se viajando, anima o rastro e pausa resto
+  if(traveling){
+    let t = travel_progress;
+    let r_trail = Math.round((8 + 60*(t*t)) * DPR);
+    let alpha = Math.round(255 * t);
+    ctx.save();
+    ctx.globalAlpha = clamp(alpha/255, 0.3, 0.9);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, r_trail, 0, Math.PI*2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+    ctx.restore();
+    return;
+  }
+
+  if(viewing_system){
+    if(zoom_progress < 1.0) zoom_progress = Math.min(1.0, zoom_progress + 0.03);
+    let cx = centerX, cy = centerY;
+    let scale = 0.6 + zoom_progress*4.5;
+
+    if(viewing_system.is_black_hole){
+      // buraco negro (esfera preta)
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.round(55 * scale * DPR), 0, Math.PI*2);
+      ctx.fillStyle = 'black';
+      ctx.fill();
+
+      // lente gravitacional (halo branco)
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.round(65 * scale * DPR), 0, Math.PI*2);
+      ctx.lineWidth = Math.max(1, Math.round(2 * DPR));
+      ctx.strokeStyle = 'white';
+      ctx.stroke();
+      ctx.lineWidth = 1;
+
+      // disco branco
+      for(let a of viewing_system.accretion){
+        let ax = cx + a.radius * Math.cos(a.angle) * scale * 0.45 * DPR;
+        let ay = cy + a.radius * Math.sin(a.angle) * scale * 0.45 * DPR;
+        let size = Math.max(1, Math.round(a.size * (scale*0.3) * DPR));
+        ctx.beginPath();
+        ctx.arc(ax, ay, size, 0, Math.PI*2);
+        ctx.fillStyle = 'white';
+        ctx.fill();
+      }
+
+      // desenha botão X
+      drawCloseButton();
+
+      // título
+      ctx.font = `${Math.round(20 * DPR)}px Arial`;
+      ctx.fillStyle = 'white';
+      ctx.fillText(viewing_system.name || 'MHC3000', Math.round(20*DPR), Math.round(30*DPR));
+    } else {
+      // estrela
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.round(10 * scale * DPR), 0, Math.PI*2);
+      ctx.fillStyle = `rgb(${viewing_system.color[0]},${viewing_system.color[1]},${viewing_system.color[2]})`;
+      ctx.fill();
+
+      // cinturão
+      for(let ast of viewing_system.asteroids){
+        let ax = cx + ast.radius * Math.cos(ast.angle) * scale * 0.5 * DPR;
+        let ay = cy + ast.radius * Math.sin(ast.angle) * scale * 0.5 * DPR;
+        let size = Math.max(1, Math.round(ast.size * (scale*0.25) * DPR));
+        ctx.beginPath();
+        ctx.arc(ax, ay, size, 0, Math.PI*2);
+        ctx.fillStyle = 'rgb(150,150,150)';
+        ctx.fill();
+      }
+
+      // planetas + órbitas
+      for(let planet of viewing_system.planets){
+        planet.angle += planet.speed;
+        let px = cx + planet.radius * Math.cos(planet.angle) * scale * 0.55 * DPR;
+        let py = cy + planet.radius * Math.sin(planet.angle) * scale * 0.55 * DPR;
+
+        // órbita externa sutil
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(1, Math.round(planet.radius * scale * 0.55 * DPR)), 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(70,70,70,0.25)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        drawPlanet(px, py, planet, scale);
+      }
+
+      drawCloseButton();
+      ctx.font = `${Math.round(20 * DPR)}px Arial`;
+      ctx.fillStyle = 'white';
+      ctx.fillText(viewing_system.name, Math.round(20*DPR), Math.round(30*DPR));
+    }
+    return;
+  }
+
+  // --- desenhar galáxia ---
+  // partículas (estrelas/sistemas)
+  for(let p of particles){
+    if(p.is_black_hole){
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, Math.max(1, Math.round(p.size)), 0, Math.PI*2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      continue;
+    }
+
+    // atualiza theta já em update() mas deixar redundante leve
+    // p.theta += p.angular_speed;
+
+    let x = p.r * Math.cos(p.theta);
+    let y = p.r * Math.sin(p.theta);
+    y *= Math.cos(inclination);
+    let xr = x*Math.cos(camera_angle) - y*Math.sin(camera_angle);
+    let yr = x*Math.sin(camera_angle) + y*Math.cos(camera_angle);
+
+    let sx = centerX + xr * DPR;
+    let sy = centerY + yr * DPR;
+
+    // brilho variável
+    let c = p.color[0];
+    ctx.fillStyle = `rgb(${c},${c},${c})`;
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.max(0.6, 1*DPR), 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+/* --- desenha botão fechar X (em canto superior direito) --- */
+function drawCloseButton(){
+  let pad = Math.round(20*DPR);
+  button_rect.w = button_rect.h = Math.round(72 * DPR);
+  button_rect.x = canvas.width - button_rect.w - pad;
+  button_rect.y = pad;
+
+  ctx.fillStyle = 'white';
+  ctx.fillRect(button_rect.x, button_rect.y, button_rect.w, button_rect.h);
+  ctx.fillStyle = 'black';
+  ctx.font = `${Math.round(44 * DPR)}px Arial`;
+  ctx.fillText('X', button_rect.x + Math.round(22*DPR), button_rect.y + Math.round(50*DPR));
+}
+
+/* --- main animation loop --- */
+function loop(now){
+  let dt = (now - lastTime) / 16.6667; // frames scaling (approx FPS)
+  lastTime = now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+lastTime = performance.now();
+requestAnimationFrame(loop);
+
+/* --- iniciar --- */
+resizeCanvas();
+
+/* --- helpers finais --- */
+function random(min,max){ return Math.random()*(max-min)+min; }
+
+/* --- lidando com redimensionamento do mundo quando tela muda --- */
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  // refaz partículas com novo GALAXY_RADIUS mantendo estrutura
+  // para manter IDs parecidos, refaz
+  rebuildParticles();
+});
+
+/* --- função para reconstruir com nova GALAXY_RADIUS --- */
+function rebuildParticles(){
+  // recalcula GALAXY_RADIUS antes de usar
+  GALAXY_RADIUS = Math.min(canvas.width, canvas.height)/2 - 80*DPR;
+  particles = [];
+  for(let i=0;i<NUM_PARTICLES;i++) particles.push(make_system(i));
+  particles.push(make_black_hole());
+}
+
+/* --- utilidade para debug rápido (opcional) --- */
+window.__galaxy = { particles, rebuild: rebuildParticles };
+
+</script>
+</body>
+  </html>
