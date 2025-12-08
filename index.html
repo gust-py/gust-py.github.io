@@ -1,120 +1,103 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jarvis IA — Demo Avançada</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistente IA — Chat</title>
 <style>
-html,body{margin:0;padding:0;height:100%;width:100%;overflow:hidden;background:#000;color:#fff;font-family:sans-serif}
-body{display:flex;justify-content:center;align-items:center;flex-direction:column}
-#app{position:relative;width:100%;height:100%}
-canvas#background{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0}
-#chatContainer{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:90%;max-width:600px;background:rgba(0,0,0,0.7);border-radius:12px;display:flex;flex-direction:column;z-index:2}
-#messages{flex:1;padding:10px;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:6px;max-height:400px}
-.message{padding:8px 12px;border-radius:10px;max-width:80%;line-height:1.3;word-wrap:break-word;}
-.user{align-self:flex-end;background:linear-gradient(90deg,#2b6bff,#66ccff);color:#000}
-.bot{align-self:flex-start;background:#111;border:1px solid rgba(255,255,255,0.1)}
-#composer{display:flex;padding:8px;border-top:1px solid rgba(255,255,255,0.2)}
-#inputMessage{flex:1;padding:8px;border-radius:8px;border:none;background:#222;color:#fff;outline:none}
-#sendBtn{padding:8px 12px;border:none;border-radius:8px;background:#2b6bff;color:#fff;font-weight:bold;cursor:pointer;margin-left:6px}
-.stars{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%}
-.pokemon{position:absolute;width:32px;height:32px;image-rendering:pixelated}
+  html, body {
+    margin:0; padding:0; height:100%; background:#000; color:#fff; font-family:Arial, sans-serif;
+    overflow:hidden;
+  }
+  canvas#stars { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; }
+  .app { position:relative; z-index:1; display:flex; flex-direction:column; height:100%; max-width:800px; margin:auto; }
+  .messages { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column-reverse; gap:8px; }
+  .msg { padding:10px 14px; border-radius:10px; max-width:80%; line-height:1.4; }
+  .user { align-self:flex-end; background:linear-gradient(90deg,#2b6bff,#66ccff); color:#001; }
+  .bot { align-self:flex-start; background:#111; border:1px solid rgba(255,255,255,0.05); }
+  .composer { display:flex; padding:10px; gap:8px; border-top:1px solid rgba(255,255,255,0.1); }
+  textarea { flex:1; padding:10px; border-radius:8px; border:0; background:#111; color:#fff; resize:none; }
+  button { padding:10px 12px; border-radius:8px; border:0; background:#66ccff; color:#001; font-weight:700; cursor:pointer; }
+  footer { text-align:center; padding:6px; font-size:12px; color:#888; }
 </style>
 </head>
 <body>
-<div id="app">
-<canvas id="background"></canvas>
-<div id="chatContainer">
-<div id="messages"></div>
-<div id="composer">
-<input type="text" id="inputMessage" placeholder="Escreva algo..." />
-<button id="sendBtn">Enviar</button>
+
+<canvas id="stars"></canvas>
+<div class="app">
+  <div class="messages" id="messageContainer"></div>
+  <div class="composer">
+    <textarea id="input" placeholder="Digite algo..."></textarea>
+    <button id="sendBtn">Enviar</button>
+  </div>
 </div>
-</div>
-</div>
+<footer>Assistente IA • Powered by Hugging Face</footer>
+
 <script>
-// --- BACKGROUND ESTRELAS ---
-const canvas = document.getElementById('background');
+/* --- Fundo estrelado --- */
+const canvas = document.getElementById('stars');
 const ctx = canvas.getContext('2d');
-let W = canvas.width = window.innerWidth;
-let H = canvas.height = window.innerHeight;
-const NUM_STARS = 300;
 let stars = [];
-for(let i=0;i<NUM_STARS;i++){
-    stars.push({x:Math.random()*W,y:Math.random()*H,z:Math.random()*1});
-}
+function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+window.addEventListener('resize', resize);
+resize();
+for(let i=0;i<200;i++){ stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.2+0.2,speed:Math.random()*0.2+0.05}); }
 function drawStars(){
-    ctx.fillStyle='black';
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='white';
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     for(let s of stars){
-        ctx.fillRect(s.x,s.y,2*s.z,2*s.z);
-        s.y+=0.5*s.z;
-        if(s.y>H){s.y=0;s.x=Math.random()*W;}
+        s.x -= s.speed;
+        if(s.x<0){ s.x=canvas.width; s.y=Math.random()*canvas.height; }
+        ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
     }
+    requestAnimationFrame(drawStars);
 }
-function animateBackground(){drawStars();requestAnimationFrame(animateBackground);}
-animateBackground();
-window.addEventListener('resize',()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight});
+drawStars();
 
-// --- POKEMON SPRITES ---
-const POKE_IMAGES = ["https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png","https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png"];
-let pokemons=[];
-for(let i=0;i<10;i++){
-    let img = new Image();
-    img.src = POKE_IMAGES[Math.floor(Math.random()*POKE_IMAGES.length)];
-    let obj={img:img,x:Math.random()*W,y:Math.random()*H,dx:(Math.random()*2+0.5),dy:(Math.random()*2+0.5)};
-    pokemons.push(obj);
-}
-function drawPokemons(){
-    for(let p of pokemons){
-        ctx.drawImage(p.img,p.x,p.y,32,32);
-        p.x+=p.dx;
-        p.y+=p.dy;
-        if(p.x>W)p.x=-32;if(p.y>H)p.y=-32;
-    }
-}
-function animatePokemons(){drawPokemons();requestAnimationFrame(animatePokemons);}
-animatePokemons();
-
-// --- CHAT UI ---
-const messages = document.getElementById('messages');
-const inputMessage = document.getElementById('inputMessage');
+/* --- Chat --- */
+const input = document.getElementById('input');
 const sendBtn = document.getElementById('sendBtn');
-function appendMessage(text,who){
-    const div=document.createElement('div');
-    div.className='message '+who;
-    div.textContent=text;
-    messages.prepend(div);
-}
-sendBtn.addEventListener('click',()=>{sendMessage();});
-inputMessage.addEventListener('keydown',(e)=>{if(e.key==='Enter'){e.preventDefault();sendMessage();}});
+const container = document.getElementById('messageContainer');
 
-// --- CONEXÃO COM SERVER ---
+const HF_API_KEY = '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'; // sua chave Hugging Face
+const HF_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2'; // modelo desejado
+
+function appendMessage(text,who='bot'){
+    const el = document.createElement('div');
+    el.className='msg '+(who==='user'?'user':'bot');
+    el.textContent=text;
+    container.prepend(el);
+}
+
+async function queryHF(prompt){
+    const url = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+    const headers = { 'Authorization':'Bearer '+HF_API_KEY, 'Content-Type':'application/json' };
+    const body = JSON.stringify({inputs:prompt, parameters:{max_new_tokens:256, temperature:0.7}});
+    const res = await fetch(url,{method:'POST', headers, body});
+    if(!res.ok) throw new Error('Erro na API HF');
+    const data = await res.json();
+    if(Array.isArray(data) && data[0]?.generated_text) return data[0].generated_text;
+    if(data.generated_text) return data.generated_text;
+    return JSON.stringify(data);
+}
+
 async function sendMessage(){
-    const text = inputMessage.value.trim();
-    if(!text)return;
+    const text = input.value.trim();
+    if(!text) return;
     appendMessage(text,'user');
-    inputMessage.value='';
-    appendMessage('Processando...','bot');
+    input.value='';
+    const loader = appendMessage('…','bot');
     try{
-        const resp = await fetch('http://localhost:3000/query',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({query:text})
-        });
-        const data = await resp.json();
-        messages.firstChild.textContent = data.answer;
+        const reply = await queryHF(text);
+        loader.textContent = reply;
     }catch(err){
-        messages.firstChild.textContent='Erro ao acessar servidor';
-        console.error(err);
+        loader.textContent='Erro: '+err.message;
     }
+    container.scrollTop=0;
 }
 
-// --- UTILITÁRIOS E ANIMAÇÃO ---
-function loop(){drawStars();drawPokemons();requestAnimationFrame(loop);}
-loop();
-
+sendBtn.addEventListener('click',sendMessage);
+input.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } });
 </script>
+
 </body>
 </html>
