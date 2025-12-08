@@ -2,12 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Galáxia Interativa - MHC3000</title>
 <style>
-  html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Arial,Helvetica,sans-serif}
-  canvas{display:block; touch-action: none}
-  #fallback{position:fixed;left:10px;bottom:10px;background:rgba(0,0,0,0.4);padding:8px;border-radius:6px;font-size:13px}
+  html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Inter, Arial, Helvetica, sans-serif}
+  body{display:flex;align-items:center;justify-content:center;overflow:hidden}
+  canvas{display:block; touch-action:none; background:transparent}
+  #fallback{position:fixed;left:10px;bottom:10px;background:rgba(0,0,0,0.45);padding:8px;border-radius:6px;font-size:13px}
 </style>
 </head>
 <body>
@@ -15,30 +16,19 @@
 <div id="fallback">Toque ou clique em uma estrela para viajar • Esc para sair do sistema</div>
 
 <script>
-/* --- Configurações gerais (seguindo o seu código original) --- */
+/* ---------- CONFIGURAÇÕES E ESTADO ---------- */
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d', { alpha: false });
 
 let DPR = Math.max(1, window.devicePixelRatio || 1);
-
-function resizeCanvas(){
-  canvas.width = Math.floor(window.innerWidth * DPR);
-  canvas.height = Math.floor(window.innerHeight * DPR);
-  canvas.style.width = window.innerWidth + 'px';
-  canvas.style.height = window.innerHeight + 'px';
-  centerX = canvas.width/2;
-  centerY = canvas.height/2;
-  GALAXY_RADIUS = Math.min(canvas.width, canvas.height)/2 - 80*DPR;
-}
-window.addEventListener('resize', () => { DPR = Math.max(1, window.devicePixelRatio || 1); resizeCanvas(); });
-
-let centerX=0, centerY=0;
-let WIDTH = () => canvas.width;
-let HEIGHT = () => canvas.height;
-
-let NUM_PARTICLES = 2000;
-const NUM_ARMS = 7;
+let centerX = 0, centerY = 0;
 let GALAXY_RADIUS = 0;
+
+// Número base — ajustado dinamicamente em resize para evitar lag
+const BASE_PARTICLES = 2000;
+let NUM_PARTICLES = BASE_PARTICLES;
+
+const NUM_ARMS = 7;
 const SPIRAL_FACTOR = 5;
 const ARM_SPREAD = 0.12;
 const CAMERA_SPEED = 0.009;
@@ -59,13 +49,58 @@ let viewing_system = null;
 let zoom_progress = 0;
 
 /* botão X */
-let button_size = Math.round(72*DPR);
-let button_rect = { x:0, y:0, w:button_size, h:button_size };
+let button_rect = { x:0, y:0, w:0, h:0 };
 
-/* fonte simples - usaremos desenho com fillText */
+/* partículas / sistemas */
+let particles = [];
+
+/* ---------- UTILITÁRIOS ---------- */
 function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+function gaussianRandom(mean=0, stddev=1){
+  let u=0,v=0;
+  while(u===0) u = Math.random();
+  while(v===0) v = Math.random();
+  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  return num*stddev + mean;
+}
+function randomChoiceWeighted(arr, weights){
+  let sum = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*sum;
+  for(let i=0;i<arr.length;i++){
+    r -= weights[i];
+    if(r<=0) return arr[i];
+  }
+  return arr[arr.length-1];
+}
 
-/* --- BURACO NEGRO MHC3000 --- */
+/* ---------- REDIMENSIONAMENTO E LOD ---------- */
+function resizeCanvas(){
+  DPR = Math.max(1, window.devicePixelRatio || 1);
+  // canvas em pixels de dispositivo
+  canvas.width = Math.floor(window.innerWidth * DPR);
+  canvas.height = Math.floor(window.innerHeight * DPR);
+  // mostrar no tamanho CSS correto
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+
+  centerX = canvas.width / 2;
+  centerY = canvas.height / 2;
+  GALAXY_RADIUS = Math.min(canvas.width, canvas.height) / 2 - 80 * DPR;
+
+  // LOD: reduz partículas em telas pequenas / baixa resolução
+  if(window.innerWidth < 700) NUM_PARTICLES = Math.max(700, Math.floor(BASE_PARTICLES * 0.5));
+  else if(window.innerWidth < 1200) NUM_PARTICLES = Math.max(1000, Math.floor(BASE_PARTICLES * 0.75));
+  else NUM_PARTICLES = BASE_PARTICLES;
+
+  // botão tamanho recalculado
+  button_rect.w = button_rect.h = Math.round(72 * DPR);
+
+  // reconstrói partículas para novo GALAXY_RADIUS / NUM_PARTICLES
+  rebuildParticles();
+}
+window.addEventListener('resize', resizeCanvas);
+
+/* ---------- CRIAR ENTIDADES (mimetizando o Python) ---------- */
 function make_black_hole(){
   let accretion = [];
   const num_acc = 700;
@@ -86,10 +121,11 @@ function make_black_hole(){
   };
 }
 
-/* --- SISTEMAS NORMAIS --- */
 function make_system(index){
   let arm_index = index % NUM_ARMS;
   let r = GALAXY_RADIUS * Math.pow(Math.random(), 1.5);
+  // defender contra GALAXY_RADIUS = 0
+  if(GALAXY_RADIUS <= 0) GALAXY_RADIUS = Math.max(200 * DPR, Math.min(window.innerWidth, window.innerHeight) / 3);
   let base_angle = arm_index * 2 * Math.PI / NUM_ARMS;
   let theta = base_angle + SPIRAL_FACTOR * (r / GALAXY_RADIUS) + gaussianRandom(0, ARM_SPREAD);
   let angular_speed = 0.05 / (r + 5);
@@ -166,8 +202,6 @@ function make_system(index){
   };
 }
 
-/* --- criar galáxia --- */
-let particles = [];
 function rebuildParticles(){
   particles = [];
   for(let i=0;i<NUM_PARTICLES;i++){
@@ -175,74 +209,40 @@ function rebuildParticles(){
   }
   particles.push(make_black_hole());
 }
-resizeCanvas();
-rebuildParticles();
 
-/* --- utilitários --- */
-function gaussianRandom(mean=0, stddev=1){
-  // Box-Muller
-  let u=0,v=0;
-  while(u===0) u = Math.random();
-  while(v===0) v = Math.random();
-  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  return num*stddev + mean;
-}
-function randomChoiceWeighted(arr, weights){
-  if(typeof weights === 'number') return arr[Math.floor(Math.random()*arr.length)];
-  let sum = weights.reduce((a,b)=>a+b,0);
-  let r = Math.random()*sum;
-  for(let i=0;i<arr.length;i++){
-    r -= weights[i];
-    if(r<=0) return arr[i];
-  }
-  return arr[arr.length-1];
-}
-
-/* --- desenho de planeta (com luas, anéis) --- */
+/* ---------- DESENHO DE PLANETAS ---------- */
 function drawPlanet(px, py, planet, scale){
-  // planeta
   let planet_size = Math.max(1, Math.round((planet.size * scale) / 6));
-  ctx.beginPath();
-  ctx.arc(px, py, planet_size, 0, Math.PI*2);
-  ctx.fillStyle = 'white';
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(px, py, planet_size, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill();
 
-  // ringed
   if(planet.type === 'ringed'){
     ctx.beginPath();
     ctx.ellipse(px, py, planet_size*2.2, planet_size*0.9, 0, 0, Math.PI*2);
-    ctx.lineWidth = Math.max(1, Math.round(1*DPR*scale*0.6));
+    ctx.lineWidth = Math.max(1, Math.round(1 * DPR * scale * 0.6));
     ctx.strokeStyle = 'rgba(255,255,255,0.95)';
     ctx.stroke();
     ctx.lineWidth = 1;
   }
 
-  // luas
   for(let moon of planet.moons){
     moon.angle += moon.speed;
     let mx = px + moon.radius * Math.cos(moon.angle) * scale * 0.6;
     let my = py + moon.radius * Math.sin(moon.angle) * scale * 0.6;
     let msize = Math.max(1, Math.round(moon.size * scale / 6));
-    ctx.beginPath();
-    ctx.arc(mx, my, msize, 0, Math.PI*2);
-    ctx.fillStyle = 'rgb(180,180,180)';
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(mx, my, msize, 0, Math.PI*2); ctx.fillStyle = 'rgb(180,180,180)'; ctx.fill();
 
-    // desenha orbita sutil para referência (como no seu Pygame)
     ctx.beginPath();
     ctx.arc(px, py, Math.max(1, Math.round(moon.radius * scale * 0.6)), 0, Math.PI*2);
     ctx.strokeStyle = 'rgba(60,60,60,0.15)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.lineWidth = 1; ctx.stroke();
   }
 }
 
-/* --- input (mouse/touch/keyboard) --- */
+/* ---------- INPUT (mouse/touch/keyboard) ---------- */
 function pointerToCanvas(e){
   if(e.touches && e.touches.length) return { x: e.touches[0].clientX * DPR, y: e.touches[0].clientY * DPR };
   return { x: (e.clientX || e.pageX) * DPR, y: (e.clientY || e.pageY) * DPR };
 }
-
 canvas.addEventListener('pointerdown', (ev)=>{
   let p = pointerToCanvas(ev);
   handleClick(p.x, p.y);
@@ -253,12 +253,12 @@ window.addEventListener('keydown', (ev)=>{
   }
 });
 
-/* --- detectar clique nas partículas (como no Pygame) --- */
+/* ---------- LÓGICA DE CLIQUE NAS PARTÍCULAS ---------- */
 function handleClick(mx, my){
-  // botão fechar quando em view
   if(viewing_system){
-    let bx = canvas.width - button_rect.w - Math.round(20*DPR);
-    let by = Math.round(20*DPR);
+    let pad = Math.round(20 * DPR);
+    let bx = canvas.width - button_rect.w - pad;
+    let by = pad;
     if(mx >= bx && mx <= bx + button_rect.w && my >= by && my <= by + button_rect.h){
       viewing_system = null; zoom_progress = 0;
       return;
@@ -290,7 +290,7 @@ function handleClick(mx, my){
   }
 }
 
-/* --- main loop e estados: galaxia, viajando, visualizando sistema --- */
+/* ---------- UPDATE E DRAW ---------- */
 let lastTime = performance.now();
 function update(dt){
   camera_angle += CAMERA_SPEED * dt * 0.06;
@@ -306,15 +306,11 @@ function update(dt){
     }
   }
 
-  // atualiza particulas, angulos etc.
   for(let p of particles){
     if(p.is_black_hole) continue;
     p.theta += p.angular_speed * dt * 0.06;
-    // atualiza asteroides
     for(let a of p.asteroids) a.angle += a.speed * dt * 0.06;
-    // atualiza planetas (os planetas são atualizados na renderização)
   }
-  // atualiza disco do buraco negro
   let bh = particles.find(x => x.is_black_hole);
   if(bh){
     for(let a of bh.accretion) a.angle += a.speed * dt * 0.06;
@@ -322,17 +318,17 @@ function update(dt){
 }
 
 function draw(){
-  // fundo
+  // limpa tela (usando tamanho real do canvas)
   ctx.fillStyle = 'black';
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // se viajando, anima o rastro e pausa resto
+  // se viajando — rastro central
   if(traveling){
     let t = travel_progress;
     let r_trail = Math.round((8 + 60*(t*t)) * DPR);
     let alpha = Math.round(255 * t);
     ctx.save();
-    ctx.globalAlpha = clamp(alpha/255, 0.3, 0.9);
+    ctx.globalAlpha = clamp(alpha/255, 0.25, 0.95);
     ctx.beginPath();
     ctx.arc(centerX, centerY, r_trail, 0, Math.PI*2);
     ctx.fillStyle = 'white';
@@ -347,68 +343,45 @@ function draw(){
     let scale = 0.6 + zoom_progress*4.5;
 
     if(viewing_system.is_black_hole){
-      // buraco negro (esfera preta)
       ctx.beginPath();
       ctx.arc(cx, cy, Math.round(55 * scale * DPR), 0, Math.PI*2);
-      ctx.fillStyle = 'black';
-      ctx.fill();
+      ctx.fillStyle = 'black'; ctx.fill();
 
-      // lente gravitacional (halo branco)
       ctx.beginPath();
       ctx.arc(cx, cy, Math.round(65 * scale * DPR), 0, Math.PI*2);
-      ctx.lineWidth = Math.max(1, Math.round(2 * DPR));
-      ctx.strokeStyle = 'white';
-      ctx.stroke();
+      ctx.lineWidth = Math.max(1, Math.round(2 * DPR)); ctx.strokeStyle = 'white'; ctx.stroke();
       ctx.lineWidth = 1;
 
-      // disco branco
       for(let a of viewing_system.accretion){
-        let ax = cx + a.radius * Math.cos(a.angle) * scale * 0.45 * DPR;
-        let ay = cy + a.radius * Math.sin(a.angle) * scale * 0.45 * DPR;
+        let ax = cx + a.radius * Math.cos(a.angle) * scale * 0.45;
+        let ay = cy + a.radius * Math.sin(a.angle) * scale * 0.45;
         let size = Math.max(1, Math.round(a.size * (scale*0.3) * DPR));
-        ctx.beginPath();
-        ctx.arc(ax, ay, size, 0, Math.PI*2);
-        ctx.fillStyle = 'white';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(ax, ay, size, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill();
       }
 
-      // desenha botão X
       drawCloseButton();
-
-      // título
       ctx.font = `${Math.round(20 * DPR)}px Arial`;
       ctx.fillStyle = 'white';
       ctx.fillText(viewing_system.name || 'MHC3000', Math.round(20*DPR), Math.round(30*DPR));
     } else {
-      // estrela
-      ctx.beginPath();
-      ctx.arc(cx, cy, Math.round(10 * scale * DPR), 0, Math.PI*2);
-      ctx.fillStyle = `rgb(${viewing_system.color[0]},${viewing_system.color[1]},${viewing_system.color[2]})`;
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, Math.round(10 * scale * DPR), 0, Math.PI*2);
+      ctx.fillStyle = `rgb(${viewing_system.color[0]},${viewing_system.color[1]},${viewing_system.color[2]})`; ctx.fill();
 
-      // cinturão
       for(let ast of viewing_system.asteroids){
-        let ax = cx + ast.radius * Math.cos(ast.angle) * scale * 0.5 * DPR;
-        let ay = cy + ast.radius * Math.sin(ast.angle) * scale * 0.5 * DPR;
+        let ax = cx + ast.radius * Math.cos(ast.angle) * scale * 0.5;
+        let ay = cy + ast.radius * Math.sin(ast.angle) * scale * 0.5;
         let size = Math.max(1, Math.round(ast.size * (scale*0.25) * DPR));
-        ctx.beginPath();
-        ctx.arc(ax, ay, size, 0, Math.PI*2);
-        ctx.fillStyle = 'rgb(150,150,150)';
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(ax, ay, size, 0, Math.PI*2); ctx.fillStyle = 'rgb(150,150,150)'; ctx.fill();
       }
 
-      // planetas + órbitas
       for(let planet of viewing_system.planets){
         planet.angle += planet.speed;
-        let px = cx + planet.radius * Math.cos(planet.angle) * scale * 0.55 * DPR;
-        let py = cy + planet.radius * Math.sin(planet.angle) * scale * 0.55 * DPR;
+        let px = cx + planet.radius * Math.cos(planet.angle) * scale * 0.55;
+        let py = cy + planet.radius * Math.sin(planet.angle) * scale * 0.55;
 
-        // órbita externa sutil
         ctx.beginPath();
-        ctx.arc(cx, cy, Math.max(1, Math.round(planet.radius * scale * 0.55 * DPR)), 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(70,70,70,0.25)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        ctx.arc(cx, cy, Math.max(1, Math.round(planet.radius * scale * 0.55)), 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(70,70,70,0.25)'; ctx.lineWidth = 1; ctx.stroke();
 
         drawPlanet(px, py, planet, scale);
       }
@@ -421,19 +394,13 @@ function draw(){
     return;
   }
 
-  // --- desenhar galáxia ---
-  // partículas (estrelas/sistemas)
+  // desenhar galáxia (partículas)
   for(let p of particles){
     if(p.is_black_hole){
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, Math.max(1, Math.round(p.size)), 0, Math.PI*2);
-      ctx.fillStyle = 'white';
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(centerX, centerY, Math.max(1, Math.round(p.size)), 0, Math.PI*2);
+      ctx.fillStyle = 'white'; ctx.fill();
       continue;
     }
-
-    // atualiza theta já em update() mas deixar redundante leve
-    // p.theta += p.angular_speed;
 
     let x = p.r * Math.cos(p.theta);
     let y = p.r * Math.sin(p.theta);
@@ -441,21 +408,19 @@ function draw(){
     let xr = x*Math.cos(camera_angle) - y*Math.sin(camera_angle);
     let yr = x*Math.sin(camera_angle) + y*Math.cos(camera_angle);
 
-    let sx = centerX + xr * DPR;
-    let sy = centerY + yr * DPR;
+    let sx = centerX + xr;
+    let sy = centerY + yr;
 
-    // brilho variável
     let c = p.color[0];
     ctx.fillStyle = `rgb(${c},${c},${c})`;
-    ctx.beginPath();
-    ctx.arc(sx, sy, Math.max(0.6, 1*DPR), 0, Math.PI*2);
-    ctx.fill();
+    // desenhar ponto simples e rápido
+    ctx.fillRect(Math.round(sx), Math.round(sy), Math.max(1, Math.round(1 * DPR)), Math.max(1, Math.round(1 * DPR)));
   }
 }
 
-/* --- desenha botão fechar X (em canto superior direito) --- */
+/* ---------- BOTÃO FECHAR ---------- */
 function drawCloseButton(){
-  let pad = Math.round(20*DPR);
+  let pad = Math.round(20 * DPR);
   button_rect.w = button_rect.h = Math.round(72 * DPR);
   button_rect.x = canvas.width - button_rect.w - pad;
   button_rect.y = pad;
@@ -467,42 +432,28 @@ function drawCloseButton(){
   ctx.fillText('X', button_rect.x + Math.round(22*DPR), button_rect.y + Math.round(50*DPR));
 }
 
-/* --- main animation loop --- */
+/* ---------- LOOP PRINCIPAL ---------- */
 function loop(now){
-  let dt = (now - lastTime) / 16.6667; // frames scaling (approx FPS)
+  let dt = (now - lastTime) / 16.6667;
   lastTime = now;
   update(dt);
   draw();
   requestAnimationFrame(loop);
 }
-lastTime = performance.now();
-requestAnimationFrame(loop);
 
-/* --- iniciar --- */
-resizeCanvas();
-
-/* --- helpers finais --- */
-function random(min,max){ return Math.random()*(max-min)+min; }
-
-/* --- lidando com redimensionamento do mundo quando tela muda --- */
-window.addEventListener('resize', () => {
-  resizeCanvas();
-  // refaz partículas com novo GALAXY_RADIUS mantendo estrutura
-  // para manter IDs parecidos, refaz
-  rebuildParticles();
-});
-
-/* --- função para reconstruir com nova GALAXY_RADIUS --- */
-function rebuildParticles(){
-  // recalcula GALAXY_RADIUS antes de usar
-  GALAXY_RADIUS = Math.min(canvas.width, canvas.height)/2 - 80*DPR;
-  particles = [];
-  for(let i=0;i<NUM_PARTICLES;i++) particles.push(make_system(i));
-  particles.push(make_black_hole());
+/* ---------- INICIALIZAÇÃO ---------- */
+function start(){
+  resizeCanvas(); // também chama rebuildParticles
+  lastTime = performance.now();
+  requestAnimationFrame(loop);
 }
+start();
 
-/* --- utilidade para debug rápido (opcional) --- */
+/* ---------- DEBUG / HELP ---------- */
 window.__galaxy = { particles, rebuild: rebuildParticles };
+
+/* ---------- ÚTEIS ---------- */
+function random(min,max){ return Math.random()*(max-min)+min; }
 
 </script>
 </body>
