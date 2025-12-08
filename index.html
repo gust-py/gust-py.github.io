@@ -2,102 +2,120 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Assistente IA — Chat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PokéWeb MMO</title>
 <style>
-  html, body {
-    margin:0; padding:0; height:100%; background:#000; color:#fff; font-family:Arial, sans-serif;
-    overflow:hidden;
-  }
-  canvas#stars { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; }
-  .app { position:relative; z-index:1; display:flex; flex-direction:column; height:100%; max-width:800px; margin:auto; }
-  .messages { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column-reverse; gap:8px; }
-  .msg { padding:10px 14px; border-radius:10px; max-width:80%; line-height:1.4; }
-  .user { align-self:flex-end; background:linear-gradient(90deg,#2b6bff,#66ccff); color:#001; }
-  .bot { align-self:flex-start; background:#111; border:1px solid rgba(255,255,255,0.05); }
-  .composer { display:flex; padding:10px; gap:8px; border-top:1px solid rgba(255,255,255,0.1); }
-  textarea { flex:1; padding:10px; border-radius:8px; border:0; background:#111; color:#fff; resize:none; }
-  button { padding:10px 12px; border-radius:8px; border:0; background:#66ccff; color:#001; font-weight:700; cursor:pointer; }
-  footer { text-align:center; padding:6px; font-size:12px; color:#888; }
+  body{margin:0;overflow:hidden;background:#111;color:#fff;font-family:sans-serif;}
+  #gameCanvas{display:block;background:#0b0f13;}
+  #inventory{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.6);padding:10px;border-radius:8px;}
+  .item{width:32px;height:32px;margin:2px;display:inline-block;background-size:contain;background-repeat:no-repeat;}
 </style>
 </head>
 <body>
-
-<canvas id="stars"></canvas>
-<div class="app">
-  <div class="messages" id="messageContainer"></div>
-  <div class="composer">
-    <textarea id="input" placeholder="Digite algo..."></textarea>
-    <button id="sendBtn">Enviar</button>
-  </div>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="inventory">
+  <div class="item" id="pokeball"></div>
+  <div class="item" id="greatball"></div>
+  <div class="item" id="ultraball"></div>
+  <div class="item" id="potion"></div>
 </div>
-<footer>Assistente IA • Powered by Hugging Face</footer>
-
 <script>
-/* --- Fundo estrelado --- */
-const canvas = document.getElementById('stars');
+// --- Configurações ---
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let stars = [];
-function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
-window.addEventListener('resize', resize);
-resize();
-for(let i=0;i<200;i++){ stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.2+0.2,speed:Math.random()*0.2+0.05}); }
-function drawStars(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    for(let s of stars){
-        s.x -= s.speed;
-        if(s.x<0){ s.x=canvas.width; s.y=Math.random()*canvas.height; }
-        ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+
+const TILE_SIZE = 64;
+const MAP_WIDTH = 12;
+const MAP_HEIGHT = 9;
+
+const map = [
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,1,1,0,0,0,1,1,1,1,0],
+  [0,1,0,1,0,0,0,1,0,0,1,0],
+  [0,1,0,1,1,1,1,1,0,0,1,0],
+  [0,1,0,0,0,0,0,1,0,0,1,0],
+  [0,1,1,1,1,0,0,1,1,1,1,0],
+  [0,0,0,0,1,0,0,0,0,0,0,0],
+  [0,1,1,0,1,1,1,0,1,1,1,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0],
+];
+
+const player = {x:5*TILE_SIZE, y:5*TILE_SIZE, sprite:null};
+
+// NPCs / Pokémons aleatórios
+let npcs = [
+  {x:2*TILE_SIZE, y:2*TILE_SIZE, sprite:null, type:'pokemon'},
+  {x:9*TILE_SIZE, y:6*TILE_SIZE, sprite:null, type:'trainer'},
+];
+
+// --- Carregar sprites da PokéAPI ---
+function loadImage(url){ return new Promise(resolve=>{ const img=new Image(); img.src=url; img.onload=()=>resolve(img); }); }
+
+async function loadSprites(){
+  player.sprite = await loadImage('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'); // Pikachu
+  npcs[0].sprite = await loadImage('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'); // Bulbasaur
+  npcs[1].sprite = await loadImage('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/trainers/black-white/1.png'); // treinador
+  document.getElementById('pokeball').style.backgroundImage='url(https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png)';
+  document.getElementById('greatball').style.backgroundImage='url(https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png)';
+  document.getElementById('ultraball').style.backgroundImage='url(https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png)';
+  document.getElementById('potion').style.backgroundImage='url(https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/potion.png)';
+}
+
+// --- Movimento do jogador ---
+const keys = {};
+document.addEventListener('keydown', e=>keys[e.key]=true);
+document.addEventListener('keyup', e=>keys[e.key]=false);
+
+function movePlayer(){
+  if(keys['ArrowUp'] && player.y-TILE_SIZE>=0) player.y -= TILE_SIZE;
+  if(keys['ArrowDown'] && player.y+TILE_SIZE<=canvas.height-TILE_SIZE) player.y += TILE_SIZE;
+  if(keys['ArrowLeft'] && player.x-TILE_SIZE>=0) player.x -= TILE_SIZE;
+  if(keys['ArrowRight'] && player.x+TILE_SIZE<=canvas.width-TILE_SIZE) player.x += TILE_SIZE;
+}
+
+// --- Movimento simples dos NPCs ---
+function moveNPCs(){
+  for(let npc of npcs){
+    const dir=Math.floor(Math.random()*4);
+    switch(dir){
+      case 0: if(npc.y-TILE_SIZE>=0) npc.y -= TILE_SIZE; break;
+      case 1: if(npc.y+TILE_SIZE<=canvas.height-TILE_SIZE) npc.y += TILE_SIZE; break;
+      case 2: if(npc.x-TILE_SIZE>=0) npc.x -= TILE_SIZE; break;
+      case 3: if(npc.x+TILE_SIZE<=canvas.width-TILE_SIZE) npc.x += TILE_SIZE; break;
     }
-    requestAnimationFrame(drawStars);
-}
-drawStars();
-
-/* --- Chat --- */
-const input = document.getElementById('input');
-const sendBtn = document.getElementById('sendBtn');
-const container = document.getElementById('messageContainer');
-
-const HF_API_KEY = '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'; // sua chave Hugging Face
-const HF_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2'; // modelo desejado
-
-function appendMessage(text,who='bot'){
-    const el = document.createElement('div');
-    el.className='msg '+(who==='user'?'user':'bot');
-    el.textContent=text;
-    container.prepend(el);
+  }
 }
 
-async function queryHF(prompt){
-    const url = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
-    const headers = { 'Authorization':'Bearer '+HF_API_KEY, 'Content-Type':'application/json' };
-    const body = JSON.stringify({inputs:prompt, parameters:{max_new_tokens:256, temperature:0.7}});
-    const res = await fetch(url,{method:'POST', headers, body});
-    if(!res.ok) throw new Error('Erro na API HF');
-    const data = await res.json();
-    if(Array.isArray(data) && data[0]?.generated_text) return data[0].generated_text;
-    if(data.generated_text) return data.generated_text;
-    return JSON.stringify(data);
-}
-
-async function sendMessage(){
-    const text = input.value.trim();
-    if(!text) return;
-    appendMessage(text,'user');
-    input.value='';
-    const loader = appendMessage('…','bot');
-    try{
-        const reply = await queryHF(text);
-        loader.textContent = reply;
-    }catch(err){
-        loader.textContent='Erro: '+err.message;
+// --- Desenhar mapa ---
+function drawMap(){
+  for(let y=0;y<MAP_HEIGHT;y++){
+    for(let x=0;x<MAP_WIDTH;x++){
+      if(map[y][x]===0) ctx.fillStyle='#222';
+      else ctx.fillStyle='#444';
+      ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
-    container.scrollTop=0;
+  }
 }
 
-sendBtn.addEventListener('click',sendMessage);
-input.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } });
+// --- Desenhar personagens ---
+function drawEntities(){
+  ctx.drawImage(player.sprite, player.x, player.y, TILE_SIZE, TILE_SIZE);
+  for(let npc of npcs){
+    ctx.drawImage(npc.sprite, npc.x, npc.y, TILE_SIZE, TILE_SIZE);
+  }
+}
+
+// --- Game loop ---
+async function gameLoop(){
+  movePlayer();
+  moveNPCs();
+  drawMap();
+  drawEntities();
+  requestAnimationFrame(gameLoop);
+}
+
+// --- Start ---
+loadSprites().then(()=>{ gameLoop(); });
 </script>
-
 </body>
 </html>
