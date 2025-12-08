@@ -1,460 +1,395 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Galáxia Interativa - MHC3000</title>
-<style>
-  html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Inter, Arial, Helvetica, sans-serif}
-  body{display:flex;align-items:center;justify-content:center;overflow:hidden}
-  canvas{display:block; touch-action:none; background:transparent}
-  #fallback{position:fixed;left:10px;bottom:10px;background:rgba(0,0,0,0.45);padding:8px;border-radius:6px;font-size:13px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Space Engine Web — v0.1 (realista)</title>
+  <style>
+    :root{
+      --ui-bg: rgba(0,0,0,0.45);
+      --accent: #66ccff;
+      --muted: #bbbbbb;
+    }
+    html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Inter,system-ui,Roboto,Segoe UI,Arial}
+    #container{width:100%;height:100%;position:relative;overflow:hidden}
+    canvas{display:block}
+    #ui{
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      background: var(--ui-bg);
+      padding: 10px;
+      border-radius: 8px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      min-width: 220px;
+    }
+    #ui h1{margin:0 0 6px 0;font-size:15px}
+    #ui label{display:block;font-size:12px;color:var(--muted);margin-top:8px}
+    input[type=range]{width:100%}
+    .row{display:flex;gap:8px;align-items:center;margin-top:8px}
+    button{background:var(--accent);border:0;padding:8px 10px;border-radius:6px;color:#001;cursor:pointer;font-weight:600}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted)}
+    #info{position:absolute;right:12px;top:12px;background:var(--ui-bg);padding:8px;border-radius:8px;font-size:13px;min-width:180px}
+    a.small{color:var(--muted);font-size:12px;text-decoration:none}
+    .muted{color:var(--muted);font-size:12px}
+    footer{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:12px;color:var(--muted)}
+  </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="fallback">Toque ou clique em uma estrela para viajar • Esc para sair do sistema</div>
+  <div id="container"></div>
 
-<script>
-/* ---------- CONFIGURAÇÕES E ESTADO ---------- */
-const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d', { alpha: false });
+  <div id="ui">
+    <h1>Space Engine — v0.1</h1>
+    <div class="muted">Versão realista inicial: estrela, planeta, lua — órbitas Keplerianas</div>
 
-let DPR = Math.max(1, window.devicePixelRatio || 1);
-let centerX = 0, centerY = 0;
-let GALAXY_RADIUS = 0;
+    <label>Velocidade do tempo: <span id="speedLabel">1×</span></label>
+    <input id="speed" type="range" min="0" max="2000" value="1" step="1" />
 
-// Número base — ajustado dinamicamente em resize para evitar lag
-const BASE_PARTICLES = 2000;
-let NUM_PARTICLES = BASE_PARTICLES;
+    <div class="row">
+      <button id="pauseBtn">Pausar</button>
+      <button id="resetBtn" class="secondary">Resetar câmera</button>
+    </div>
 
-const NUM_ARMS = 7;
-const SPIRAL_FACTOR = 5;
-const ARM_SPREAD = 0.12;
-const CAMERA_SPEED = 0.009;
+    <label>Parâmetros do planeta</label>
+    <div class="row">
+      <button id="toggleOrbit" class="secondary">Mostrar órbita</button>
+      <div style="flex:1"></div>
+    </div>
 
-let INCLINATION_START = 0 * Math.PI/180;
-let INCLINATION_END = 0;
+    <label class="muted">Controles: mouse arrasta / scroll zoom / WASD move</label>
+    <div style="height:6px"></div>
+    <a class="small" href="#" id="publishHint">Pronto pra GitHub Pages</a>
+  </div>
 
-let camera_angle = 0;
-let inclination = INCLINATION_START;
+  <div id="info">
+    <div><strong id="objName">Sol — Sistema Demo</strong></div>
+    <div class="muted" id="meta">Distância planeta-sol: <span id="dist">—</span></div>
+    <div class="muted" id="meta2">Período orbital (simulado): <span id="period">—</span></div>
+  </div>
 
-/* viagem interestelar */
-let traveling = false;
-let travel_progress = 0;
-let travel_target = null;
+  <footer>Projeto experimental — Space Engine Web • Use devtools se quiser ajustar</footer>
 
-/* estado visualização */
-let viewing_system = null;
-let zoom_progress = 0;
+<script type="module">
+/*
+  Space Engine Web v0.1
+  - Three.js via CDN modules
+  - Órbita elíptica, inclinação, rotação axial, lua
+  - UI simples para velocidade, pausa, orbit toggle
+  - Projetado para rodar em GitHub Pages (static)
+*/
 
-/* botão X */
-let button_rect = { x:0, y:0, w:0, h:0 };
+/* ---------- imports (CDN) ---------- */
+import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js';
 
-/* partículas / sistemas */
-let particles = [];
+/* ---------- cena, câmera, renderer ---------- */
+const container = document.getElementById('container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-/* ---------- UTILITÁRIOS ---------- */
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function gaussianRandom(mean=0, stddev=1){
-  let u=0,v=0;
-  while(u===0) u = Math.random();
-  while(v===0) v = Math.random();
-  let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
-  return num*stddev + mean;
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(window.devicePixelRatio || 1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1e8);
+camera.position.set(0, 30, 120);
+
+/* ---------- controls ---------- */
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.12;
+controls.screenSpacePanning = false;
+
+/* WASD-based relative flight (assist) */
+const keyState = {};
+window.addEventListener('keydown', (e)=>keyState[e.key.toLowerCase()] = true);
+window.addEventListener('keyup', (e)=>keyState[e.key.toLowerCase()] = false);
+
+/* ---------- unidades e escala (real -> visual) ----------
+   We'll use astronomical units (AU) as base for realism:
+   1 AU = 149,597,870 km.
+   For visuals we compress distances by SCALE (smaller => visible).
+*/
+const AU = 149597870; // in km (informational)
+const SCALE = 0.0000025; // compress factor to make distances visible
+// For display we still calculate period in "days" if we use Newton's form.
+
+const G = 6.67430e-20; // gravitational constant in km^3 kg^-1 s^-2 (approx for km units) - for info but we will use Kepler-ish approach
+
+/* ---------- Star (sol) ---------- */
+const starGroup = new THREE.Group();
+scene.add(starGroup);
+
+const starRadiusKm = 695700; // sun radius in km
+const starVisRadius = Math.max(3, starRadiusKm * SCALE * 0.0005); // compress more for visibility
+const starGeo = new THREE.SphereGeometry(starVisRadius, 32, 32);
+const starMat = new THREE.MeshBasicMaterial({ color: 0xffee88, emissive: 0xffee88 });
+const starMesh = new THREE.Mesh(starGeo, starMat);
+starGroup.add(starMesh);
+
+// star light: physically bright point light
+const starLight = new THREE.PointLight(0xfff6d8, 2.5, 0, 2); // intensity tuned
+starLight.position.set(0,0,0);
+scene.add(starLight);
+
+/* ---------- starfield (points) ---------- */
+function makeStarfield(count=4000, radius=1e6){
+  const geom = new THREE.BufferGeometry();
+  const pos = new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const r = (0.3 + Math.random()*0.7) * radius; // radius variation
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.acos(2*Math.random()-1);
+    const x = r * Math.sin(phi) * Math.cos(theta);
+    const y = r * Math.sin(phi) * Math.sin(theta);
+    const z = r * Math.cos(phi);
+    pos[i*3] = x * SCALE; pos[i*3+1] = y * SCALE; pos[i*3+2] = z * SCALE;
+  }
+  geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const material = new THREE.PointsMaterial({ size: 0.6, sizeAttenuation: true, color: 0xffffff, opacity:0.9, transparent:true});
+  const points = new THREE.Points(geom, material);
+  scene.add(points);
 }
-function randomChoiceWeighted(arr, weights){
-  let sum = weights.reduce((a,b)=>a+b,0);
-  let r = Math.random()*sum;
-  for(let i=0;i<arr.length;i++){
-    r -= weights[i];
-    if(r<=0) return arr[i];
+makeStarfield(3000, 8e6);
+
+/* ---------- Planet (Kepler-like orbit) ---------- */
+/*
+  We'll parametrize the planet by:
+    a = semi-major axis (km)
+    e = eccentricity (0=circle)
+    incl = inclination (deg)
+    omega = argument of periapsis (deg)
+    Omega = longitude of ascending node (deg)
+    M0 = mean anomaly at epoch (deg)
+  We'll simply use parametric ellipse (not solving Kepler's equation for speed)
+  For time propagation we advance an angle theta = 2π * t / T, where T is orbital period computed by Kepler's 3rd law.
+*/
+
+// planet parameters (realistic-ish values but scaled)
+const planet = {
+  name: 'MH-1',
+  mass: 5.972e24,       // kg (earth mass) — informational
+  a_km: 1.0 * 1.0 * AU, // semi-major axis in km (1 AU)
+  e: 0.0167,            // small eccentricity like Earth
+  incl_deg: 3.0,        // slight tilt
+  omega_deg: 0,         // argument of periapsis
+  Omega_deg: 0,         // longitude of ascending node
+  radius_km: 6371,      // planet physical radius
+  color: 0x6699ff,
+  axialTilt_deg: 23.4,
+  rotationPeriod_hours: 24 // planet rotation (for day)
+};
+
+// derived visuals
+planet.visRadius = Math.max(1, planet.radius_km * SCALE * 0.02);
+planet.a_vis = planet.a_km * SCALE;
+planet.b_vis = planet.a_vis * Math.sqrt(1 - planet.e*planet.e);
+
+// compute orbital period (Kepler's third law) using central star mass ~ sunMass
+const sunMass = 1.989e30; // kg
+// T^2 = 4π^2 a^3 / (G * (M+m)), we use G in km^3 kg^-1 s^-2 => careful units - approximate for display
+const a_m = planet.a_km * 1000;
+const G_SI = 6.67430e-11;
+const T_seconds = Math.sqrt(4*Math.PI*Math.PI * Math.pow(a_m,3) / (G_SI * (sunMass + planet.mass)));
+const T_days = T_seconds / (60*60*24);
+
+// create planet mesh
+const planetGroup = new THREE.Group();
+scene.add(planetGroup);
+
+const planetGeo = new THREE.SphereGeometry(planet.visRadius, 32, 32);
+const planetMat = new THREE.MeshStandardMaterial({ color: planet.color, metalness: 0.05, roughness: 0.8 });
+const planetMesh = new THREE.Mesh(planetGeo, planetMat);
+planetMesh.castShadow = true;
+planetMesh.receiveShadow = true;
+planetGroup.add(planetMesh);
+
+// axial tilt group
+planetMesh.rotation.z = THREE.MathUtils.degToRad(planet.axialTilt_deg);
+
+/* ---------- Moon ---------- */
+const moon = {
+  name: 'MH-1 I',
+  a_km: 384400, // km from planet (like Moon)
+  e: 0.0549,
+  radius_km: 1737,
+  visRadius: Math.max(0.5, 1737 * SCALE * 0.02)
+};
+moon.a_vis = moon.a_km * SCALE;
+moon.b_vis = moon.a_vis * Math.sqrt(1 - moon.e*moon.e);
+
+const moonGroup = new THREE.Group();
+planetGroup.add(moonGroup);
+const moonGeo = new THREE.SphereGeometry(moon.visRadius, 24, 24);
+const moonMat = new THREE.MeshStandardMaterial({ color: 0x999999, metalness:0.0, roughness:0.9 });
+const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+moonGroup.add(moonMesh);
+
+/* ---------- orbit helper (line) ---------- */
+let orbitLine = null;
+function buildOrbitLine(a_vis, b_vis, segments=256, tiltDeg=0, color=0x8888ff){
+  if(orbitLine) scene.remove(orbitLine);
+  const pts = [];
+  for(let i=0;i<=segments;i++){
+    const t = i/segments * Math.PI*2;
+    const x = a_vis * Math.cos(t);
+    const z = b_vis * Math.sin(t);
+    pts.push(new THREE.Vector3(x,0,z));
   }
-  return arr[arr.length-1];
+  const geom = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineBasicMaterial({color: color, opacity:0.6, transparent:true});
+  orbitLine = new THREE.LineLoop(geom, mat);
+  orbitLine.rotation.x = THREE.MathUtils.degToRad(tiltDeg);
+  scene.add(orbitLine);
 }
+let showOrbit = true;
+buildOrbitLine(planet.a_vis, planet.b_vis, 512, planet.incl_deg, 0x66ccff);
 
-/* ---------- REDIMENSIONAMENTO E LOD ---------- */
-function resizeCanvas(){
-  DPR = Math.max(1, window.devicePixelRatio || 1);
-  // canvas em pixels de dispositivo
-  canvas.width = Math.floor(window.innerWidth * DPR);
-  canvas.height = Math.floor(window.innerHeight * DPR);
-  // mostrar no tamanho CSS correto
-  canvas.style.width = window.innerWidth + 'px';
-  canvas.style.height = window.innerHeight + 'px';
+/* ---------- HUD / UI ---------- */
+const speedSlider = document.getElementById('speed');
+const speedLabel = document.getElementById('speedLabel');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const toggleOrbitBtn = document.getElementById('toggleOrbit');
 
-  centerX = canvas.width / 2;
-  centerY = canvas.height / 2;
-  GALAXY_RADIUS = Math.min(canvas.width, canvas.height) / 2 - 80 * DPR;
+let timeSpeed = parseFloat(speedSlider.value); // multiplier in seconds per frame units
+let paused = false;
 
-  // LOD: reduz partículas em telas pequenas / baixa resolução
-  if(window.innerWidth < 700) NUM_PARTICLES = Math.max(700, Math.floor(BASE_PARTICLES * 0.5));
-  else if(window.innerWidth < 1200) NUM_PARTICLES = Math.max(1000, Math.floor(BASE_PARTICLES * 0.75));
-  else NUM_PARTICLES = BASE_PARTICLES;
-
-  // botão tamanho recalculado
-  button_rect.w = button_rect.h = Math.round(72 * DPR);
-
-  // reconstrói partículas para novo GALAXY_RADIUS / NUM_PARTICLES
-  rebuildParticles();
-}
-window.addEventListener('resize', resizeCanvas);
-
-/* ---------- CRIAR ENTIDADES (mimetizando o Python) ---------- */
-function make_black_hole(){
-  let accretion = [];
-  const num_acc = 700;
-  for(let i=0;i<num_acc;i++){
-    accretion.push({
-      radius: 60 + Math.random()*160,
-      angle: Math.random()*Math.PI*2,
-      speed: 0.002 + Math.random()*0.006,
-      size: Math.random()>0.75?2:1
-    });
-  }
-  return {
-    is_black_hole: true,
-    name: 'MHC3000',
-    accretion: accretion,
-    color: [255,255,255],
-    size: 8 * DPR
-  };
-}
-
-function make_system(index){
-  let arm_index = index % NUM_ARMS;
-  let r = GALAXY_RADIUS * Math.pow(Math.random(), 1.5);
-  // defender contra GALAXY_RADIUS = 0
-  if(GALAXY_RADIUS <= 0) GALAXY_RADIUS = Math.max(200 * DPR, Math.min(window.innerWidth, window.innerHeight) / 3);
-  let base_angle = arm_index * 2 * Math.PI / NUM_ARMS;
-  let theta = base_angle + SPIRAL_FACTOR * (r / GALAXY_RADIUS) + gaussianRandom(0, ARM_SPREAD);
-  let angular_speed = 0.05 / (r + 5);
-
-  let brightness = Math.max(50, Math.floor(255 * (1 - r / GALAXY_RADIUS)));
-  let color = [brightness, brightness, brightness];
-
-  let num_planets = 2 + Math.floor(Math.random()*3); // 2-4
-  let planets = [];
-  let orbit_start = 40 + Math.floor(Math.random()*30);
-  let gap_min = 40, gap_max = 90;
-
-  for(let p_i=0; p_i<num_planets; p_i++){
-    let orbit;
-    if(p_i === 0) orbit = orbit_start + Math.floor((Math.random()*16)-8);
-    else orbit = planets[planets.length-1].radius + gap_min + Math.floor(Math.random()*(gap_max-gap_min));
-    let size = 6 + Math.floor(Math.random()*9); // 6-14
-    let speed = 0.006 + (Math.random()*0.005 - 0.002);
-    let angle = Math.random()*Math.PI*2;
-    let ptype = randomChoiceWeighted(['rocky','gas','ringed'], [55,30,15]);
-
-    let moons = [];
-    let num_moons = randomChoiceWeighted([0,1,2],[60,30,10]);
-    for(let m=0;m<num_moons;m++){
-      moons.push({
-        radius: 6 + Math.floor(Math.random()*9),
-        size: 1 + Math.floor(Math.random()*3),
-        angle: Math.random()*Math.PI*2,
-        speed: 0.01 + Math.random()*0.03
-      });
-    }
-
-    planets.push({
-      radius: orbit,
-      size: size * DPR,
-      angle: angle,
-      speed: speed,
-      type: ptype,
-      moons: moons
-    });
-  }
-
-  // cinturão
-  let inner, outer;
-  if(planets.length >= 2){
-    inner = planets[planets.length-2].radius + 20;
-    outer = planets[planets.length-1].radius + 30;
-  } else {
-    inner = planets[planets.length-1].radius + 25;
-    outer = planets[planets.length-1].radius + 80;
-  }
-  let belt_radius = (inner + outer)/2;
-  let belt_width = Math.max(8, (outer - inner)/2);
-  let num_asteroids = 80 + Math.floor(Math.random()*61);
-
-  let asteroids = [];
-  for(let i=0;i<num_asteroids;i++){
-    asteroids.push({
-      radius: belt_radius + (Math.random()*belt_width - belt_width/2),
-      angle: Math.random()*Math.PI*2,
-      speed: 0.0006 + Math.random()*0.001,
-      size: Math.random()>0.8?2:1
-    });
-  }
-
-  return {
-    r: r,
-    theta: theta,
-    angular_speed: angular_speed,
-    color: color,
-    planets: planets,
-    asteroids: asteroids,
-    name: `MH°${index+1}`
-  };
-}
-
-function rebuildParticles(){
-  particles = [];
-  for(let i=0;i<NUM_PARTICLES;i++){
-    particles.push(make_system(i));
-  }
-  particles.push(make_black_hole());
-}
-
-/* ---------- DESENHO DE PLANETAS ---------- */
-function drawPlanet(px, py, planet, scale){
-  let planet_size = Math.max(1, Math.round((planet.size * scale) / 6));
-  ctx.beginPath(); ctx.arc(px, py, planet_size, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill();
-
-  if(planet.type === 'ringed'){
-    ctx.beginPath();
-    ctx.ellipse(px, py, planet_size*2.2, planet_size*0.9, 0, 0, Math.PI*2);
-    ctx.lineWidth = Math.max(1, Math.round(1 * DPR * scale * 0.6));
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-    ctx.stroke();
-    ctx.lineWidth = 1;
-  }
-
-  for(let moon of planet.moons){
-    moon.angle += moon.speed;
-    let mx = px + moon.radius * Math.cos(moon.angle) * scale * 0.6;
-    let my = py + moon.radius * Math.sin(moon.angle) * scale * 0.6;
-    let msize = Math.max(1, Math.round(moon.size * scale / 6));
-    ctx.beginPath(); ctx.arc(mx, my, msize, 0, Math.PI*2); ctx.fillStyle = 'rgb(180,180,180)'; ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(px, py, Math.max(1, Math.round(moon.radius * scale * 0.6)), 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(60,60,60,0.15)';
-    ctx.lineWidth = 1; ctx.stroke();
-  }
-}
-
-/* ---------- INPUT (mouse/touch/keyboard) ---------- */
-function pointerToCanvas(e){
-  if(e.touches && e.touches.length) return { x: e.touches[0].clientX * DPR, y: e.touches[0].clientY * DPR };
-  return { x: (e.clientX || e.pageX) * DPR, y: (e.clientY || e.pageY) * DPR };
-}
-canvas.addEventListener('pointerdown', (ev)=>{
-  let p = pointerToCanvas(ev);
-  handleClick(p.x, p.y);
-});
-window.addEventListener('keydown', (ev)=>{
-  if(ev.key === 'Escape' || ev.key === 'Esc'){
-    if(viewing_system){ viewing_system = null; zoom_progress = 0; }
-  }
+speedSlider.addEventListener('input', ()=>{
+  timeSpeed = parseFloat(speedSlider.value);
+  speedLabel.textContent = timeSpeed.toFixed(0) + '×';
 });
 
-/* ---------- LÓGICA DE CLIQUE NAS PARTÍCULAS ---------- */
-function handleClick(mx, my){
-  if(viewing_system){
-    let pad = Math.round(20 * DPR);
-    let bx = canvas.width - button_rect.w - pad;
-    let by = pad;
-    if(mx >= bx && mx <= bx + button_rect.w && my >= by && my <= by + button_rect.h){
-      viewing_system = null; zoom_progress = 0;
-      return;
-    }
-  }
+pauseBtn.addEventListener('click', ()=>{
+  paused = !paused;
+  pauseBtn.textContent = paused ? 'Continuar' : 'Pausar';
+});
 
-  for(let p of particles){
-    let screen_x, screen_y, hitbox = 6 * DPR;
-    if(p.is_black_hole){
-      screen_x = centerX;
-      screen_y = centerY;
-      hitbox = 90 * DPR;
-    } else {
-      let x = p.r * Math.cos(p.theta);
-      let y = p.r * Math.sin(p.theta);
-      y *= Math.cos(inclination);
-      let x_rot = x*Math.cos(camera_angle) - y*Math.sin(camera_angle);
-      let y_rot = x*Math.sin(camera_angle) + y*Math.cos(camera_angle);
-      screen_x = centerX + x_rot;
-      screen_y = centerY + y_rot;
-      hitbox = 6 * DPR;
-    }
-    if(Math.hypot(mx - screen_x, my - screen_y) < hitbox){
-      traveling = true;
-      travel_progress = 0;
-      travel_target = p;
-      return;
-    }
-  }
+resetBtn.addEventListener('click', ()=>{
+  camera.position.set(0, 30, 120);
+  controls.target.set(0,0,0);
+  controls.update();
+});
+
+toggleOrbitBtn.addEventListener('click', ()=>{
+  showOrbit = !showOrbit;
+  if(orbitLine) orbitLine.visible = showOrbit;
+  toggleOrbitBtn.classList.toggle('secondary', !showOrbit);
+  toggleOrbitBtn.textContent = showOrbit ? 'Ocultar órbita' : 'Mostrar órbita';
+});
+
+/* ---------- simulation state ---------- */
+let simTime = 0; // seconds elapsed in simulation (scaled)
+const realSecondPerFrame = 1/60; // baseline
+const displayDist = document.getElementById('dist');
+const displayPeriod = document.getElementById('period');
+document.getElementById('objName').textContent = `${planet.name} (demo)`;
+
+// initial display
+displayPeriod.textContent = `${T_days.toFixed(1)} dias`;
+
+/* ---------- orbit math (parametric) ---------- */
+/*
+ param t from 0..1 around orbit => theta = 2π * t
+ position (in orbital plane) = (a cos θ, 0, b sin θ)
+ apply rotation by Omega, omega, inclination via Euler rotations if needed
+ We'll keep simple: apply inclination as rotation about X
+*/
+function computeOrbitPosition(a_vis, b_vis, theta, incl_deg=0){
+  const x = a_vis * Math.cos(theta);
+  const z = b_vis * Math.sin(theta);
+  const pos = new THREE.Vector3(x, 0, z);
+  // apply inclination rotation around x axis
+  pos.applyAxisAngle(new THREE.Vector3(1,0,0), THREE.MathUtils.degToRad(incl_deg));
+  return pos;
 }
 
-/* ---------- UPDATE E DRAW ---------- */
-let lastTime = performance.now();
-function update(dt){
-  camera_angle += CAMERA_SPEED * dt * 0.06;
-  if(inclination > INCLINATION_END) inclination -= Math.PI/180 * 0.05 * dt * 0.06;
+/* ---------- animation loop ---------- */
+let last = performance.now();
+let fpsMeasureTime = performance.now();
+let frameCount = 0;
 
-  if(traveling){
-    travel_progress += 0.02 * dt * 0.06;
-    travel_progress = clamp(travel_progress, 0, 1);
-    if(travel_progress >= 1.0){
-      traveling = false;
-      viewing_system = travel_target;
-      zoom_progress = 0;
-    }
+function animate(now){
+  const dtMs = now - last;
+  last = now;
+  const dt = dtMs / 1000.0;
+  // adaptive time step: simulation seconds to advance per real second
+  const simSecondsAdvance = (paused ? 0 : dt * timeSpeed * 3600); // timeSpeed × hours per real second (multiply to get notable motion)
+  simTime += simSecondsAdvance;
+
+  // planet orbital progress: theta = 2π * t / T_seconds
+  const theta = (simTime % T_seconds) / T_seconds * Math.PI * 2;
+  // compute planet position
+  const planetPos = computeOrbitPosition(planet.a_vis, planet.b_vis, theta, planet.incl_deg);
+  planetGroup.position.copy(planetPos);
+
+  // moon orbit around planet: faster period, use separate param
+  const moonPeriodSec = 27.3 * 24*3600; // ~27.3 days
+  const moonTheta = (simTime % moonPeriodSec) / moonPeriodSec * Math.PI * 2;
+  const moonPos = computeOrbitPosition(moon.a_vis, moon.b_vis, moonTheta, 5); // slight tilt
+  moonGroup.position.set(moonPos.x, moonPos.y, moonPos.z);
+
+  // planet axial rotation (day)
+  const daySeconds = planet.rotationPeriod_hours * 3600;
+  const dayTheta = (simTime % daySeconds) / daySeconds * Math.PI * 2;
+  planetMesh.rotation.y = dayTheta;
+
+  // update UI distance (planet-star)
+  const distVis = planetPos.length() / SCALE; // convert back to km approximately
+  displayDist.textContent = `${(planetPos.length()/SCALE/1000).toFixed(0)} km (sim)`; // approximate
+
+  // camera controls and WASD flight
+  controls.update();
+  const moveSpeed = 40 * dt * (1 + timeSpeed*0.02);
+  if(keyState['w']) camera.position.add(controls.getDirection(new THREE.Vector3()).multiplyScalar(moveSpeed));
+  if(keyState['s']) camera.position.add(controls.getDirection(new THREE.Vector3()).multiplyScalar(-moveSpeed));
+  if(keyState['a']) camera.position.add(controls.getRight(new THREE.Vector3()).multiplyScalar(-moveSpeed));
+  if(keyState['d']) camera.position.add(controls.getRight(new THREE.Vector3()).multiplyScalar(moveSpeed));
+  if(keyState['q']) camera.position.y += moveSpeed;
+  if(keyState['e']) camera.position.y -= moveSpeed;
+
+  controls.update();
+
+  renderer.render(scene, camera);
+
+  // simple fps-adaptive LOD: if frame time too high, reduce star points (not heavy)
+  frameCount++;
+  if(now - fpsMeasureTime > 1000){
+    const fps = frameCount / ((now - fpsMeasureTime)/1000);
+    frameCount = 0; fpsMeasureTime = now;
+    // adjust star count or renderer settings if fps low (basic)
+    // (omitted heavy reallocation to keep code simple)
+    // console.log('fps',fps);
   }
 
-  for(let p of particles){
-    if(p.is_black_hole) continue;
-    p.theta += p.angular_speed * dt * 0.06;
-    for(let a of p.asteroids) a.angle += a.speed * dt * 0.06;
-  }
-  let bh = particles.find(x => x.is_black_hole);
-  if(bh){
-    for(let a of bh.accretion) a.angle += a.speed * dt * 0.06;
-  }
+  requestAnimationFrame(animate);
 }
 
-function draw(){
-  // limpa tela (usando tamanho real do canvas)
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+/* ---------- responsive ---------- */
+window.addEventListener('resize', ()=>{
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+});
 
-  // se viajando — rastro central
-  if(traveling){
-    let t = travel_progress;
-    let r_trail = Math.round((8 + 60*(t*t)) * DPR);
-    let alpha = Math.round(255 * t);
-    ctx.save();
-    ctx.globalAlpha = clamp(alpha/255, 0.25, 0.95);
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, r_trail, 0, Math.PI*2);
-    ctx.fillStyle = 'white';
-    ctx.fill();
-    ctx.restore();
-    return;
-  }
+/* ---------- start ---------- */
+requestAnimationFrame(animate);
 
-  if(viewing_system){
-    if(zoom_progress < 1.0) zoom_progress = Math.min(1.0, zoom_progress + 0.03);
-    let cx = centerX, cy = centerY;
-    let scale = 0.6 + zoom_progress*4.5;
-
-    if(viewing_system.is_black_hole){
-      ctx.beginPath();
-      ctx.arc(cx, cy, Math.round(55 * scale * DPR), 0, Math.PI*2);
-      ctx.fillStyle = 'black'; ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, Math.round(65 * scale * DPR), 0, Math.PI*2);
-      ctx.lineWidth = Math.max(1, Math.round(2 * DPR)); ctx.strokeStyle = 'white'; ctx.stroke();
-      ctx.lineWidth = 1;
-
-      for(let a of viewing_system.accretion){
-        let ax = cx + a.radius * Math.cos(a.angle) * scale * 0.45;
-        let ay = cy + a.radius * Math.sin(a.angle) * scale * 0.45;
-        let size = Math.max(1, Math.round(a.size * (scale*0.3) * DPR));
-        ctx.beginPath(); ctx.arc(ax, ay, size, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill();
-      }
-
-      drawCloseButton();
-      ctx.font = `${Math.round(20 * DPR)}px Arial`;
-      ctx.fillStyle = 'white';
-      ctx.fillText(viewing_system.name || 'MHC3000', Math.round(20*DPR), Math.round(30*DPR));
-    } else {
-      ctx.beginPath(); ctx.arc(cx, cy, Math.round(10 * scale * DPR), 0, Math.PI*2);
-      ctx.fillStyle = `rgb(${viewing_system.color[0]},${viewing_system.color[1]},${viewing_system.color[2]})`; ctx.fill();
-
-      for(let ast of viewing_system.asteroids){
-        let ax = cx + ast.radius * Math.cos(ast.angle) * scale * 0.5;
-        let ay = cy + ast.radius * Math.sin(ast.angle) * scale * 0.5;
-        let size = Math.max(1, Math.round(ast.size * (scale*0.25) * DPR));
-        ctx.beginPath(); ctx.arc(ax, ay, size, 0, Math.PI*2); ctx.fillStyle = 'rgb(150,150,150)'; ctx.fill();
-      }
-
-      for(let planet of viewing_system.planets){
-        planet.angle += planet.speed;
-        let px = cx + planet.radius * Math.cos(planet.angle) * scale * 0.55;
-        let py = cy + planet.radius * Math.sin(planet.angle) * scale * 0.55;
-
-        ctx.beginPath();
-        ctx.arc(cx, cy, Math.max(1, Math.round(planet.radius * scale * 0.55)), 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(70,70,70,0.25)'; ctx.lineWidth = 1; ctx.stroke();
-
-        drawPlanet(px, py, planet, scale);
-      }
-
-      drawCloseButton();
-      ctx.font = `${Math.round(20 * DPR)}px Arial`;
-      ctx.fillStyle = 'white';
-      ctx.fillText(viewing_system.name, Math.round(20*DPR), Math.round(30*DPR));
-    }
-    return;
-  }
-
-  // desenhar galáxia (partículas)
-  for(let p of particles){
-    if(p.is_black_hole){
-      ctx.beginPath(); ctx.arc(centerX, centerY, Math.max(1, Math.round(p.size)), 0, Math.PI*2);
-      ctx.fillStyle = 'white'; ctx.fill();
-      continue;
-    }
-
-    let x = p.r * Math.cos(p.theta);
-    let y = p.r * Math.sin(p.theta);
-    y *= Math.cos(inclination);
-    let xr = x*Math.cos(camera_angle) - y*Math.sin(camera_angle);
-    let yr = x*Math.sin(camera_angle) + y*Math.cos(camera_angle);
-
-    let sx = centerX + xr;
-    let sy = centerY + yr;
-
-    let c = p.color[0];
-    ctx.fillStyle = `rgb(${c},${c},${c})`;
-    // desenhar ponto simples e rápido
-    ctx.fillRect(Math.round(sx), Math.round(sy), Math.max(1, Math.round(1 * DPR)), Math.max(1, Math.round(1 * DPR)));
-  }
-}
-
-/* ---------- BOTÃO FECHAR ---------- */
-function drawCloseButton(){
-  let pad = Math.round(20 * DPR);
-  button_rect.w = button_rect.h = Math.round(72 * DPR);
-  button_rect.x = canvas.width - button_rect.w - pad;
-  button_rect.y = pad;
-
-  ctx.fillStyle = 'white';
-  ctx.fillRect(button_rect.x, button_rect.y, button_rect.w, button_rect.h);
-  ctx.fillStyle = 'black';
-  ctx.font = `${Math.round(44 * DPR)}px Arial`;
-  ctx.fillText('X', button_rect.x + Math.round(22*DPR), button_rect.y + Math.round(50*DPR));
-}
-
-/* ---------- LOOP PRINCIPAL ---------- */
-function loop(now){
-  let dt = (now - lastTime) / 16.6667;
-  lastTime = now;
-  update(dt);
-  draw();
-  requestAnimationFrame(loop);
-}
-
-/* ---------- INICIALIZAÇÃO ---------- */
-function start(){
-  resizeCanvas(); // também chama rebuildParticles
-  lastTime = performance.now();
-  requestAnimationFrame(loop);
-}
-start();
-
-/* ---------- DEBUG / HELP ---------- */
-window.__galaxy = { particles, rebuild: rebuildParticles };
-
-/* ---------- ÚTEIS ---------- */
-function random(min,max){ return Math.random()*(max-min)+min; }
+/* ---------- helpers for controls (OrbitControls small ext) ---------- */
+OrbitControls.prototype.getDirection = function(targetVec){
+  // returns camera forward direction vector
+  this.getPolarAngle(); // ensure internals
+  const vec = targetVec || new THREE.Vector3();
+  this.object.getWorldDirection(vec);
+  return vec;
+};
+OrbitControls.prototype.getRight = function(targetVec){
+  const dir = this.getDirection(new THREE.Vector3());
+  return new THREE.Vector3().crossVectors(dir, this.object.up).normalize().multiplyScalar(-1);
+};
 
 </script>
 </body>
-  </html>
+</html>
