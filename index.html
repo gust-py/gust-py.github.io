@@ -1,395 +1,218 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Space Engine Web — v0.1 (realista)</title>
-  <style>
-    :root{
-      --ui-bg: rgba(0,0,0,0.45);
-      --accent: #66ccff;
-      --muted: #bbbbbb;
-    }
-    html,body{height:100%;margin:0;background:#000;color:#fff;font-family:Inter,system-ui,Roboto,Segoe UI,Arial}
-    #container{width:100%;height:100%;position:relative;overflow:hidden}
-    canvas{display:block}
-    #ui{
-      position: absolute;
-      left: 12px;
-      top: 12px;
-      background: var(--ui-bg);
-      padding: 10px;
-      border-radius: 8px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-      min-width: 220px;
-    }
-    #ui h1{margin:0 0 6px 0;font-size:15px}
-    #ui label{display:block;font-size:12px;color:var(--muted);margin-top:8px}
-    input[type=range]{width:100%}
-    .row{display:flex;gap:8px;align-items:center;margin-top:8px}
-    button{background:var(--accent);border:0;padding:8px 10px;border-radius:6px;color:#001;cursor:pointer;font-weight:600}
-    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted)}
-    #info{position:absolute;right:12px;top:12px;background:var(--ui-bg);padding:8px;border-radius:8px;font-size:13px;min-width:180px}
-    a.small{color:var(--muted);font-size:12px;text-decoration:none}
-    .muted{color:var(--muted);font-size:12px}
-    footer{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);font-size:12px;color:var(--muted)}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Assistente Web — Demo</title>
+<style>
+  :root{--bg:#0b0f13;--card:#07111a;--accent:#66ccff;--muted:#9fb3c8}
+  html,body{height:100%;margin:0;background:var(--bg);color:#dbeaf6;font-family:Inter,system-ui,Arial}
+  .app{max-width:900px;margin:18px auto;border-radius:12px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.6)}
+  .panel{display:flex;height:85vh;background:linear-gradient(180deg,#07121a 0%, #041018 100%)}
+  .left{width:360px;border-right:1px solid rgba(255,255,255,0.03);padding:14px;box-sizing:border-box;background:var(--card)}
+  .brand{font-weight:700;color:var(--accent);font-size:18px;margin-bottom:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .right{flex:1;display:flex;flex-direction:column}
+  .messages{flex:1;padding:18px;overflow:auto;gap:12px;display:flex;flex-direction:column-reverse}
+  .composer{display:flex;padding:12px;border-top:1px solid rgba(255,255,255,0.03);align-items:center;gap:8px}
+  textarea{flex:1;min-height:44px;max-height:140px;padding:10px;border-radius:8px;border:0;background:#071722;color:#e8f6ff;resize:none;outline:none}
+  button{background:var(--accent);border:0;padding:10px 12px;border-radius:8px;color:#001;font-weight:700;cursor:pointer}
+  .msg{max-width:78%;padding:10px 12px;border-radius:10px;line-height:1.35}
+  .user{align-self:flex-end;background:linear-gradient(90deg,#2b6bff,#66ccff);color:#001;border-bottom-right-radius:2px}
+  .bot{align-self:flex-start;background:#071c27;border:1px solid rgba(255,255,255,0.03)}
+  .meta{font-size:12px;color:var(--muted);margin-top:8px}
+  .small{font-size:12px;color:var(--muted)}
+  .row{display:flex;gap:8px;align-items:center}
+  .settings{margin-top:12px;border-top:1px dashed rgba(255,255,255,0.03);padding-top:10px}
+  .keybox{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#06141a;color:#dff3ff}
+  .link{color:var(--accent);text-decoration:none}
+  footer{font-size:12px;color:var(--muted);text-align:center;padding:8px}
+  @media(max-width:800px){.panel{flex-direction:column}.left{width:auto;border-right:0}}
+</style>
 </head>
 <body>
-  <div id="container"></div>
+  <div class="app" role="application" aria-label="Assistente Web">
+    <div class="panel">
+      <div class="left">
+        <div class="brand">Assistente Web</div>
+        <div class="muted">Chatbot assistente — versão leve</div>
 
-  <div id="ui">
-    <h1>Space Engine — v0.1</h1>
-    <div class="muted">Versão realista inicial: estrela, planeta, lua — órbitas Keplerianas</div>
+        <div class="settings">
+          <div style="margin-bottom:8px;font-size:13px;color:var(--muted)">Configuração</div>
+          <label class="small">Modelo Hugging Face (opcional)</label>
+          <input id="modelInput" class="keybox" placeholder="ex: gpt2 or eleutherai/gpt-neo-2.7B (opcional)"/>
+          <div style="height:8px"></div>
+          <label class="small">Hugging Face API Key (opcional para usar IA real)</label>
+          <input id="apiKey" class="keybox" placeholder="Coloque a API key temporariamente para testar (não commit)" />
+          <div style="height:8px"></div>
+          <div class="row" style="justify-content:space-between">
+            <button id="saveBtn">Salvar (Local)</button>
+            <button id="clearBtn" class="link" style="background:transparent;border:0;color:var(--muted)">Limpar chave</button>
+          </div>
+          <div class="meta">Sem chave: modo <strong>demo</strong> local (respostas simples). Com chave: conversa real via Hugging Face Inference API.</div>
+        </div>
 
-    <label>Velocidade do tempo: <span id="speedLabel">1×</span></label>
-    <input id="speed" type="range" min="0" max="2000" value="1" step="1" />
+        <div style="height:18px"></div>
+        <div class="small">Deploy: GitHub Pages — envie este arquivo `index.html`</div>
+        <div class="small" style="margin-top:6px">Aviso: não publique chaves em repositório público. Use serverless/proxy para produção.</div>
+      </div>
 
-    <div class="row">
-      <button id="pauseBtn">Pausar</button>
-      <button id="resetBtn" class="secondary">Resetar câmera</button>
+      <div class="right">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+          <div><strong>Conversa</strong><div class="small muted">Assistente — personalidade: profissional e prestativo</div></div>
+          <div class="small muted" id="status">Modo: <span id="mode">demo</span></div>
+        </div>
+
+        <div id="messageContainer" class="messages" aria-live="polite"></div>
+
+        <div class="composer">
+          <textarea id="input" placeholder="Escreva algo e pressione Enter..." aria-label="Mensagem"></textarea>
+          <button id="sendBtn">Enviar</button>
+        </div>
+      </div>
     </div>
-
-    <label>Parâmetros do planeta</label>
-    <div class="row">
-      <button id="toggleOrbit" class="secondary">Mostrar órbita</button>
-      <div style="flex:1"></div>
-    </div>
-
-    <label class="muted">Controles: mouse arrasta / scroll zoom / WASD move</label>
-    <div style="height:6px"></div>
-    <a class="small" href="#" id="publishHint">Pronto pra GitHub Pages</a>
+    <footer>Assistente Web • Demo • Não exponha chaves publicamente</footer>
   </div>
 
-  <div id="info">
-    <div><strong id="objName">Sol — Sistema Demo</strong></div>
-    <div class="muted" id="meta">Distância planeta-sol: <span id="dist">—</span></div>
-    <div class="muted" id="meta2">Período orbital (simulado): <span id="period">—</span></div>
-  </div>
-
-  <footer>Projeto experimental — Space Engine Web • Use devtools se quiser ajustar</footer>
-
-<script type="module">
+<script>
 /*
-  Space Engine Web v0.1
-  - Three.js via CDN modules
-  - Órbita elíptica, inclinação, rotação axial, lua
-  - UI simples para velocidade, pausa, orbit toggle
-  - Projetado para rodar em GitHub Pages (static)
+  Chat UI + Hugging Face Inference API client (browser)
+  Usage:
+   - Without API key: demo fallback responses
+   - With API key & model: calls HF inference endpoint
+  Security note: embedding API key in client is insecure for production.
 */
 
-/* ---------- imports (CDN) ---------- */
-import * as THREE from 'https://unpkg.com/three@0.154.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.154.0/examples/jsm/controls/OrbitControls.js';
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const container = document.getElementById('messageContainer');
+const apiKeyInput = document.getElementById('apiKey');
+const modelInput = document.getElementById('modelInput');
+const saveBtn = document.getElementById('saveBtn');
+const clearBtn = document.getElementById('clearBtn');
+const modeSpan = document.getElementById('mode');
+const status = document.getElementById('status');
 
-/* ---------- cena, câmera, renderer ---------- */
-const container = document.getElementById('container');
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x000000);
+let HF_API_KEY = localStorage.getItem('hf_api_key') || '';
+let HF_MODEL = localStorage.getItem('hf_model') || '';
+if(HF_API_KEY) apiKeyInput.value = HF_API_KEY;
+if(HF_MODEL) modelInput.value = HF_MODEL;
+updateMode();
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(window.devicePixelRatio || 1);
-renderer.setSize(window.innerWidth, window.innerHeight);
-container.appendChild(renderer.domElement);
+function updateMode(){
+  const mode = HF_API_KEY ? 'HuggingFace API' : 'demo';
+  modeSpan.textContent = mode;
+  status.textContent = `Modo: ${mode}`;
+}
 
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1e8);
-camera.position.set(0, 30, 120);
+// simple helper to append messages
+function appendMessage(text, who='bot'){
+  const el = document.createElement('div');
+  el.className = 'msg ' + (who==='user' ? 'user' : 'bot');
+  el.textContent = text;
+  container.prepend(el);
+  return el;
+}
 
-/* ---------- controls ---------- */
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.12;
-controls.screenSpacePanning = false;
+// demo fallback (rule-based / canned)
+function demoResponse(prompt){
+  // respostas simples com variação
+  const lower = prompt.toLowerCase();
+  if(lower.includes('olá') || lower.includes('oi')) return 'Olá! Eu sou seu assistente — diga o que precisa.';
+  if(lower.includes('ajuda')) return 'Posso te ajudar com código, orientação técnica, ideias e deploy.';
+  if(lower.includes('github')) return 'Para publicar no GitHub Pages, crie um repo `seunome.github.io` e suba `index.html`.';
+  if(lower.includes('como') && lower.includes('fazer')) return 'Explique em poucas palavras o que quer fazer e eu guio passo a passo.';
+  // fallback
+  const phrases = [
+    'Interessante — conta mais um pouco.',
+    'Hum, entendi. Quer que eu explique passo a passo?',
+    'Boa pergunta. Posso responder com detalhe ou dar um resumo — qual prefere?'
+  ];
+  return phrases[Math.floor(Math.random()*phrases.length)];
+}
 
-/* WASD-based relative flight (assist) */
-const keyState = {};
-window.addEventListener('keydown', (e)=>keyState[e.key.toLowerCase()] = true);
-window.addEventListener('keyup', (e)=>keyState[e.key.toLowerCase()] = false);
-
-/* ---------- unidades e escala (real -> visual) ----------
-   We'll use astronomical units (AU) as base for realism:
-   1 AU = 149,597,870 km.
-   For visuals we compress distances by SCALE (smaller => visible).
-*/
-const AU = 149597870; // in km (informational)
-const SCALE = 0.0000025; // compress factor to make distances visible
-// For display we still calculate period in "days" if we use Newton's form.
-
-const G = 6.67430e-20; // gravitational constant in km^3 kg^-1 s^-2 (approx for km units) - for info but we will use Kepler-ish approach
-
-/* ---------- Star (sol) ---------- */
-const starGroup = new THREE.Group();
-scene.add(starGroup);
-
-const starRadiusKm = 695700; // sun radius in km
-const starVisRadius = Math.max(3, starRadiusKm * SCALE * 0.0005); // compress more for visibility
-const starGeo = new THREE.SphereGeometry(starVisRadius, 32, 32);
-const starMat = new THREE.MeshBasicMaterial({ color: 0xffee88, emissive: 0xffee88 });
-const starMesh = new THREE.Mesh(starGeo, starMat);
-starGroup.add(starMesh);
-
-// star light: physically bright point light
-const starLight = new THREE.PointLight(0xfff6d8, 2.5, 0, 2); // intensity tuned
-starLight.position.set(0,0,0);
-scene.add(starLight);
-
-/* ---------- starfield (points) ---------- */
-function makeStarfield(count=4000, radius=1e6){
-  const geom = new THREE.BufferGeometry();
-  const pos = new Float32Array(count*3);
-  for(let i=0;i<count;i++){
-    const r = (0.3 + Math.random()*0.7) * radius; // radius variation
-    const theta = Math.random()*Math.PI*2;
-    const phi = Math.acos(2*Math.random()-1);
-    const x = r * Math.sin(phi) * Math.cos(theta);
-    const y = r * Math.sin(phi) * Math.sin(theta);
-    const z = r * Math.cos(phi);
-    pos[i*3] = x * SCALE; pos[i*3+1] = y * SCALE; pos[i*3+2] = z * SCALE;
+// Hugging Face Inference call
+async function callHuggingFace(prompt){
+  const model = HF_MODEL || 'gpt2';
+  const url = `https://api-inference.huggingface.co/models/${model}`;
+  const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+  if(!HF_API_KEY) throw new Error('Sem API Key');
+  headers['Authorization'] = 'Bearer ' + HF_API_KEY;
+  // basic payload — adjust params per model if needed
+  const body = JSON.stringify({ inputs: prompt, parameters: { max_new_tokens: 256, temperature: 0.7 } });
+  const resp = await fetch(url, { method: 'POST', headers, body });
+  if(!resp.ok){
+    const txt = await resp.text();
+    throw new Error(`Erro HF: ${resp.status} ${txt}`);
   }
-  geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const material = new THREE.PointsMaterial({ size: 0.6, sizeAttenuation: true, color: 0xffffff, opacity:0.9, transparent:true});
-  const points = new THREE.Points(geom, material);
-  scene.add(points);
-}
-makeStarfield(3000, 8e6);
-
-/* ---------- Planet (Kepler-like orbit) ---------- */
-/*
-  We'll parametrize the planet by:
-    a = semi-major axis (km)
-    e = eccentricity (0=circle)
-    incl = inclination (deg)
-    omega = argument of periapsis (deg)
-    Omega = longitude of ascending node (deg)
-    M0 = mean anomaly at epoch (deg)
-  We'll simply use parametric ellipse (not solving Kepler's equation for speed)
-  For time propagation we advance an angle theta = 2π * t / T, where T is orbital period computed by Kepler's 3rd law.
-*/
-
-// planet parameters (realistic-ish values but scaled)
-const planet = {
-  name: 'MH-1',
-  mass: 5.972e24,       // kg (earth mass) — informational
-  a_km: 1.0 * 1.0 * AU, // semi-major axis in km (1 AU)
-  e: 0.0167,            // small eccentricity like Earth
-  incl_deg: 3.0,        // slight tilt
-  omega_deg: 0,         // argument of periapsis
-  Omega_deg: 0,         // longitude of ascending node
-  radius_km: 6371,      // planet physical radius
-  color: 0x6699ff,
-  axialTilt_deg: 23.4,
-  rotationPeriod_hours: 24 // planet rotation (for day)
-};
-
-// derived visuals
-planet.visRadius = Math.max(1, planet.radius_km * SCALE * 0.02);
-planet.a_vis = planet.a_km * SCALE;
-planet.b_vis = planet.a_vis * Math.sqrt(1 - planet.e*planet.e);
-
-// compute orbital period (Kepler's third law) using central star mass ~ sunMass
-const sunMass = 1.989e30; // kg
-// T^2 = 4π^2 a^3 / (G * (M+m)), we use G in km^3 kg^-1 s^-2 => careful units - approximate for display
-const a_m = planet.a_km * 1000;
-const G_SI = 6.67430e-11;
-const T_seconds = Math.sqrt(4*Math.PI*Math.PI * Math.pow(a_m,3) / (G_SI * (sunMass + planet.mass)));
-const T_days = T_seconds / (60*60*24);
-
-// create planet mesh
-const planetGroup = new THREE.Group();
-scene.add(planetGroup);
-
-const planetGeo = new THREE.SphereGeometry(planet.visRadius, 32, 32);
-const planetMat = new THREE.MeshStandardMaterial({ color: planet.color, metalness: 0.05, roughness: 0.8 });
-const planetMesh = new THREE.Mesh(planetGeo, planetMat);
-planetMesh.castShadow = true;
-planetMesh.receiveShadow = true;
-planetGroup.add(planetMesh);
-
-// axial tilt group
-planetMesh.rotation.z = THREE.MathUtils.degToRad(planet.axialTilt_deg);
-
-/* ---------- Moon ---------- */
-const moon = {
-  name: 'MH-1 I',
-  a_km: 384400, // km from planet (like Moon)
-  e: 0.0549,
-  radius_km: 1737,
-  visRadius: Math.max(0.5, 1737 * SCALE * 0.02)
-};
-moon.a_vis = moon.a_km * SCALE;
-moon.b_vis = moon.a_vis * Math.sqrt(1 - moon.e*moon.e);
-
-const moonGroup = new THREE.Group();
-planetGroup.add(moonGroup);
-const moonGeo = new THREE.SphereGeometry(moon.visRadius, 24, 24);
-const moonMat = new THREE.MeshStandardMaterial({ color: 0x999999, metalness:0.0, roughness:0.9 });
-const moonMesh = new THREE.Mesh(moonGeo, moonMat);
-moonGroup.add(moonMesh);
-
-/* ---------- orbit helper (line) ---------- */
-let orbitLine = null;
-function buildOrbitLine(a_vis, b_vis, segments=256, tiltDeg=0, color=0x8888ff){
-  if(orbitLine) scene.remove(orbitLine);
-  const pts = [];
-  for(let i=0;i<=segments;i++){
-    const t = i/segments * Math.PI*2;
-    const x = a_vis * Math.cos(t);
-    const z = b_vis * Math.sin(t);
-    pts.push(new THREE.Vector3(x,0,z));
+  // response may be JSON { generated_text: "..."} or array [{generated_text: "..."}] or plain text
+  const ct = resp.headers.get('content-type') || '';
+  if(ct.includes('application/json')){
+    const data = await resp.json();
+    if(Array.isArray(data) && data[0] && data[0].generated_text) return data[0].generated_text;
+    if(data.generated_text) return data.generated_text;
+    // some models return an object with choices
+    if(data.hasOwnProperty('error')) throw new Error('Erro do modelo: '+data.error);
+    // if array of tokens etc
+    try{ return JSON.stringify(data); }catch(e){ return String(data); }
+  } else {
+    return await resp.text();
   }
-  const geom = new THREE.BufferGeometry().setFromPoints(pts);
-  const mat = new THREE.LineBasicMaterial({color: color, opacity:0.6, transparent:true});
-  orbitLine = new THREE.LineLoop(geom, mat);
-  orbitLine.rotation.x = THREE.MathUtils.degToRad(tiltDeg);
-  scene.add(orbitLine);
-}
-let showOrbit = true;
-buildOrbitLine(planet.a_vis, planet.b_vis, 512, planet.incl_deg, 0x66ccff);
-
-/* ---------- HUD / UI ---------- */
-const speedSlider = document.getElementById('speed');
-const speedLabel = document.getElementById('speedLabel');
-const pauseBtn = document.getElementById('pauseBtn');
-const resetBtn = document.getElementById('resetBtn');
-const toggleOrbitBtn = document.getElementById('toggleOrbit');
-
-let timeSpeed = parseFloat(speedSlider.value); // multiplier in seconds per frame units
-let paused = false;
-
-speedSlider.addEventListener('input', ()=>{
-  timeSpeed = parseFloat(speedSlider.value);
-  speedLabel.textContent = timeSpeed.toFixed(0) + '×';
-});
-
-pauseBtn.addEventListener('click', ()=>{
-  paused = !paused;
-  pauseBtn.textContent = paused ? 'Continuar' : 'Pausar';
-});
-
-resetBtn.addEventListener('click', ()=>{
-  camera.position.set(0, 30, 120);
-  controls.target.set(0,0,0);
-  controls.update();
-});
-
-toggleOrbitBtn.addEventListener('click', ()=>{
-  showOrbit = !showOrbit;
-  if(orbitLine) orbitLine.visible = showOrbit;
-  toggleOrbitBtn.classList.toggle('secondary', !showOrbit);
-  toggleOrbitBtn.textContent = showOrbit ? 'Ocultar órbita' : 'Mostrar órbita';
-});
-
-/* ---------- simulation state ---------- */
-let simTime = 0; // seconds elapsed in simulation (scaled)
-const realSecondPerFrame = 1/60; // baseline
-const displayDist = document.getElementById('dist');
-const displayPeriod = document.getElementById('period');
-document.getElementById('objName').textContent = `${planet.name} (demo)`;
-
-// initial display
-displayPeriod.textContent = `${T_days.toFixed(1)} dias`;
-
-/* ---------- orbit math (parametric) ---------- */
-/*
- param t from 0..1 around orbit => theta = 2π * t
- position (in orbital plane) = (a cos θ, 0, b sin θ)
- apply rotation by Omega, omega, inclination via Euler rotations if needed
- We'll keep simple: apply inclination as rotation about X
-*/
-function computeOrbitPosition(a_vis, b_vis, theta, incl_deg=0){
-  const x = a_vis * Math.cos(theta);
-  const z = b_vis * Math.sin(theta);
-  const pos = new THREE.Vector3(x, 0, z);
-  // apply inclination rotation around x axis
-  pos.applyAxisAngle(new THREE.Vector3(1,0,0), THREE.MathUtils.degToRad(incl_deg));
-  return pos;
 }
 
-/* ---------- animation loop ---------- */
-let last = performance.now();
-let fpsMeasureTime = performance.now();
-let frameCount = 0;
+// main send handler
+async function sendMessage(){
+  const text = input.value.trim();
+  if(!text) return;
+  appendMessage(text, 'user');
+  input.value = '';
+  const loader = appendMessage('…', 'bot');
 
-function animate(now){
-  const dtMs = now - last;
-  last = now;
-  const dt = dtMs / 1000.0;
-  // adaptive time step: simulation seconds to advance per real second
-  const simSecondsAdvance = (paused ? 0 : dt * timeSpeed * 3600); // timeSpeed × hours per real second (multiply to get notable motion)
-  simTime += simSecondsAdvance;
-
-  // planet orbital progress: theta = 2π * t / T_seconds
-  const theta = (simTime % T_seconds) / T_seconds * Math.PI * 2;
-  // compute planet position
-  const planetPos = computeOrbitPosition(planet.a_vis, planet.b_vis, theta, planet.incl_deg);
-  planetGroup.position.copy(planetPos);
-
-  // moon orbit around planet: faster period, use separate param
-  const moonPeriodSec = 27.3 * 24*3600; // ~27.3 days
-  const moonTheta = (simTime % moonPeriodSec) / moonPeriodSec * Math.PI * 2;
-  const moonPos = computeOrbitPosition(moon.a_vis, moon.b_vis, moonTheta, 5); // slight tilt
-  moonGroup.position.set(moonPos.x, moonPos.y, moonPos.z);
-
-  // planet axial rotation (day)
-  const daySeconds = planet.rotationPeriod_hours * 3600;
-  const dayTheta = (simTime % daySeconds) / daySeconds * Math.PI * 2;
-  planetMesh.rotation.y = dayTheta;
-
-  // update UI distance (planet-star)
-  const distVis = planetPos.length() / SCALE; // convert back to km approximately
-  displayDist.textContent = `${(planetPos.length()/SCALE/1000).toFixed(0)} km (sim)`; // approximate
-
-  // camera controls and WASD flight
-  controls.update();
-  const moveSpeed = 40 * dt * (1 + timeSpeed*0.02);
-  if(keyState['w']) camera.position.add(controls.getDirection(new THREE.Vector3()).multiplyScalar(moveSpeed));
-  if(keyState['s']) camera.position.add(controls.getDirection(new THREE.Vector3()).multiplyScalar(-moveSpeed));
-  if(keyState['a']) camera.position.add(controls.getRight(new THREE.Vector3()).multiplyScalar(-moveSpeed));
-  if(keyState['d']) camera.position.add(controls.getRight(new THREE.Vector3()).multiplyScalar(moveSpeed));
-  if(keyState['q']) camera.position.y += moveSpeed;
-  if(keyState['e']) camera.position.y -= moveSpeed;
-
-  controls.update();
-
-  renderer.render(scene, camera);
-
-  // simple fps-adaptive LOD: if frame time too high, reduce star points (not heavy)
-  frameCount++;
-  if(now - fpsMeasureTime > 1000){
-    const fps = frameCount / ((now - fpsMeasureTime)/1000);
-    frameCount = 0; fpsMeasureTime = now;
-    // adjust star count or renderer settings if fps low (basic)
-    // (omitted heavy reallocation to keep code simple)
-    // console.log('fps',fps);
+  if(HF_API_KEY){
+    try{
+      const prompt = `Você é um assistente prestativo e conciso. Responda em português.\n\nUsuário: ${text}\nAssistente:`;
+      const reply = await callHuggingFace(prompt);
+      loader.textContent = (reply || 'Sem resposta do modelo').trim();
+    }catch(err){
+      console.error(err);
+      loader.textContent = 'Erro ao acessar API: ' + err.message;
+      // fallback to demo
+      const fb = demoResponse(text);
+      const fallbackEl = appendMessage(fb, 'bot');
+      fallbackEl.style.opacity = 0.9;
+    }
+  } else {
+    // demo mode
+    const r = demoResponse(text);
+    loader.textContent = r;
   }
-
-  requestAnimationFrame(animate);
+  container.scrollTop = 0;
 }
 
-/* ---------- responsive ---------- */
-window.addEventListener('resize', ()=>{
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
+// UI wiring
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
+
+// save key locally (only for testing)
+saveBtn.addEventListener('click', ()=>{
+  HF_API_KEY = apiKeyInput.value.trim();
+  HF_MODEL = modelInput.value.trim();
+  if(HF_API_KEY) localStorage.setItem('hf_api_key', HF_API_KEY); else localStorage.removeItem('hf_api_key');
+  if(HF_MODEL) localStorage.setItem('hf_model', HF_MODEL); else localStorage.removeItem('hf_model');
+  updateMode();
+  alert('Chave salva localmente no navegador (para teste). NÃO faça commit em repositório público.');
+});
+clearBtn.addEventListener('click', ()=>{
+  HF_API_KEY=''; HF_MODEL='';
+  apiKeyInput.value=''; modelInput.value='';
+  localStorage.removeItem('hf_api_key'); localStorage.removeItem('hf_model');
+  updateMode();
+  alert('Chave removida do storage local.');
 });
 
-/* ---------- start ---------- */
-requestAnimationFrame(animate);
-
-/* ---------- helpers for controls (OrbitControls small ext) ---------- */
-OrbitControls.prototype.getDirection = function(targetVec){
-  // returns camera forward direction vector
-  this.getPolarAngle(); // ensure internals
-  const vec = targetVec || new THREE.Vector3();
-  this.object.getWorldDirection(vec);
-  return vec;
-};
-OrbitControls.prototype.getRight = function(targetVec){
-  const dir = this.getDirection(new THREE.Vector3());
-  return new THREE.Vector3().crossVectors(dir, this.object.up).normalize().multiplyScalar(-1);
-};
+// welcome
+appendMessage('Olá — eu sou seu assistente. Posso te ajudar com código, deploy e ideias. Teste sem chave em modo demo ou cole sua Hugging Face API key para usar um modelo real.', 'bot');
 
 </script>
 </body>
-</html>
+  </html>
