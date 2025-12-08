@@ -1,96 +1,119 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Minha IA</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0b0f1a;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .chat {
-      width: 100%;
-      max-width: 400px;
-      background: #111827;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      background: #6366f1;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    pre {
-      background: black;
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 5px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Jarvis V3 — Assistente Online</title>
+<style>
+  :root {
+    --bg: #0b0f13;
+    --panel: #07111a;
+    --accent: #66ccff;
+    --muted: #9fb3c8;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:#dbeaf6;font-family:Inter,system-ui,Arial}
+  .app{max-width:900px;margin:12px auto;border-radius:12px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.6)}
+  .panel{display:flex;height:85vh;background:linear-gradient(180deg,#07121a 0%, #041018 100%)}
+  .left{width:360px;border-right:1px solid rgba(255,255,255,0.03);padding:14px;box-sizing:border-box;background:var(--panel)}
+  .brand{font-weight:700;color:var(--accent);font-size:18px;margin-bottom:8px}
+  .muted{color:var(--muted);font-size:13px}
+  .right{flex:1;display:flex;flex-direction:column}
+  .messages{flex:1;padding:18px;overflow:auto;gap:12px;display:flex;flex-direction:column-reverse}
+  .composer{display:flex;padding:12px;border-top:1px solid rgba(255,255,255,0.03);align-items:center;gap:8px}
+  textarea{flex:1;min-height:44px;max-height:140px;padding:10px;border-radius:8px;border:0;background:#071722;color:#e8f6ff;resize:none;outline:none}
+  button{background:var(--accent);border:0;padding:10px 12px;border-radius:8px;color:#001;font-weight:700;cursor:pointer}
+  .msg{max-width:78%;padding:10px 12px;border-radius:10px;line-height:1.35}
+  .user{align-self:flex-end;background:linear-gradient(90deg,#2b6bff,#66ccff);color:#001;border-bottom-right-radius:2px}
+  .bot{align-self:flex-start;background:#071c27;border:1px solid rgba(255,255,255,0.03)}
+  .small{font-size:12px;color:var(--muted)}
+  footer{font-size:12px;color:var(--muted);text-align:center;padding:8px}
+  @media(max-width:800px){.panel{flex-direction:column}.left{width:auto;border-right:0}}
+</style>
 </head>
 <body>
-
-  <div class="chat">
-    <h2>Minha IA</h2>
-    <input id="msg" placeholder="Digite algo...">
-    <button onclick="enviar()">Enviar</button>
-    <pre id="resposta"></pre>
+<div class="app" role="application" aria-label="Jarvis V3">
+  <div class="panel">
+    <div class="left">
+      <div class="brand">Jarvis V3</div>
+      <div class="muted">Assistente Online — Busca em tempo real</div>
+      <div class="small" style="margin-top:12px">Hospede no GitHub Pages. Não usa API externa, totalmente front-end.</div>
+    </div>
+    <div class="right">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid rgba(255,255,255,0.03)">
+        <div><strong>Conversa</strong><div class="small muted">Jarvis V3 — avançado e prestativo</div></div>
+      </div>
+      <div id="messageContainer" class="messages" aria-live="polite"></div>
+      <div class="composer">
+        <textarea id="input" placeholder="Escreva algo e pressione Enter..." aria-label="Mensagem"></textarea>
+        <button id="sendBtn">Enviar</button>
+      </div>
+    </div>
   </div>
+  <footer>Jarvis V3 • 100% front-end • Busca em tempo real</footer>
+</div>
 
-  <script>
-    const TOKEN = "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";
+<script>
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const container = document.getElementById('messageContainer');
 
-    async function enviar() {
-      const msg = document.getElementById("msg").value;
-      document.getElementById("resposta").innerText = "Pensando...";
+let conversation = [];
 
-      try {
-        const res = await fetch(
-          "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
-          {
-            method: "POST",
-            headers: {
-              "Authorization": "Bearer " + TOKEN,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              inputs: msg
-            })
-          }
-        );
+// append message
+function appendMessage(text, who='bot'){
+  const el = document.createElement('div');
+  el.className = 'msg ' + (who==='user' ? 'user' : 'bot');
+  el.textContent = text;
+  container.prepend(el);
+  return el;
+}
 
-        const data = await res.json();
+// busca na web usando DuckDuckGo
+async function searchWeb(query){
+  try{
+    const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`)}`;
+    const resp = await fetch(url);
+    if(!resp.ok) return null;
+    const data = await resp.json();
+    const html = data.contents;
+    // extrai texto simples
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const texts = Array.from(doc.querySelectorAll('a.result__a')).map(a => a.textContent);
+    return texts.slice(0,5).join('. ') || "Nenhuma informação encontrada.";
+  }catch(e){
+    return "Erro ao buscar na web.";
+  }
+}
 
-        const respostaIA =
-          data[0]?.generated_text || "Erro ao gerar resposta.";
+// gerar resposta do Jarvis
+async function jarvisResponse(prompt){
+  conversation.push({role:'user', content: prompt});
+  let webInfo = await searchWeb(prompt);
+  let answer = `Pesquisando na internet: ${webInfo}`;
+  conversation.push({role:'bot', content: answer});
+  return answer;
+}
 
-        document.getElementById("resposta").innerText = respostaIA;
+// enviar mensagem
+async function sendMessage(){
+  const text = input.value.trim();
+  if(!text) return;
+  appendMessage(text, 'user');
+  input.value = '';
+  const loader = appendMessage('…', 'bot');
 
-      } catch (e) {
-        document.getElementById("resposta").innerText = "Erro: " + e;
-      }
-    }
-  </script>
+  const reply = await jarvisResponse(text);
+  loader.textContent = reply;
+  container.scrollTop = 0;
+}
 
+// UI wiring
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
+
+// welcome
+appendMessage('Olá — eu sou Jarvis V3, posso pesquisar na internet e te responder com base no que encontro.', 'bot');
+</script>
 </body>
 </html>
