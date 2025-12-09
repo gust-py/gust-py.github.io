@@ -102,7 +102,7 @@ const typeColors={ normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"
   rock:"#B6A136", ghost:"#735797", dragon:"#6F35FC", dark:"#705746",
   steel:"#B7B7CE", fairy:"#D685AD" };
 
-let currentView='pokedex'; // "pokedex" ou "game"
+let currentView='pokedex';
 let loadedCount=0;
 const batchSize=150;
 const totalPokemons=386;
@@ -182,7 +182,6 @@ function createPokemonCard(pokemon, showDetails=true){
       detailBox.appendChild(closeBtn);
     });
   } else {
-    // game selection click
     card.addEventListener('click',()=>{ selectedPokemon=pokemon; alert("Você selecionou "+upper(pokemon.name)); });
   }
 
@@ -203,11 +202,13 @@ async function loadBatch(){
   }
 
   loadedCount+=(end-start+1);
+
   if(loadedCount>=totalPokemons) loadMoreBtn.style.display='none';
 
-  const remainder=loadedCount%3;
+  // Fixa linhas de 3 cards
+  const remainder=container.children.length%3;
   if(remainder>0){
-    for(let i=0;i<3-remainder;i++){
+    for(let j=0;j<3-remainder;j++){
       const filler=document.createElement('div');
       filler.style.visibility='hidden';
       container.appendChild(filler);
@@ -232,6 +233,7 @@ startGameBtn.addEventListener('click',async()=>{
   searchContainer.style.display='none';
   clearContainer();
   loadMoreBtn.style.display='none';
+
   const startersIds=[1,4,7,152,155,158,252,255,258]; // 3 iniciais por geração
   for(const id of startersIds){
     const p=await fetchPokemon(id);
@@ -245,13 +247,14 @@ pokedexBtn.addEventListener('click',()=>{
   pokedexBtn.style.display='none';
   startGameBtn.style.display='block';
   searchContainer.style.display='flex';
+
   clearContainer();
   loadedCount=0;
-  container.innerHTML='';
+  allPokemons.length=0; // limpa array para reiniciar corretamente
   loadMoreBtn.style.display='block';
   loadBatch();
 });
 </script>
 
 </body>
-      </html>
+</html>
