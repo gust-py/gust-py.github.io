@@ -5,156 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pokedex</title>
 <style>
-  body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #fff;
-  }
-
-  .search-container {
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-  }
-
-  .search-container input {
-    width: 90%;
-    max-width: 500px;
-    padding: 10px 15px;
-    border: 2px solid #000;
-    border-radius: 25px;
-    font-size: 16px;
-    outline: none;
-  }
-
-  .pokemon-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    padding: 10px;
-  }
-
-  .pokemon-card {
-    width: 250px;
-    height: 120px;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    position: relative;
-    color: #fff;
-    font-weight: bold;
-    text-align: center;
-    padding-left: 10px;
-    box-sizing: border-box;
-    opacity: 0;
-    transition: opacity 0.3s;
-    cursor: pointer;
-  }
-
-  .pokemon-card.show {
-    opacity: 1;
-  }
-
-  .pokemon-card img.pokemon-img {
-    width: 100px;
-    height: 100px;
-    margin-right: 10px;
-  }
-
-  .pokemon-number {
-    position: absolute;
-    top: 5px;
-    left: 10px;
-    font-size: 14px;
-  }
-
-  .pokemon-types {
-    position: absolute;
-    top: 5px;
-    right: 25px;
-    display: flex;
-    gap: 3px;
-  }
-
-  .pokemon-type-img {
-    width: 15px;
-    height: 15px;
-  }
-
-  .detail-box {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 180px;
-    text-align: left;
-    display: none;
-    z-index: 10;
-    color: #fff;
-  }
-
-  .detail-box h4 {
-    margin: 0 0 5px 0;
-    font-size: 14px;
-  }
-
-  .detail-box p {
-    margin: 2px 0;
-    font-size: 12px;
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background: red;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-
-  .load-more-container {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-  }
-
-  .load-more-btn {
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 25px;
-    border: 2px solid #000;
-    cursor: pointer;
-    background-color: #fff;
-  }
-
-  @media (max-width: 600px) {
-    .pokemon-card {
-      width: 200px;
-      height: 100px;
-      padding-left: 5px;
-    }
-
-    .pokemon-card img.pokemon-img {
-      width: 70px;
-      height: 70px;
-    }
-
-    .pokemon-type-img {
-      width: 12px;
-      height: 12px;
-    }
-
-    .detail-box {
-      max-width: 140px;
-      font-size: 11px;
-    }
+  body { margin:0; font-family:Arial,sans-serif; background-color:#fff; }
+  .search-container { display:flex; justify-content:center; padding:20px; }
+  .search-container input { width:90%; max-width:500px; padding:10px 15px; border:2px solid #000; border-radius:25px; font-size:16px; outline:none; }
+  .pokemon-container { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; padding:10px; }
+  .pokemon-card { width:250px; height:120px; border-radius:15px; display:flex; align-items:center; position:relative; color:#fff; font-weight:bold; text-align:center; padding-left:10px; box-sizing:border-box; opacity:0; transition:opacity 0.3s; cursor:pointer; }
+  .pokemon-card.show { opacity:1; }
+  .pokemon-card img.pokemon-img { width:100px; height:100px; margin-right:10px; }
+  .pokemon-number { position:absolute; top:5px; left:10px; font-size:14px; }
+  .pokemon-types { position:absolute; top:5px; right:25px; display:flex; gap:3px; }
+  .pokemon-type-img { width:15px; height:15px; }
+  .detail-box { position:absolute; top:5px; right:5px; padding:10px; border-radius:10px; max-width:180px; text-align:left; display:none; z-index:10; color:#fff; }
+  .detail-box h4 { margin:0 0 5px 0; font-size:14px; }
+  .detail-box p { margin:2px 0; font-size:12px; }
+  .close-btn { position:absolute; top:2px; right:2px; background:red; color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:12px; cursor:pointer; }
+  .load-more-container { display:flex; justify-content:center; margin:20px 0; }
+  .load-more-btn { padding:10px 20px; font-size:16px; border-radius:25px; border:2px solid #000; cursor:pointer; background-color:#fff; }
+  @media (max-width:600px) {
+    .pokemon-card { width:200px; height:100px; padding-left:5px; }
+    .pokemon-card img.pokemon-img { width:70px; height:70px; }
+    .pokemon-type-img { width:12px; height:12px; }
+    .detail-box { max-width:140px; font-size:11px; }
   }
 </style>
 </head>
@@ -173,153 +44,120 @@
 const container = document.getElementById('pokemon-container');
 const searchInput = document.getElementById('search');
 const loadMoreBtn = document.getElementById('load-more');
-const totalPokemons = 1056;
+const totalPokemons = 1025;
 const batchSize = 150;
 let loadedCount = 0;
 const allPokemons = [];
 
 const typeColors = {
-  normal: "#A8A77A",
-  fire: "#EE8130",
-  water: "#6390F0",
-  electric: "#F7D02C",
-  grass: "#7AC74C",
-  ice: "#96D9D6",
-  fighting: "#C22E28",
-  poison: "#A33EA1",
-  ground: "#E2BF65",
-  flying: "#A98FF3",
-  psychic: "#F95587",
-  bug: "#A6B91A",
-  rock: "#B6A136",
-  ghost: "#735797",
-  dragon: "#6F35FC",
-  dark: "#705746",
-  steel: "#B7B7CE",
-  fairy: "#D685AD"
+  normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"#F7D02C",
+  grass:"#7AC74C", ice:"#96D9D6", fighting:"#C22E28", poison:"#A33EA1",
+  ground:"#E2BF65", flying:"#A98FF3", psychic:"#F95587", bug:"#A6B91A",
+  rock:"#B6A136", ghost:"#735797", dragon:"#6F35FC", dark:"#705746",
+  steel:"#B7B7CE", fairy:"#D685AD"
 };
 
-function upper(str) {
-  return str.toUpperCase();
-}
+function upper(str){ return str.toUpperCase(); }
 
-async function fetchPokemon(id) {
-  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-  return await res.json();
-}
+async function fetchPokemon(id){ const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); return await res.json(); }
+async function fetchPokemonSpecies(id){ const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`); return await res.json(); }
 
-async function fetchPokemonSpecies(id) {
-  const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-  return await res.json();
-}
-
-function createPokemonCard(pokemon) {
+function createPokemonCard(pokemon){
   const card = document.createElement('div');
   const primaryType = pokemon.types[0].type.name;
   card.classList.add('pokemon-card');
-  card.style.backgroundColor = typeColors[primaryType] || "#777";
+  card.style.backgroundColor = typeColors[primaryType]||"#777";
 
-  const number = document.createElement('div');
+  const number=document.createElement('div');
   number.classList.add('pokemon-number');
-  number.textContent = `#${pokemon.id.toString().padStart(3,'0')}`;
+  number.textContent=`#${pokemon.id.toString().padStart(3,'0')}`;
   card.appendChild(number);
 
-  const typesContainer = document.createElement('div');
+  const typesContainer=document.createElement('div');
   typesContainer.classList.add('pokemon-types');
-  pokemon.types.forEach(t => {
-    const img = document.createElement('img');
-    img.src = `https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/${t.type.name}.svg`;
+  pokemon.types.forEach(t=>{
+    const img=document.createElement('img');
+    img.src=`https://raw.githubusercontent.com/duiker101/pokemon-type-svg-icons/master/icons/${t.type.name}.svg`;
     img.classList.add('pokemon-type-img');
     typesContainer.appendChild(img);
   });
   card.appendChild(typesContainer);
 
-  const img = document.createElement('img');
-  img.src = pokemon.sprites.other['official-artwork'].front_default;
-  img.alt = pokemon.name;
+  const img=document.createElement('img');
+  img.src=pokemon.sprites.other['official-artwork'].front_default;
+  img.alt=pokemon.name;
   img.classList.add('pokemon-img');
   card.appendChild(img);
 
-  const name = document.createElement('div');
-  name.textContent = upper(pokemon.name);
+  const name=document.createElement('div');
+  name.textContent=upper(pokemon.name);
   card.appendChild(name);
 
-  const detailBox = document.createElement('div');
+  const detailBox=document.createElement('div');
   detailBox.classList.add('detail-box');
-  detailBox.style.backgroundColor = typeColors[primaryType];
+  detailBox.style.backgroundColor=typeColors[primaryType];
   card.appendChild(detailBox);
 
-  const closeBtn = document.createElement('button');
+  const closeBtn=document.createElement('button');
   closeBtn.classList.add('close-btn');
-  closeBtn.textContent = "X";
-  closeBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    detailBox.style.display = 'none';
-  });
+  closeBtn.textContent="X";
+  closeBtn.addEventListener('click',e=>{ e.stopPropagation(); detailBox.style.display='none'; });
   detailBox.appendChild(closeBtn);
 
-  card.addEventListener('click', async () => {
-    detailBox.style.display = 'block';
-    detailBox.innerHTML = '';
+  card.addEventListener('click',async()=>{
+    detailBox.style.display='block';
+    detailBox.innerHTML='';
     detailBox.appendChild(closeBtn);
 
-    const species = await fetchPokemonSpecies(pokemon.id);
-    const flavor = species.flavor_text_entries.find(f => f.language.name === "en")?.flavor_text.replace(/\n|\f/g, ' ') || "No description.";
+    const species=await fetchPokemonSpecies(pokemon.id);
+    const flavor=species.flavor_text_entries.find(f=>f.language.name==="en")?.flavor_text.replace(/\n|\f/g,' ')||"No description.";
 
-    let evolveLevel = "•";
-    if (species.evolution_chain) {
-      try {
-        const evoRes = await fetch(species.evolution_chain.url);
-        const evoData = await evoRes.json();
-        const evoDetails = evoData.chain.evolves_to.find(e => e.species.name === pokemon.name);
-        if (evoDetails && evoDetails.evolution_details.length > 0) {
-          evolveLevel = evoDetails.evolution_details[0].min_level || "•";
-        }
-      } catch(e){ evolveLevel = "•"; }
+    let evolveLevel="•";
+    if(species.evolution_chain){
+      try{
+        const evoRes=await fetch(species.evolution_chain.url);
+        const evoData=await evoRes.json();
+        const evoDetails=evoData.chain.evolves_to.find(e=>e.species.name===pokemon.name);
+        if(evoDetails&&evoDetails.evolution_details.length>0) evolveLevel=evoDetails.evolution_details[0].min_level||"•";
+      }catch(e){ evolveLevel="•"; }
     }
 
-    detailBox.innerHTML += `<h4>${upper(pokemon.name)}</h4>`;
-    detailBox.innerHTML += `<p>Evolve Level: ${evolveLevel}</p>`;
-    detailBox.innerHTML += `<p>${flavor}</p>`;
+    detailBox.innerHTML+=`<h4>${upper(pokemon.name)}</h4>`;
+    detailBox.innerHTML+=`<p>Evolve Level: ${evolveLevel}</p>`;
+    detailBox.innerHTML+=`<p>${flavor}</p>`;
     detailBox.appendChild(closeBtn);
   });
 
   container.appendChild(card);
-  setTimeout(() => card.classList.add('show'), 50);
+  setTimeout(()=>card.classList.add('show'),50);
 }
 
-async function loadBatch() {
-  const start = loadedCount + 1;
-  const end = Math.min(loadedCount + batchSize, totalPokemons);
+async function loadBatch(){
+  const start=loadedCount+1;
+  const end=Math.min(loadedCount+batchSize,totalPokemons);
+  const delay=30000/batchSize; // 30s / 150 = intervalo entre cada card
 
-  for (let i = start; i <= end; i++) {
-    const pokemon = await fetchPokemon(i);
+  for(let i=start;i<=end;i++){
+    const pokemon=await fetchPokemon(i);
     allPokemons.push(pokemon);
     createPokemonCard(pokemon);
-    await new Promise(res => setTimeout(res, 30));
+    await new Promise(res=>setTimeout(res,delay));
   }
 
-  loadedCount += (end - start + 1);
-  if (loadedCount >= totalPokemons) {
-    loadMoreBtn.style.display = 'none';
-  }
+  loadedCount+=(end-start+1);
+  if(loadedCount>=totalPokemons) loadMoreBtn.style.display='none';
 }
 
 // Busca
-searchInput.addEventListener('input', () => {
-  const value = searchInput.value.toLowerCase();
-  container.innerHTML = '';
-  allPokemons
-    .filter(p => p.name.includes(value))
-    .forEach(p => createPokemonCard(p));
+searchInput.addEventListener('input',()=>{
+  const value=searchInput.value.toLowerCase();
+  container.innerHTML='';
+  allPokemons.filter(p=>p.name.includes(value)).forEach(p=>createPokemonCard(p));
 });
 
 loadBatch();
-
-loadMoreBtn.addEventListener('click', () => {
-  loadBatch();
-});
+loadMoreBtn.addEventListener('click',()=>{ loadBatch(); });
 </script>
 
 </body>
-  </html>
+</html>
