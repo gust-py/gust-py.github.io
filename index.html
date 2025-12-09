@@ -36,58 +36,66 @@
   }
 
   .pokemon-card {
-    width: 150px;
-    height: 200px;
+    width: 250px;  /* deitado */
+    height: 120px;
     border-radius: 15px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     position: relative;
     color: #fff;
     font-weight: bold;
     text-align: center;
-    transition: transform 0.2s;
+    padding-left: 10px;
+    box-sizing: border-box;
+    opacity: 0; /* para o efeito gradual */
+    transition: opacity 0.3s;
   }
 
-  .pokemon-card:hover {
-    transform: scale(1.05);
+  .pokemon-card.show {
+    opacity: 1;
   }
 
-  .pokemon-card img {
+  .pokemon-card img.pokemon-img {
     width: 100px;
     height: 100px;
-    margin-top: 10px;
+    margin-right: 10px;
   }
 
   .pokemon-number {
     position: absolute;
-    top: 10px;
+    top: 5px;
     left: 10px;
     font-size: 14px;
   }
 
   .pokemon-types {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 5px;
+    right: 5px;
     display: flex;
-    gap: 5px;
+    gap: 3px;
   }
 
   .pokemon-type-img {
-    width: 25px;
-    height: 25px;
+    width: 15px;
+    height: 15px;
   }
 
   @media (max-width: 600px) {
     .pokemon-card {
-      width: 120px;
-      height: 170px;
+      width: 200px;
+      height: 100px;
+      padding-left: 5px;
     }
 
-    .pokemon-card img {
-      width: 80px;
-      height: 80px;
+    .pokemon-card img.pokemon-img {
+      width: 70px;
+      height: 70px;
+    }
+
+    .pokemon-type-img {
+      width: 12px;
+      height: 12px;
     }
   }
 </style>
@@ -105,8 +113,8 @@
 <script>
 const container = document.getElementById('pokemon-container');
 const searchInput = document.getElementById('search');
-const totalPokemons = 150; // Começamos com 150 para não travar a página
-const allPokemons = []; // cache de Pokémon carregados
+const totalPokemons = 150;
+const allPokemons = [];
 
 const typeColors = {
   normal: "#A8A77A",
@@ -129,7 +137,6 @@ const typeColors = {
   fairy: "#D685AD"
 };
 
-// Busca Pokémon pelo ID
 async function fetchPokemon(id) {
   try {
     const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
@@ -140,7 +147,6 @@ async function fetchPokemon(id) {
   }
 }
 
-// Cria card do Pokémon
 function createPokemonCard(pokemon) {
   const card = document.createElement('div');
   const primaryType = pokemon.types[0].type.name;
@@ -165,6 +171,7 @@ function createPokemonCard(pokemon) {
   const img = document.createElement('img');
   img.src = pokemon.sprites.other['official-artwork'].front_default;
   img.alt = pokemon.name;
+  img.classList.add('pokemon-img');
   card.appendChild(img);
 
   const name = document.createElement('div');
@@ -172,19 +179,24 @@ function createPokemonCard(pokemon) {
   card.appendChild(name);
 
   container.appendChild(card);
+
+  // Efeito gradual de aparição
+  setTimeout(() => {
+    card.classList.add('show');
+  }, 50);
 }
 
-// Carrega Pokémon com delay gradual
+// Carrega Pokémon gradualmente
 async function loadPokemons() {
   for (let i = 1; i <= totalPokemons; i++) {
     const pokemon = await fetchPokemon(i);
     allPokemons.push(pokemon);
     createPokemonCard(pokemon);
-    await new Promise(res => setTimeout(res, 30)); // efeito visual clássico
+    await new Promise(res => setTimeout(res, 30)); // efeito "ligando na TV"
   }
 }
 
-// Busca Pokémon no cache
+// Busca Pokémon
 searchInput.addEventListener('input', () => {
   const value = searchInput.value.toLowerCase();
   container.innerHTML = '';
@@ -193,9 +205,8 @@ searchInput.addEventListener('input', () => {
     .forEach(p => createPokemonCard(p));
 });
 
-// Inicializa a Pokédex
 loadPokemons();
 </script>
 
 </body>
- </html>
+</html>
