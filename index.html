@@ -86,14 +86,13 @@
     position: absolute;
     top: 5px;
     right: 5px;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
     padding: 10px;
     border-radius: 10px;
     max-width: 180px;
     text-align: left;
     display: none;
     z-index: 10;
+    color: #fff;
   }
 
   .detail-box h4 {
@@ -150,9 +149,7 @@
   <input type="text" id="search" placeholder="Digite o nome do Pokémon...">
 </div>
 
-<div class="pokemon-container" id="pokemon-container">
-  <!-- Cards serão inseridos aqui -->
-</div>
+<div class="pokemon-container" id="pokemon-container"></div>
 
 <script>
 const container = document.getElementById('pokemon-container');
@@ -181,30 +178,24 @@ const typeColors = {
   fairy: "#D685AD"
 };
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+// Helper para deixar tudo maiúsculo
+function upper(str) {
+  return str.toUpperCase();
 }
 
+// Pega Pokémon
 async function fetchPokemon(id) {
-  try {
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    console.error(err);
-  }
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+  return await res.json();
 }
 
+// Pega info de espécie para descrição e evolução
 async function fetchPokemonSpecies(id) {
-  try {
-    const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-    const data = await res.json();
-    return data;
-  } catch(err) {
-    console.error(err);
-  }
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
+  return await res.json();
 }
 
+// Cria card
 function createPokemonCard(pokemon) {
   const card = document.createElement('div');
   const primaryType = pokemon.types[0].type.name;
@@ -233,12 +224,13 @@ function createPokemonCard(pokemon) {
   card.appendChild(img);
 
   const name = document.createElement('div');
-  name.textContent = capitalize(pokemon.name);
+  name.textContent = upper(pokemon.name);
   card.appendChild(name);
 
   // Caixa de detalhes
   const detailBox = document.createElement('div');
   detailBox.classList.add('detail-box');
+  detailBox.style.backgroundColor = typeColors[primaryType];
   card.appendChild(detailBox);
 
   const closeBtn = document.createElement('button');
@@ -250,21 +242,33 @@ function createPokemonCard(pokemon) {
   });
   detailBox.appendChild(closeBtn);
 
-  // Clique abre descrição detalhada
+  // Clique abre detalhes
   card.addEventListener('click', async () => {
+    detailBox.style.display = 'block';
     detailBox.innerHTML = '';
     detailBox.appendChild(closeBtn);
-    detailBox.style.display = 'block';
-    const species = await fetchPokemonSpecies(pokemon.id);
-    const flavor = species.flavor_text_entries.find(f => f.language.name === "en")?.flavor_text.replace(/\n|\f/g, ' ') || "Sem descrição.";
-    
-    // Simula level e raridade baseado no id
-    const level = Math.min(100, Math.floor(pokemon.id/10)+1);
-    const rarity = ["Common","Uncommon","Rare","Epic","Legendary"][Math.floor(pokemon.id/300*5)] || "Common";
 
-    detailBox.innerHTML += `<h4>${capitalize(pokemon.name)}</h4>`;
-    detailBox.innerHTML += `<p><strong>Level:</strong> ${level}</p>`;
-    detailBox.innerHTML += `<p><strong>Rarity:</strong> ${rarity}</p>`;
+    const species = await fetchPokemonSpecies(pokemon.id);
+
+    // Descrição em inglês
+    const flavor = species.flavor_text_entries.find(f => f.language.name === "en")?.flavor_text.replace(/\n|\f/g, ' ') || "No description.";
+
+    // Evolução
+    let evolveLevel = "•"; // default se não evolui
+    if (species.evolution_chain) {
+      try {
+        const evoRes = await fetch(species.evolution_chain.url);
+        const evoData = await evoRes.json();
+        // procura nível mínimo da primeira evolução
+        const evoDetails = evoData.chain.evolves_to.find(e => e.species.name === pokemon.name);
+        if (evoDetails && evoDetails.evolution_details.length > 0) {
+          evolveLevel = evoDetails.evolution_details[0].min_level || "•";
+        }
+      } catch(e){evolveLevel = "•";}
+    }
+
+    detailBox.innerHTML += `<h4>${upper(pokemon.name)}</h4>`;
+    detailBox.innerHTML += `<p>Evolve Level: ${evolveLevel}</p>`;
     detailBox.innerHTML += `<p>${flavor}</p>`;
     detailBox.appendChild(closeBtn);
   });
@@ -274,6 +278,7 @@ function createPokemonCard(pokemon) {
   setTimeout(() => card.classList.add('show'), 50);
 }
 
+// Carrega Pokémon gradualmente
 async function loadPokemons() {
   for (let i = 1; i <= totalPokemons; i++) {
     const pokemon = await fetchPokemon(i);
@@ -283,6 +288,7 @@ async function loadPokemons() {
   }
 }
 
+// Busca
 searchInput.addEventListener('input', () => {
   const value = searchInput.value.toLowerCase();
   container.innerHTML = '';
@@ -295,4 +301,4 @@ loadPokemons();
 </script>
 
 </body>
-</html>
+  </html>
