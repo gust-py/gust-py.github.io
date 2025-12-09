@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mundo de Blocos</title>
+<title>Mundo de Blocos Mobile</title>
 <style>
-body { margin:0; overflow:hidden; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-canvas { background:#000; display:block; margin:0 auto; }
-#controls { margin-top:10px; display:flex; gap:5px; }
-button { padding:10px 15px; font-size:16px; border:none; border-radius:6px; background:#66ccff; color:#001; font-weight:700; cursor:pointer; }
+body { margin:0; overflow:hidden; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; }
+canvas { background:#000; display:block; }
+#controls { position: fixed; bottom: 20px; display: flex; gap:10px; flex-wrap: wrap; justify-content:center; width:100%; }
+button { padding:15px 20px; font-size:18px; border:none; border-radius:10px; background:#66ccff; color:#001; font-weight:700; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -23,24 +23,33 @@ button { padding:10px 15px; font-size:16px; border:none; border-radius:6px; back
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 
-const cmToPx = 37.8; // 2.5cm ~ 95px
-const blockSize = 95;
-const worldSize = 100; // mundo de 100x100 blocos
+let gridBlocks = 17; // 8 blocos para cada lado + player
+let blockSize; 
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  // calcula blockSize para caber inteiro na tela
+  blockSize = Math.min(canvas.width, canvas.height) / gridBlocks;
+  draw();
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+const worldSize = 100;
+let player = { x: Math.floor(worldSize/2), y: Math.floor(worldSize/2) };
+
+// mundo fixo preto
 let world = [];
-
 for(let i=0;i<worldSize;i++){
   world[i] = [];
   for(let j=0;j<worldSize;j++){
-    world[i][j] = 0; // 0 = preto
+    world[i][j]=0;
   }
 }
 
-let player = { x: Math.floor(worldSize/2), y: Math.floor(worldSize/2) };
-
-function drawRoundedRect(x, y, w, h, r, color){
+function drawRoundedRect(x,y,w,h,r,color){
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.moveTo(x+r, y);
@@ -57,7 +66,6 @@ function drawRoundedRect(x, y, w, h, r, color){
 
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   let offsetX = canvas.width/2 - blockSize/2;
   let offsetY = canvas.height/2 - blockSize/2;
 
@@ -65,11 +73,8 @@ function draw(){
     for(let j=player.y-8;j<=player.y+8;j++){
       if(i>=0 && j>=0 && i<worldSize && j<worldSize){
         let color = 0;
-        // quadrado oco 8 blocos ao redor do player
-        if( (i===player.x-8 || i===player.x+8 || j===player.y-8 || j===player.y+8) ){
-          color = 255;
-        } else {
-          color = 0;
+        if(i===player.x-8 || i===player.x+8 || j===player.y-8 || j===player.y+8){
+          color = 255; // quadrado oco branco
         }
         ctx.fillStyle = `rgb(${color},${color},${color})`;
         ctx.fillRect(offsetX + (i-player.x)*blockSize, offsetY + (j-player.y)*blockSize, blockSize, blockSize);
@@ -77,8 +82,8 @@ function draw(){
     }
   }
 
-  // desenha o player
-  drawRoundedRect(offsetX, offsetY, blockSize, blockSize, 20, '#ffffff');
+  // personagem arredondado
+  drawRoundedRect(offsetX, offsetY, blockSize, blockSize, blockSize*0.2, '#ffffff');
 }
 
 function move(dx, dy){
