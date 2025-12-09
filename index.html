@@ -3,174 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PokéMMO Avançado</title>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/colyseus.js@0.15.0/dist/colyseus.js"></script>
+<title>Mundo de Blocos</title>
 <style>
-body { margin:0; padding:0; overflow:hidden; background:#000; }
-canvas { display:block; margin:0 auto; }
-#chat { position:fixed; bottom:0; width:100%; display:flex; gap:4px; padding:4px; background:rgba(0,0,0,0.5); }
-#chat input { flex:1; padding:6px; border-radius:4px; border:none; }
-#chat button { padding:6px 10px; border-radius:4px; border:none; background:#66ccff; color:#001; font-weight:700; cursor:pointer; }
-#messages { position:fixed; bottom:50px; left:4px; max-width:70%; color:#fff; font-family:Arial, sans-serif; font-size:14px; overflow:auto; max-height:40vh; }
+body { margin:0; overflow:hidden; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+canvas { background:#000; display:block; margin:0 auto; }
+#controls { margin-top:10px; display:flex; gap:5px; }
+button { padding:10px 15px; font-size:16px; border:none; border-radius:6px; background:#66ccff; color:#001; font-weight:700; cursor:pointer; }
 </style>
 </head>
 <body>
-
-<div id="messages"></div>
-<div id="chat">
-<input type="text" id="chatInput" placeholder="Escreva algo..."/>
-<button id="chatSend">Enviar</button>
+<canvas id="gameCanvas"></canvas>
+<div id="controls">
+<button id="up">⬆</button>
+<button id="left">⬅</button>
+<button id="down">⬇</button>
+<button id="right">➡</button>
 </div>
 
 <script>
-let config = {
-    type: Phaser.AUTO,
-    width: window.innerWidth,
-    height: window.innerHeight,
-    physics: { default:'arcade', arcade:{ debug:false } },
-    scene: { preload, create, update }
-};
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-let game = new Phaser.Game(config);
+const cmToPx = 37.8; // 2.5cm ~ 95px
+const blockSize = 95;
+const worldSize = 100; // mundo de 100x100 blocos
+let world = [];
 
-let player, cursors;
-let otherPlayers = {};
-let stars = [];
-let pokemons = [];
-let items = [];
-let socketClient;
-
-let messageContainer = document.getElementById('messages');
-let chatInput = document.getElementById('chatInput');
-let chatSend = document.getElementById('chatSend');
-
-function preload(){
-    this.load.image('player', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'); // Pikachu
-    this.load.image('pokeball', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png');
-    this.load.image('masterball', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png');
-    this.load.image('ultraball', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png');
-    this.load.image('star', 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Star_icon-72a7cf.svg');
+for(let i=0;i<worldSize;i++){
+  world[i] = [];
+  for(let j=0;j<worldSize;j++){
+    world[i][j] = 0; // 0 = preto
+  }
 }
 
-function create(){
-    const self = this;
+let player = { x: Math.floor(worldSize/2), y: Math.floor(worldSize/2) };
 
-    // Fundo com estrelas
-    for(let i=0;i<50;i++){
-        let s = this.add.image(Math.random()*config.width, Math.random()*config.height, 'star');
-        s.setScale(Math.random()*0.5 + 0.2);
-        stars.push({ sprite:s, speed:Math.random()*0.3+0.1 });
-    }
-
-    // Conectar ao Colyseus
-    socketClient = new Colyseus.Client('ws://'+window.location.hostname+':2567');
-
-    socketClient.joinOrCreate('game_room').then(room=>{
-        console.log('Conectado à sala', room);
-
-        player = self.physics.add.sprite(400,300,'player');
-
-        room.state.players.onAdd = function(playerState, sessionId){
-            if(sessionId!==room.sessionId){
-                const other = self.physics.add.sprite(playerState.x,playerState.y,'player');
-                otherPlayers[sessionId] = other;
-            }
-        };
-
-        room.state.players.onChange = function(playerState, sessionId){
-            if(sessionId!==room.sessionId){
-                let other = otherPlayers[sessionId];
-                if(other){ other.x=playerState.x; other.y=playerState.y; }
-            }
-        };
-
-        room.state.players.onRemove = function(playerState, sessionId){
-            if(otherPlayers[sessionId]){ otherPlayers[sessionId].destroy(); delete otherPlayers[sessionId]; }
-        });
-
-        // Atualizar posição do jogador no servidor
-        self.time.addEvent({
-            delay:50, loop:true, callback:function(){
-                if(player) room.send('move',{x:player.x,y:player.y});
-            }
-        });
-
-        // Receber mensagens
-        room.onMessage('chat', msg=>{
-            let el = document.createElement('div');
-            el.textContent = msg;
-            messageContainer.appendChild(el);
-            messageContainer.scrollTop = messageContainer.scrollHeight;
-        });
-    });
-
-    cursors = this.input.keyboard.createCursorKeys();
-
-    // Pokemons aleatórios no mapa
-    for(let i=0;i<5;i++){
-        let x = Math.random()*config.width;
-        let y = Math.random()*config.height;
-        let p = this.physics.add.sprite(x,y,'player');
-        pokemons.push(p);
-    }
-
-    // Itens espalhados
-    for(let i=0;i<3;i++){
-        let itemType = ['pokeball','ultraball','masterball'][i%3];
-        let x = Math.random()*config.width;
-        let y = Math.random()*config.height;
-        let it = this.physics.add.sprite(x,y,itemType);
-        items.push(it);
-    }
-
-    // Chat input
-    chatSend.addEventListener('click', sendChat);
-    chatInput.addEventListener('keydown', e=>{
-        if(e.key==='Enter') sendChat();
-    });
-
-    function sendChat(){
-        let text = chatInput.value.trim();
-        if(!text) return;
-        chatInput.value='';
-        if(socketClient) socketClient.send('chat',text);
-        let el = document.createElement('div');
-        el.textContent = 'Você: '+text;
-        messageContainer.appendChild(el);
-        messageContainer.scrollTop=messageContainer.scrollHeight;
-    }
+function drawRoundedRect(x, y, w, h, r, color){
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.fill();
 }
 
-function update(){
-    // Movimento do jogador
-    if(player){
-        let speed = 200;
-        player.setVelocity(0);
-        if(cursors.left.isDown) player.setVelocityX(-speed);
-        if(cursors.right.isDown) player.setVelocityX(speed);
-        if(cursors.up.isDown) player.setVelocityY(-speed);
-        if(cursors.down.isDown) player.setVelocityY(speed);
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  let offsetX = canvas.width/2 - blockSize/2;
+  let offsetY = canvas.height/2 - blockSize/2;
+
+  for(let i=player.x-8;i<=player.x+8;i++){
+    for(let j=player.y-8;j<=player.y+8;j++){
+      if(i>=0 && j>=0 && i<worldSize && j<worldSize){
+        let color = 0;
+        // quadrado oco 8 blocos ao redor do player
+        if( (i===player.x-8 || i===player.x+8 || j===player.y-8 || j===player.y+8) ){
+          color = 255;
+        } else {
+          color = 0;
+        }
+        ctx.fillStyle = `rgb(${color},${color},${color})`;
+        ctx.fillRect(offsetX + (i-player.x)*blockSize, offsetY + (j-player.y)*blockSize, blockSize, blockSize);
+      }
     }
+  }
 
-    // Movimento das estrelas
-    stars.forEach(s=>{
-        s.sprite.y += s.speed;
-        if(s.sprite.y>config.height) s.sprite.y=0;
-    });
-
-    // Movimento aleatório dos pokemons
-    pokemons.forEach(p=>{
-        p.x += (Math.random()-0.5)*2;
-        p.y += (Math.random()-0.5)*2;
-    });
-
-    // Movimento leve dos itens
-    items.forEach(it=>{
-        it.x += Math.sin(Date.now()/1000)*0.2;
-        it.y += Math.cos(Date.now()/1000)*0.2;
-    });
+  // desenha o player
+  drawRoundedRect(offsetX, offsetY, blockSize, blockSize, 20, '#ffffff');
 }
+
+function move(dx, dy){
+  let nx = player.x + dx;
+  let ny = player.y + dy;
+  if(nx>=0 && ny>=0 && nx<worldSize && ny<worldSize){
+    player.x = nx;
+    player.y = ny;
+    draw();
+  }
+}
+
+document.getElementById('up').addEventListener('click',()=>move(0,-1));
+document.getElementById('down').addEventListener('click',()=>move(0,1));
+document.getElementById('left').addEventListener('click',()=>move(-1,0));
+document.getElementById('right').addEventListener('click',()=>move(1,0));
+
+draw();
 </script>
 </body>
 </html>
