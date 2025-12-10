@@ -1,285 +1,577 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pokemon Game Prototype</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pokémon — Jogo</title>
 <style>
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#fff;
-  display:flex;
-}
+  :root{
+    --sidebar-w:200px;
+  }
+  *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+  body{margin:0;display:flex;background:#fff;color:#000;min-height:100vh}
 
 /* SIDEBAR */
 .sidebar{
-  width:200px;
+  width:var(--sidebar-w);
   background:#fff;
-  border-right:2px solid #000;
-  padding:15px;
+  color:#000;
+  height:100vh;
+  position:fixed;
+  left:0;
+  top:0;
+  padding:18px;
   box-sizing:border-box;
-}
-.sidebar button{
-  width:100%;
-  margin-bottom:10px;
-  padding:10px;
-  background:#fff;
+  overflow-y:auto;
+  z-index:1000;
+  border-radius:0 10px 10px 0;
   border:2px solid #000;
-  border-radius:10px;
-  font-weight:bold;
-  cursor:pointer;
 }
+.sidebar h2{margin:0 0 12px 0;font-size:18px}
+.sidebar button{
+  display:block;width:100%;margin:8px 0;padding:10px;border-radius:10px;border:2px solid #000;background:#fff;font-weight:700;cursor:pointer
+}
+.sidebar .small{font-size:13px;padding:6px}
 
 /* CONTENT */
-.content{
-  flex:1;
-  padding:20px;
+.content{flex:1;margin-left:var(--sidebar-w);padding:18px;transition:margin-left .2s}
+.header{display:flex;align-items:center;gap:12px}
+#page-title{margin-left:1.3cm;font-size:22px;font-weight:800}
+.search-container{margin:14px 0;display:flex;justify-content:center}
+.search-container input{
+  width:100%;max-width:520px;padding:10px 14px;border:2px solid #000;border-radius:6px;font-size:15px
 }
 
-header{
-  font-size:24px;
-  font-weight:bold;
-  margin-bottom:15px;
-}
+/* GRID / CARDS */
+.pokemon-container{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.pokemon-container{grid-template-columns:repeat(2,1fr)}.content{margin-left:0}}
+@media(max-width:600px){.pokemon-container{grid-template-columns:1fr}}
 
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-  gap:20px;
-}
-
-/* CARD */
 .card{
-  border-radius:10px;
-  padding:10px;
-  color:#fff;
-  position:relative;
+  position:relative;padding:12px;border-radius:12px;color:#fff;min-height:110px;overflow:visible
 }
-.card img{
-  width:90px;
-  height:90px;
-  position:absolute;
-  right:10px;
-  top:-15px;
-}
-.card .name{font-size:16px;}
-.card .number{color:#000;font-weight:bold;}
-.card button{
-  margin-top:10px;
-  padding:6px;
-  width:100%;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-}
+.card img.pokemon-img{width:96px;height:96px;position:absolute;right:12px;top:-8px}
+.card .number{color:#000;font-weight:800}
+.card .name{font-size:16px;font-weight:800;margin-bottom:6px;color:#fff}
 
-/* HP BAR */
-.hp{
-  height:10px;
-  border-radius:5px;
-  margin-top:8px;
+/* POKEDEX CARD (não clicável) */
+.pokedex-card{cursor:default;pointer-events:none}
+
+/* WILD BATTLE LAYOUT (Floresta) */
+.forest-screen{
+  width:100%;height:70vh;border:2px solid #000;border-radius:10px;display:flex;align-items:center;justify-content:center;position:relative;
+  background-size:cover;background-position:center;
 }
-.green{background:#4CAF50;}
-.yellow{background:#FBC02D;}
-.red{background:#E53935;}
+.forest-ui{position:absolute;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px}
+.forest-ui button{padding:10px 12px;border-radius:8px;border:2px solid #000;background:#fff;cursor:pointer;font-weight:700}
+
+/* HP bar */
+.hp-wrap{width:220px;background:#ddd;border:2px solid #000;border-radius:8px;padding:4px}
+.hp-bar{height:12px;border-radius:6px}
+.hp-green{background:#4CAF50}
+.hp-yellow{background:#FBC02D}
+.hp-red{background:#E53935}
+
+/* Inventory grid */
+.inventory-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.item-card{border:2px solid #000;border-radius:10px;padding:10px;background:#fff;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+
+/* small helpers */
+.center{display:flex;align-items:center;justify-content:center}
+.hidden{display:none}
+.notice{padding:8px;border-radius:8px;background:#fffae6;border:2px solid #f0e0b0;margin:6px 0}
+.loading{padding:12px;border-radius:8px;background:#eee;border:2px dashed #ccc;margin:8px 0}
 </style>
 </head>
-
 <body>
 
-<div class="sidebar">
-  <button onclick="openPokedex()">PokéDex</button>
-  <button onclick="openPokemons()">Pokémons</button>
-  <button onclick="openForest()">Floresta</button>
-</div>
+  <aside class="sidebar">
+    <h2>Menu</h2>
+    <button id="btn-pokedex">PokéDex</button>
+    <button id="btn-pokemons">Pokémons</button>
+    <button id="btn-forest">Floresta</button>
+    <button id="btn-inventory">Inventory</button>
+    <div style="margin-top:12px">
+      <div class="small">PokéBolas: <span id="ui-pokeballs">0</span></div>
+      <div class="small">Meus Pokémons: <span id="ui-mycount">0</span></div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:#555">
+      <div>Pro tip: capture pokémon com HP baixo.</div>
+    </div>
+  </aside>
 
-<div class="content">
-  <header id="title">PokéDex</header>
-  <div id="screen"></div>
-</div>
+  <main class="content">
+    <div class="header">
+      <div style="visibility:hidden" class="menu-btn">☰</div>
+      <div id="page-title">PokéDex</div>
+    </div>
+
+    <div class="search-container" id="search-container">
+      <input id="search" placeholder="🔍 Qual Pokemon você esta procurando?">
+    </div>
+
+    <div id="main-screen">
+      <!-- Conteúdos dinâmicos aqui -->
+      <div id="pokedex-screen" class="">
+        <div id="pokedex-loading" class="loading">Carregando PokéDex... (pode demorar)</div>
+        <div id="pokedex-grid" class="pokemon-container"></div>
+      </div>
+
+      <div id="pokemons-screen" class="hidden">
+        <h3>Meus Pokémons</h3>
+        <div id="mygrid" class="pokemon-container"></div>
+      </div>
+
+      <div id="forest-screen" class="hidden">
+        <div id="forest-area" class="forest-screen center" style="background:#ccefcf">
+          <div id="forest-message" class="center">Entre na floresta. Aguardando spawn...</div>
+        </div>
+        <div style="margin-top:12px" class="forest-ui">
+          <button id="btn-attack" class="hidden">Atacar</button>
+          <button id="btn-capture" class="hidden">Capturar (usa 1 Pokébola)</button>
+          <button id="btn-run" class="hidden">Fugir</button>
+        </div>
+        <div id="forest-notice" class="notice hidden"></div>
+      </div>
+
+      <div id="inventory-screen" class="hidden">
+        <h3>Inventory</h3>
+        <div id="inventory-grid" class="inventory-grid"></div>
+      </div>
+    </div>
+  </main>
 
 <script>
-const screen = document.getElementById("screen");
-const title = document.getElementById("title");
+/* -------------------------
+   Estado e constantes
+   ------------------------- */
+const TOTAL_POKEMON = 386; // usar primeiros 386
+let pokedex = [];         // array de objetos Pokemon (API)
+let myPokemons = [];      // capturados pelo user
+let inventory = { pokeball: 0 };
+let wild = null;          // objeto wild atual ou null
+let spawnTimer = null;
+const SPAWN_TIME_MS = 10000; // 10s para teste
+const forestArea = document.getElementById('forest-area');
 
-const TOTAL_POKEMON = 386;
-const pokedex = [];
-const myPokemons = [];
+/* UI refs */
+const btnPokedex = document.getElementById('btn-pokedex');
+const btnPokemons = document.getElementById('btn-pokemons');
+const btnForest = document.getElementById('btn-forest');
+const btnInventory = document.getElementById('btn-inventory');
+const screenPokedex = document.getElementById('pokedex-screen');
+const screenPokemons = document.getElementById('pokemons-screen');
+const screenForest = document.getElementById('forest-screen');
+const screenInventory = document.getElementById('inventory-screen');
+const pokedexGrid = document.getElementById('pokedex-grid');
+const pokedexLoading = document.getElementById('pokedex-loading');
+const myGrid = document.getElementById('mygrid');
+const inventoryGrid = document.getElementById('inventory-grid');
+const uiPokeballs = document.getElementById('ui-pokeballs');
+const uiMyCount = document.getElementById('ui-mycount');
+const searchInput = document.getElementById('search');
+const pageTitle = document.getElementById('page-title');
 
-let forestTimer = null;
-let wildPokemon = null;
+const btnAttack = document.getElementById('btn-attack');
+const btnCapture = document.getElementById('btn-capture');
+const btnRun = document.getElementById('btn-run');
+const forestMessage = document.getElementById('forest-message');
+const forestNotice = document.getElementById('forest-notice');
 
-/* ---------- UTIL ---------- */
-const cap = s => s[0].toUpperCase()+s.slice(1);
-
-async function fetchPokemon(id){
-  const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-  return r.json();
+/* -------------------------
+   Storage init
+   ------------------------- */
+function loadState(){
+  const inv = localStorage.getItem('inv_v1');
+  if(inv) inventory = JSON.parse(inv);
+  else {
+    inventory.pokeball = 10; // dar 10 pokebolas iniciais
+    localStorage.setItem('inv_v1', JSON.stringify(inventory));
+  }
+  const mp = localStorage.getItem('mypkm_v1');
+  if(mp) myPokemons = JSON.parse(mp);
+  updateUICounts();
+}
+function saveState(){
+  localStorage.setItem('inv_v1', JSON.stringify(inventory));
+  localStorage.setItem('mypkm_v1', JSON.stringify(myPokemons));
 }
 
-/* ---------- INIT ---------- */
+/* -------------------------
+   Util helpers
+   ------------------------- */
+const cap = s => s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
+const el = (tag, attrs={}, html='')=>{ const e=document.createElement(tag); for(const k in attrs) e.setAttribute(k, attrs[k]); if(html) e.innerHTML=html; return e; }
+
+/* -------------------------
+   PokeAPI load
+   ------------------------- */
+async function fetchPokemon(id){
+  try{
+    const r = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    if(!r.ok) throw new Error('fetch err');
+    return await r.json();
+  }catch(e){
+    console.error('erro fetch',id,e);
+    return null;
+  }
+}
+
 async function loadPokedex(){
+  pokedexGrid.innerHTML='';
+  pokedexLoading.classList.remove('hidden');
+  // carregar em sequência (pode demorar) — mostramos mensagens
   for(let i=1;i<=TOTAL_POKEMON;i++){
     const p = await fetchPokemon(i);
-    pokedex.push(p);
+    if(p) pokedex.push(p);
+    // render parcial para não ficar em branco
+    if(i % 20 === 0 || i===TOTAL_POKEMON) renderPokedexPartial();
   }
-  openPokedex();
+  pokedexLoading.classList.add('hidden');
 }
 
-/* ---------- IV SYSTEM ---------- */
-function generateIVs(){
-  const roll = Math.random()*100;
-  let min = 0, max = 15;
-
-  if(roll <= 1) min=24;
-  else if(roll <= 8) min=21;
-  else if(roll <= 15) min=20;
-  else if(roll <= 25) min=18;
-  else if(roll <= 40) min=15;
-  else if(roll <= 60) min=10;
-  else if(roll <= 80) min=6;
-  else min=0;
-
-  return Array(6).fill(0).map(()=>Math.floor(Math.random()*(max-min+1))+min);
+/* -------------------------
+   Render Pokedex (não clicável)
+   ------------------------- */
+function renderPokedexPartial(){
+  pokedexGrid.innerHTML='';
+  for(const p of pokedex){
+    const card = document.createElement('div');
+    card.className = 'card pokedex-card';
+    card.style.background = (p.types && p.types[0]) ? (typeColor(p.types[0].type.name)) : '#777';
+    card.innerHTML = `
+      <div class="number">#${String(p.id).padStart(3,'0')}</div>
+      <div class="name">${cap(p.name)}</div>
+    `;
+    const img = document.createElement('img');
+    img.className='pokemon-img';
+    img.src = p.sprites.other?.['official-artwork']?.front_default || p.sprites.front_default || '';
+    img.alt = p.name;
+    card.appendChild(img);
+    pokedexGrid.appendChild(card);
+  }
 }
 
-/* ---------- LEVEL RULES ---------- */
-function generateLevel(p){
-  const evoLevels = p.species?.evolution_chain || null;
-  if(p.id < 152) return Math.floor(Math.random()*15)+1;
-  return Math.floor(Math.random()*30)+5;
+/* -------------------------
+   Render my Pokémons
+   ------------------------- */
+function renderMyPokemons(){
+  myGrid.innerHTML='';
+  for(const p of myPokemons){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.background = typeColor(p.primaryType || 'normal');
+    card.innerHTML = `
+      <div class="name">${cap(p.name)}</div>
+      <div>Level: ${p.level}</div>
+      <div>IV %: ${p.ivPercent}%</div>
+    `;
+    const img = document.createElement('img');
+    img.className='pokemon-img';
+    img.src = p.sprite;
+    img.alt = p.name;
+    card.appendChild(img);
+    myGrid.appendChild(card);
+  }
+  uiMyCount.textContent = myPokemons.length;
 }
 
-/* ---------- HP STATE ---------- */
-function hpState(hp){
-  if(hp > 66) return "green";
-  if(hp > 33) return "yellow";
-  return "red";
+/* -------------------------
+   Inventory
+   ------------------------- */
+function renderInventory(){
+  inventoryGrid.innerHTML='';
+  // Pokébola card
+  const c = document.createElement('div');
+  c.className='item-card';
+  c.innerHTML = `<div style="font-weight:800">Poké Ball</div>
+                 <div>Quantidade: <strong id="ball-count">${inventory.pokeball}</strong></div>
+                 <div style="font-size:13px;color:#444">Usada automaticamente ao tentar capturar</div>`;
+  inventoryGrid.appendChild(c);
+  // update ui
+  uiPokeballs.textContent = inventory.pokeball;
 }
 
-/* ---------- CAPTURE CHANCE ---------- */
-function captureChance(hp){
+/* -------------------------
+   Types color (suavizado)
+   ------------------------- */
+function typeColor(type){
+  const map = {
+    normal:"#C0B588",fire:"#F08030",water:"#6A9BF0",electric:"#F8D030",
+    grass:"#8FCF70",ice:"#A0E0E0",fighting:"#D06060",poison:"#B070B0",
+    ground:"#E2D080",flying:"#B0A0F0",psychic:"#F07090",bug:"#B0C860",
+    rock:"#C0B090",ghost:"#9070B0",dragon:"#8058F8",dark:"#807070",
+    steel:"#C0C0D0",fairy:"#F0A0B0"
+  };
+  return map[type] || "#777";
+}
+
+/* -------------------------
+   IV generation (probabilidades do user approximadas)
+   Strategy:
+     - sample a total IV percentual from weighted ranges
+     - convert to total IV points (max 180: 30*6)
+     - distribute into 6 IV stats randomly but sum equals total points
+   ------------------------- */
+function pickIVPercent(){
+  // ranges with weights approximating your spec
+  const buckets = [
+    {min:90,max:100, w:1},
+    {min:80,max:89, w:6},
+    {min:70,max:79, w:7},
+    {min:65,max:69, w:10},
+    {min:60,max:64, w:15},
+    {min:51,max:59, w:40},
+    {min:35,max:50, w:20},
+    {min:0,max:34, w:5}
+  ];
+  const totalW = buckets.reduce((s,b)=>s+b.w,0);
+  let r = Math.random()*totalW;
+  for(const b of buckets){
+    if(r < b.w){
+      // choose a uniform percent inside range
+      const p = Math.floor(Math.random()*(b.max - b.min + 1)) + b.min;
+      return p;
+    }
+    r -= b.w;
+  }
+  return 50;
+}
+function generateIVsFromPercent(percent){
+  const maxTotal = 30*6; // 180
+  const totalPoints = Math.round((percent/100) * maxTotal);
+  // distribute totalPoints across 6 stats randomly (0..30 each)
+  let remaining = totalPoints;
+  const ivs = [0,0,0,0,0,0];
+  // give each a random slice but bounded
+  for(let i=0;i<6;i++){
+    const slotsLeft = 6 - i - 1;
+    const maxGive = Math.min(30, remaining - (slotsLeft*0)); // ensure possible
+    const give = (i===5) ? remaining : Math.floor(Math.random()*(maxGive+1));
+    ivs[i] = give;
+    remaining -= give;
+  }
+  // if any remain (shouldn't) distribute
+  let idx=0;
+  while(remaining>0){
+    if(ivs[idx] < 30){ ivs[idx]++; remaining--; }
+    idx = (idx+1)%6;
+  }
+  return ivs;
+}
+
+/* -------------------------
+   Level generation with evolution stage check (approx)
+   We'll fetch species -> evolution_chain and find stage.
+   ------------------------- */
+async function getEvolutionInfo(speciesUrl, pokemonName){
+  try{
+    const r = await fetch(speciesUrl);
+    const species = await r.json();
+    if(!species.evolution_chain) return {stage:1,maxStage:1,nextMinLevel:null}
+    const chainUrl = species.evolution_chain.url;
+    const rc = await fetch(chainUrl);
+    const chain = await rc.json();
+    // walk chain to find pokemon node and depths
+    let maxDepth = 1;
+    function dfs(node,depth){
+      if(depth>maxDepth) maxDepth=depth;
+      for(const evo of node.evolves_to) dfs(evo, depth+1);
+    }
+    dfs(chain.chain,1);
+    // find node depth of our pokemon
+    let foundDepth = null;
+    function findDepth(node, depth){
+      if(node.species.name === pokemonName) { foundDepth = depth; return true; }
+      for(const evo of node.evolves_to){ if(findDepth(evo,depth+1)) return true; }
+      return false;
+    }
+    findDepth(chain.chain,1);
+    // also try to find next evolution min_level for current node
+    let nextMinLevel = null;
+    function findNext(node){
+      if(node.species.name === pokemonName){
+        if(node.evolves_to && node.evolves_to.length>0){
+          // look at first evolution details
+          const det = node.evolves_to[0].evolution_details[0];
+          if(det && det.min_level) nextMinLevel = det.min_level;
+        }
+      } else {
+        for(const evo of node.evolves_to) findNext(evo);
+      }
+    }
+    findNext(chain.chain);
+    return {stage: foundDepth||1, maxStage: maxDepth, nextMinLevel};
+  }catch(e){
+    return {stage:1,maxStage:1,nextMinLevel:null};
+  }
+}
+
+async function generateLevelForPokemon(apiPokemon){
+  // determine stage info
+  if(!apiPokemon || !apiPokemon.species || !apiPokemon.species.url) return 1;
+  const evoInfo = await getEvolutionInfo(apiPokemon.species.url, apiPokemon.name);
+  const stage = evoInfo.stage;
+  const maxStage = evoInfo.maxStage;
+  const nextMin = evoInfo.nextMinLevel; // may be null
+  if(stage < maxStage){
+    // we are not final stage: level 1 .. (nextMin-1) if nextMin known, else 1..(Math.min(30, maxStage*20))
+    const maxL = nextMin ? Math.max( Math.min( Math.max(2,nextMin)-1, 99), 2 ) : Math.min( Math.max(20, stage*15), 99);
+    const lvl = Math.floor(Math.random()*(maxL - 1 + 1)) + 1;
+    return Math.max(1, Math.min(lvl, maxL));
+  } else {
+    // final stage: level from (if evolved level known try) else random  (1..100 possible but ensure >= some)
+    const minL = 1;
+    const lvl = Math.floor(Math.random()*(100 - minL + 1)) + minL;
+    return Math.max(1, Math.min(lvl,100));
+  }
+}
+
+/* -------------------------
+   Spawn logic (forest)
+   - only one wild at time
+   - spawn timer 10s for test
+   ------------------------- */
+function startSpawnTimer(){
+  clearSpawnTimer();
+  spawnTimer = setTimeout(()=>spawnWild(), SPAWN_TIME_MS);
+}
+function clearSpawnTimer(){ if(spawnTimer){ clearTimeout(spawnTimer); spawnTimer=null; } }
+
+async function spawnWild(){
+  if(wild) return; // safety
+  // pick random from loaded pokedex
+  if(pokedex.length === 0) { forestMessage.textContent = 'PokeDex não carregada ainda...'; startSpawnTimer(); return; }
+  const rand = pokedex[Math.floor(Math.random()*pokedex.length)];
+  // get level & IVs
+  const level = await generateLevelForPokemon(rand);
+  const ivPercent = pickIVPercent();
+  const ivs = generateIVsFromPercent(ivPercent);
+  const totalIV = ivs.reduce((a,b)=>a+b,0);
+  const sprite = rand.sprites.other?.['official-artwork']?.front_default || rand.sprites.front_default || '';
+  wild = {
+    id: rand.id,
+    name: rand.name,
+    sprite,
+    level,
+    ivs,
+    ivPercent,
+    hp: 100, // percent
+    primaryType: rand.types[0].type.name
+  };
+  renderWild();
+}
+
+/* -------------------------
+   Render wild in forest
+   ------------------------- */
+function renderWild(){
+  if(!wild) {
+    forestArea.style.background = 'url("main/florest.png") center/cover no-repeat';
+    forestMessage.innerText = 'A floresta está calma...';
+    btnAttack.classList.add('hidden'); btnCapture.classList.add('hidden'); btnRun.classList.add('hidden');
+    forestNotice.classList.add('hidden');
+    return;
+  }
+  // show sprite and hp + buttons
+  forestArea.style.background = 'url("main/florest.png") center/cover no-repeat';
+  forestArea.innerHTML = `
+    <div style="text-align:center">
+      <div style="background:rgba(255,255,255,0.9);display:inline-block;padding:8px;border-radius:8px;border:2px solid #000">
+        <div style="font-weight:800">${cap(wild.name)}  Lv ${wild.level}</div>
+        <div style="margin-top:8px" class="hp-wrap">
+          <div id="wild-hp-bar" class="hp-bar ${hpClass(wild.hp)}" style="width:${wild.hp}%;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  btnAttack.classList.remove('hidden'); btnCapture.classList.remove('hidden'); btnRun.classList.remove('hidden');
+  forestNotice.classList.add('hidden');
+}
+
+/* hp class from percent */
+function hpClass(hp){
+  if(hp > 66) return 'hp-green';
+  if(hp > 33) return 'hp-yellow';
+  return 'hp-red';
+}
+
+/* -------------------------
+   Actions: attack, capture, run
+   ------------------------- */
+function attackWild(){
+  if(!wild) return;
+  const dmg = Math.floor(Math.random()*25)+8; // 8..32
+  wild.hp = Math.max(0, wild.hp - dmg);
+  if(wild.hp <= 0){
+    // defeated
+    forestMessage.innerText = `${cap(wild.name)} foi derrotado.`;
+    wild = null;
+    renderWild();
+    startSpawnTimer();
+  } else {
+    renderWild();
+  }
+}
+
+function attemptCapture(){
+  if(!wild) return;
+  if(inventory.pokeball <= 0){
+    forestNotice.innerText = 'Sem Pokébolas! Vá ao Inventory (ou aguarde).';
+    forestNotice.classList.remove('hidden');
+    return;
+  }
+  // consume one
+  inventory.pokeball -= 1;
+  saveState(); renderInventory(); updateUICounts();
+
+  // base chance by hp state
+  const base = captureBaseChance(wild.hp); // 0.3/0.5/0.7
+  // only standard poke ball for now (no modifier)
+  const roll = Math.random();
+  const success = (roll <= base);
+  if(success){
+    // generate final object to add to myPokemons
+    const captured = {
+      id: wild.id,
+      name: wild.name,
+      sprite: wild.sprite,
+      level: wild.level,
+      ivs: wild.ivs,
+      ivPercent: wild.ivPercent,
+      primaryType: wild.primaryType
+    };
+    myPokemons.push(captured);
+    saveState();
+    renderMyPokemons();
+    forestMessage.innerText = `Capturou ${cap(wild.name)}!`;
+    wild = null;
+    renderWild();
+    startSpawnTimer();
+  } else {
+    // failed: stay alive, maybe take slight reaction
+    forestNotice.innerText = `A pokébola falhou!`;
+    forestNotice.classList.remove('hidden');
+    renderWild();
+  }
+}
+
+function captureBaseChance(hp){
   if(hp > 66) return 0.3;
   if(hp > 33) return 0.5;
   return 0.7;
 }
 
-/* ---------- PAGES ---------- */
-function openPokedex(){
-  title.textContent="PokéDex";
-  screen.innerHTML="";
-  const grid=document.createElement("div");
-  grid.className="grid";
-
-  pokedex.forEach(p=>{
-    const c=document.createElement("div");
-    c.className="card";
-    c.style.background="#aaa";
-    c.innerHTML=`
-      <div class="number">#${p.id.toString().padStart(3,"0")}</div>
-      <div class="name">${cap(p.name)}</div>
-      <img src="${p.sprites.front_default}">
-    `;
-    grid.appendChild(c);
-  });
-  screen.appendChild(grid);
+function runFromWild(){
+  if(!wild) return;
+  wild = null;
+  forestMessage.innerText = `Você fugiu.`;
+  renderWild();
+  startSpawnTimer();
 }
 
-function openPokemons(){
-  title.textContent="Pokémons";
-  screen.innerHTML="";
-  const grid=document.createElement("div");
-  grid.className="grid";
-
-  myPokemons.forEach(p=>{
-    const c=document.createElement("div");
-    c.className="card";
-    c.style.background="#4CAF50";
-    c.innerHTML=`
-      <div class="name">${cap(p.name)}</div>
-      <div>Level: ${p.level}</div>
-      <div>IV Total: ${p.ivPercent}%</div>
-    `;
-    grid.appendChild(c);
-  });
-
-  screen.appendChild(grid);
-}
-
-/* ---------- FOREST ---------- */
-function openForest(){
-  title.textContent="Floresta";
-  screen.innerHTML="<p>Aguardando Pokémon selvagem...</p>";
-  startForestTimer();
-}
-
-function startForestTimer(){
-  if(forestTimer) clearTimeout(forestTimer);
-  forestTimer = setTimeout(spawnPokemon, 10000); // 10s TESTE
-}
-
-function spawnPokemon(){
-  const base = pokedex[Math.floor(Math.random()*pokedex.length)];
-  const ivs = generateIVs();
-  const level = generateLevel(base);
-  const totalIV = ivs.reduce((a,b)=>a+b,0);
-  const ivPercent = Math.round((totalIV/(30*6))*100);
-
-  wildPokemon={
-    name:base.name,
-    sprite:base.sprites.front_default,
-    ivs,
-    ivPercent,
-    level,
-    hp:100
-  };
-
-  renderWildPokemon();
-}
-
-function renderWildPokemon(){
-  screen.innerHTML="";
-  const c=document.createElement("div");
-  c.className="card";
-  c.style.background="#8BC34A";
-  const hpClass = hpState(wildPokemon.hp);
-
-  c.innerHTML=`
-    <div class="name">${cap(wildPokemon.name)}</div>
-    <img src="${wildPokemon.sprite}">
-    <div class="hp ${hpClass}" style="width:${wildPokemon.hp}%;"></div>
-    <button onclick="attack()">Atacar</button>
-    <button onclick="capture()">Capturar</button>
-  `;
-  screen.appendChild(c);
-}
-
-function attack(){
-  wildPokemon.hp -= Math.floor(Math.random()*25)+10;
-  if(wildPokemon.hp <=0){
-    wildPokemon=null;
-    screen.innerHTML="<p>Pokémon derrotado.</p>";
-    startForestTimer();
-  }else renderWildPokemon();
-}
-
-function capture(){
-  const chance = captureChance(wildPokemon.hp);
-  if(Math.random() <= chance){
-    myPokemons.push(wildPokemon);
-    wildPokemon=null;
-    screen.innerHTML="<p>Pokémon capturado!</p>";
-    startForestTimer();
-  }else{
-    renderWildPokemon();
-  }
-}
-
-loadPokedex();
-</script>
-
-</body>
-  </html>
+/* -------------------------
+   UI helpers
+   ------------------------- */
+function updateUICounts(){
+ 
