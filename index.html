@@ -14,7 +14,7 @@ body { margin:0; font-family:Arial,sans-serif; background-color:#fff; display:fl
   color:#000;
   height:100vh;
   position:fixed;
-  left:0;
+  left:-220px; /* começa fechada no mobile */
   top:0;
   padding:20px;
   box-sizing:border-box;
@@ -22,7 +22,9 @@ body { margin:0; font-family:Arial,sans-serif; background-color:#fff; display:fl
   z-index:1000;
   border-radius:0 10px 10px 0;
   border:2px solid #000;
+  transition:left 0.3s;
 }
+.sidebar.active { left:0; }
 .sidebar h2 { margin-top:0; font-size:18px; }
 .sidebar button { margin:5px 0; padding:8px 10px; width:100%; border:none; border-radius:10px; cursor:pointer; background:#fff; color:#000; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2); border:2px solid #000; }
 .sidebar button:hover { background:#f0f0f0; }
@@ -99,7 +101,7 @@ header #page-title { margin-left:1.3cm; }
   top:-15px;
 }
 .pokemon-info { display:flex; flex-direction:column; justify-content:center; margin-left:7px; }
-.pokemon-name { margin:0; font-size:16px; text-align:left; }
+.pokemon-name { margin:0; font-size:16px; text-align:left; color:#fff; }
 .pokemon-types { display:flex; gap:5px; margin-top:5px; }
 .pokemon-type-img { width:15px; height:15px; }
 
@@ -115,12 +117,13 @@ header #page-title { margin-left:1.3cm; }
   box-sizing:border-box;
   overflow:visible;
   cursor:default;
+  pointer-events:none; /* remove clique */
 }
 .pokedex-card img.pokemon-img { width:100px; height:100px; position:relative; top:-15px; }
 .pokedex-card .pokemon-info { display:flex; flex-direction:column; justify-content:center; margin-left:7px; }
-.pokedex-card .pokemon-name { margin:0; font-size:16px; text-align:left; }
-.pokedex-card .pokemon-types { display:flex; gap:5px; margin-top:5px; }
+.pokedex-card .pokemon-name { margin:0; font-size:16px; text-align:left; color:#fff; }
 .pokedex-card .pokemon-number { font-size:14px; color:#000; font-weight:bold; } 
+.pokedex-card .pokemon-types { display:flex; gap:5px; margin-top:5px; }
 
 /* CORES SUAVES NATURAIS */
 .typeColors={ normal:"#C0B588", fire:"#F08030", water:"#6A9BF0", electric:"#F8D030",
@@ -180,7 +183,7 @@ const totalPokemons=386;
 const allPokemons=[];
 let selectedPokemon=null;
 
-function upper(str){ return str.toUpperCase(); }
+function capitalize(str){ return str.charAt(0).toUpperCase() + str.slice(1); }
 async function fetchPokemon(id){ const res=await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`); return await res.json(); }
 function clearContainer(){ container.innerHTML=''; }
 
@@ -202,7 +205,7 @@ function createPokemonCard(pokemon){
 
   const name=document.createElement('div');
   name.classList.add('pokemon-name');
-  name.textContent=upper(pokemon.name);
+  name.textContent=capitalize(pokemon.name);
   infoDiv.appendChild(name);
 
   const typesContainer=document.createElement('div');
@@ -224,7 +227,7 @@ function createPokemonCard(pokemon){
   card.appendChild(img);
 
   card.addEventListener('click',()=>{
-    if(currentView==='game'){ // só clicar na página game
+    if(currentView==='game'){
       selectedPokemon=pokemon;
       showSelectedPokemonIVs();
       pageTitle.textContent="Pokémons";
@@ -238,7 +241,6 @@ function createPokemonCard(pokemon){
   container.appendChild(card);
 }
 
-// Pokédex cards não clicáveis
 function createPokedexCard(pokemon){
   const card=document.createElement('div');
   const primaryType=pokemon.types[0].type.name;
@@ -255,7 +257,7 @@ function createPokedexCard(pokemon){
 
   const name=document.createElement('div');
   name.classList.add('pokemon-name');
-  name.textContent=upper(pokemon.name);
+  name.textContent=capitalize(pokemon.name);
   infoDiv.appendChild(name);
 
   const typesContainer=document.createElement('div');
@@ -312,7 +314,7 @@ function showSelectedPokemonIVs(){
   card.appendChild(img);
 
   const name=document.createElement('div');
-  name.textContent=upper(selectedPokemon.name);
+  name.textContent=capitalize(selectedPokemon.name);
   name.style.margin='5px 0';
   name.style.fontSize='16px';
   card.appendChild(name);
@@ -405,4 +407,4 @@ myPokemonBtn.addEventListener('click',()=>{
 loadAllPokemons();
 </script>
 </body>
-</html>
+  </html>
