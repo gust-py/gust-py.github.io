@@ -1,657 +1,381 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Tileset / Map - Player + Pathfinding</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Press+Start+2P&display=swap" rel="stylesheet">
-<style>
-:root{
-  --tile-size: 64px;
-  --player-x: 0;
-  --player-y: 0;
-  --player-sprite-h: 0;
-  --player-sprite-v: 0;
-  --player-scale-x: 1;
-  --map-x: -6;
-  --map-y: -2;
-  --moving-speed: 300ms;
-  --selector-x: 6;
-  --selector-y: 2;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buraco Negro Simulação - Three.js</title>
+    
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Remove barras de rolagem */
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
-body {
-  display:flex;
-  width:100vw;
-  height:100vh;
-  overflow:hidden;
-  background-color:black;
-  font-family:"Press Start 2P", system-ui;
-  font-weight:400;
-  color:white;
-}
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
 
-/* info boxes */
-#info {
-  position:absolute;
-  background-color:white;
-  color:black;
-  font-weight:bold;
-  margin:8px;
-  padding:16px;
-  z-index:100;
-  box-shadow: white 0 0 0 4px inset, black 0 0 0 8px inset;
-  font-family: "Poppins", sans-serif;
-  font-size:12px;
-}
-#text {
-  position:absolute;
-  background-color:white;
-  color:black;
-  font-weight:bold;
-  margin:8px;
-  padding:16px;
-  z-index:100;
-  height: fit-content;
-  min-height:100px;
-  left:16px;
-  right:16px;
-  bottom:16px;
-  margin:auto;
-  max-width:500px;
-  box-shadow: white 0 0 0 4px inset, black 0 0 0 8px inset;
-  display:none;
-  white-space:pre-wrap;
-  font-family: "Poppins", sans-serif;
-  font-size:12px;
-}
+        /* Estilização e Responsividade do painel de informações */
+        #info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 10px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom-right-radius: 10px;
+            z-index: 10;
+            user-select: none; /* Impede seleção de texto ao interagir */
+        }
 
-/* map container */
-#tileset {
-  position:relative;
-  width: calc(var(--tile-size) * 5);
-  height: calc(var(--tile-size) * 5);
-  margin:auto;
-  transform: translateY(-10vh);
-  z-index:1;
-}
+        #info h1 {
+            font-size: 1.5em;
+            margin: 0 0 5px 0;
+        }
 
-/* map area that will move under player */
-#map {
-  position:absolute;
-  border-radius:8px;
-  height: calc(var(--tile-size) * 5);
-  width: calc(var(--tile-size) * 5);
-  left: calc((var(--map-x) + 1) * var(--tile-size));
-  top: calc(var(--map-y) * var(--tile-size));
-  transition: all linear var(--moving-speed);
-  overflow:visible;
-}
+        #info p {
+            font-size: 0.8em;
+            margin: 3px 0;
+        }
 
-/* generic tile-size children */
-#map > div * { width: var(--tile-size); height: var(--tile-size); }
-
-/* sprite sheet scene (tileset image) */
-.scene {
-  --original-h: 912;
-  --original-v: 616;
-  --sprite-size: 64px;
-  --sprite-size-local: 16;
-  background-color:black;
-  image-rendering:pixelated;
-  background: url("https://www.spriters-resource.com/media/assets/18/19776.png") no-repeat;
-  background-size:
-    calc(var(--original-h) * (var(--tile-size) / var(--sprite-size-local)))
-    calc(var(--original-v) * (var(--tile-size) / var(--sprite-size-local)));
-}
-
-/* sample map elements using background-position */
-#bedroom {
-  position:absolute;
-  width: calc(9 * 64px);
-  height: calc(8 * 64px);
-  --x: calc(var(--sprite-size) * 24 - 32px);
-  --y: calc(var(--sprite-size) * -1 - 32px);
-  background-position: var(--x) var(--y);
-  background-repeat:no-repeat;
-}
-
-#kitchen {
-  position:absolute;
-  background-color:transparent;
-  width: calc(11 * 64px);
-  height: calc(9 * 64px);
-  --x: calc(var(--sprite-size) * 25 - 32px);
-  --y: calc(var(--sprite-size) * -10 - 32px);
-  background-position: var(--x) var(--y);
-  background-repeat:no-repeat;
-}
-
-/* player element */
-#player {
-  left:6px;
-  position:absolute;
-  height:var(--tile-size);
-  width:calc(var(--tile-size) - 16px);
-  image-rendering:pixelated;
-  transform: scale(1.4);
-  background: url("https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/47980ced-5dfb-4052-b3ea-e111b91c9ef8/deammik-aa7dd0c2-dc3a-4886-a76e-9883ee55ef4e.png") no-repeat;
-  --original-h: 371;
-  --original-v: 254;
-  --sprite-size-local: 32;
-  background-size:
-    calc(var(--original-h) * (var(--tile-size) / var(--sprite-size-local)))
-    calc(var(--original-v) * (var(--tile-size) / var(--sprite-size-local)));
-  --x: calc(-64px + (var(--player-sprite-h) * 50px));
-  --y: calc((65px * var(--player-sprite-v)) - 2px);
-  background-position: var(--x) var(--y);
-  z-index: 50;
-}
-
-/* target & path visualization */
-.player-target {
-  width: var(--tile-size);
-  height: var(--tile-size);
-  background-color: transparent;
-  box-shadow: white 0 0 0 4px inset, rgba(255,255,255,0.4) 0 0 0 8px inset;
-  position:absolute;
-  display:none;
-  z-index:40;
-}
-.player-path {
-  --size:24px;
-  width:var(--size);
-  height:var(--size);
-  margin: calc((var(--tile-size) - var(--size)) / 2);
-  background-color: transparent;
-  box-shadow: white 0 0 0 4px inset, rgba(255,255,255,0.15) 0 0 0 40px inset;
-  position:absolute;
-  display:none;
-  z-index:30;
-}
-
-/* pokeball example */
-#pokeball {
-  position:absolute;
-  width:32px !important;
-  height:32px !important;
-  left: calc(5 * var(--tile-size));
-  top: calc(3 * var(--tile-size));
-  margin: calc((var(--tile-size) - 32px) / 2);
-  image-rendering:pixelated;
-  background: url("https://www.spriters-resource.com/resources/sheet_icons/19/20106.png?updated=1460948880") no-repeat;
-  --original-h:148;
-  --original-v:125;
-  --sprite-size-local:64;
-  background-size:
-    calc(var(--original-h) * (var(--tile-size) / var(--sprite-size-local)))
-    calc(var(--original-v) * (var(--tile-size) / var(--sprite-size-local)));
-  --x: calc(var(--sprite-size) * -2 - 12px);
-  --y: calc(var(--sprite-size) * -1 - 14px);
-  background-position: var(--x) var(--y);
-  z-index: 20;
-}
-
-/* simple animations */
-@keyframes fade-out { from {opacity:1} to{opacity:0} }
-@keyframes fade-in { from {opacity:0} to{opacity:1} }
-
-</style>
-</head>
+        /* Ajustes para dispositivos móveis */
+        @media (max-width: 600px) {
+            #info h1 {
+                font-size: 1.2em;
+            }
+            #info p {
+                font-size: 0.7em;
+            }
+            #info {
+                width: 90%;
+                text-align: center;
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 0;
+                border-bottom-left-radius: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+    </head>
 <body>
-  <div id="info">Info</div>
-  <div id="text"></div>
+    <div id="container"></div>
 
-  <div id="tileset">
-    <div id="map" class="scene">
-      <div id="kitchen" class="scene"></div>
-      <div id="bedroom" class="scene"></div>
-      <div id="pokeball"></div>
-      <div id="player"></div>
-      <!-- path & target placeholders appended by JS -->
+    <div id="info">
+        <h1>Simulação de Buraco Negro</h1>
+        <p>Efeito de Lente Gravitacional (Three.js + GLSL)</p>
+        <p>Use o mouse/toque para girar e explorar.</p>
     </div>
-  </div>
 
-<script>
-/* --- Variáveis DOM --- */
-const root = document.documentElement;
-const info = document.getElementById('info');
-const text = document.getElementById('text');
-const player = document.getElementById('player');
-const mapElement = document.getElementById('map');
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 
-let followUpdate = null;
+    <script>
+        // Variáveis Globais
+        let scene, camera, renderer, clock;
+        let backgroundSphere;
+        
+        // Coordenadas esféricas para a rotação da câmera
+        let phi = Math.PI / 2; // Começa no horizonte
+        let theta = 0;
+        const radius = 20; // Distância da câmera ao centro
 
-/* --- Colliders (exemplos) --- */
-const kitchenColliders = [
- [10,11,11,12,12,0,0,1,2,1,1],
- [0,0,0,0,0,0,0,0,0,0,0],
- [0,0,1,1,1,0,0,0,0,0,0],
- [0,0,1,1,7,0,0,0,0,0,0],
- [0,0,0,1,1,0,0,0,0,0,0],
- [0,0,0,1,1,0,0,0,0,0,0],
- [0,0,0,0,0,0,0,0,0,0,0],
- [1,1,1,1,1,1,1,1,9,9,1],
-];
-const bedroomColliders = [
- [1,1,1,5,1,1,8,1,2,1],
- [1,3,4,13,6,7,0,0,0,0],
- [1,0,0,0,0,0,0,0,0,0],
- [1,0,1,0,0,0,14,0,0,0],
- [1,0,1,0,0,0,0,0,0,0],
- [1,0,0,0,0,0,0,0,0,0],
- [1,0,0,0,0,0,0,0,0,0]
-];
+        let lastTouchX = null;
+        let lastTouchY = null;
 
-/* --- tipos de tiles --- */
-const tileTypes = {
-  0: { collide:false, effect:null, text: null },
-  1: { collide:true, effect:null, text: null },
-  2: { collide:false, effect: null, text: null }, // transição exemplo
-  3: { collide:true, effect:null, text: "O meu PC." },
-  4: { collide:true, effect:null, text: '"Turma da Mônica". Esse é brabo.' },
-  5: { collide:true, effect:null, text: '...' },
-  6: { collide:true, effect:null, text: "O meu GameCube." },
-  7: { collide:true, effect:null, text: "A minha TV." },
-  8: { collide:true, effect:null, text: `São ${new Date().getHours()} horas e ${new Date().getMinutes()} minutos.` },
-  9: { collide:true, effect:null, text: "I can't go outside...\n\nThat would be too much work :)" },
-  10:{ collide:true, effect:null, text: "Não estou com fome." },
-  11:{ collide:true, effect:null, text: "Tudo limpinho😌!" },
-  12:{ collide:true, effect:null, text: "Rapaz... que móvel é esse?" },
-  13:{ collide:false, effect: () => getLocation(), text: "Procurando localização..." },
-  14:{ collide:true, effect:null, text:
-    "Welcome!!!\n\nThe player movement was built using Dijkstra Algorithm.\nYou can control by keyboard or by tapping where you want to go."
-  }
-};
+        // --- GLSL Shaders ---
+        
+        // Vertex Shader (Código que processa a geometria)
+        const vertexShaderCode = `
+            varying vec3 vWorldPosition;
 
-/* --- maps object for runtime --- */
-const maps = {
-  0: { element: document.getElementById('kitchen'), colliders: kitchenColliders },
-  1: { element: document.getElementById('bedroom'), colliders: bedroomColliders }
-};
-let currMap = 1;
+            void main() {
+                // Calcula a posição do vértice no espaço mundial
+                vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                vWorldPosition = worldPosition.xyz;
 
-/* --- controle / posição --- */
-const control = { moving: "idle", lastMoving: "idle" };
-const currPos = { x: 0, y: 0 };
-const delay = 300;
-let fixedUpdate = null;
-let animUpdate = null;
+                // Projeta a posição para o espaço do clipe (tela)
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
 
-/* --- direções e sprites --- */
-const directions = {
-  up:    { sprite: -1, axis:{x:0,y:-1} },
-  down:  { sprite: 0,  axis:{x:0,y:1} },
-  right: { sprite: -3, axis:{x:1,y:0} },
-  left:  { sprite: -2, axis:{x:-1,y:0} }
-};
-let currSprite = 1;
-const spriteFrames = [1,0,-1,0];
+        // Fragment Shader (Onde a simulação de lente gravitacional acontece)
+        // ESTE É O CORAÇÃO DA SIMULAÇÃO (e a maior parte do código)
+        const fragmentShaderCode = `
+            precision highp float;
 
-/* --- helpers de controle de teclado --- */
-window.addEventListener("keydown", (event) => {
-  if(followUpdate != null) { clearInterval(followUpdate); followUpdate = null; pathFind.clearPath(); }
-  const key = (event.key).toLowerCase();
-  if(key=="w" || key=="up" || key=="arrowup") setMove("up");
-  else if(key=="d" || key=="right" || key=="arrowright") setMove("right");
-  else if(key=="a" || key=="left" || key=="arrowleft") setMove("left");
-  else if(key=="s" || key=="down" || key=="arrowdown") setMove("down");
-});
-window.addEventListener("keyup", (event) => {
-  const key = (event.key).toLowerCase();
-  if(key=="w" || key=="up" || key=="arrowup") setStop("up");
-  else if(key=="d" || key=="right" || key=="arrowright") setStop("right");
-  else if(key=="a" || key=="left" || key=="arrowleft") setStop("left");
-  else if(key=="s" || key=="down" || key=="arrowdown") setStop("down");
-});
+            uniform float time;
+            uniform vec2 resolution;
+            uniform float blackHoleRadius; // Rs (Raio de Schwarzschild)
+            uniform sampler2D tCube; // Textura de fundo (galáxia)
 
-function setMove(direction) {
-  if(control.moving == direction) return;
-  control.moving = direction;
-  if(fixedUpdate == null) {
-    root.style.setProperty('--player-sprite-v', directions[direction].sprite);
-    const nextTile = getNextTile(directions[direction].axis);
-    showText(nextTile && nextTile.text ? nextTile.text : null);
+            varying vec3 vWorldPosition;
+            
+            // Constantes Físicas Simplificadas
+            const float Rs = 1.0;          // Raio de Schwarzschild
+            const int MAX_STEPS = 60;      // Número máximo de passos de raymarching
+            const float MAX_DISTANCE = 150.0; // Distância máxima do raio
+            const float DISK_RADIUS = 5.0; // Raio do disco de acreção (simplificado)
 
-    fixedUpdate = "moving";
-    setTimeout(() => {
-      if(control.moving == "idle") {
-        fixedUpdate = null;
-      } else {
-        fixedUpdate = setInterval(move, delay);
-        animUpdate = setInterval(walkAnimation, delay/2);
-        walkAnimation();
-        move();
-      }
-    }, 100);
-  }
-}
-function walkAnimation() {
-  currSprite = (currSprite+1)%4;
-  root.style.setProperty('--player-sprite-h', (spriteFrames[currSprite]));
-}
-function setStop(direction) {
-  if(control.moving == direction) control.moving = "idle";
-}
-function instantStop() {
-  currSprite = 5;
-  root.style.setProperty('--player-sprite-h', -0);
-  if(fixedUpdate != null) { clearInterval(fixedUpdate); fixedUpdate = null; }
-  if(animUpdate != null)  { clearInterval(animUpdate); animUpdate = null; }
-}
+            // Função de cor de estrelas/galáxia simples (substitui a textura externa)
+            vec4 getStarfieldColor(vec3 dir) {
+                float f = 0.0;
+                dir = normalize(dir);
+                
+                // Ruído estelar (pontos brancos)
+                float n = length(fract(sin(vec3(dir.x * 456.789, dir.y * 321.456, dir.z * 123.987)) * 1234.567));
+                if (n > 0.85) {
+                    f = pow(n, 15.0); // Pontos de estrelas brilhantes
+                }
+                
+                // Simulação de cores nebulares fracas (fundo azulado/roxo)
+                float nebula = fract(sin(dot(dir, vec3(12.9898, 78.233, 83.123)) + time * 0.01) * 43758.5453);
+                vec3 nebulaColor = mix(vec3(0.1, 0.2, 0.4), vec3(0.4, 0.1, 0.2), nebula);
 
-/* --- movimentação --- */
-function move () {
-  if(control.moving == "idle") {
-    instantStop();
-    if(control.lastMoving != "idle") {
-      const nextTile = getNextTile(directions[control.lastMoving].axis);
-      showText(nextTile && nextTile.text ? nextTile.text : null);
-      control.lastMoving = "idle";
-    }
-    return;
-  }
+                return vec4(f * 1.0 + nebulaColor * 0.15, 1.0);
+            }
 
-  root.style.setProperty('--player-sprite-v', directions[control.moving].sprite);
-  const nextTile = getNextTile(directions[control.moving].axis);
-  showText(nextTile && nextTile.text ? nextTile.text : null);
+            // Função de cor do disco de acreção
+            vec3 getAccretionDiskColor(vec3 pos) {
+                // Posição no plano XZ (para um disco simples horizontal)
+                float dist = length(pos.xz); 
+                float angle = atan(pos.z, pos.x);
 
-  if(nextTile && nextTile.collide === true) { instantStop(); return; }
-  if(nextTile && typeof nextTile.effect === 'function') nextTile.effect();
+                // O disco existe apenas em um anel específico
+                if (dist > Rs * 1.5 && dist < DISK_RADIUS) {
+                    float normDist = (dist - Rs * 1.5) / (DISK_RADIUS - Rs * 1.5);
+                    
+                    // Simulação de temperatura: mais quente perto do buraco negro
+                    vec3 colorStart = vec3(1.0, 0.6, 0.2); // Amarelo/Laranja brilhante
+                    vec3 colorEnd = vec3(0.1, 0.05, 0.05); // Quase preto na borda
+                    vec3 color = mix(colorStart, colorEnd, pow(normDist, 0.8)); // Potência para gradiente suave
+                    
+                    // Adiciona variação de cor e brilho com base no ângulo (simula turbulência)
+                    float turbulence = sin(angle * 10.0 + time * 5.0) * 0.1 + 0.9;
+                    color *= turbulence;
 
-  currPos.x += directions[control.moving].axis.x;
-  currPos.y += directions[control.moving].axis.y;
+                    // O disco de acreção é muito brilhante
+                    return color * 4.0; 
+                }
+                return vec3(0.0);
+            }
 
-  if(control.moving == "up" || control.moving == "down") {
-    root.style.setProperty('--map-y', `${-currPos.y}`);
-  } else {
-    root.style.setProperty('--map-x', `${-currPos.x}`);
-  }
-  setInfo(`floor:${currMap+1}/2\n\nx: ${currPos.x};\ny: ${currPos.y};\n\nid: ${pathFind.getId(currPos, currMap)}`);
-  control.lastMoving = control.moving;
-}
 
-/* --- pega tile seguinte --- */
-function getNextTile(param) {
-  const temp = { x: currPos.x + param.x, y: currPos.y + param.y };
-  if(temp.x < 0 || temp.y < 0) return tileTypes[1];
+            // Raymarching principal para simular o desvio da luz (Lensing)
+            vec3 raymarch(vec3 rayOrigin, vec3 rayDir) {
+                vec3 color = vec3(0.0);
+                float t = 0.0; // Distância percorrida
 
-  const colliders = maps[currMap].colliders;
-  if(temp.y < colliders.length)
-    if(temp.x < colliders[temp.y].length)
-      return (tileTypes[colliders[temp.y][temp.x]]);
+                for (int i = 0; i < MAX_STEPS; i++) {
+                    // Se o raio foi longe demais, terminamos e retornamos a cor do espaço profundo
+                    if (t > MAX_DISTANCE) {
+                        return color + getStarfieldColor(rayDir) * (1.0 - length(color) / 10.0);
+                    }
 
-  return tileTypes[1];
-}
+                    vec3 currentPos = rayOrigin + rayDir * t;
+                    float distToCenter = length(currentPos);
+                    
+                    // 1. Horizonte de Eventos e Singularidade
+                    if (distToCenter < Rs * 0.9) { // Usa 0.9 para uma borda mais suave
+                        return color * 0.0; // Absorvido - retorna o que foi acumulado (ou preto se nada)
+                    }
+                    
+                    // 2. Acumulação da Cor do Disco de Acreção
+                    // A 'altura' do disco é pequena no plano Y
+                    if (abs(currentPos.y) < 0.2) { 
+                        vec3 diskColor = getAccretionDiskColor(currentPos);
+                        if (length(diskColor) > 0.0) {
+                            // Acumula a cor do disco. O fator de 0.05 simula a transparência
+                            color += diskColor * 0.05; 
+                        }
+                    }
 
-/* --- UI helpers --- */
-function setInfo(text) { info.innerText = text; }
-let textUpdate = null;
-function showText(param) {
-  if(textUpdate != null) { clearInterval(textUpdate); textUpdate = null; }
-  if(param == undefined || param == null) { text.innerText = ""; text.style.display = "none"; return; }
-  if(param == text.innerText) return;
-  text.style.display = "block";
-  text.innerText = param.substring(0,1);
-  let i = 1;
-  textUpdate = setInterval(() => {
-    if(i <= param.length) { text.innerText = param.substring(0,i); i++; } else { clearInterval(textUpdate); textUpdate = null; }
-  }, 25);
-}
+                    // 3. Simulação da Lente Gravitacional (Desvio do Raio)
+                    // Calcula o vetor que aponta para o centro
+                    vec3 G_dir = -normalize(currentPos);
 
-/* --- localização (geolocation) --- */
-function getLocation () {
-  if(tileTypes[5].text != "..." && tileTypes[5].text != "Localização não suportada.") return;
+                    // A intensidade da gravidade decai com o quadrado da distância
+                    float G_mag = 1.0 / (distToCenter * distToCenter);
 
-  if('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=pt`)
-        .then(r=>r.json()).then(data=>{
-          const cidade = data.city || data.locality || "uma cidade";
-          const estado = data.principalSubdivision || "um estado";
-          const result = `Atualmente estou em ${cidade}, ${estado}.`;
-          tileTypes[5].text = result;
-          showText(result);
-        })
-        .catch(()=>{ tileTypes[5].text = "Localização não suportada."; showText(tileTypes[5].text); });
-    }, ()=>{ tileTypes[5].text = "Localização não suportada."; showText(tileTypes[5].text); });
-  } else {
-    tileTypes[5].text = "Localização não suportada.";
-    showText(tileTypes[5].text);
-  }
-}
+                    // Fator de desvio do raio (baseado na Relatividade Geral Simplificada)
+                    // O desvio é mais forte perto do Rs
+                    float deflectionFactor = Rs * G_mag * 0.2; 
+                    
+                    // Aplica o desvio na direção do raio
+                    rayDir += deflectionFactor * G_dir;
+                    rayDir = normalize(rayDir);
 
-/* --- inicialização onload --- */
-window.addEventListener("load", (event) => {
-  const mapx = parseInt(window.getComputedStyle(root).getPropertyValue("--map-x"));
-  const mapy = parseInt(window.getComputedStyle(root).getPropertyValue("--map-y"));
-  currPos.x = -mapx;
-  currPos.y = -mapy;
-  setInfo(`floor:${currMap+1}/2\n\nx: ${-mapx};\ny: ${-mapy};`);
-  instantStop();
+                    // Avança o raio
+                    t += 0.5; // Tamanho do passo de raymarching
+                }
+                
+                // Se o loop terminar, retorna a cor acumulada mais o fundo
+                return color + getStarfieldColor(rayDir);
+            }
 
-  const tileAfterPlayer = maps[currMap].colliders[currPos.y+1] ? maps[currMap].colliders[currPos.y+1][currPos.x] : 1;
-  showText(tileTypes[tileAfterPlayer] && tileTypes[tileAfterPlayer].text ? tileTypes[tileAfterPlayer].text : null);
+            void main() {
+                // A direção do raio é a direção do vértice no espaço mundial (vWorldPosition)
+                vec3 rayDirection = normalize(vWorldPosition);
+                
+                // A origem do raio é a posição da câmera (definida por Three.js)
+                vec3 rayOrigin = cameraPosition;
 
-  maps[(currMap+1)%2].element.style.opacity = 0;
-});
+                // O raymarch começa
+                vec3 finalColor = raymarch(rayOrigin, rayDirection);
 
-/* ========================
-   PATHFIND + DIJKSTRA
-   ======================== */
+                gl_FragColor = vec4(finalColor, 1.0);
+            }
+        `;
 
-class PriorityQueue {
-  constructor(){ this.items = []; }
-  enqueue(element, priority){
-    const queueElement = { element, priority };
-    let added = false;
-    for (let i = 0; i < this.items.length; i++){
-      if(queueElement.priority < this.items[i].priority){
-        this.items.splice(i,0,queueElement);
-        added = true; break;
-      }
-    }
-    if(!added) this.items.push(queueElement);
-  }
-  dequeue(){ return this.items.shift(); }
-  isEmpty(){ return this.items.length === 0; }
-}
+        // Inicialização da cena
+        function init() {
+            // 1. Configurar a Cena
+            scene = new THREE.Scene();
+            clock = new THREE.Clock();
 
-class PathFind {
-  constructor(tileTypes){
-    this.graphs = [];
-    this.maps = [];
-    this.pathTiles = [];
-    this.tileTypes = tileTypes;
+            // 2. Configurar a Câmera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = radius; // Define a posição inicial
 
-    // create visual tiles for path
-    const targetTile = document.createElement('div');
-    targetTile.classList.add('player-target');
-    targetTile.style.display = 'none';
-    this.pathTiles.push(targetTile);
-    mapElement.appendChild(targetTile);
+            // 3. Configurar o Renderizador
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
 
-    for(let i=1;i<20;i++){
-      const pathTile = document.createElement('div');
-      pathTile.classList.add('player-path');
-      pathTile.style.display = 'none';
-      this.pathTiles.push(pathTile);
-      mapElement.appendChild(pathTile);
-    }
-  }
+            // 4. Adicionar Controles de Interação
+            setupInteraction();
 
-  addMap(map){
-    // clone to avoid mutation
-    this.maps.push(JSON.parse(JSON.stringify(map)));
-    const graph = this._newGraph(this.maps.length-1);
-    this.graphs.push(graph);
-  }
+            // 5. Criar o Plano de Fundo (A Esfera que usa o Shader)
+            createBackground();
 
-  getId(cord, map){
-    const width = this.maps[map][0].length;
-    return cord.y * width + cord.x;
-  }
-  getCord(id, map){
-    const width = this.maps[map][0].length;
-    const y = Math.floor(id / width);
-    const x = id % width;
-    return {x,y};
-  }
+            // 6. Criar o Buraco Negro (Objeto central)
+            createBlackHole();
 
-  _getTile(x,y,map){
-    if(x >= 0 && y >= 0) return this.tileTypes[this.maps[map][y][x]];
-    else return this.tileTypes[1];
-  }
+            // 7. Configurar o Redimensionamento da Janela
+            window.addEventListener('resize', onWindowResize, false);
 
-  _getNeighbors(cord,map){
-    const neighbors = [];
-    if(cord.x > 0) neighbors.push(this.getId({x:cord.x-1,y:cord.y}, map));
-    if(cord.x < this.maps[map][0].length - 1) neighbors.push(this.getId({x:cord.x+1,y:cord.y}, map));
-    if(cord.y > 0) neighbors.push(this.getId({x:cord.x,y:cord.y-1}, map));
-    if(cord.y < this.maps[map].length - 1) neighbors.push(this.getId({x:cord.x,y:cord.y+1}, map));
-    return neighbors;
-  }
-
-  _newGraph(map){
-    const graph = {};
-    for(let y_=0;y_<this.maps[map].length;y_++){
-      for(let x_=0;x_<this.maps[map][y_].length;x_++){
-        const id = this.getId({x:x_,y:y_}, map);
-        const vertex = { id, x:x_, y:y_, distance: Infinity, parent:null, visited:false, neighbors:[] };
-        graph[id] = vertex;
-
-        if(x_ > 0)
-          if(this._getTile(x_-1, y_, map).collide == false) vertex.neighbors.push(this.getId({x:x_-1,y:y_}, map));
-        if(x_ < this.maps[map][0].length - 1)
-          if(this._getTile(x_+1, y_, map).collide == false) vertex.neighbors.push(this.getId({x:x_+1,y:y_}, map));
-        if(y_ > 0)
-          if(this._getTile(x_, y_-1, map).collide == false) vertex.neighbors.push(this.getId({x:x_,y:y_-1}, map));
-        if(y_ < this.maps[map].length - 1)
-          if(this._getTile(x_, y_+1, map).collide == false) vertex.neighbors.push(this.getId({x:x_,y:y_+1}, map));
-      }
-    }
-    return graph;
-  }
-
-  _dijkstra(map, initial){
-    if(initial.x < 0 || initial.y < 0) return {};
-    const start = this.getId(initial, map);
-    const queue = new PriorityQueue();
-    const nodes = JSON.parse(JSON.stringify(this.graphs[map]));
-    for(const node in nodes) nodes[node].distance = Infinity;
-    nodes[start].distance = 0;
-    queue.enqueue(start, 0);
-
-    while(!queue.isEmpty()){
-      const currentVertex = nodes[queue.dequeue().element];
-      const neighbors = currentVertex.neighbors;
-      for(const neighborIndex in neighbors){
-        const neighborVertex = nodes[neighbors[neighborIndex]];
-        const distance = currentVertex.distance + 1;
-        if(distance < neighborVertex.distance){
-          neighborVertex.distance = distance;
-          neighborVertex.parent = currentVertex.id;
-          if(!neighborVertex.visited){
-            queue.enqueue(neighborVertex.id, distance);
-            neighborVertex.visited = true;
-          }
+            // 8. Iniciar o loop de renderização
+            animate();
         }
-      }
-    }
-    return nodes;
-  }
 
-  _getPath(map, initial, final){
-    const path = [];
-    let start = this.getId(initial, map);
-    let end = this.getId(final, map);
-    const graph = this._dijkstra(map, initial);
-    const temp = graph[end];
-    const cant_reach = (temp != null && temp.parent == null);
-    if(cant_reach){
-      const cord = this.getCord(end, map);
-      let neighbors = this._getNeighbors(cord, map);
-      neighbors = neighbors.map(n => graph[n]).filter(n => n != null);
-      neighbors.sort((a,b)=> a.distance - b.distance);
-      if(neighbors.length>0) end = neighbors[0].id;
-    }
+        // --- Funções de Criação de Objetos ---
+        function createBackground() {
+            const geometry = new THREE.SphereGeometry(radius, 60, 60);
 
-    let currentVertex = end;
-    while(currentVertex !== start){
-      path.unshift(currentVertex);
-      const vertex = graph[currentVertex];
-      if(vertex == null){ console.log("não há caminho"); return path; }
-      currentVertex = vertex.parent;
-    }
-    path.unshift(start);
-    if(cant_reach) path.push(this.getId(final, map));
-    return path;
-  }
+            // ShaderMaterial usa o nosso código GLSL
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    tCube: { value: null }, // Textura não usada; o shader gera o fundo
+                    time: { value: 0.0 },
+                    resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                    blackHoleRadius: { value: 1.0 }, 
+                },
+                vertexShader: vertexShaderCode,
+                fragmentShader: fragmentShaderCode,
+                side: THREE.BackSide, // Renderiza o interior da esfera
+            });
 
-  drawPath(map, initial, final){
-    const path = this._getPath(map, initial, final);
-    this.clearPath();
-
-    // desenha o tile do alvo (primeiro tile)
-    if(path.length > 0){
-        const finalCord = this.getCord(path[path.length - 1], map);
-        const targetTile = this.pathTiles[0];
-
-        targetTile.style.left  = `calc(${finalCord.x} * var(--tile-size))`;
-        targetTile.style.top   = `calc(${finalCord.y} * var(--tile-size))`;
-        targetTile.style.display = "block";
-    }
-
-    // desenha o resto do caminho
-    for(let i = 1; i < path.length; i++){
-        const cord = this.getCord(path[path.length - 1 - i], map);
-        const tile = this.pathTiles[i];
-
-        tile.style.left  = `calc(${cord.x} * var(--tile-size))`;
-        tile.style.top   = `calc(${cord.y} * var(--tile-size))`;
-        tile.style.display = "block";
-    }
-
-    return path;
-}
-
-clearPath(index){
-    if(index == null){
-        for(let i = 0; i < this.pathTiles.length; i++){
-            this.pathTiles[i].style.display = "none";
+            backgroundSphere = new THREE.Mesh(geometry, material);
+            scene.add(backgroundSphere);
         }
-    } else {
-        this.pathTiles[index].style.display = "none";
-    }
-}
 
-// --------------------------------------
-// INSTÂNCIA DO PATHFINDING
-// --------------------------------------
+        function createBlackHole() {
+            // Um objeto preto sólido no centro para dar volume
+            const geometry = new THREE.SphereGeometry(1.0, 32, 32); 
+            const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const blackHoleMesh = new THREE.Mesh(geometry, material);
+            scene.add(blackHoleMesh);
+        }
 
-const pathFind = new PathFind(tileTypes);
+        // --- Funções de Interação e Responsividade ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            if (backgroundSphere) {
+                backgroundSphere.material.uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+            }
+        }
 
-// adiciona mapas
-pathFind.addMap(maps[0].colliders);
-pathFind.addMap(maps[1].colliders);
+        function setupInteraction() {
+            const sensitivity = 0.005;
 
-// --------------------------------------
-// EVENTO DE CLIQUE NO MAPA
-// --------------------------------------
+            // Rotação por Mouse
+            function onMouseMove(event) {
+                // Previne a rolagem na tela (opcional)
+                event.preventDefault(); 
+                
+                // Rotaciona horizontalmente e verticalmente
+                theta -= event.movementX * sensitivity;
+                phi += event.movementY * sensitivity;
 
-const mapEl = document.getElementById("map");
+                // Limita a rotação vertical (evita virar de ponta-cabeça)
+                phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+            }
+            document.addEventListener('mousemove', onMouseMove, false);
 
-mapEl.addEventListener("click", (event) => {
-    const rect = mapEl.getBoundingClientRect();
-    const tileSize = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--tile-size'));
+            // Rotação por Toque (Mobile)
+            function onTouchMove(event) {
+                event.preventDefault();
+                if (event.touches.length === 1) {
+                    const touch = event.touches[0];
+                    const touchSensitivity = 0.01;
 
-    const x = Math.floor((event.clientX - rect.left) / tileSize);
-    const y = Math.floor((event.clientY - rect.top)  / tileSize);
+                    if (lastTouchX && lastTouchY) {
+                        theta -= (touch.pageX - lastTouchX) * touchSensitivity;
+                        phi += (touch.pageY - lastTouchY) * touchSensitivity;
 
-    // desenha o caminho até o ponto clicado
-    pathFind.drawPath(currMap, currPos, { x, y });
-});
+                        // Limita a rotação vertical
+                        phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi));
+                    }
+                    lastTouchX = touch.pageX;
+                    lastTouchY = touch.pageY;
+                }
+            }
+
+            function onTouchEnd() {
+                lastTouchX = null;
+                lastTouchY = null;
+            }
+            
+            document.addEventListener('touchmove', onTouchMove, false);
+            document.addEventListener('touchstart', (e) => {
+                 if (e.touches.length === 1) {
+                    lastTouchX = e.touches[0].pageX;
+                    lastTouchY = e.touches[0].pageY;
+                }
+            }, false);
+            document.addEventListener('touchend', onTouchEnd, false);
+        }
+
+        // --- Loop Principal ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // 1. Atualiza o tempo no shader para animação de turbulência no disco
+            if (backgroundSphere) {
+                 backgroundSphere.material.uniforms.time.value = elapsedTime;
+            }
+
+            // 2. Atualiza a posição da câmera (Câmera esférica)
+            // Calculo de coordenadas esféricas para a câmera orbitar o centro (0,0,0)
+            camera.position.x = radius * Math.sin(phi) * Math.cos(theta);
+            camera.position.y = radius * Math.cos(phi);
+            camera.position.z = radius * Math.sin(phi) * Math.sin(theta);
+            
+            camera.lookAt(0, 0, 0); // Sempre olha para o Buraco Negro
+
+            // 3. Renderiza a cena
+            renderer.render(scene, camera);
+        }
+
+        // Chama a inicialização quando o script é carregado
+        init();
+    </script>
+    </body>
+  </html>
