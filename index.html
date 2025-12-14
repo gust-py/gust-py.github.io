@@ -1,30 +1,135 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!DOCTYPE html><html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot MLP (3K+ Neurônios) - JS Puro</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <header>
-        <h1>🤖 Chatbot MLP (3.105 Neurônios)</h1>
-        <p>Implementação do zero em HTML/CSS/JS (Feedforward/MLP)</p>
-    </header>
-    
-    <main id="chat-container">
-        <div class="message bot">
-            <span class="text">Olá! Eu sou um chatbot básico rodando com uma Rede Neural de 3.105 neurônios totalmente implementada em JavaScript. Digite algo!</span>
-        </div>
-    </main>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfólio</title>  <!-- Fonte clássica elegante -->  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    <footer id="input-area">
-        <input type="text" id="user-input" placeholder="Digite sua mensagem..." autocomplete="off">
-        <button id="send-btn">Enviar</button>
-    </footer>
+    :root {
+      --paper-base: #f4f0e6;
+      --paper-edge: #e0d6c2;
+      --ink: #1a1a1a;
+      --coffee: rgba(120, 80, 40, 0.25);
+    }
 
-    <script src="script.js"></script>
-</body>
-  </html>
+    body {
+      font-family: 'Playfair Display', serif;
+      background: #111;
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      padding: 60px 20px;
+    }
 
+    .book-page {
+      max-width: 900px;
+      background:
+        radial-gradient(circle at 20% 30%, var(--coffee) 0%, transparent 45%),
+        radial-gradient(circle at 80% 70%, var(--coffee) 0%, transparent 50%),
+        linear-gradient(135deg, var(--paper-base), var(--paper-edge));
+      padding: 80px 70px;
+      position: relative;
+      box-shadow: inset 0 0 60px rgba(0,0,0,0.15), 0 25px 50px rgba(0,0,0,0.6);
+      animation: fadeIn 1.4s ease;
+    }
 
+    .book-page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="5"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.045"/></svg>');
+      pointer-events: none;
+    }
+
+    header h1 { font-size: 3.1rem; margin-bottom: 8px; }
+    header p { font-style: italic; opacity: 0.75; }
+
+    section {
+      margin-top: 90px;
+      opacity: 0;
+      transform: translateY(35px);
+      transition: all 0.9s ease;
+    }
+
+    section.visible { opacity: 1; transform: translateY(0); }
+
+    h2 {
+      font-size: 2rem;
+      border-bottom: 1px solid rgba(0,0,0,0.25);
+      padding-bottom: 10px;
+      margin-bottom: 30px;
+    }
+
+    .project { margin-bottom: 45px; }
+    .project h3 { font-size: 1.35rem; margin-bottom: 6px; }
+    .project p { line-height: 1.75; }
+
+    footer {
+      position: absolute;
+      bottom: 25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.85rem;
+      opacity: 0.6;
+    }
+
+    footer::before {
+      content: "— Página 1 —";
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 700px) {
+      .book-page { padding: 50px 35px; }
+      header h1 { font-size: 2.3rem; }
+    }
+  </style></head>
+<body>  <main class="book-page"><header>
+  <h1>Seu Nome</h1>
+  <p>Programação, lógica e construção de sistemas</p>
+</header>
+
+<section id="projects">
+  <h2>Projetos</h2>
+
+  <div class="project">
+    <h3>Projeto I</h3>
+    <p>Descrição do projeto, tecnologias utilizadas e a ideia principal por trás dele. Texto direto, quase como um registro histórico.</p>
+  </div>
+
+  <div class="project">
+    <h3>Projeto II</h3>
+    <p>Outro projeto relevante, explicando o problema resolvido e a abordagem técnica.</p>
+  </div>
+</section>
+
+<section id="about">
+  <h2>Sobre</h2>
+  <p>
+    Texto sobre você, sua relação com a programação, como começou e o que busca construir. Pense nisso como uma página de diário técnico.
+  </p>
+</section>
+
+<footer>
+  <p>Portfólio pessoal — escrito como se fosse um livro antigo.</p>
+</footer>
+
+  </main>  <script>
+    // ANIMAÇÃO SUAVE AO SCROLL
+    const sections = document.querySelectorAll('section');
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.2 });
+
+    sections.forEach(section => observer.observe(section));
+  </script></body>
+    </html>
