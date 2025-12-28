@@ -2,40 +2,16 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AN-74 Flight Simulator</title>
+    <title>AN-74 Flight Sim - Stable</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
-        
-        /* UI TOTALMENTE BRANCA */
-        #ui { 
-            position: absolute; top: 20px; left: 20px; 
-            color: #FFFFFF; pointer-events: none; 
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-        }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Segoe UI', sans-serif; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
         .info { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-
         .controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: all; }
-        
-        button { 
-            padding: 12px 20px; cursor: pointer; background: rgba(255,255,255,0.2); 
-            color: #FFFFFF; border: 2px solid #FFFFFF; font-weight: bold; 
-            backdrop-filter: blur(4px);
-        }
-        button:active { background: #FFFFFF; color: #000; }
-        
-        #joystick-wrapper {
-            position: absolute; bottom: 30px; left: 30px; width: 140px; height: 140px;
-            background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #FFFFFF;
-            pointer-events: all; touch-action: none;
-        }
-        #joystick-stick {
-            position: absolute; width: 50px; height: 50px; background: #FFFFFF;
-            border-radius: 50%; top: 45px; left: 45px;
-        }
-        
-        .thr-box {
-            position: absolute; bottom: 30px; left: 200px; display: flex; flex-direction: column; align-items: center; color: #FFFFFF;
-        }
+        button { padding: 12px 20px; cursor: pointer; background: rgba(255,255,255,0.2); color: #FFF; border: 2px solid #FFF; font-weight: bold; backdrop-filter: blur(4px); }
+        #joy-wrapper { position: absolute; bottom: 30px; left: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #FFF; pointer-events: all; touch-action: none; }
+        #joy-stick { position: absolute; width: 50px; height: 50px; background: #FFF; border-radius: 50%; top: 45px; left: 45px; }
+        .thr-box { position: absolute; bottom: 30px; left: 200px; display: flex; flex-direction: column; align-items: center; color: #FFF; }
         input[type=range] { -webkit-appearance: slider-vertical; width: 30px; height: 140px; }
     </style>
 </head>
@@ -44,7 +20,7 @@
     <div id="ui">
         <div class="info" id="ui-spd">SPEED: 0 kts</div>
         <div class="info" id="ui-alt">ALTITUDE: 0 m</div>
-        <div class="info" id="ui-sts">STATUS: ON RUNWAY</div>
+        <div class="info" id="ui-sts">STATUS: TAXI</div>
     </div>
 
     <div class="controls">
@@ -52,14 +28,8 @@
         <button id="btn-rev">REVERSE: OFF</button>
     </div>
 
-    <div class="thr-box">
-        <b>THR</b>
-        <input type="range" id="input-thr" min="0" max="1" step="0.01" value="0">
-    </div>
-
-    <div id="joystick-wrapper">
-        <div id="joystick-stick"></div>
-    </div>
+    <div class="thr-box"><b>THR</b><input type="range" id="input-thr" min="0" max="1" step="0.01" value="0"></div>
+    <div id="joy-wrapper"><div id="joy-stick"></div></div>
 
     <script type="importmap">
         {
@@ -74,161 +44,122 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-        // CENA E CÉU
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 1, 100000); // Neblina azul para o horizonte
+        scene.fog = new THREE.Fog(0x87CEEB, 10, 500000);
 
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 2000000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // LUZES (Para o verde aparecer)
-        const light1 = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(light1);
-        const light2 = new THREE.DirectionalLight(0xffffff, 1.5);
-        light2.position.set(100, 1000, 100);
-        scene.add(light2);
+        scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(100, 1000, 100);
+        scene.add(sun);
 
-        // VARIÁVEIS
         let plane = new THREE.Group();
-        let speed = 0;
-        let isEngine = false;
-        let isRev = false;
-        let thr = 0;
-        let joy = { x: 0, y: 0 };
+        let speed = 0, isEngine = false, isRev = false, thr = 0, joy = { x: 0, y: 0 };
         const radius = 637000;
 
         // PLANETA VERDE
-        const pGeo = new THREE.SphereGeometry(radius, 128, 128);
-        const pMat = new THREE.MeshLambertMaterial({ color: 0x228B22 });
-        const planet = new THREE.Mesh(pGeo, pMat);
+        const planet = new THREE.Mesh(new THREE.SphereGeometry(radius, 128, 128), new THREE.MeshLambertMaterial({ color: 0x228B22 }));
         planet.position.y = -radius;
         scene.add(planet);
 
-        // PISTA
-        const runway = new THREE.Mesh(
-            new THREE.PlaneGeometry(100, 750),
-            new THREE.MeshLambertMaterial({ color: 0x444444 })
-        );
+        // PISTA (750x100)
+        const runway = new THREE.Mesh(new THREE.PlaneGeometry(100, 750), new THREE.MeshLambertMaterial({ color: 0x444444 }));
         runway.rotation.x = -Math.PI / 2;
-        runway.position.y = 0.1;
+        runway.position.y = 0.15;
         scene.add(runway);
 
         // ATMOSFERA
-        const colors = [0xadd8e6, 0x4682b4, 0x000080];
         const heights = [3500, 15000, 30000];
+        const colors = [0xadd8e6, 0x4682b4, 0x000080];
         heights.forEach((h, i) => {
-            const layer = new THREE.Mesh(
-                new THREE.SphereGeometry(radius + h, 64, 64),
-                new THREE.MeshBasicMaterial({ color: colors[i], transparent: true, opacity: 0.1, side: THREE.BackSide })
-            );
+            const layer = new THREE.Mesh(new THREE.SphereGeometry(radius + h, 64, 64), new THREE.MeshBasicMaterial({ color: colors[i], transparent: true, opacity: 0.15, side: THREE.BackSide }));
             layer.position.y = -radius;
             scene.add(layer);
         });
 
-        // LOADER DO AN74.GLB (CARREGA DIRETO NA RAIZ)
+        // CARREGAR AN74.GLB
         const loader = new GLTFLoader();
-        loader.load('an74.glb', (gltf) => {
-            plane.add(gltf.scene);
-        }, undefined, (err) => {
-            // Backup se o arquivo não estiver lá
-            const mock = new THREE.Mesh(new THREE.BoxGeometry(2,1,6), new THREE.MeshLambertMaterial({color: 0xeeeeee}));
+        loader.load('an74.glb', (gltf) => { plane.add(gltf.scene); }, undefined, () => {
+            const mock = new THREE.Mesh(new THREE.BoxGeometry(2,1,6), new THREE.MeshLambertMaterial({color: 0xffffff}));
             plane.add(mock);
         });
         scene.add(plane);
-        plane.position.set(0, 0.5, 300);
+        plane.position.set(0, 0.6, 300);
 
-        // JOYSTICK
-        const stick = document.getElementById('joystick-stick');
-        const wrap = document.getElementById('joystick-wrapper');
+        // JOYSTICK (INVERTIDO Y)
+        const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
         wrap.onpointermove = (e) => {
             if (e.buttons === 1) {
                 const r = wrap.getBoundingClientRect();
                 joy.x = (e.clientX - r.left - 70) / 70;
-                joy.y = -(e.clientY - r.top - 70) / 70;
+                joy.y = (e.clientY - r.top - 70) / 70; // Invertido: Empurrar para frente (cima) = joy.y positivo
                 joy.x = Math.max(-1, Math.min(1, joy.x));
                 joy.y = Math.max(-1, Math.min(1, joy.y));
-                stick.style.transform = `translate(${joy.x * 40}px, ${-joy.y * 40}px)`;
+                stick.style.transform = `translate(${joy.x * 45}px, ${joy.y * 45}px)`;
             }
         };
-        wrap.onpointerup = () => {
-            joy = { x: 0, y: 0 };
-            stick.style.transform = `translate(0,0)`;
-        };
+        wrap.onpointerup = () => { joy = { x: 0, y: 0 }; stick.style.transform = `translate(0,0)`; };
 
-        // UI
-        document.getElementById('btn-engine').onclick = (e) => {
-            isEngine = !isEngine;
-            e.target.innerText = isEngine ? "TURN OFF" : "TURN ON";
-        };
-        document.getElementById('btn-rev').onclick = (e) => {
-            isRev = !isRev;
-            e.target.innerText = isRev ? "REVERSE: ON" : "REVERSE: OFF";
-        };
+        document.getElementById('btn-engine').onclick = (e) => { isEngine = !isEngine; e.target.innerText = isEngine ? "TURN OFF" : "TURN ON"; };
+        document.getElementById('btn-rev').onclick = (e) => { isRev = !isRev; e.target.innerText = isRev ? "REVERSE: ON" : "REVERSE: OFF"; };
         document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
 
         const clock = new THREE.Clock();
         function loop() {
             const dt = clock.getDelta();
+            if (dt > 0.1) return requestAnimationFrame(loop);
             const alt = plane.position.y;
+            const inAir = alt > 1.5;
 
-            // ACELERAÇÃO
-            let power = isEngine ? thr * 200 : 0;
-            if (isRev && alt < 1) power = -thr * 80;
-            speed += (power - (speed * 0.1)) * dt;
-            if (speed > 366) speed = 366;
+            // VELOCIDADE E LIMITES
+            let maxCurrent = inAir ? 316 : 160;
+            let power = isEngine ? thr * 250 : 0;
+            if (isRev && !inAir) power = -thr * 100;
+            
+            speed += (power - (speed * 0.15)) * dt;
+            if (speed > maxCurrent) speed = THREE.MathUtils.lerp(speed, maxCurrent, 0.1);
             if (speed < 0) speed = 0;
 
-            if (alt <= 0.6) {
-                // CHÃO: SÓ VIRA O NARIZ (YAW)
-                plane.position.y = 0.5;
-                plane.rotation.x = 0;
-                plane.rotation.z = 0;
-                plane.rotation.y -= joy.x * dt * 2;
-                // DECOLAGEM 150KTS + PUXAR MANCHE
-                if (speed > 150 && joy.y > 0.2) plane.position.y += 2 * dt * (speed/100);
+            if (!inAir) {
+                plane.position.y = 0.6;
+                plane.rotation.x = 0; plane.rotation.z = 0;
+                plane.rotation.y -= joy.x * dt * 2; // Yaw no chão
+                // Decolagem: Puxar joystick (joy.y negativo no código invertido)
+                if (speed > 150 && joy.y < -0.3) plane.position.y += 5 * dt;
             } else {
-                // AR: ROLL, PITCH E CURVA
+                // AR: JOYSTICK INVERTIDO (joy.y negativo = subir / positivo = descer)
                 const tRoll = -joy.x * 0.52; 
-                const tPitch = joy.y * 0.6;
+                const tPitch = -joy.y * 0.6; // Inversão aplicada aqui
                 plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, tRoll, 0.05);
                 plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, tPitch, 0.04);
-                plane.rotation.y -= plane.rotation.z * dt * 1.5;
+                plane.rotation.y -= plane.rotation.z * dt * 1.8;
 
-                // SUSTENTAÇÃO E STALL
-                const lift = (speed / 150) * (1 + plane.rotation.x);
-                plane.position.y += (lift - 1.0) * 45 * dt;
-                if (speed < 140) {
-                    plane.rotation.x += 0.2 * dt;
-                    plane.position.y -= 30 * dt;
-                }
+                const lift = (speed / 150) * (1 - joy.y * 0.5);
+                plane.position.y += (lift - 0.98) * 55 * dt;
+                if (speed < 140) { plane.rotation.x += 0.3 * dt; plane.position.y -= 40 * dt; }
             }
 
-            plane.translateZ(speed * dt * 0.8);
+            plane.translateZ(speed * dt * 0.85);
 
-            // CÂMERA
-            const cPos = new THREE.Vector3(0, 10, -30).applyMatrix4(plane.matrixWorld);
-            camera.position.lerp(cPos, 0.1);
+            // CÂMERA FIXA (Sem tremer)
+            const camTarget = new THREE.Vector3(0, 10, -35).applyMatrix4(plane.matrixWorld);
+            camera.position.copy(camTarget);
             camera.lookAt(plane.position);
 
-            // TELEMETRIA
             document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(speed)} kts`;
             document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.round(alt)} m`;
-            document.getElementById('ui-sts').innerText = `STATUS: ${alt > 1 ? (speed < 145 ? 'STALL' : 'FLYING') : 'TAXIING'}`;
+            document.getElementById('ui-sts').innerText = `STATUS: ${inAir ? (speed < 145 ? 'STALL' : 'FLYING') : 'TAXI'}`;
 
             renderer.render(scene, camera);
             requestAnimationFrame(loop);
         }
-
         loop();
-
-        window.onresize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
+        window.onresize = () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); };
     </script>
 </body>
-</html>
+    </html>
