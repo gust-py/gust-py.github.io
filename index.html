@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - 1.glb Fixed</title>
+    <title>Flight Simulator - 1.glb 0deg</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; }
@@ -85,10 +85,9 @@
         runway.receiveShadow = true;
         scene.add(runway);
 
-        // CARREGAR 1.GLB COM ROTAÇÃO DE 45 GRAUS PARA ESQUERDA
+        // CARREGAR 1.GLB COM ROTAÇÃO 0
         new GLTFLoader().load('1.glb', (gltf) => {
-            // 180 graus (frente) + 45 graus (esquerda)
-            gltf.scene.rotation.y = Math.PI + (Math.PI / 4); 
+            gltf.scene.rotation.y = 0; // RESETADO PARA 0 GRAUS
             gltf.scene.position.y = -0.55; 
             gltf.scene.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; }});
             modelInner.add(gltf.scene);
@@ -153,4 +152,4 @@
         loop();
     </script>
 </body>
-    </html>
+</html>
