@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Falcon 9 - Estável</title>
+    <title>Falcon 9 - Fix Atmosfera</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         #ui { position: absolute; top: 20px; left: 20px; color: #0f0; pointer-events: none; font-size: 16px; z-index: 10; }
@@ -47,10 +47,9 @@
     const RAIO_TERRA = 637100; 
     
     const scene = new T.Scene();
-    // Aumento do Near Plane (10) para evitar o glitch visual (Z-fighting)
     const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 10000000);
     
-    const renderer = new T.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true }); // Buffer logarítmico ajuda com escalas grandes
+    const renderer = new T.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.shadowMap.enabled = true;
@@ -64,50 +63,54 @@
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
 
-    scene.add(new T.AmbientLight(0xffffff, 0.7));
+    scene.add(new T.AmbientLight(0xffffff, 0.8));
     const sun = new T.DirectionalLight(0xffffff, 2.0);
     sun.castShadow = true;
     scene.add(sun);
 
     const loader = new GLTFLoader();
 
-    // --- TERRA E ATMOSFERA (Agrupados para não deslocar) ---
+    // --- TERRA E ATMOSFERA UNIFICADOS ---
     const worldGroup = new T.Group();
     scene.add(worldGroup);
 
+    // Atmosfera (Agora centralizada no 0,0,0 do grupo)
+    const atmoGeom = new T.SphereGeometry(RAIO_TERRA * 1.25, 64, 64);
+    const atmoMat = new T.MeshPhongMaterial({
+        color: 0x4488ff,
+        transparent: true,
+        opacity: 0.2,
+        side: T.BackSide,
+        depthWrite: false
+    });
+    const atmosphere = new T.Mesh(atmoGeom, atmoMat);
+    worldGroup.add(atmosphere);
+
     loader.load('earth.gltf', (gltf) => {
         const earthModel = gltf.scene;
-        // Se o modelo 3D sumir, tente scale(1,1,1)
+        
+        // Centraliza o modelo da Terra automaticamente
+        const box = new T.Box3().setFromObject(earthModel);
+        const center = box.getCenter(new T.Vector3());
+        earthModel.position.sub(center); // Move o modelo para que o centro dele seja o 0,0,0
+        
         earthModel.scale.set(RAIO_TERRA, RAIO_TERRA, RAIO_TERRA); 
         earthModel.traverse(n => { if(n.isMesh) n.receiveShadow = true; });
         worldGroup.add(earthModel);
     });
 
-    // Atmosfera 0.3x maior (total 1.3x)
-    const atmoGeom = new T.SphereGeometry(RAIO_TERRA * 1.3, 64, 64);
-    const atmoMat = new T.MeshPhongMaterial({
-        color: 0x4488ff,
-        transparent: true,
-        opacity: 0.15,
-        side: T.BackSide,
-        depthWrite: false // Evita conflito visual com o planeta
-    });
-    const atmosphere = new T.Mesh(atmoGeom, atmoMat);
-    worldGroup.add(atmosphere);
-
     // --- FOGUETE ---
     const rocket = new T.Group();
-    rocket.position.y = RAIO_TERRA; // Spawna no topo do planeta
     scene.add(rocket);
 
     loader.load('f9.gltf', (gltf) => {
         const f9 = gltf.scene;
-        f9.scale.set(8, 8, 8); 
+        f9.scale.set(10, 10, 10); 
         f9.traverse(n => { if(n.isMesh) n.castShadow = true; });
         rocket.add(f9);
     });
 
-    // --- FOGO AZUL GIGANTE (3.5x maior) ---
+    // --- FOGO AZUL GIGANTE ---
     const fireTex = new T.CanvasTexture((() => {
         const c = document.createElement('canvas'); c.width = 64; c.height = 64;
         const ctx = c.getContext('2d');
@@ -130,9 +133,6 @@
     btn.onmousedown = btn.ontouchstart = (e) => { e.preventDefault(); engine = true; };
     btn.onmouseup = btn.ontouchend = () => engine = false;
 
-    // Ajuste inicial da câmera para ver o foguete no topo
-    camera.position.set(0, RAIO_TERRA + 200, 500);
-
     function animate() {
         requestAnimationFrame(animate);
         
@@ -140,8 +140,8 @@
             vel += 5.0;
             firePs.forEach(p => {
                 p.visible = true;
-                p.position.set((Math.random()-0.5)*5, -Math.random()*100 - 10, (Math.random()-0.5)*5);
-                p.scale.set(35, 105, 1); // 3.5x maior que o anterior
+                p.position.set((Math.random()-0.5)*5, -Math.random()*120 - 20, (Math.random()-0.5)*5);
+                p.scale.set(40, 120, 1);
             });
         } else {
             if (alt > 0) vel -= 1.62;
@@ -151,6 +151,7 @@
         alt += (vel/60);
         if(alt < 0) { alt=0; vel=0; }
         
+        // Posição do foguete (Y) baseada no raio da terra + altitude
         const curY = RAIO_TERRA + alt;
         rocket.position.y = curY;
 
@@ -158,7 +159,6 @@
         sun.target.position.set(0, curY, 0);
         controls.target.set(0, curY + 20, 0);
 
-        // Skybox dinâmica
         const factor = Math.min(1, alt / 150000);
         scene.background = new T.Color(0x050515).lerp(new T.Color(0x000000), factor);
 
