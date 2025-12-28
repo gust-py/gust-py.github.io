@@ -3,190 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Falcon 9 Mobile Simulator</title>
+    <title>Falcon 9 GLTF - Real Shadows</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; touch-action: none; }
-        #ui { position: absolute; top: 10px; left: 10px; color: white; pointer-events: none; text-shadow: 1px 1px 2px black; }
-        .data { font-size: 12px; margin-bottom: 2px; }
-        
-        /* Botões de Controle */
-        #controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-around; pointer-events: none; }
-        .btn { 
-            width: 80px; height: 80px; background: rgba(255,255,255,0.2); 
-            border: 2px solid white; border-radius: 50%; color: white; 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: bold; pointer-events: auto; user-select: none;
-            -webkit-user-select: none;
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #0f0; pointer-events: none; font-size: 16px; z-index: 10; }
+        .data { margin-bottom: 5px; text-shadow: 2px 2px 4px #000; background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 5px; }
+        span { color: #fff; font-weight: bold; }
+        #motor-btn { 
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            padding: 18px 60px; background: rgba(255,255,255,0.1); border: 2px solid #fff; 
+            color: white; font-size: 14px; letter-spacing: 5px; cursor: pointer;
+            z-index: 10; transition: all 0.3s; user-select: none; border-radius: 8px;
         }
-        #btn-engine { background: rgba(255, 100, 0, 0.4); }
-        #btn-sep { 
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 150px; height: 40px; border-radius: 5px; background: #d9534f;
-            display: none; /* Aparece após 1000m */
-        }
-        
-        #fuel-container { width: 120px; height: 10px; background: #333; border: 1px solid #fff; margin-top: 5px; }
-        #fuel-bar { width: 100%; height: 100%; background: #0f0; }
+        #motor-btn:active { background: #fff; color: #000; }
     </style>
 </head>
 <body>
+<div id="ui">
+    <div class="data">ALTITUDE: <span id="alt">0</span> m</div>
+    <div class="data">VELOCIDADE: <span id="vel">0</span> m/s</div>
+    <div class="data" id="heat-ui" style="color: #ffaa00; display: none;">REENTRADA: <span id="heat-val">0</span>%</div>
+</div>
+<div id="motor-btn">IGNIÇÃO</div>
 
-    <div id="ui">
-        <div class="data">ALTITUDE: <span id="alt">0</span> m</div>
-        <div class="data">VELOCIDADE: <span id="vel">0</span> km/h</div>
-        <div class="data">ESTÁGIO: <span id="stg">1</span></div>
-        <div id="fuel-container"><div id="fuel-bar"></div></div>
-    </div>
+<script type="importmap">
+    { 
+        "imports": { 
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        } 
+    }
+</script>
 
-    <button id="btn-sep" class="btn">SEPARAR ESTÁGIOS</button>
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    <div id="controls">
-        <div id="btn-engine" class="btn">MOTOR</div>
-    </div>
+    const T = THREE;
+    const RAIO_TERRA = 637100; 
+    const LIMITE_ATMOSFERA = 60000; 
+    
+    const scene = new T.Scene();
+    const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000000);
+    camera.position.set(0, RAIO_TERRA + 100, 200);
 
-    <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
-    </script>
+    const renderer = new T.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = T.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
 
-    <script type="module">
-        import * as THREE from 'three';
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new T.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.4, 0.85);
+    composer.addPass(bloom);
 
-        // --- CENA E RENDER (OTIMIZADO) ---
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.minDistance = 20;
+
+    const ambient = new T.AmbientLight(0xffffff, 0.6);
+    scene.add(ambient);
+
+    const sun = new T.DirectionalLight(0xffffff, 2.5);
+    sun.castShadow = true;
+    sun.shadow.camera.left = -100;
+    sun.shadow.camera.right = 100;
+    sun.shadow.camera.top = 100;
+    sun.shadow.camera.bottom = -100;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+    scene.add(sun);
+    scene.add(sun.target);
+
+    // TERRA
+    const earth = new T.Mesh(
+        new T.SphereGeometry(RAIO_TERRA, 128, 128),
+        new T.MeshStandardMaterial({ color: 0x228B22, roughness: 0.9 })
+    );
+    earth.receiveShadow = true;
+    scene.add(earth);
+
+    // --- CARREGAMENTO DO MODELO GLTF ---
+    const rocket = new T.Group();
+    scene.add(rocket);
+
+    const loader = new GLTFLoader();
+    // ATENÇÃO: Altera o nome abaixo para o nome exato do teu ficheiro
+    loader.load('scene.gltf', (gltf) => {
+        const model = gltf.scene;
         
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 20000);
-        const renderer = new THREE.WebGLRenderer({ antialias: false }); // Desativado para performance no E22
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        document.body.appendChild(renderer.domElement);
-
-        // --- LUZES ---
-        const light = new THREE.DirectionalLight(0xffffff, 1.5);
-        light.position.set(5, 10, 7);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
-        // --- TERRA ---
-        const ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(10000, 10000),
-            new THREE.MeshStandardMaterial({ color: 0x222222 })
-        );
-        ground.rotation.x = -Math.PI / 2;
-        scene.add(ground);
-
-        // --- FOGUETE (FALCON 9) ---
-        const rocket = new THREE.Group();
+        // Ajuste de escala (tente mudar para 1, 1, 1 se ficar muito grande)
+        model.scale.set(8, 8, 8); 
         
-        // Estágio 1
-        const s1 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 15, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
-        s1.position.y = 7.5;
-        rocket.add(s1);
+        // Centralizar e ajustar rotação se o modelo vier deitado
+        // model.rotation.x = -Math.PI / 2; 
 
-        // Estágio 2
-        const s2 = new THREE.Group();
-        const s2Body = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 5, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
-        const nose = new THREE.Mesh(new THREE.ConeGeometry(1, 3, 16), new THREE.MeshStandardMaterial({color: 0xffffff}));
-        s2Body.position.y = 2.5;
-        nose.position.y = 6.5;
-        s2.add(s2Body);
-        s2.add(nose);
-        s2.position.y = 15;
-        rocket.add(s2);
-
-        // Fogo (Partículas simples para performance)
-        const fireGeo = new THREE.ConeGeometry(0.8, 5, 8);
-        fireGeo.translate(0, -2.5, 0);
-        const fireMat = new THREE.MeshBasicMaterial({ color: 0xffa500, transparent: true, opacity: 0.8 });
-        const fire = new THREE.Mesh(fireGeo, fireMat);
-        fire.visible = false;
-        rocket.add(fire);
-
-        scene.add(rocket);
-
-        // --- ESTADO ---
-        let state = {
-            alt: 0, vel: 0, fuel: 100, 
-            engineOn: false, stage: 1, 
-            separated: false, s2vel: 0
-        };
-
-        // --- CONTROLES ---
-        const btnEngine = document.getElementById('btn-engine');
-        const btnSep = document.getElementById('btn-sep');
-
-        const startEngine = () => state.engineOn = true;
-        const stopEngine = () => state.engineOn = false;
-
-        btnEngine.addEventListener('mousedown', startEngine);
-        btnEngine.addEventListener('mouseup', stopEngine);
-        btnEngine.addEventListener('touchstart', (e) => { e.preventDefault(); startEngine(); });
-        btnEngine.addEventListener('touchend', stopEngine);
-        
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space') startEngine(); });
-        window.addEventListener('keyup', (e) => { if(e.code === 'Space') stopEngine(); });
-
-        btnSep.addEventListener('click', () => {
-            if(state.stage === 1) {
-                state.stage = 2;
-                state.s2vel = state.vel;
-                btnSep.style.display = 'none';
-                document.getElementById('stg').innerText = "2";
+        model.traverse((node) => {
+            if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
             }
         });
+        rocket.add(model);
+    }, undefined, (err) => console.error("Erro ao carregar:", err));
 
-        // --- LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
+    // Efeitos de Fogo e Reentrada (mantidos do original)
+    const fireTex = new T.CanvasTexture((() => {
+        const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(32,32,0,32,32,32);
+        g.addColorStop(0, 'white'); g.addColorStop(0.4, 'orange'); g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g; ctx.fillRect(0,0,64,64); return c;
+    })());
 
-            if (state.engineOn && state.fuel > 0) {
-                state.vel += 0.2;
-                state.fuel -= 0.05; // Dura aprox. 5-6 minutos
-                fire.visible = true;
-                fire.scale.set(1, 0.8 + Math.random() * 0.4, 1);
-            } else {
-                state.vel -= 0.05; // Gravidade
-                fire.visible = false;
-            }
+    const firePs = [];
+    for(let i=0; i<20; i++) {
+        const s = new T.Sprite(new T.SpriteMaterial({map:fireTex, blending: T.AdditiveBlending, transparent:true}));
+        s.visible=false; rocket.add(s); firePs.push(s);
+    }
 
-            if (state.stage === 1) {
-                state.alt += state.vel * 0.1;
-                rocket.position.y = state.alt;
-            } else {
-                // Separação
-                state.alt += state.vel * 0.1;
-                s2.position.y += 0.2; // Afasta do S1 visualmente
-                rocket.position.y = state.alt;
-                // O S1 começa a cair (efeito visual)
-                s1.position.y -= 0.5;
-            }
+    const reentryPs = [];
+    for(let i=0; i<150; i++) {
+        const s = new T.Sprite(new T.SpriteMaterial({map:fireTex, blending: T.AdditiveBlending, transparent:true}));
+        s.visible = false; rocket.add(s);
+        reentryPs.push({ s, angle: Math.random() * Math.PI * 2, offset: Math.random() * 50 });
+    }
 
-            if(state.alt < 0) { state.alt = 0; state.vel = 0; }
+    let alt = 0, vel = 0, engine = false;
+    const btn = document.getElementById('motor-btn');
+    btn.onmousedown = btn.ontouchstart = (e) => { e.preventDefault(); engine = true; };
+    btn.onmouseup = btn.ontouchend = () => engine = false;
 
-            // Atmosfera -> Espaço
-            const skyVal = Math.max(0, 135 - state.alt / 20);
-            scene.background.set(`rgb(${Math.floor(skyVal)}, ${Math.floor(skyVal*1.5)}, ${Math.floor(skyVal*1.9)})`);
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        let heat = 0;
+        if (alt > 3500 && vel < -50) heat = Math.min(0.35, Math.max(0, (25000 - alt) / 20000));
 
-            // UI
-            document.getElementById('alt').innerText = Math.floor(state.alt);
-            document.getElementById('vel').innerText = Math.floor(state.vel * 10);
-            document.getElementById('fuel-bar').style.width = state.fuel + "%";
-            if(state.alt > 500 && state.stage === 1) btnSep.style.display = 'flex';
-
-            // Câmera segue o foguete
-            camera.position.set(rocket.position.x, rocket.position.y + 10, rocket.position.z + 40);
-            camera.lookAt(rocket.position);
-
-            renderer.render(scene, camera);
+        if(engine) {
+            vel += 4.0;
+            firePs.forEach(p => {
+                p.visible = true;
+                p.position.set((Math.random()-0.5)*4, -Math.random()*30, (Math.random()-0.5)*4);
+                p.scale.set(8, 25, 1);
+            });
+        } else {
+            if (alt > 0) vel -= 1.62;
+            firePs.forEach(p => p.visible=false);
         }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        if(heat > 0.01) {
+            document.getElementById('heat-ui').style.display='block';
+            document.getElementById('heat-val').innerText = Math.floor(heat*285);
+            reentryPs.forEach(obj => {
+                obj.s.visible = true;
+                const f = (Date.now()*0.02 + obj.offset) % 50;
+                obj.s.position.set(Math.cos(obj.angle)*(6+f*0.5), f, Math.sin(obj.angle)*(6+f*0.5));
+                obj.s.scale.set(8, 20, 1);
+                obj.s.material.opacity = heat * (1 - f/50);
+            });
+        } else {
+            document.getElementById('heat-ui').style.display='none';
+            reentryPs.forEach(o => o.s.visible=false);
+        }
 
-        animate();
-    </script>
+        alt += (vel/60);
+        if(alt < 0) { alt=0; vel=0; }
+        const curY = RAIO_TERRA + alt;
+        rocket.position.y = curY;
+
+        sun.position.set(200, curY + 400, 200);
+        sun.target.position.set(0, curY, 0);
+        
+        const atmoFactor = Math.max(0, 1 - (alt / LIMITE_ATMOSFERA));
+        scene.background = (alt < LIMITE_ATMOSFERA) ? 
+            new T.Color(0x88e0ff).lerp(new T.Color(0x000000), 1 - atmoFactor) : new T.Color(0x000000);
+
+        controls.target.set(0, curY + 20, 0);
+        camera.position.y += (vel/60);
+
+        controls.update();
+        composer.render();
+        
+        document.getElementById('alt').innerText = Math.floor(alt).toLocaleString('pt-BR');
+        document.getElementById('vel').innerText = Math.floor(vel).toLocaleString('pt-BR');
+    }
+    animate();
+
+    window.onresize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    };
+</script>
 </body>
 </html>
