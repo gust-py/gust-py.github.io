@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - Física Realista</title>
+    <title>Flight Simulator - Estabilizado</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; }
@@ -40,6 +40,9 @@
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB);
+
+        // logarithmicDepthBuffer resolve o "flicker" de texturas em grandes distâncias
         const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
@@ -47,22 +50,44 @@
         document.body.appendChild(renderer.domElement);
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000000);
+
         const sun = new THREE.DirectionalLight(0xffffff, 1.8);
         sun.castShadow = true;
-        sun.shadow.camera.left = -500; sun.shadow.camera.right = 500;
-        sun.shadow.camera.top = 500; sun.shadow.camera.bottom = -500;
-        sun.shadow.camera.far = 10000;
+        // Configuração de alcance da sombra
+        sun.shadow.camera.left = -500; 
+        sun.shadow.camera.right = 500;
+        sun.shadow.camera.top = 500; 
+        sun.shadow.camera.bottom = -500;
+        sun.shadow.camera.far = 10000; 
         sun.shadow.mapSize.set(2048, 2048);
         scene.add(sun);
         scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-        // Constantes do Planeta
-        const PLANET_RADIUS = 637000;
-        const PLANET_POS_Y = -PLANET_RADIUS;
-        const planetCenter = new THREE.Vector3(0, PLANET_POS_Y, 0);
+        // ATMOSFERA
+        const layers = [
+            { r: 645000, c: 0xadd8e6, o: 0.2 },
+            { r: 655000, c: 0x4682b4, o: 0.15 },
+            { r: 670000, c: 0x000022, o: 0.1 }
+        ];
+        layers.forEach(l => {
+            const m = new THREE.Mesh(new THREE.SphereGeometry(l.r, 32, 32), new THREE.MeshBasicMaterial({ color: l.c, side: THREE.BackSide, transparent: true, opacity: l.o }));
+            m.position.y = -637000;
+            scene.add(m);
+        });
 
-        const planet = new THREE.Mesh(new THREE.SphereGeometry(PLANET_RADIUS, 128, 128), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
-        planet.position.y = PLANET_POS_Y;
+        const planeGroup = new THREE.Group();
+        const modelInner = new THREE.Group();
+        planeGroup.add(modelInner);
+
+        // ÂNCORA DA CÂMERA: Objeto fixo ao avião para eliminar tremor
+        const cameraAnchor = new THREE.Object3D();
+        cameraAnchor.position.set(0, 10, -35); // Posição relativa atrás do avião
+        planeGroup.add(cameraAnchor);
+
+        let speed = 0, engine = false, thr = 0, joy = { x: 0, y: 0 };
+
+        const planet = new THREE.Mesh(new THREE.SphereGeometry(637000, 64, 64), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
+        planet.position.y = -637000;
         planet.receiveShadow = true;
         scene.add(planet);
 
@@ -72,113 +97,79 @@
         runway.receiveShadow = true;
         scene.add(runway);
 
-        const planeGroup = new THREE.Group();
-        const modelInner = new THREE.Group();
-        planeGroup.add(modelInner);
-        
-        const cameraAnchor = new THREE.Object3D();
-        cameraAnchor.position.set(0, 10, -35);
-        planeGroup.add(cameraAnchor);
-
-        let speed = 0, engine = false, thr = 0, joy = { x: 0, y: 0 };
-        const planeHeightOffset = 0.55;
-
         new GLTFLoader().load('1.glb', (gltf) => {
             gltf.scene.rotation.y = Math.PI;
-            gltf.scene.position.y = -planeHeightOffset; 
+            gltf.scene.position.y = -0.55; 
             gltf.scene.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; }});
             modelInner.add(gltf.scene);
         });
 
         scene.add(planeGroup);
-        planeGroup.position.set(0, planeHeightOffset, 1500);
+        planeGroup.position.set(0, 0.55, 1500);
 
-        // UI e Controles
         const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
-        wrap.onpointermove = (e) => { if (e.buttons === 1) {
-            const r = wrap.getBoundingClientRect();
-            joy.x = ((e.clientX - r.left - 70) / 70) * 0.6; 
-            joy.y = ((e.clientY - r.top - 70) / 70) * 0.6;  
-            stick.style.transform = `translate(${joy.x * 60}px, ${joy.y * 60}px)`;
-        }};
+        wrap.onpointermove = (e) => {
+            if (e.buttons === 1) {
+                const r = wrap.getBoundingClientRect();
+                joy.x = ((e.clientX - r.left - 70) / 70) * 0.6; 
+                joy.y = ((e.clientY - r.top - 70) / 70) * 0.6;  
+                stick.style.transform = `translate(${joy.x * 60}px, ${joy.y * 60}px)`;
+            }
+        };
         wrap.onpointerup = () => { joy = { x: 0, y: 0 }; stick.style.transform = `translate(0,0)`; };
         document.getElementById('btn-engine').onclick = (e) => { engine = !engine; e.target.innerText = engine ? "OFF" : "ON"; };
         document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
 
         const clock = new THREE.Clock();
+        const tempVec = new THREE.Vector3();
 
         function loop() {
             const dt = clock.getDelta();
-            
-            // 1. CÁLCULO DE ALTITUDE REAL (CURVATURA)
-            const distToCenter = planeGroup.position.distanceTo(planetCenter);
-            const altitude = distToCenter - PLANET_RADIUS;
-            const isGrounded = altitude <= planeHeightOffset + 0.1;
+            const alt = planeGroup.position.y;
+            const isGrounded = alt <= 0.6;
 
-            // 2. FÍSICA DE MOVIMENTO E PLANEIO
-            // Se o motor estiver ligado, ele empurra. Se estiver desligado, o avião perde velocidade pelo arrasto.
-            let targetSpeed = engine ? thr * 350 : 0;
-            
-            // Efeito de gravidade na velocidade (mergulhar aumenta speed, subir diminui)
-            const pitchFactor = Math.sin(planeGroup.rotation.x);
-            targetSpeed -= pitchFactor * 100;
-
-            // Suavidade na aceleração/desaceleração (Inércia)
-            const accelRate = engine ? 0.5 : 0.15;
-            speed = THREE.MathUtils.lerp(speed, Math.max(0, targetSpeed), dt * accelRate);
+            let limit = (alt > 5) ? 316 : 160;
+            speed = THREE.MathUtils.lerp(speed, engine ? thr * limit : 0, dt * 0.6);
 
             if (isGrounded) {
-                // Forçar o avião a ficar na superfície da esfera
-                const directionToSurface = new THREE.Vector3().subVectors(planeGroup.position, planetCenter).normalize();
-                planeGroup.position.copy(planetCenter).add(directionToSurface.multiplyScalar(PLANET_RADIUS + planeHeightOffset));
-
+                planeGroup.position.y = 0.55;
                 planeGroup.rotation.y -= joy.x * dt * 0.6;
-                
-                // Decolagem
                 if (speed > 100) {
-                    planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.2, dt * 1.5);
-                } else {
-                    planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, 0, dt * 2);
+                    planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.18, dt * 1.5);
                 }
-
-                if (speed > 140 && planeGroup.rotation.x > 0.05) {
-                    planeGroup.position.addScaledVector(directionToSurface, speed * dt * 0.1);
+                if (speed > 145 && planeGroup.rotation.x > 0.02) {
+                    planeGroup.position.y += speed * planeGroup.rotation.x * dt * 0.4;
                 }
             } else {
-                // VOO
-                planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.8, dt * 1.2);
-                planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, -joy.x * 0.7, dt * 1.2);
-                planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.5;
+                planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.7, dt * 1.2);
+                planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, -joy.x * 0.6, dt * 1.2);
+                planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.4;
 
-                // Sustentação (Lift) baseada na velocidade
-                // Se speed < 100, o avião começa a "stolar" (cair)
-                const lift = (speed / 180) * (1 + Math.max(0, planeGroup.rotation.x));
-                const gravityEffect = 1.0 - lift;
-                
-                // Aplicar movimento vertical relativo ao planeta
-                const upVec = new THREE.Vector3().subVectors(planeGroup.position, planetCenter).normalize();
-                planeGroup.position.addScaledVector(upVec, -gravityEffect * 40 * dt);
+                const lift = (speed / 150) * (1 + planeGroup.rotation.x);
+                planeGroup.position.y += (lift - 1.02) * 50 * dt;
+                if (alt < 0.55) planeGroup.position.y = 0.55;
             }
 
-            // Avanço frontal
-            planeGroup.translateZ(speed * dt * 0.8);
+            planeGroup.translateZ(speed * dt * 0.85);
 
-            // 3. CÂMERA E SOMBRA
-            const targetCamPos = new THREE.Vector3();
-            cameraAnchor.getWorldPosition(targetCamPos);
-            camera.position.lerp(targetCamPos, 1.0); // 1.0 para fixação total
+            // ATUALIZAÇÃO DA CÂMERA (FIXA E SEM GLITCH)
+            // Pegamos a posição exata da âncora no mundo
+            cameraAnchor.getWorldPosition(tempVec);
+            camera.position.copy(tempVec);
             camera.lookAt(planeGroup.position);
 
-            if (altitude > 5000) {
+            // LÓGICA DA SOMBRA (SUMIR AOS 5000M)
+            if (alt > 5000) {
                 sun.castShadow = false;
             } else {
                 sun.castShadow = true;
-                sun.position.set(planeGroup.position.x + 100, planeGroup.position.y + 800, planeGroup.position.z + 100);
+                // A luz segue o avião de cima para manter a sombra sempre visível abaixo dele
+                sun.position.set(planeGroup.position.x + 100, planeGroup.position.y + 1000, planeGroup.position.z + 100);
                 sun.target = planeGroup;
             }
 
             document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(speed)} kts`;
-            document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.round(altitude)} m`;
+            document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.round(alt)} m`;
 
             renderer.render(scene, camera);
             requestAnimationFrame(loop);
@@ -192,4 +183,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
