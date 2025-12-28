@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Falcon 9 - Física de Colisão</title>
+    <title>Falcon 9 - New Orbit Spawn</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         #ui { position: absolute; top: 20px; left: 20px; color: #0f0; pointer-events: none; font-size: 16px; z-index: 10; }
@@ -45,9 +45,10 @@
 
     const T = THREE;
     const RAIO_TERRA = 637100; 
+    const SPAWN_OFFSET = 120000; // 120km acima do topo
     
     const scene = new T.Scene();
-    const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 20000000);
+    const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 10, 20000000);
     
     const renderer = new T.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -77,8 +78,8 @@
         scene.add(earthModel);
     });
 
-    // --- ATMOSFERA AJUSTADA (-0.3x de tamanho e +14km de altura) ---
-    const atmoGeom = new T.SphereGeometry(RAIO_TERRA * 1.0, 64, 64); // Diminuída conforme pedido
+    // --- ATMOSFERA AJUSTADA (+24km de altura total) ---
+    const atmoGeom = new T.SphereGeometry(RAIO_TERRA * 1.3, 64, 64);
     const atmoMat = new T.MeshPhongMaterial({
         color: 0x4488ff,
         transparent: true,
@@ -87,7 +88,8 @@
         depthWrite: false
     });
     const atmosphere = new T.Mesh(atmoGeom, atmoMat);
-    atmosphere.position.y = RAIO_TERRA + 14000; // +14km para cima
+    // 14km anterior + 10km novo = 24km
+    atmosphere.position.y = RAIO_TERRA + 24000; 
     scene.add(atmosphere);
 
     // --- FOGUETE ---
@@ -101,7 +103,7 @@
         rocket.add(f9);
     });
 
-    // --- FOGO GIGANTE ---
+    // --- FOGO GIGANTE AZUL/VIOLETA ---
     const fireTex = new T.CanvasTexture((() => {
         const c = document.createElement('canvas'); c.width = 64; c.height = 64;
         const ctx = c.getContext('2d');
@@ -117,7 +119,6 @@
         s.visible=false; rocket.add(s); firePs.push(s);
     }
 
-    // --- LÓGICA DE FÍSICA E COLISÃO ---
     let alt = 0, vel = 0, engine = false;
     const btn = document.getElementById('motor-btn');
     btn.onmousedown = btn.ontouchstart = (e) => { e.preventDefault(); engine = true; };
@@ -134,34 +135,32 @@
                 p.scale.set(40, 120, 1);
             });
         } else {
-            // Gravidade ativada apenas se estiver acima do solo
             if (alt > 0) {
                 vel -= 1.62;
             } else {
-                vel = Math.max(0, vel); // Impede o foguete de "entrar" na terra
+                vel = Math.max(0, vel); 
             }
             firePs.forEach(p => p.visible=false);
         }
 
         alt += (vel/60);
 
-        // --- SISTEMA DE COLISÃO ---
-        // O ponto de spawn é o topo do planeta (RAIO_TERRA)
         if(alt <= 0) { 
             alt = 0; 
             vel = 0; 
         }
         
-        const curY = RAIO_TERRA + alt;
+        // Posição final: Raio + 120km de spawn + altitude atual
+        const curY = RAIO_TERRA + SPAWN_OFFSET + alt;
         rocket.position.y = curY;
 
         sun.position.set(500, curY + 1000, 500);
         sun.target.position.set(0, curY, 0);
         controls.target.set(0, curY + 20, 0);
 
-        // Transição para o espaço
-        const factor = Math.min(1, alt / 100000);
-        scene.background = new T.Color(0x0a0a20).lerp(new T.Color(0x000000), factor);
+        // O fundo fica preto mais rápido pois já começamos alto
+        const factor = Math.min(1, (alt + SPAWN_OFFSET) / 200000);
+        scene.background = new T.Color(0x050515).lerp(new T.Color(0x000000), factor);
 
         controls.update();
         composer.render();
