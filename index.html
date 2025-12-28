@@ -2,14 +2,14 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AN-74 Simulator - Fixed Lift & Shadows</title>
+    <title>AN-74 Fixed Flight</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Segoe UI', sans-serif; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; }
         .info { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
-        .controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: all; }
-        button { padding: 12px 20px; cursor: pointer; background: rgba(255,255,255,0.2); color: #FFF; border: 2px solid #FFF; font-weight: bold; backdrop-filter: blur(4px); }
-        #joy-wrapper { position: absolute; bottom: 30px; left: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #FFF; pointer-events: all; touch-action: none; }
+        .controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; }
+        button { padding: 12px 20px; cursor: pointer; background: rgba(255,255,255,0.2); color: #FFF; border: 2px solid #FFF; font-weight: bold; }
+        #joy-wrapper { position: absolute; bottom: 30px; left: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #FFF; touch-action: none; }
         #joy-stick { position: absolute; width: 50px; height: 50px; background: #FFF; border-radius: 50%; top: 45px; left: 45px; }
         .thr-box { position: absolute; bottom: 30px; left: 200px; display: flex; flex-direction: column; align-items: center; color: #FFF; }
         input[type=range] { -webkit-appearance: slider-vertical; width: 30px; height: 140px; }
@@ -20,12 +20,11 @@
     <div id="ui">
         <div class="info" id="ui-spd">SPEED: 0 kts</div>
         <div class="info" id="ui-alt">ALTITUDE: 0 m</div>
-        <div class="info" id="ui-sts">STATUS: TAXI</div>
+        <div class="info" id="ui-sts">STATUS: READY</div>
     </div>
 
     <div class="controls">
         <button id="btn-engine">TURN ON</button>
-        <button id="btn-rev">REVERSE: OFF</button>
     </div>
 
     <div class="thr-box"><b>THR</b><input type="range" id="input-thr" min="0" max="1" step="0.01" value="0"></div>
@@ -46,164 +45,117 @@
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
-        scene.fog = new THREE.Fog(0x87CEEB, 1, 100000);
-
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 2000000);
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true; // Habilita sombras no renderizador
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // ILUMINAÇÃO FIXA (DIA SEMPRE)
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
+        const light = new THREE.DirectionalLight(0xffffff, 1.5);
+        light.position.set(100, 500, 100);
+        light.castShadow = true;
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1.3);
-        sunLight.position.set(50, 200, 50);
-        sunLight.castShadow = true;
-        // Ajuste da área da sombra para cobrir o avião na pista
-        sunLight.shadow.camera.left = -100;
-        sunLight.shadow.camera.right = 100;
-        sunLight.shadow.camera.top = 100;
-        sunLight.shadow.camera.bottom = -100;
-        sunLight.shadow.mapSize.width = 2048;
-        sunLight.shadow.mapSize.height = 2048;
-        scene.add(sunLight);
+        let plane = new THREE.Group();
+        let model = new THREE.Group(); 
+        plane.add(model);
 
-        let airplaneGroup = new THREE.Group();
-        let modelContainer = new THREE.Group();
-        airplaneGroup.add(modelContainer);
-
-        let speed = 0, isEngine = false, isRev = false, thr = 0, joy = { x: 0, y: 0 };
-        const radius = 637000;
-
-        // PLANETA VERDE
-        const planet = new THREE.Mesh(
-            new THREE.SphereGeometry(radius, 128, 128), 
-            new THREE.MeshStandardMaterial({ color: 0x228B22 })
-        );
-        planet.position.y = -radius;
-        planet.receiveShadow = true; // Planeta recebe a sombra do avião
+        let speed = 0, engine = false, thr = 0, joy = { x: 0, y: 0 };
+        
+        // CHÃO E PISTA
+        const planet = new THREE.Mesh(new THREE.SphereGeometry(637000, 64, 64), new THREE.MeshStandardMaterial({ color: 0x228B22 }));
+        planet.position.y = -637000;
+        planet.receiveShadow = true;
         scene.add(planet);
 
-        // PISTA
-        const runway = new THREE.Mesh(
-            new THREE.PlaneGeometry(100, 1500), 
-            new THREE.MeshStandardMaterial({ color: 0x333333 })
-        );
+        const runway = new THREE.Mesh(new THREE.PlaneGeometry(100, 2000), new THREE.MeshStandardMaterial({ color: 0x333333 }));
         runway.rotation.x = -Math.PI / 2;
-        runway.position.y = 0.15;
-        runway.receiveShadow = true; // Pista recebe a sombra
+        runway.position.y = 0.01;
+        runway.receiveShadow = true;
         scene.add(runway);
 
-        // CARREGAR AN74.GLB
-        const loader = new GLTFLoader();
-        loader.load('an74.glb', (gltf) => { 
-            gltf.scene.rotation.y = Math.PI; 
-            gltf.scene.traverse(node => {
-                if (node.isMesh) {
-                    node.castShadow = true;
-                    node.receiveShadow = true;
-                }
-            });
-            modelContainer.add(gltf.scene); 
-        }, undefined, () => {
-            const mock = new THREE.Mesh(new THREE.BoxGeometry(2,1,6), new THREE.MeshStandardMaterial({color: 0xffffff}));
-            mock.castShadow = true;
-            modelContainer.add(mock);
+        // CARREGAR MODELO
+        new GLTFLoader().load('an74.glb', (gltf) => {
+            gltf.scene.rotation.y = Math.PI; // Vira 180 graus
+            gltf.scene.position.y = -0.5;   // Ajuste para não flutuar (mude aqui se ainda flutuar)
+            gltf.scene.traverse(n => { if(n.isMesh) n.castShadow = true; });
+            model.add(gltf.scene);
         });
-        scene.add(airplaneGroup);
-        airplaneGroup.position.set(0, 0.6, 600);
+        scene.add(plane);
+        plane.position.set(0, 0.5, 800);
 
-        // JOYSTICK (INVERTIDO: Baixo = Subir)
+        // CONTROLES JOYSTICK
         const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
         wrap.onpointermove = (e) => {
             if (e.buttons === 1) {
                 const r = wrap.getBoundingClientRect();
                 joy.x = (e.clientX - r.left - 70) / 70;
-                joy.y = (e.clientY - r.top - 70) / 70; 
-                joy.x = Math.max(-1, Math.min(1, joy.x));
-                joy.y = Math.max(-1, Math.min(1, joy.y));
-                stick.style.transform = `translate(${joy.x * 45}px, ${joy.y * 45}px)`;
+                joy.y = (e.clientY - r.top - 70) / 70;
+                stick.style.transform = `translate(${joy.x * 40}px, ${joy.y * 40}px)`;
             }
         };
         wrap.onpointerup = () => { joy = { x: 0, y: 0 }; stick.style.transform = `translate(0,0)`; };
-
-        document.getElementById('btn-engine').onclick = (e) => { isEngine = !isEngine; e.target.innerText = isEngine ? "TURN OFF" : "TURN ON"; };
-        document.getElementById('btn-rev').onclick = (e) => { isRev = !isRev; e.target.innerText = isRev ? "REVERSE: ON" : "REVERSE: OFF"; };
+        document.getElementById('btn-engine').onclick = (e) => { engine = !engine; e.target.innerText = engine ? "OFF" : "ON"; };
         document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
 
         const clock = new THREE.Clock();
         function loop() {
             const dt = clock.getDelta();
-            if (dt > 0.1) return requestAnimationFrame(loop);
-            
-            const alt = airplaneGroup.position.y;
-            const inAir = alt > 1.2;
+            const alt = plane.position.y;
+            const isGrounded = alt <= 0.6;
 
-            // Limites de velocidade conforme solicitado
-            let maxCurrent = inAir ? 316 : 160;
-            let power = isEngine ? thr * 220 : 0;
-            if (isRev && !inAir) power = -thr * 100;
-            
-            speed += (power - (speed * 0.12)) * dt;
-            if (speed > maxCurrent) speed = THREE.MathUtils.lerp(speed, maxCurrent, 0.1);
-            if (speed < 0) speed = 0;
+            // Velocidade
+            let targetSpeed = engine ? thr * (alt > 2 ? 316 : 160) : 0;
+            speed = THREE.MathUtils.lerp(speed, targetSpeed, dt * 0.5);
 
-            if (!inAir) {
-                airplaneGroup.position.y = 0.6;
-                airplaneGroup.rotation.x = 0;
-                airplaneGroup.rotation.z = 0;
-                airplaneGroup.rotation.y -= joy.x * dt * 2;
-                // Decolagem: Velocidade > 140 kts e puxar manche (joy.y negativo)
-                if (speed > 140 && joy.y < -0.2) {
-                    airplaneGroup.position.y += 10 * dt; 
+            if (isGrounded) {
+                plane.position.y = 0.5;
+                plane.rotation.x = 0;
+                plane.rotation.z = 0;
+                plane.rotation.y -= joy.x * dt * 1.5; // Direita/Esquerda no chão
+                
+                // DECOLAR: Puxar para baixo (joy.y > 0.2) + Velocidade
+                if (speed > 130 && joy.y > 0.2) {
+                    plane.position.y += 5 * dt;
                 }
             } else {
-                // VOO: Joystick Invertido (Puxar manche = Subir)
-                const tRoll = -joy.x * 0.6; 
-                const tPitch = -joy.y * 0.7; // Puxar joy.y (negativo) resulta em pitch positivo (subir)
-                airplaneGroup.rotation.z = THREE.MathUtils.lerp(airplaneGroup.rotation.z, tRoll, 0.05);
-                airplaneGroup.rotation.x = THREE.MathUtils.lerp(airplaneGroup.rotation.x, tPitch, 0.05);
-                airplaneGroup.rotation.y -= airplaneGroup.rotation.z * dt * 1.5;
+                // VOO
+                // Puxar baixo (joy.y > 0) -> Bico Sobe (rotation.x > 0)
+                // Empurrar cima (joy.y < 0) -> Bico Desce (rotation.x < 0)
+                const targetPitch = joy.y * 0.6; 
+                const targetRoll = -joy.x * 0.5;
 
-                // SUSTENTAÇÃO REFORÇADA
-                // Se o bico estiver para cima (rotation.x > 0), sobe muito mais
-                const liftFactor = Math.max(0.2, (speed / 150)) * (1 + airplaneGroup.rotation.x * 2.0);
-                airplaneGroup.position.y += (liftFactor - 1.0) * 80 * dt;
+                plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, targetPitch, dt * 2);
+                plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, targetRoll, dt * 2);
+                plane.rotation.y -= plane.rotation.z * dt; // Curva coordenada
 
-                // Efeito de queda de altitude se muito lento
-                if (speed < 130) {
-                    airplaneGroup.position.y -= 30 * dt;
-                    airplaneGroup.rotation.x = THREE.MathUtils.lerp(airplaneGroup.rotation.x, 0.4, 0.05);
-                }
+                // Sustentação baseada no ângulo do bico e velocidade
+                const lift = (speed / 140) * (1 + plane.rotation.x);
+                plane.position.y += (lift - 1) * 40 * dt;
+
+                if (alt < 0.5) plane.position.y = 0.5;
             }
 
-            airplaneGroup.translateZ(speed * dt * 0.85);
+            // Movimento constante para frente (Z local do grupo)
+            plane.translateZ(speed * dt * 0.8);
 
             // Câmera estável
-            const camTarget = new THREE.Vector3(0, 10, -35).applyMatrix4(airplaneGroup.matrixWorld);
-            camera.position.copy(camTarget);
-            camera.lookAt(airplaneGroup.position);
+            const offset = new THREE.Vector3(0, 8, -25).applyMatrix4(plane.matrixWorld);
+            camera.position.copy(offset);
+            camera.lookAt(plane.position);
 
-            // Luz da sombra segue o avião para a sombra não sumir
-            sunLight.position.set(airplaneGroup.position.x + 50, airplaneGroup.position.y + 200, airplaneGroup.position.z + 50);
-            sunLight.target = airplaneGroup;
+            // Sombra segue o avião
+            light.position.set(plane.position.x + 50, plane.position.y + 100, plane.position.z + 50);
+            light.target = plane;
 
             document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(speed)} kts`;
             document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.round(alt)} m`;
-            document.getElementById('ui-sts').innerText = `STATUS: ${inAir ? (speed < 135 ? 'STALL' : 'FLYING') : 'TAXI'}`;
 
             renderer.render(scene, camera);
             requestAnimationFrame(loop);
         }
         loop();
-        window.onresize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
     </script>
 </body>
-        </html>
+</html>
