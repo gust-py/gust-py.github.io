@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Falcon 9 GLTF - Real Shadows</title>
+    <title>Falcon 9 & Earth 3D</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; }
         #ui { position: absolute; top: 20px; left: 20px; color: #0f0; pointer-events: none; font-size: 16px; z-index: 10; }
@@ -11,18 +11,18 @@
         span { color: #fff; font-weight: bold; }
         #motor-btn { 
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            padding: 18px 60px; background: rgba(255,255,255,0.1); border: 2px solid #fff; 
+            padding: 18px 60px; background: rgba(138, 43, 226, 0.2); border: 2px solid #8a2be2; 
             color: white; font-size: 14px; letter-spacing: 5px; cursor: pointer;
             z-index: 10; transition: all 0.3s; user-select: none; border-radius: 8px;
+            box-shadow: 0 0 15px #8a2be2;
         }
-        #motor-btn:active { background: #fff; color: #000; }
+        #motor-btn:active { background: #8a2be2; color: #fff; }
     </style>
 </head>
 <body>
 <div id="ui">
     <div class="data">ALTITUDE: <span id="alt">0</span> m</div>
     <div class="data">VELOCIDADE: <span id="vel">0</span> m/s</div>
-    <div class="data" id="heat-ui" style="color: #ffaa00; display: none;">REENTRADA: <span id="heat-val">0</span>%</div>
 </div>
 <div id="motor-btn">IGNIÇÃO</div>
 
@@ -44,97 +44,85 @@
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
     const T = THREE;
-    const RAIO_TERRA = 637100; 
-    const LIMITE_ATMOSFERA = 60000; 
+    const RAIO_TERRA = 637100; // 637.1km na escala do simulador
     
     const scene = new T.Scene();
-    const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000000);
-    camera.position.set(0, RAIO_TERRA + 100, 200);
+    const camera = new T.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 5000000);
+    camera.position.set(0, RAIO_TERRA + 150, 300);
 
     const renderer = new T.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = T.ACESFilmicToneMapping;
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = T.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
+    // Efeito de brilho (Bloom) para destacar o fogo azul e a atmosfera
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new T.Vector2(window.innerWidth, window.innerHeight), 1.0, 0.4, 0.85);
+    const bloom = new UnrealBloomPass(new T.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
     composer.addPass(bloom);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.minDistance = 20;
 
-    const ambient = new T.AmbientLight(0xffffff, 0.6);
-    scene.add(ambient);
-
+    // Luzes
+    scene.add(new T.AmbientLight(0xffffff, 0.8));
     const sun = new T.DirectionalLight(0xffffff, 2.5);
     sun.castShadow = true;
-    sun.shadow.camera.left = -100;
-    sun.shadow.camera.right = 100;
-    sun.shadow.camera.top = 100;
-    sun.shadow.camera.bottom = -100;
-    sun.shadow.mapSize.width = 2048;
-    sun.shadow.mapSize.height = 2048;
     scene.add(sun);
-    scene.add(sun.target);
 
-    // TERRA
-    const earth = new T.Mesh(
-        new T.SphereGeometry(RAIO_TERRA, 128, 128),
-        new T.MeshStandardMaterial({ color: 0x228B22, roughness: 0.9 })
-    );
-    earth.receiveShadow = true;
-    scene.add(earth);
+    const loader = new GLTFLoader();
 
-    // --- CARREGAMENTO DO MODELO GLTF ---
+    // --- CARREGAR TERRA 3D ---
+    loader.load('earth.gltf', (gltf) => {
+        const earthModel = gltf.scene;
+        // Ajustamos para o tamanho real solicitado
+        earthModel.scale.set(RAIO_TERRA, RAIO_TERRA, RAIO_TERRA); 
+        earthModel.receiveShadow = true;
+        scene.add(earthModel);
+    });
+
+    // --- ATMOSFERA VISUAL (Glow) ---
+    const atmoGeom = new T.SphereGeometry(RAIO_TERRA + 15000, 64, 64);
+    const atmoMat = new T.MeshPhongMaterial({
+        color: 0x4488ff,
+        transparent: true,
+        opacity: 0.2,
+        side: T.BackSide
+    });
+    const atmosphere = new T.Mesh(atmoGeom, atmoMat);
+    scene.add(atmosphere);
+
+    // --- CARREGA FALCON 9 ---
     const rocket = new T.Group();
     scene.add(rocket);
 
-    const loader = new GLTFLoader();
-    // ATENÇÃO: Altera o nome abaixo para o nome exato do teu ficheiro
-    loader.load('scene.gltf', (gltf) => {
-        const model = gltf.scene;
-        
-        // Ajuste de escala (tente mudar para 1, 1, 1 se ficar muito grande)
-        model.scale.set(8, 8, 8); 
-        
-        // Centralizar e ajustar rotação se o modelo vier deitado
-        // model.rotation.x = -Math.PI / 2; 
+    loader.load('f9.gltf', (gltf) => {
+        const f9 = gltf.scene;
+        f9.scale.set(8, 8, 8); // Ajuste conforme necessário
+        f9.traverse(n => { if(n.isMesh) n.castShadow = n.receiveShadow = true; });
+        rocket.add(f9);
+    });
 
-        model.traverse((node) => {
-            if (node.isMesh) {
-                node.castShadow = true;
-                node.receiveShadow = true;
-            }
-        });
-        rocket.add(model);
-    }, undefined, (err) => console.error("Erro ao carregar:", err));
-
-    // Efeitos de Fogo e Reentrada (mantidos do original)
+    // --- FOGO AZUL / VIOLETA ---
     const fireTex = new T.CanvasTexture((() => {
         const c = document.createElement('canvas'); c.width = 64; c.height = 64;
         const ctx = c.getContext('2d');
         const g = ctx.createRadialGradient(32,32,0,32,32,32);
-        g.addColorStop(0, 'white'); g.addColorStop(0.4, 'orange'); g.addColorStop(1, 'transparent');
+        g.addColorStop(0, '#ffffff');    // Centro branco
+        g.addColorStop(0.3, '#8a2be2');  // Violeta
+        g.addColorStop(0.7, '#0000ff');  // Azul profundo
+        g.addColorStop(1, 'transparent');
         ctx.fillStyle = g; ctx.fillRect(0,0,64,64); return c;
     })());
 
     const firePs = [];
-    for(let i=0; i<20; i++) {
+    for(let i=0; i<25; i++) {
         const s = new T.Sprite(new T.SpriteMaterial({map:fireTex, blending: T.AdditiveBlending, transparent:true}));
         s.visible=false; rocket.add(s); firePs.push(s);
     }
 
-    const reentryPs = [];
-    for(let i=0; i<150; i++) {
-        const s = new T.Sprite(new T.SpriteMaterial({map:fireTex, blending: T.AdditiveBlending, transparent:true}));
-        s.visible = false; rocket.add(s);
-        reentryPs.push({ s, angle: Math.random() * Math.PI * 2, offset: Math.random() * 50 });
-    }
-
+    // Variáveis de voo
     let alt = 0, vel = 0, engine = false;
     const btn = document.getElementById('motor-btn');
     btn.onmousedown = btn.ontouchstart = (e) => { e.preventDefault(); engine = true; };
@@ -143,50 +131,33 @@
     function animate() {
         requestAnimationFrame(animate);
         
-        let heat = 0;
-        if (alt > 3500 && vel < -50) heat = Math.min(0.35, Math.max(0, (25000 - alt) / 20000));
-
         if(engine) {
-            vel += 4.0;
+            vel += 4.5;
             firePs.forEach(p => {
                 p.visible = true;
-                p.position.set((Math.random()-0.5)*4, -Math.random()*30, (Math.random()-0.5)*4);
-                p.scale.set(8, 25, 1);
+                p.position.set((Math.random()-0.5)*3, -Math.random()*35 - 5, (Math.random()-0.5)*3);
+                p.scale.set(10, 30, 1);
             });
         } else {
             if (alt > 0) vel -= 1.62;
             firePs.forEach(p => p.visible=false);
         }
 
-        if(heat > 0.01) {
-            document.getElementById('heat-ui').style.display='block';
-            document.getElementById('heat-val').innerText = Math.floor(heat*285);
-            reentryPs.forEach(obj => {
-                obj.s.visible = true;
-                const f = (Date.now()*0.02 + obj.offset) % 50;
-                obj.s.position.set(Math.cos(obj.angle)*(6+f*0.5), f, Math.sin(obj.angle)*(6+f*0.5));
-                obj.s.scale.set(8, 20, 1);
-                obj.s.material.opacity = heat * (1 - f/50);
-            });
-        } else {
-            document.getElementById('heat-ui').style.display='none';
-            reentryPs.forEach(o => o.s.visible=false);
-        }
-
         alt += (vel/60);
         if(alt < 0) { alt=0; vel=0; }
+        
         const curY = RAIO_TERRA + alt;
         rocket.position.y = curY;
 
-        sun.position.set(200, curY + 400, 200);
+        // Luz e Camera seguem o foguete
+        sun.position.set(200, curY + 500, 200);
         sun.target.position.set(0, curY, 0);
-        
-        const atmoFactor = Math.max(0, 1 - (alt / LIMITE_ATMOSFERA));
-        scene.background = (alt < LIMITE_ATMOSFERA) ? 
-            new T.Color(0x88e0ff).lerp(new T.Color(0x000000), 1 - atmoFactor) : new T.Color(0x000000);
-
         controls.target.set(0, curY + 20, 0);
-        camera.position.y += (vel/60);
+
+        // Cor do céu muda com a altitude
+        const atmoLimit = 100000;
+        const factor = Math.min(1, alt / atmoLimit);
+        scene.background = new T.Color(0x0a0a2a).lerp(new T.Color(0x000000), factor);
 
         controls.update();
         composer.render();
