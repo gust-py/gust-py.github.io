@@ -5,45 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AN-74 Flight Simulator</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Courier New', Courier, monospace; background: #000; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #0f0; pointer-events: none; text-shadow: 1px 1px 2px black; }
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background: #87CEEB; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 1px 1px 4px rgba(0,0,0,0.5); }
         .controls { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: all; }
         
         button { 
-            padding: 10px 20px; cursor: pointer; background: #222; color: #0f0; border: 1px solid #0f0; font-weight: bold;
+            padding: 12px 24px; cursor: pointer; background: rgba(255,255,255,0.2); color: #FFF; border: 2px solid #FFF; font-weight: bold; backdrop-filter: blur(5px);
         }
-        button:active { background: #0f0; color: #000; }
+        button:hover { background: #FFF; color: #000; }
         
         #joystick-container {
             position: absolute; bottom: 40px; left: 40px; width: 150px; height: 150px;
-            background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #0f0;
+            background: rgba(255,255,255,0.2); border-radius: 50%; border: 2px solid #FFF;
             pointer-events: all; touch-action: none;
         }
         #joystick-knob {
-            position: absolute; width: 50px; height: 50px; background: #0f0;
-            border-radius: 50%; top: 50px; left: 50px; transform: translate(0, 0);
+            position: absolute; width: 50px; height: 50px; background: #FFF;
+            border-radius: 50%; top: 50px; left: 50px;
         }
         .throttle-container {
-            position: absolute; bottom: 40px; left: 220px; display: flex; flex-direction: column; align-items: center; color: #0f0;
+            position: absolute; bottom: 40px; left: 220px; display: flex; flex-direction: column; align-items: center; color: #FFF;
         }
-        input[type=range] { writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 20px; height: 150px; }
+        input[type=range] { -webkit-appearance: slider-vertical; width: 30px; height: 150px; background: rgba(255,255,255,0.3); }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <h2>AN-74 TELEMETRY</h2>
-        <div id="stats">
+        <h2 style="margin:0">AN-74 TELEMETRY</h2>
+        <div id="stats" style="font-size: 18px; line-height: 1.5;">
             SPEED: 0 kts<br>
             ALT: 0 m<br>
-            STATUS: ENGINES OFF<br>
-            REVERSE: OFF
+            THRUST: 0%<br>
+            STATUS: READY
         </div>
     </div>
 
     <div class="controls">
         <button id="powerBtn">TURN ON</button>
-        <button id="revBtn">REVERSE OFF</button>
+        <button id="revBtn">REVERSE: OFF</button>
     </div>
 
     <div class="throttle-container">
@@ -68,173 +68,167 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-        // --- CONFIGURAÇÃO SCENE ---
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); // CÉU AZUL
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        const light = new THREE.DirectionalLight(0xffffff, 1.5);
-        light.position.set(500, 1000, 500);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0x404040));
+        const sun = new THREE.DirectionalLight(0xffffff, 2);
+        sun.position.set(1000, 2000, 1000);
+        scene.add(sun);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
-        // --- CONSTANTES FÍSICAS ---
-        const earthRadius = 637000; 
+        // --- VARIÁVEIS DE VOO ---
+        let airplane = new THREE.Group();
+        let modelLoaded = false;
         let speedKts = 0;
         let engineOn = false;
         let isReverse = false;
         let throttle = 0;
-        let airplane = new THREE.Group();
-        let joystick = { x: 0, y: 0 }; // -1 a 1
+        let joystick = { x: 0, y: 0 };
+        const earthRadius = 637000;
+        const STALL_SPEED = 150;
+        const MAX_SPEED = 366;
 
-        // --- PLANETA E PISTA ---
-        const planetGeo = new THREE.SphereGeometry(earthRadius, 128, 128);
-        const planetMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
+        // --- PLANETA VERDE ---
+        const planetGeo = new THREE.SphereGeometry(earthRadius, 100, 100);
+        const planetMat = new THREE.MeshStandardMaterial({ color: 0x228B22 });
         const planet = new THREE.Mesh(planetGeo, planetMat);
         planet.position.y = -earthRadius;
         scene.add(planet);
 
-        // Pista: 750m x 100m
-        const runwayGeo = new THREE.PlaneGeometry(100, 750);
-        const runwayMat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide });
-        const runway = new THREE.Mesh(runwayGeo, runwayMat);
-        runway.rotation.x = Math.PI / 2;
-        runway.position.y = 0.05; // Levemente acima do chão para evitar z-fighting
+        // --- PISTA ---
+        const runway = new THREE.Mesh(
+            new THREE.PlaneGeometry(100, 750),
+            new THREE.MeshStandardMaterial({ color: 0x444444 })
+        );
+        runway.rotation.x = -Math.PI / 2;
+        runway.position.y = 0.1;
         scene.add(runway);
 
-        // --- ATMOSFERA (3 Faixas) ---
-        const atmoColors = [0x87CEEB, 0x4682B4, 0x000080];
-        const atmoAltitudes = [3500, 15000, 30000];
-        atmoAltitudes.forEach((alt, i) => {
-            const geo = new THREE.SphereGeometry(earthRadius + alt, 64, 64);
-            const mat = new THREE.MeshBasicMaterial({ color: atmoColors[i], transparent: true, opacity: 0.15, side: THREE.BackSide });
-            const layer = new THREE.Mesh(geo, mat);
-            layer.position.copy(planet.position);
+        // --- ATMOSFERA (3 FAIXAS) ---
+        const fAltitudes = [3500, 15000, 30000];
+        const fColors = [0xadd8e6, 0x4169e1, 0x00008b];
+        fAltitudes.forEach((alt, i) => {
+            const layer = new THREE.Mesh(
+                new THREE.SphereGeometry(earthRadius + alt, 64, 64),
+                new THREE.MeshBasicMaterial({ color: fColors[i], transparent: true, opacity: 0.2, side: THREE.BackSide })
+            );
+            layer.position.y = -earthRadius;
             scene.add(layer);
         });
 
-        // --- CARREGAR AN-74 ---
+        // --- LOADER AN-74 ---
         const loader = new GLTFLoader();
-        // Nota: Como não tenho o arquivo local, criamos um placeholder
-        const placeholderGeo = new THREE.BoxGeometry(2, 0.5, 5);
-        const placeholderMat = new THREE.MeshStandardMaterial({color: 0xffffff});
-        const placeholder = new THREE.Mesh(placeholderGeo, placeholderMat);
-        airplane.add(placeholder); 
-        // Se você tiver o GLB, use: loader.load('an74.glb', (gltf) => { airplane.add(gltf.scene); });
-        
+        loader.load('an74.glb', (gltf) => {
+            airplane.add(gltf.scene);
+            modelLoaded = true;
+        }, undefined, (err) => {
+            console.error("Arquivo an74.glb não encontrado, usando cubo temporário.");
+            const tempBox = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 5), new THREE.MeshStandardMaterial({color: 0xffffff}));
+            airplane.add(tempBox);
+        });
         scene.add(airplane);
-        airplane.position.set(0, 1, 300); // Começa na cabeceira da pista
+        airplane.position.set(0, 1, 300);
 
-        // --- LOGICA DO JOYSTICK ---
+        // --- JOYSTICK LOGIC ---
         const knob = document.getElementById('joystick-knob');
         const container = document.getElementById('joystick-container');
-        
         container.addEventListener('pointermove', (e) => {
             if (e.buttons === 1) {
                 const rect = container.getBoundingClientRect();
                 let x = (e.clientX - rect.left - 75) / 75;
                 let y = (e.clientY - rect.top - 75) / 75;
-                x = Math.max(-1, Math.min(1, x));
-                y = Math.max(-1, Math.min(1, y));
-                joystick.x = x;
-                joystick.y = -y; // Inverter para "puxar" subir
+                joystick.x = Math.max(-1, Math.min(1, x));
+                joystick.y = -Math.max(-1, Math.min(1, y)); // Invertido: puxar sobe
                 knob.style.transform = `translate(${x * 50}px, ${y * 50}px)`;
             }
         });
-
         container.addEventListener('pointerup', () => {
             joystick.x = 0; joystick.y = 0;
             knob.style.transform = `translate(0, 0)`;
         });
 
-        // --- BOTÕES ---
+        // --- UI HANDLERS ---
         document.getElementById('powerBtn').onclick = (e) => {
             engineOn = !engineOn;
             e.target.innerText = engineOn ? "TURN OFF" : "TURN ON";
         };
         document.getElementById('revBtn').onclick = (e) => {
             isReverse = !isReverse;
-            e.target.innerText = isReverse ? "REVERSE ON" : "REVERSE OFF";
+            e.target.innerText = isReverse ? "REVERSE: ON" : "REVERSE: OFF";
         };
-        document.getElementById('throttle').oninput = (e) => {
-            throttle = parseFloat(e.target.value);
-        };
+        document.getElementById('throttle').oninput = (e) => throttle = parseFloat(e.target.value);
 
-        // --- LOOP DE ANIMAÇÃO E FÍSICA ---
+        // --- FÍSICA ---
         const clock = new THREE.Clock();
-
         function update() {
             const dt = clock.getDelta();
-            const alt = airplane.position.y;
+            if (dt > 0.1) return;
 
-            // 1. Motor e Velocidade
-            let thrust = engineOn ? throttle * 100 : 0;
-            if (isReverse) thrust *= -0.5;
+            // 1. Velocidade
+            let targetThrust = engineOn ? throttle * 120 : 0;
+            if (isReverse && airplane.position.y < 1) targetThrust = -throttle * 50;
             
-            // Arrasto aerodinâmico simples
-            const drag = (speedKts * speedKts) * 0.001;
-            speedKts += (thrust - drag) * dt;
+            speedKts += (targetThrust - (speedKts * 0.1)) * dt;
+            if (speedKts > MAX_SPEED) speedKts = MAX_SPEED;
             if (speedKts < 0) speedKts = 0;
 
-            // 2. Comportamento Chão vs Ar
-            if (alt <= 0.2) {
-                // NO CHÃO
-                airplane.position.y = 0.2;
-                speedKts *= 0.99; // Atrito da pista
-                
-                // Yaw no chão (Joystick X vira o nariz)
-                airplane.rotation.y -= joystick.x * dt * 1.5;
-                airplane.rotation.z = 0;
-                airplane.rotation.x = 0;
+            const isGrounded = airplane.position.y <= 0.3;
 
-                // Decolagem: precisa de 150kts + joystick pra trás
-                if (speedKts > 120 && joystick.y > 0.1) {
-                    airplane.position.y += 0.5;
+            if (isGrounded) {
+                airplane.position.y = 0.3;
+                airplane.rotation.x = 0;
+                airplane.rotation.z = 0;
+                // No chão, joystick vira o nariz (Yaw)
+                airplane.rotation.y -= joystick.x * dt * 2;
+
+                // DECOLAGEM: Só se puxar o bico > 150kts
+                if (speedKts > STALL_SPEED && joystick.y > 0.2) {
+                    airplane.position.y += 1; // Sai do chão
                 }
             } else {
-                // NO AR
-                // Rotação suave (Roll 30 graus e Pitch)
-                const targetRoll = -joystick.x * 0.52; // 30 deg
-                const targetPitch = joystick.y * 0.4;
-                
+                // NO AR: Aerodinâmica Real
+                // Roll suave limitado a 30 graus
+                const targetRoll = -joystick.x * 0.52; 
                 airplane.rotation.z = THREE.MathUtils.lerp(airplane.rotation.z, targetRoll, 0.05);
-                airplane.rotation.x = THREE.MathUtils.lerp(airplane.rotation.x, targetPitch, 0.05);
                 
-                // Yaw baseado no roll (curva coordenada)
-                airplane.rotation.y -= airplane.rotation.z * dt * 0.5;
+                // Pitch suave (BICO SOBE/DESCE)
+                const targetPitch = joystick.y * 0.6;
+                airplane.rotation.x = THREE.MathUtils.lerp(airplane.rotation.x, targetPitch, 0.04);
+                
+                // Curva coordenada (ao inclinar, o avião vira)
+                airplane.rotation.y -= airplane.rotation.z * dt * 0.6;
 
-                // Sustentação e Stall
-                const lift = (speedKts / 150) * (1 + joystick.y * 0.5);
+                // Sustentação (Lift) vs Gravidade
+                const lift = (speedKts / STALL_SPEED) * (1 + airplane.rotation.x);
                 const gravity = 1.0;
-                
-                // Movimento vertical
-                airplane.position.y += (lift - gravity) * 20 * dt;
+                airplane.position.y += (lift - gravity) * 30 * dt;
 
-                // Efeito de Stall (nariz cai se lento)
-                if (speedKts < 130) {
-                    airplane.rotation.x = THREE.MathUtils.lerp(airplane.rotation.x, 0.5, 0.02);
-                    airplane.position.y -= 15 * dt;
+                // STALL
+                if (speedKts < STALL_SPEED - 20) {
+                    airplane.rotation.x += 0.1 * dt; // Nariz cai
+                    airplane.position.y -= 20 * dt;
                 }
             }
 
-            // 3. Avanço espacial
-            airplane.translateZ(speedKts * dt * 0.5);
+            // Movimento constante para frente
+            airplane.translateZ(speedKts * dt * 0.8);
 
-            // Câmera segue o avião
-            const relativeCameraOffset = new THREE.Vector3(0, 5, -15);
-            const cameraOffset = relativeCameraOffset.applyMatrix4(airplane.matrixWorld);
-            camera.position.lerp(cameraOffset, 0.1);
+            // Câmera
+            const camPos = new THREE.Vector3(0, 8, -25).applyMatrix4(airplane.matrixWorld);
+            camera.position.lerp(camPos, 0.1);
             camera.lookAt(airplane.position);
 
-            // UI
+            // Telemetria Branca
             document.getElementById('stats').innerHTML = `
                 SPEED: ${Math.round(speedKts)} kts<br>
-                ALT: ${Math.round(alt)} m<br>
-                STATUS: ${engineOn ? (speedKts < 150 && alt > 1 ? 'STALL WARNING' : 'FLYING') : 'GLIDING'}<br>
-                REVERSE: ${isReverse ? 'ACTIVE' : 'OFF'}
+                ALT: ${Math.round(airplane.position.y)} m<br>
+                THRUST: ${Math.round(throttle * 100)}%<br>
+                STATUS: ${speedKts < STALL_SPEED && airplane.position.y > 2 ? 'STALL' : (isGrounded ? 'TAXI' : 'FLYING')}
             `;
         }
 
@@ -243,10 +237,8 @@
             update();
             renderer.render(scene, camera);
         }
-
         animate();
 
-        // Ajuste de janela
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
