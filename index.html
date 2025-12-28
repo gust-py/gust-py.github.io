@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>AN-74 Flight Sim - Stable</title>
+    <title>AN-74 Flight Sim - Correct Heading</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Segoe UI', sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
@@ -58,7 +58,10 @@
         sun.position.set(100, 1000, 100);
         scene.add(sun);
 
-        let plane = new THREE.Group();
+        let airplaneGroup = new THREE.Group();
+        let modelContainer = new THREE.Group(); // Container para rotacionar o modelo sem afetar a física
+        airplaneGroup.add(modelContainer);
+
         let speed = 0, isEngine = false, isRev = false, thr = 0, joy = { x: 0, y: 0 };
         const radius = 637000;
 
@@ -67,7 +70,7 @@
         planet.position.y = -radius;
         scene.add(planet);
 
-        // PISTA (750x100)
+        // PISTA
         const runway = new THREE.Mesh(new THREE.PlaneGeometry(100, 750), new THREE.MeshLambertMaterial({ color: 0x444444 }));
         runway.rotation.x = -Math.PI / 2;
         runway.position.y = 0.15;
@@ -82,14 +85,17 @@
             scene.add(layer);
         });
 
-        // CARREGAR AN74.GLB
+        // CARREGAR AN74.GLB E GIRAR 180 GRAUS
         const loader = new GLTFLoader();
-        loader.load('an74.glb', (gltf) => { plane.add(gltf.scene); }, undefined, () => {
+        loader.load('an74.glb', (gltf) => { 
+            gltf.scene.rotation.y = Math.PI; // GIRA O MODELO 180 GRAUS AQUI
+            modelContainer.add(gltf.scene); 
+        }, undefined, () => {
             const mock = new THREE.Mesh(new THREE.BoxGeometry(2,1,6), new THREE.MeshLambertMaterial({color: 0xffffff}));
-            plane.add(mock);
+            modelContainer.add(mock);
         });
-        scene.add(plane);
-        plane.position.set(0, 0.6, 300);
+        scene.add(airplaneGroup);
+        airplaneGroup.position.set(0, 0.6, 300);
 
         // JOYSTICK (INVERTIDO Y)
         const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
@@ -97,7 +103,7 @@
             if (e.buttons === 1) {
                 const r = wrap.getBoundingClientRect();
                 joy.x = (e.clientX - r.left - 70) / 70;
-                joy.y = (e.clientY - r.top - 70) / 70; // Invertido: Empurrar para frente (cima) = joy.y positivo
+                joy.y = (e.clientY - r.top - 70) / 70; 
                 joy.x = Math.max(-1, Math.min(1, joy.x));
                 joy.y = Math.max(-1, Math.min(1, joy.y));
                 stick.style.transform = `translate(${joy.x * 45}px, ${joy.y * 45}px)`;
@@ -113,10 +119,9 @@
         function loop() {
             const dt = clock.getDelta();
             if (dt > 0.1) return requestAnimationFrame(loop);
-            const alt = plane.position.y;
+            const alt = airplaneGroup.position.y;
             const inAir = alt > 1.5;
 
-            // VELOCIDADE E LIMITES
             let maxCurrent = inAir ? 316 : 160;
             let power = isEngine ? thr * 250 : 0;
             if (isRev && !inAir) power = -thr * 100;
@@ -126,30 +131,29 @@
             if (speed < 0) speed = 0;
 
             if (!inAir) {
-                plane.position.y = 0.6;
-                plane.rotation.x = 0; plane.rotation.z = 0;
-                plane.rotation.y -= joy.x * dt * 2; // Yaw no chão
-                // Decolagem: Puxar joystick (joy.y negativo no código invertido)
-                if (speed > 150 && joy.y < -0.3) plane.position.y += 5 * dt;
+                airplaneGroup.position.y = 0.6;
+                airplaneGroup.rotation.x = 0; airplaneGroup.rotation.z = 0;
+                airplaneGroup.rotation.y -= joy.x * dt * 2;
+                if (speed > 150 && joy.y < -0.3) airplaneGroup.position.y += 5 * dt;
             } else {
-                // AR: JOYSTICK INVERTIDO (joy.y negativo = subir / positivo = descer)
                 const tRoll = -joy.x * 0.52; 
-                const tPitch = -joy.y * 0.6; // Inversão aplicada aqui
-                plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, tRoll, 0.05);
-                plane.rotation.x = THREE.MathUtils.lerp(plane.rotation.x, tPitch, 0.04);
-                plane.rotation.y -= plane.rotation.z * dt * 1.8;
+                const tPitch = -joy.y * 0.6; 
+                airplaneGroup.rotation.z = THREE.MathUtils.lerp(airplaneGroup.rotation.z, tRoll, 0.05);
+                airplaneGroup.rotation.x = THREE.MathUtils.lerp(airplaneGroup.rotation.x, tPitch, 0.04);
+                airplaneGroup.rotation.y -= airplaneGroup.rotation.z * dt * 1.8;
 
                 const lift = (speed / 150) * (1 - joy.y * 0.5);
-                plane.position.y += (lift - 0.98) * 55 * dt;
-                if (speed < 140) { plane.rotation.x += 0.3 * dt; plane.position.y -= 40 * dt; }
+                airplaneGroup.position.y += (lift - 0.98) * 55 * dt;
+                if (speed < 140) { airplaneGroup.rotation.x += 0.3 * dt; airplaneGroup.position.y -= 40 * dt; }
             }
 
-            plane.translateZ(speed * dt * 0.85);
+            // Agora o airplaneGroup sempre se move na direção "frente" local do objeto
+            airplaneGroup.translateZ(speed * dt * 0.85);
 
-            // CÂMERA FIXA (Sem tremer)
-            const camTarget = new THREE.Vector3(0, 10, -35).applyMatrix4(plane.matrixWorld);
+            // CÂMERA FIXA ATRÁS DO AVIÃO
+            const camTarget = new THREE.Vector3(0, 10, -35).applyMatrix4(airplaneGroup.matrixWorld);
             camera.position.copy(camTarget);
-            camera.lookAt(plane.position);
+            camera.lookAt(airplaneGroup.position);
 
             document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(speed)} kts`;
             document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.round(alt)} m`;
@@ -162,4 +166,4 @@
         window.onresize = () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); };
     </script>
 </body>
-    </html>
+</html>
