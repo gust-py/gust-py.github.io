@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - Árvores Ajustadas</title>
+    <title>Flight Simulator - Floresta Densa</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; z-index: 10; }
@@ -39,7 +39,6 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-        // --- CENA E RENDER ---
         const scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0xd1f3ff, 100, 50000); 
 
@@ -51,16 +50,13 @@
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 5000000);
         
-        // --- LUZES ---
         const sun = new THREE.DirectionalLight(0xffffff, 1.5);
         sun.position.set(100, 500, 100);
         sun.castShadow = true;
-        sun.shadow.camera.left = -100;
-        sun.shadow.camera.right = 100;
-        sun.shadow.camera.top = 100;
-        sun.shadow.camera.bottom = -100;
-        sun.shadow.camera.near = 1;
-        sun.shadow.camera.far = 2000;
+        sun.shadow.camera.left = -150;
+        sun.shadow.camera.right = 150;
+        sun.shadow.camera.top = 150;
+        sun.shadow.camera.bottom = -150;
         sun.shadow.mapSize.set(2048, 2048);
         scene.add(sun);
 
@@ -103,10 +99,9 @@
 
         // --- PLANETA ---
         const planetRadius = 637000;
-        const planet = new THREE.Mesh(
-            new THREE.SphereGeometry(planetRadius, 128, 128), 
-            new THREE.MeshStandardMaterial({ color: 0x337a33 })
-        );
+        const planetGeo = new THREE.SphereGeometry(planetRadius, 128, 128);
+        const planetMat = new THREE.MeshStandardMaterial({ color: 0x337a33 });
+        const planet = new THREE.Mesh(planetGeo, planetMat);
         planet.position.y = -planetRadius; 
         planet.receiveShadow = true;
         scene.add(planet);
@@ -115,8 +110,8 @@
         const loader = new GLTFLoader();
         const treeModels = [];
         const chunks = new Map();
-        const chunkSize = 500; 
-        const renderDistance = 4; 
+        const chunkSize = 300; 
+        const renderDistance = 3; 
 
         const loadTree = (url) => {
             return new Promise((resolve) => {
@@ -163,21 +158,22 @@
             const x0 = cx * chunkSize;
             const z0 = cz * chunkSize;
 
-            // Pista 1000x100 (X de -500 a 500, Z de -50 a 50)
+            // Pista 1000x100
             const isRunway = (x0 > -500 && x0 < 500 && z0 > -50 && z0 < 50);
 
             if (!isRunway && treeModels.length > 0) {
-                const treeCount = 12; 
+                const treeCount = 60; // DENSIDADE AUMENTADA
                 for (let i = 0; i < treeCount; i++) {
                     const model = treeModels[Math.floor(Math.random() * treeModels.length)].clone();
                     const tx = x0 + Math.random() * chunkSize;
                     const tz = z0 + Math.random() * chunkSize;
                     
-                    model.position.set(tx, 0, tz);
+                    // Coloca no chão considerando o offset do planeta
+                    model.position.set(tx, 0.5, tz); 
                     model.rotation.y = Math.random() * Math.PI * 2;
                     
-                    // ESCALA AJUSTADA: Aproximadamente o tamanho do avião (ajuste de 8 a 12)
-                    const s = 8 + Math.random() * 5; 
+                    // Escala 1.1x do modelo original
+                    const s = 1.1; 
                     model.scale.set(s, s, s);
                     
                     group.add(model);
@@ -213,7 +209,6 @@
         scene.add(planeGroup);
         planeGroup.position.set(0, 5, 0);
 
-        // --- CONTROLES ---
         const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
         wrap.onpointermove = (e) => {
             if (e.buttons === 1) {
@@ -292,4 +287,4 @@
         });
     </script>
 </body>
-    </html>
+</html>
