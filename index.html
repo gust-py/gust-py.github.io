@@ -1,212 +1,328 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>💗</title>
-<style>
-:root{
-  --rosa-fundo:#f7dce3;
-  --rosa-maca:#f2a7b8;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phoenix Injector - Ultra Violet Glow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Roxo Pantone Intenso */
+            --accent: #6d28d9; 
+            --accent-glow: rgba(109, 40, 217, 0.7);
+            --bg: #0a0a0b;
+            --card: #141417;
+        }
 
-html,body{
-  margin:0;
-  width:100%;
-  height:100%;
-  background:var(--rosa-fundo);
-  overflow:hidden;
-  font-family:"Segoe UI",sans-serif;
-}
+        body {
+            background-color: var(--bg);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+        }
 
-/* Container */
-#container{position:relative;width:100%;height:100%;}
+        .glass {
+            background: var(--card);
+            border: 1px solid rgba(109, 40, 217, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
 
-/* Corações flutuantes */
-.heart{
-  position:absolute;
-  width:32px;
-  height:32px;
-  background:var(--rosa-maca);
-  transform:rotate(45deg);
-  animation:float 10s linear forwards;
-  opacity:.8;
-  pointer-events:none;
-}
-.heart:before,.heart:after{
-  content:"";
-  position:absolute;
-  width:32px;
-  height:32px;
-  background:var(--rosa-maca);
-  border-radius:50%;
-}
-.heart:before{top:-16px;left:0}
-.heart:after{left:-16px;top:0}
+        .accent-text { 
+            color: #a78bfa; 
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
 
-@keyframes float{to{transform:translateY(-120vh) rotate(45deg);opacity:0}}
+        .accent-bg { 
+            background-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+        
+        .tab-btn.active {
+            color: #a78bfa;
+            border-bottom: 2px solid var(--accent);
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
 
-/* Watch */
-#watch{
-  position:absolute;
-  top:50%;
-  left:50%;
-  width:260px;height:320px;
-  background:var(--rosa-fundo);
-  border-radius:48px;
-  transform:translate(-50%,-50%);
-  box-shadow:0 20px 60px rgba(0,0,0,.15), inset 0 0 0 6px rgba(242,167,184,.5);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:.8s ease;
-  z-index:5;
-}
-#botao{
-  background:var(--rosa-maca);
-  color:white;
-  padding:18px 36px;
-  border-radius:14px;
-  font-size:1.4em;
-  cursor:pointer;
-  box-shadow:0 8px 20px rgba(242,167,184,.6);
-}
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
 
-/* Coração gigante (1x maior que antes, estilo dos pequenos) */
-#bigHeart{
-  position:absolute;
-  top:40%;
-  left:50%;
-  width:800px;   /* 400px anterior * 2 */
-  height:800px;  /* 400px anterior * 2 */
-  background:var(--rosa-maca);
-  transform:rotate(45deg) translate(-50%,-50%);
-  display:none;
-  z-index:2;
-}
-#bigHeart:before,#bigHeart:after{
-  content:"";
-  position:absolute;
-  width:800px;
-  height:800px;
-  background:var(--rosa-maca);
-  border-radius:50%;
-}
-#bigHeart:before{top:-400px;left:0}
-#bigHeart:after{left:-400px;top:0}
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            background: #2d2d32;
+            border-radius: 2px;
+        }
 
-/* Texto dentro do coração */
-#mensagem{
-  position:absolute;
-  width:260px;
-  color:white;
-  text-align:center;
-  font-size:16px;
-  line-height:1.5;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%) rotate(-45deg);
-  z-index:3;
-}
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            margin-top: -6px;
+            box-shadow: 0 0 12px var(--accent);
+            cursor: pointer;
+        }
 
-/* ECG */
-#ecg{
-  position:absolute;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  width:90%;
-  height:150px;
-}
-svg{width:100%;height:100%;}
-polyline{
-  fill:none;
-  stroke:var(--rosa-maca);
-  stroke-width:3;
-  stroke-linejoin:round;
-}
-</style>
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #2d2d32;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px; width: 14px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { 
+            background-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0px rgba(109, 40, 217, 0.5); }
+            100% { box-shadow: 0 0 0 20px rgba(109, 40, 217, 0); }
+        }
+
+        .hidden-tab { display: none; }
+        
+        /* Ajuste fino para os ícones e cards */
+        .card-icon-glow {
+            filter: drop-shadow(0 0 5px var(--accent-glow));
+        }
+    </style>
 </head>
+<body class="flex items-center justify-center min-h-screen p-4">
 
-<body>
-<div id="container">
+    <div class="glass w-full max-w-md p-6 shadow-2xl relative overflow-hidden">
+        <!-- Background Glow -->
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-[#6d28d9] blur-[100px] opacity-20"></div>
 
-<div id="watch"><div id="botao">Clique Aqui</div></div>
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8 relative z-10">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight uppercase">Phoenix <span class="accent-text">Injector</span></h1>
+                <p class="text-xs text-gray-500">v2.1.0 • Free Fire iOS</p>
+            </div>
+            <div class="text-right">
+                <span id="status-badge" class="text-[10px] bg-purple-900/20 text-[#a78bfa] px-2 py-1 rounded border border-purple-500/30 font-bold shadow-[0_0_8px_rgba(109,40,217,0.3)]">SISTEMA OK</span>
+            </div>
+        </div>
 
-<div id="bigHeart">
-  <div id="mensagem">
-    Minha princesa,<br><br>
-    tudo em você me encanta.<br>
-    O jeito que você me olha,<br>
-    o jeito que você me trata…<br><br>
-    Nosso namoro é único.<br>
-    Doce e intenso, como a gente.<br><br>
-    Mesmo quando a vida bagunça tudo,<br>
-    meu coração ainda escolhe o seu.<br><br>
-    <b>Eu te amo.</b>
-  </div>
-</div>
+        <!-- Navigation -->
+        <div class="flex border-b border-white/5 mb-6 relative z-10">
+            <button onclick="showTab('home')" id="btn-home" class="tab-btn active flex-1 pb-3 text-sm font-medium transition-all">INÍCIO</button>
+            <button onclick="showTab('combat')" id="btn-combat" class="tab-btn flex-1 pb-3 text-sm font-medium transition-all">COMBATE</button>
+            <button onclick="showTab('visual')" id="btn-visual" class="tab-btn flex-1 pb-3 text-sm font-medium transition-all">VISUAL</button>
+            <button onclick="showTab('extra')" id="btn-extra" class="tab-btn flex-1 pb-3 text-sm font-medium transition-all">EXTRA</button>
+        </div>
 
-<div id="ecg" style="display:none;">
-<svg viewBox="0 0 600 150">
-  <polyline id="line" points="0,75"/>
-</svg>
-</div>
+        <!-- Tab: Home -->
+        <div id="tab-home" class="space-y-6 relative z-10">
+            <div class="text-center py-10">
+                <button id="inject-btn" onclick="simulateInjection()" class="w-32 h-32 rounded-full border-2 border-dashed border-purple-500/40 flex items-center justify-center group hover:border-purple-500 transition-all pulse">
+                    <div class="w-24 h-24 rounded-full accent-bg flex items-center justify-center text-white font-bold text-sm group-active:scale-95 transition-transform tracking-widest shadow-[0_0_25px_var(--accent-glow)]">
+                        INJETAR
+                    </div>
+                </button>
+                <p id="inject-text" class="mt-6 text-sm text-gray-400">Pronto para processar...</p>
+            </div>
 
-</div>
+            <div class="glass p-4 bg-white/5 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-shield-halved accent-text card-icon-glow"></i>
+                    <span class="text-sm font-medium">Segurança Ativa</span>
+                </div>
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest">Anti-Ban v4</span>
+            </div>
 
-<script>
-const container=document.getElementById("container");
-const botao=document.getElementById("botao");
-const watch=document.getElementById("watch");
-const bigHeart=document.getElementById("bigHeart");
-const line=document.getElementById("line");
+            <button onclick="clearLogs()" class="w-full py-3 rounded-lg border border-purple-500/50 text-[#a78bfa] text-xs font-bold uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all shadow-[0_0_10px_rgba(109,40,217,0.2)]">
+                <i class="fa-solid fa-skull mr-2"></i> Limpar Rastros (Logs)
+            </button>
+        </div>
 
-// Criar corações flutuantes
-function criarCoracao(){
-  const h=document.createElement("div");
-  h.className="heart";
-  h.style.left=Math.random()*100+"vw";
-  h.style.bottom="-40px";
-  container.appendChild(h);
-  setTimeout(()=>h.remove(),10000);
-}
-setInterval(criarCoracao,300);
+        <!-- Tab: Combat -->
+        <div id="tab-combat" class="hidden-tab space-y-6 relative z-10">
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm">Aimbot (Sensibilidade)</label>
+                    <span class="text-xs accent-text font-bold" id="val-sens">75%</span>
+                </div>
+                <input type="range" oninput="updateVal('val-sens', this.value)" value="75">
 
-// Batimento do coração gigante (suave e contínuo)
-let t=0;
-function batimento(){
-  const scale=1+0.03*Math.sin(t);
-  bigHeart.style.transform=`translate(-50%,-50%) rotate(45deg) scale(${scale})`;
-  t+=0.03; // mais lento e natural
-  requestAnimationFrame(batimento);
-}
+                <div class="flex justify-between items-center mt-4">
+                    <label class="text-sm">Precisão (Distância)</label>
+                    <span class="text-xs accent-text font-bold" id="val-prec">90%</span>
+                </div>
+                <input type="range" oninput="updateVal('val-prec', this.value)" value="90">
 
-// ECG fluido e lento
-let ecgX=0;
-let ecgPoints=[0,75];
-function gerarECG(){
-  const mid=75;
-  const variation=Math.sin(Date.now()/600)*20; // mais lento
-  const y=mid + variation*Math.random();
-  ecgPoints.push(`${ecgX},${y}`);
-  if(ecgPoints.length>120) ecgPoints.shift();
-  line.setAttribute("points",ecgPoints.join(" "));
-  ecgX+=5;
-  if(ecgX>600){ecgX=0;ecgPoints=[`0,${mid}`];}
-  requestAnimationFrame(gerarECG);
-}
+                <div class="flex items-center justify-between p-3 glass bg-white/5 mt-6">
+                    <div>
+                        <p class="text-sm">No Recoil</p>
+                        <p class="text-[10px] text-gray-400">Elimina o recuo da arma</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
 
-// Clique no botão
-botao.onclick=()=>{
-  watch.style.opacity="0";
-  document.querySelectorAll(".heart").forEach(h=>h.remove());
-  setTimeout(()=>{
-    bigHeart.style.display="block";
-    ecg.style.display="block";
-    batimento();
-    gerarECG();
-  },800);
-};
-</script>
+                <div class="flex items-center justify-between p-3 glass bg-white/5">
+                    <div>
+                        <p class="text-sm">Modo Silent (Hitbox)</p>
+                        <p class="text-[10px] text-gray-400">Aumenta área da cabeça</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Visual -->
+        <div id="tab-visual" class="hidden-tab space-y-4 relative z-10">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="glass p-4 flex flex-col items-center gap-2 hover:bg-purple-900/10 cursor-pointer border-purple-500/20 group">
+                    <i class="fa-solid fa-user-ninja text-xl accent-text card-icon-glow"></i>
+                    <span class="text-[11px] font-bold group-hover:text-white">ESQUELETO</span>
+                </div>
+                <div class="glass p-4 flex flex-col items-center gap-2 hover:bg-purple-900/10 cursor-pointer border-transparent group">
+                    <i class="fa-solid fa-vector-square text-xl text-gray-500 group-hover:text-purple-400"></i>
+                    <span class="text-[11px] font-bold text-gray-400 group-hover:text-white">BOX (BOX)</span>
+                </div>
+                <div class="glass p-4 flex flex-col items-center gap-2 hover:bg-purple-900/10 cursor-pointer border-transparent group">
+                    <i class="fa-solid fa-arrows-to-eye text-xl text-gray-500 group-hover:text-purple-400"></i>
+                    <span class="text-[11px] font-bold text-gray-400 group-hover:text-white">LINHAS</span>
+                </div>
+                <div class="glass p-4 flex flex-col items-center gap-2 hover:bg-purple-900/10 cursor-pointer border-transparent group">
+                    <i class="fa-solid fa-tower-broadcast text-xl text-gray-500 group-hover:text-purple-400"></i>
+                    <span class="text-[11px] font-bold text-gray-400 group-hover:text-white">ANTENA</span>
+                </div>
+            </div>
+            
+            <div class="p-3 bg-purple-900/10 border border-purple-500/20 rounded-lg mt-4 shadow-[inset_0_0_10px_rgba(109,40,217,0.1)]">
+                <p class="text-[10px] text-purple-300 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info accent-text"></i> O ESP Antena funciona através de paredes.
+                </p>
+            </div>
+        </div>
+
+        <!-- Tab: Extra -->
+        <div id="tab-extra" class="hidden-tab space-y-4 relative z-10">
+            <div class="flex items-center justify-between p-4 glass bg-white/5">
+                <div>
+                    <p class="text-sm">Modo Stream</p>
+                    <p class="text-[10px] text-gray-500">Invisível em gravações/lives</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="p-4 glass border-purple-500/20 bg-purple-900/5">
+                <h3 class="text-xs font-bold accent-text uppercase mb-2">Informações</h3>
+                <ul class="text-[10px] text-gray-400 space-y-1">
+                    <li>• Compatível com iOS 12.0 até 17.x</li>
+                    <li>• Não requer Jailbreak</li>
+                    <li>• Bypass Anti-Cheat atualizado</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 pt-4 border-t border-white/5 flex justify-between items-center relative z-10">
+            <span class="text-[9px] text-gray-600">PHOENIX DIGITAL CORE</span>
+            <div class="flex gap-3 text-gray-500 text-xs">
+                <i class="fa-brands fa-discord hover:text-[#a78bfa] cursor-pointer"></i>
+                <i class="fa-brands fa-telegram hover:text-[#a78bfa] cursor-pointer"></i>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="absolute bottom-[-60px] left-0 right-0 accent-bg text-white text-[10px] font-bold py-2 text-center transition-all opacity-0 shadow-[0_0_20px_var(--accent-glow)]">
+            LOGS LIMPOS COM SUCESSO!
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.classList.add('hidden-tab'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.remove('hidden-tab');
+            document.getElementById('btn-' + tabName).classList.add('active');
+        }
+
+        function updateVal(id, val) {
+            document.getElementById(id).innerText = val + '%';
+        }
+
+        function simulateInjection() {
+            const btn = document.getElementById('inject-btn');
+            const text = document.getElementById('inject-text');
+            
+            btn.classList.remove('pulse');
+            btn.disabled = true;
+            text.innerText = "Processando injeção...";
+            text.classList.add('accent-text');
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                text.innerText = `Injetando: ${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    text.innerText = "CHEATS ATIVOS NO DISPOSITIVO!";
+                    document.getElementById('status-badge').innerText = "ATIVO";
+                    document.getElementById('status-badge').style.boxShadow = "0 0 12px #6d28d9";
+                }
+            }, 150);
+        }
+
+        function clearLogs() {
+            const toast = document.getElementById('toast');
+            toast.style.bottom = '20px';
+            toast.style.opacity = '1';
+            
+            setTimeout(() => {
+                toast.style.bottom = '-60px';
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+    </script>
 </body>
-</html>
+                      </html>
