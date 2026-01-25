@@ -1,258 +1,222 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Para Mirelly 💗</title>
+    <title>Flight Simulator - Céu e Sombras Ajustados</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;700&display=swap');
-
-        :root {
-            --rosa-claro: #fdf2f5;
-            --rosa-maca: #f2a7b8;
-            --rosa-escuro: #d45d79;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background-color: var(--rosa-claro);
-            font-family: 'Montserrat', sans-serif;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* Pétalas de fundo */
-        .petal {
-            position: absolute;
-            background-color: var(--rosa-maca);
-            border-radius: 150% 0 150% 0;
-            opacity: 0.5;
-            pointer-events: none;
-            z-index: 1;
-            animation: fall linear infinite;
-        }
-        @keyframes fall {
-            0% { transform: translateY(-10vh) rotate(0deg); }
-            100% { transform: translateY(110vh) rotate(360deg); }
-        }
-
-        /* Intro: Carta Rosa */
-        #intro {
-            position: fixed;
-            inset: 0;
-            background: var(--rosa-claro);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.8s ease;
-            cursor: pointer;
-        }
-        .envelope {
-            width: 280px;
-            height: 180px;
-            background: var(--rosa-maca);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 15px 35px rgba(212, 93, 121, 0.2);
-            position: relative;
-        }
-        .envelope::after {
-            content: "Para: Minha princesa ✉️";
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        /* Container do Coração */
-        #heart-scene {
-            position: relative;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-        }
-
-        .heart-container {
-            position: relative;
-            width: 320px; /* Tamanho ajustado para caber em qualquer tela */
-            height: 320px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .heart-shape {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: var(--rosa-maca);
-            transform: rotate(-45deg);
-            box-shadow: 0 0 40px rgba(242, 167, 184, 0.5);
-            animation: beat 1.2s infinite ease-in-out;
-        }
-        .heart-shape::before, .heart-shape::after {
-            content: "";
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: var(--rosa-maca);
-            border-radius: 50%;
-        }
-        .heart-shape::before { top: -50%; left: 0; }
-        .heart-shape::after { left: 50%; top: 0; }
-
-        @keyframes beat {
-            0%, 100% { transform: rotate(-45deg) scale(1); }
-            50% { transform: rotate(-45deg) scale(1.08); }
-        }
-
-        /* Texto Centralizado e Reto */
-        .text-content {
-            position: relative;
-            z-index: 20;
-            text-align: center;
-            color: white;
-            padding: 20px;
-            width: 280px;
-            pointer-events: none;
-        }
-        .text-content h1 {
-            font-family: 'Dancing Script', cursive;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-        }
-        .text-content p {
-            font-size: 1rem;
-            line-height: 1.4;
-            font-weight: 600;
-        }
-
-        /* Botões */
-        .ui-nav {
-            margin-top: 50px;
-            display: flex;
-            gap: 15px;
-            z-index: 30;
-        }
-        .btn {
-            background: white;
-            color: var(--rosa-escuro);
-            border: 2px solid var(--rosa-maca);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 0.9rem;
-        }
-        .btn:hover {
-            background: var(--rosa-maca);
-            color: white;
-        }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
+        #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; z-index: 10; }
+        .info { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        #joy-wrapper { position: absolute; bottom: 30px; left: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #FFF; touch-action: none; z-index: 10; }
+        #joy-stick { position: absolute; width: 50px; height: 50px; background: #FFF; border-radius: 50%; top: 45px; left: 45px; }
+        .thr-box { position: absolute; bottom: 30px; left: 200px; display: flex; flex-direction: column; align-items: center; color: #FFF; z-index: 10; }
+        input[type=range] { -webkit-appearance: slider-vertical; width: 30px; height: 140px; }
+        .controls { position: absolute; bottom: 20px; right: 20px; z-index: 10; }
+        button { padding: 12px 20px; cursor: pointer; background: rgba(255,255,255,0.2); color: #FFF; border: 2px solid #FFF; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- Intro: Clique na Carta -->
-    <div id="intro" onclick="openLetter()">
-        <div class="envelope"></div>
+    <div id="ui">
+        <div class="info" id="ui-spd">SPEED: 0 kts</div>
+        <div class="info" id="ui-alt">ALTITUDE: 0 m</div>
     </div>
 
-    <!-- Cena Principal -->
-    <div id="heart-scene">
-        <div class="heart-container" onclick="strongPulse()">
-            <div class="heart-shape" id="the-heart"></div>
-            <div class="text-content">
-                <h1 id="title">Meu Bem</h1>
-                <p id="message">
-                    Você é a garota mais linda que já vi na vida.<br>
-                    Tudo em você me encanta e me faz querer
-                    estar ao seu lado a cada segundo.<br><br>
-                    Nosso namoro é meu maior presente.<br>
-                    <b>Eu te amo infinitamente! 💗</b>
-                </p>
-            </div>
-        </div>
+    <div class="controls"><button id="btn-engine">TURN ON</button></div>
+    <div class="thr-box"><b>THR</b><input type="range" id="input-thr" min="0" max="1" step="0.01" value="0"></div>
+    <div id="joy-wrapper"><div id="joy-stick"></div></div>
 
-        <div class="ui-nav">
-            <button class="btn" onclick="updateMsg('Seu sorriso ilumina meu mundo! ✨')">Elogio</button>
-            <button class="btn" onclick="updateMsg('Cada momento com você é mágico. 💍')">Segredo</button>
-            <button class="btn" onclick="location.reload()">Recomeçar</button>
-        </div>
-    </div>
-
-    <script>
-        // Criar pétalas constantes
-        function createPetal() {
-            const petal = document.createElement('div');
-            petal.className = 'petal';
-            const size = Math.random() * 15 + 10;
-            petal.style.width = size + 'px';
-            petal.style.height = size + 'px';
-            petal.style.left = Math.random() * 100 + 'vw';
-            petal.style.animationDuration = (Math.random() * 3 + 4) + 's';
-            document.body.appendChild(petal);
-            setTimeout(() => petal.remove(), 7000);
-        }
-        setInterval(createPetal, 400);
-
-        function openLetter() {
-            document.getElementById('intro').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('intro').style.display = 'none';
-                document.getElementById('heart-scene').style.display = 'flex';
-            }, 800);
-        }
-
-        function updateMsg(newText) {
-            const msg = document.getElementById('message');
-            msg.style.opacity = '0';
-            setTimeout(() => {
-                msg.innerHTML = `<span style="font-size: 1.2rem; font-style: italic;">"${newText}"</span>`;
-                msg.style.opacity = '1';
-                sparkle();
-            }, 400);
-        }
-
-        function sparkle() {
-            for(let i=0; i<8; i++) {
-                const s = document.createElement('div');
-                s.innerHTML = '✨';
-                s.style.position = 'fixed';
-                s.style.left = '50%';
-                s.style.top = '50%';
-                s.style.fontSize = '24px';
-                s.style.pointerEvents = 'none';
-                document.body.appendChild(s);
-                const angle = Math.random() * Math.PI * 2;
-                const dist = 180;
-                s.animate([
-                    { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
-                    { transform: `translate(${-50 + Math.cos(angle)*dist}px, ${-50 + Math.sin(angle)*dist}px) scale(1)`, opacity: 0 }
-                ], { duration: 1000 });
-                setTimeout(() => s.remove(), 1000);
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
             }
         }
+    </script>
 
-        function strongPulse() {
-            const h = document.getElementById('the-heart');
-            h.animate([
-                { transform: 'rotate(-45deg) scale(1.08)' },
-                { transform: 'rotate(-45deg) scale(1.25)' },
-                { transform: 'rotate(-45deg) scale(1.08)' }
-            ], { duration: 300 });
-            sparkle();
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+        // --- CENA E RENDER ---
+        const scene = new THREE.Scene();
+        // Neblina para misturar o horizonte
+        scene.fog = new THREE.Fog(0xd1f3ff, 100, 50000); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Sombras mais suaves
+        document.body.appendChild(renderer.domElement);
+
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 5000000);
+        
+        // --- LUZES ---
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(100, 500, 100);
+        sun.castShadow = true;
+        // Ajuste do frustum da sombra para o avião
+        sun.shadow.camera.left = -50;
+        sun.shadow.camera.right = 50;
+        sun.shadow.camera.top = 50;
+        sun.shadow.camera.bottom = -50;
+        sun.shadow.camera.near = 1;
+        sun.shadow.camera.far = 2000;
+        sun.shadow.mapSize.set(2048, 2048);
+        scene.add(sun);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambient);
+
+        // --- CÉU GRADIENTE REALISTA ---
+        const vertexShader = `
+            varying vec3 vWorldPosition;
+            void main() {
+                vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+                vWorldPosition = worldPosition.xyz;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+            }
+        `;
+        const fragmentShader = `
+            uniform vec3 topColor;
+            uniform vec3 bottomColor;
+            uniform float offset;
+            uniform float exponent;
+            varying vec3 vWorldPosition;
+            void main() {
+                float h = normalize( vWorldPosition ).y + offset;
+                gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h, 0.0 ), exponent ), 0.0 ) ), 1.0 );
+            }
+        `;
+        const skyGeo = new THREE.SphereGeometry(2000000, 32, 15);
+        const skyMat = new THREE.ShaderMaterial({
+            vertexShader, fragmentShader,
+            uniforms: {
+                topColor: { value: new THREE.Color(0x00d4ff) },    // Ciano vibrante
+                bottomColor: { value: new THREE.Color(0xffffff) }, // Branco
+                offset: { value: 0.05 },
+                exponent: { value: 0.6 }
+            },
+            side: THREE.BackSide
+        });
+        const sky = new THREE.Mesh(skyGeo, skyMat);
+        scene.add(sky);
+
+        // --- PLANETA ---
+        const planetRadius = 637000;
+        const planet = new THREE.Mesh(
+            new THREE.SphereGeometry(planetRadius, 128, 128), 
+            new THREE.MeshStandardMaterial({ color: 0x337a33 })
+        );
+        planet.position.y = -planetRadius; 
+        planet.receiveShadow = true;
+        scene.add(planet);
+
+        // --- AVIÃO ---
+        const planeGroup = new THREE.Group();
+        const modelInner = new THREE.Group();
+        planeGroup.add(modelInner);
+
+        const cameraAnchor = new THREE.Object3D();
+        cameraAnchor.position.set(0, 8, -30);
+        planeGroup.add(cameraAnchor);
+
+        let speed = 0, engine = false, thr = 0, joy = { x: 0, y: 0 };
+
+        new GLTFLoader().load('1.glb', (gltf) => {
+            gltf.scene.rotation.y = Math.PI;
+            gltf.scene.position.y = -0.55; 
+            gltf.scene.traverse(n => { 
+                if(n.isMesh) { 
+                    n.castShadow = true; 
+                    n.receiveShadow = true;
+                }
+            });
+            modelInner.add(gltf.scene);
+        });
+
+        scene.add(planeGroup);
+        planeGroup.position.set(0, 5, 0);
+
+        // --- CONTROLES ---
+        const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
+        wrap.onpointermove = (e) => {
+            if (e.buttons === 1) {
+                const r = wrap.getBoundingClientRect();
+                joy.x = ((e.clientX - r.left - 70) / 70) * 0.6; 
+                joy.y = ((e.clientY - r.top - 70) / 70) * 0.6;  
+                stick.style.transform = `translate(${joy.x * 60}px, ${joy.y * 60}px)`;
+            }
+        };
+        wrap.onpointerup = () => { joy = { x: 0, y: 0 }; stick.style.transform = `translate(0,0)`; };
+        document.getElementById('btn-engine').onclick = (e) => { engine = !engine; e.target.innerText = engine ? "OFF" : "ON"; };
+        document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
+
+        const clock = new THREE.Clock();
+        const raycaster = new THREE.Raycaster();
+        const downVec = new THREE.Vector3(0, -1, 0);
+        const tempVec = new THREE.Vector3();
+
+        function loop() {
+            const dt = clock.getDelta();
+            
+            const rayOrigin = planeGroup.position.clone().add(new THREE.Vector3(0, 100, 0));
+            raycaster.set(rayOrigin, downVec);
+            const intersects = raycaster.intersectObject(planet);
+
+            let groundDist = 0;
+            if (intersects.length > 0) groundDist = intersects[0].point.y;
+
+            const currentAlt = planeGroup.position.y - groundDist;
+            const isGrounded = currentAlt <= 0.6;
+
+            let limit = (currentAlt > 10) ? 316 : 160;
+            speed = THREE.MathUtils.lerp(speed, engine ? thr * limit : 0, dt * 0.6);
+
+            if (isGrounded) {
+                planeGroup.position.y = groundDist + 0.55;
+                planeGroup.rotation.y -= joy.x * dt * 0.6;
+                if (speed > 100) planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.2, dt * 1.5);
+                if (speed > 140 && planeGroup.rotation.x > 0.02) planeGroup.position.y += speed * dt * 0.5;
+            } else {
+                planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.8, dt * 1.2);
+                planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, -joy.x * 0.7, dt * 1.2);
+                planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.5;
+                const lift = (speed / 160) * Math.max(0, 1 + planeGroup.rotation.x);
+                planeGroup.position.y += (lift - 1.05) * 60 * dt;
+                if (planeGroup.position.y < groundDist + 0.55) planeGroup.position.y = groundDist + 0.55;
+            }
+
+            planeGroup.translateZ(speed * dt * 0.85);
+
+            // CÂMERA
+            cameraAnchor.getWorldPosition(tempVec);
+            camera.position.lerp(tempVec, 0.1); // Suaviza a câmera
+            camera.lookAt(planeGroup.position);
+
+            // SOL E SOMBRA SEGUE O AVIÃO
+            // A luz fica no alto mas "anda" com o avião para projetar sombra sempre abaixo dele
+            sun.position.set(planeGroup.position.x + 50, planeGroup.position.y + 200, planeGroup.position.z + 50);
+            sun.target = planeGroup;
+
+            // O CÉU SEGUE A POSIÇÃO DO AVIÃO
+            sky.position.copy(planeGroup.position);
+
+            // UI
+            document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(speed)} kts`;
+            document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.max(0, Math.round(currentAlt))} m`;
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(loop);
         }
+        loop();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
-    </html>
+</html>
