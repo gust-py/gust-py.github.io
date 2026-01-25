@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - Radio Tower & Runway</title>
+    <title>Flight Simulator - Orbital Radio</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; z-index: 10; }
@@ -39,28 +39,15 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-        // --- SISTEMA DE ÁUDIO TIPO RÁDIO ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function speakRadio(text) {
             if (window.speechSynthesis.speaking) return;
-            
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'pt-BR';
-            utterance.rate = 1.1;
-            utterance.pitch = 0.7;
-
-            // Criar efeito de distorção de rádio
-            const destination = audioCtx.createMediaStreamDestination();
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = "bandpass";
-            filter.frequency.value = 1500; // Frequência de rádio "telúrica"
-            filter.Q.value = 1.5;
-
-            // Conectar e falar
+            utterance.rate = 1.1; utterance.pitch = 0.7;
             window.speechSynthesis.speak(utterance);
         }
 
-        // --- CENA ---
         const scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0xd1f3ff, 100, 50000); 
         const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
@@ -92,44 +79,42 @@
         planet.receiveShadow = true;
         scene.add(planet);
 
-        // --- PISTA COM "COLISÃO" ---
-        const runwayGroup = new THREE.Group();
-        const runwayWidth = 60;
-        const runwayLength = 3000;
-        const runwayGeo = new THREE.PlaneGeometry(runwayWidth, runwayLength);
-        const runwayMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-        const runwayMesh = new THREE.Mesh(runwayGeo, runwayMat);
-        runwayMesh.rotation.x = -Math.PI / 2;
-        runwayMesh.position.y = 0.05; // Levemente acima do chão
-        runwayMesh.receiveShadow = true;
-        runwayGroup.add(runwayMesh);
-
-        // Listras brancas
+        // --- PISTA ---
+        const runwayWidth = 60, runwayLength = 3000;
+        const runwayMesh = new THREE.Mesh(new THREE.PlaneGeometry(runwayWidth, runwayLength), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+        runwayMesh.rotation.x = -Math.PI / 2; runwayMesh.position.y = 0.05; runwayMesh.receiveShadow = true;
+        scene.add(runwayMesh);
         for(let i = -1450; i < 1450; i += 50) {
             const stripe = new THREE.Mesh(new THREE.PlaneGeometry(3, 20), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
-            stripe.rotation.x = -Math.PI / 2;
-            stripe.position.set(0, 0.1, i);
-            runwayGroup.add(stripe);
+            stripe.rotation.x = -Math.PI / 2; stripe.position.set(0, 0.1, i); scene.add(stripe);
         }
-        scene.add(runwayGroup);
 
         // --- AVIÃO ---
         const planeGroup = new THREE.Group();
         const modelInner = new THREE.Group();
         planeGroup.add(modelInner);
-        const cameraAnchor = new THREE.Object3D();
-        cameraAnchor.position.set(0, 8, -30);
-        planeGroup.add(cameraAnchor);
-
         let speed = 0, engine = false, thr = 0, joy = { x: 0, y: 0 };
         new GLTFLoader().load('1.glb', (gltf) => {
-            gltf.scene.rotation.y = Math.PI;
-            gltf.scene.position.y = -0.55; 
+            gltf.scene.rotation.y = Math.PI; gltf.scene.position.y = -0.55; 
             gltf.scene.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
             modelInner.add(gltf.scene);
         });
         scene.add(planeGroup);
-        planeGroup.position.set(0, 0.6, 1400); // Início da pista
+        planeGroup.position.set(0, 0.6, 1400);
+
+        // --- VARIÁVEIS DA CÂMERA ORBITAL ---
+        let camTheta = Math.PI, camPhi = 0.3, camDist = 35;
+        let targetCamTheta = Math.PI, targetCamPhi = 0.3;
+        let isMouseDown = false;
+
+        window.addEventListener('mousedown', () => isMouseDown = true);
+        window.addEventListener('mouseup', () => isMouseDown = false);
+        window.addEventListener('mousemove', (e) => {
+            if(isMouseDown) {
+                targetCamTheta += e.movementX * 0.01;
+                targetCamPhi = Math.max(0.05, Math.min(Math.PI/2 - 0.1, targetCamPhi + e.movementY * 0.01));
+            }
+        });
 
         // --- CONTROLES ---
         const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
@@ -143,33 +128,26 @@
         };
         wrap.onpointerup = () => { joy = { x: 0, y: 0 }; stick.style.transform = `translate(0,0)`; };
         document.getElementById('btn-engine').onclick = (e) => { 
-            engine = !engine; 
-            e.target.innerText = engine ? "OFF" : "ON"; 
-            if(engine) { audioCtx.resume(); speakRadio("Torre aqui. Motores ligados. Pista liberada para decolagem."); }
+            engine = !engine; e.target.innerText = engine ? "OFF" : "ON"; 
+            if(engine) { audioCtx.resume(); speakRadio("Decolagem autorizada."); }
         };
         document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
 
         const clock = new THREE.Clock();
-        const tempVec = new THREE.Vector3();
         let lastAlert = 0;
 
         function loop() {
             const dt = clock.getDelta();
-            
-            // Lógica de "Colisão" com a pista vs Planeta
             const onRunway = Math.abs(planeGroup.position.x) < (runwayWidth/2) && Math.abs(planeGroup.position.z) < (runwayLength/2);
             const groundY = onRunway ? 0.05 : 0; 
             const currentAlt = planeGroup.position.y - groundY;
             const isGrounded = currentAlt <= 0.6;
 
-            let limit = (currentAlt > 10) ? 316 : 160;
-            speed = THREE.MathUtils.lerp(speed, engine ? thr * limit : 0, dt * 0.6);
+            speed = THREE.MathUtils.lerp(speed, engine ? thr * ((currentAlt > 10) ? 316 : 160) : 0, dt * 0.6);
 
-            // Alertas de rádio (com trava de tempo para não sobrepor)
-            if (engine && Date.now() - lastAlert > 6000) {
-                if (isGrounded && speed > 135) { speakRadio("V1. Rotação."); lastAlert = Date.now(); }
-                else if (!isGrounded && speed < 90) { speakRadio("Cuidado. Estol iminente! Nariz para baixo!"); lastAlert = Date.now(); }
-                else if (!isGrounded && currentAlt < 30 && speed > 170) { speakRadio("Velocidade excessiva para pouso. Arremeta!"); lastAlert = Date.now(); }
+            if (engine && Date.now() - lastAlert > 8000) {
+                if (isGrounded && speed > 135) { speakRadio("Velocidade de decisão. Rotate."); lastAlert = Date.now(); }
+                else if (!isGrounded && speed < 90) { speakRadio("Stall iminente!"); lastAlert = Date.now(); }
             }
 
             if (isGrounded) {
@@ -181,14 +159,22 @@
                 planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.8, dt * 1.2);
                 planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, -joy.x * 0.7, dt * 1.2);
                 planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.5;
-                const lift = (speed / 160) * Math.max(0, 1 + planeGroup.rotation.x);
-                planeGroup.position.y += (lift - 1.05) * 60 * dt;
+                planeGroup.position.y += ((speed / 160) * Math.max(0, 1 + planeGroup.rotation.x) - 1.05) * 60 * dt;
                 if (planeGroup.position.y < groundY + 0.55) planeGroup.position.y = groundY + 0.55;
             }
-
             planeGroup.translateZ(speed * dt * 0.85);
-            cameraAnchor.getWorldPosition(tempVec);
-            camera.position.lerp(tempVec, 0.1);
+
+            // --- LÓGICA DE CÂMERA ORBITAL FLUIDA ---
+            // Suaviza a rotação desejada
+            camTheta = THREE.MathUtils.lerp(camTheta, targetCamTheta, 0.1);
+            camPhi = THREE.MathUtils.lerp(camPhi, targetCamPhi, 0.1);
+
+            // Converte coordenadas esféricas para cartesianas relativas ao avião
+            const x = camDist * Math.sin(camTheta) * Math.cos(camPhi);
+            const y = camDist * Math.sin(camPhi);
+            const z = camDist * Math.cos(camTheta) * Math.cos(camPhi);
+
+            camera.position.set(planeGroup.position.x + x, planeGroup.position.y + y, planeGroup.position.z + z);
             camera.lookAt(planeGroup.position);
 
             sun.position.set(planeGroup.position.x + 50, planeGroup.position.y + 200, planeGroup.position.z + 50);
@@ -203,8 +189,7 @@
         loop();
 
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
