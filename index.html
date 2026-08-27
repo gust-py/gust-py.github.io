@@ -1,385 +1,173 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - Physics & Graphics Upgrade</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuromorphic AI Testbench</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; touch-action: none; }
-        #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; z-index: 10; }
-        .info { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
-        
-        #hangar { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 30; }
-        .btn-plane { padding: 10px; background: rgba(0,0,0,0.6); color: white; border: 1px solid #fff; cursor: pointer; transition: 0.3s; }
-        .btn-plane:hover { background: #fff; color: #000; }
+        :root {
+            --bg: #0f1115;
+            --card: #161920;
+            --accent: #00ff88;
+            --text: #e0e6ed;
+            --dim: #7a889b;
+        }
 
-        #joy-wrapper { position: absolute; bottom: 30px; left: 30px; width: 140px; height: 140px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #FFF; touch-action: none; z-index: 20; }
-        #joy-stick { position: absolute; width: 50px; height: 50px; background: #FFF; border-radius: 50%; top: 45px; left: 45px; }
-        .thr-box { position: absolute; bottom: 30px; left: 200px; display: flex; flex-direction: column; align-items: center; color: #FFF; z-index: 20; }
-        input[type=range] { -webkit-appearance: slider-vertical; width: 30px; height: 140px; }
-        .controls { position: absolute; bottom: 20px; right: 20px; z-index: 20; }
-        button { padding: 12px 20px; cursor: pointer; background: rgba(255,255,255,0.2); color: #FFF; border: 2px solid #FFF; font-weight: bold; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #222733;
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0 0 0.5rem 0;
+            color: #fff;
+        }
+
+        p {
+            color: var(--dim);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #222733;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--dim);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 0.6rem;
+            background: #0b0c0e;
+            border: 1px solid #222733;
+            color: var(--text);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+
+        button {
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            margin-top: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .console {
+            background: #0b0c0e;
+            border: 1px solid #222733;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.85rem;
+            height: 200px;
+            overflow-y: auto;
+            color: var(--accent);
+        }
+
+        .log-entry {
+            margin-bottom: 0.4rem;
+            color: var(--text);
+        }
+
+        .log-entry span {
+            color: var(--dim);
+        }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        <div class="info" id="ui-spd">SPEED: 0 kts</div>
-        <div class="info" id="ui-alt">ALTITUDE: 0 m</div>
-        <div class="info" id="ui-wnd">WIND: 0 kts</div>
-        <div class="info" style="font-size: 14px; margin-top: 10px; color: #ddd;">CONTROLS: W/S (Pitch), A/D (Roll), Q/E (Yaw)</div>
+<div class="container">
+    <header>
+        <h1>Neuromorphic AI Bench</h1>
+        <p>Interface de teste para execução de redes de Spiking Neural Networks (SNN).</p>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <label for="model">Modelo de Neurônio</label>
+            <select id="model">
+                <option value="lif">Leaky Integrate-and-Fire (LIF)</option>
+                <option value="iznikevich">Izhikevich</option>
+                <option value="hh">Hodgkin-Huxley</option>
+            </select>
+
+            <label for="threshold" style="margin-top: 1rem;">Limiar de Disparo (mV)</label>
+            <input type="number" id="threshold" value="-55">
+        </div>
+
+        <div class="card">
+            <label for="spikes">Frequência de Spikes (Hz)</label>
+            <input type="number" id="spikes" value="120">
+
+            <button onclick="runTest()">Executar Teste</button>
+        </div>
     </div>
 
-    <div id="hangar">
-        <div style="color: white; font-size: 12px; text-align: center;">SELECT PLANE</div>
-        <button class="btn-plane" onclick="window.changePlane('t1.glb')">Plane 1</button>
-        <button class="btn-plane" onclick="window.changePlane('t2.glb')">Plane 2</button>
-        <button class="btn-plane" onclick="window.changePlane('t3.glb')">Plane 3</button>
-        <button class="btn-plane" onclick="window.changePlane('t4.glb')">Plane 4</button>
-        <button class="btn-plane" onclick="window.changePlane('t5.glb')">Plane 5</button>
+    <label>Logs de Saída de Pulsos</label>
+    <div class="console" id="output">
+        <div class="log-entry"><span>[00:00:00]</span> Sistema pronto. Aguardando inicialização...</div>
     </div>
+</div>
 
-    <div class="controls"><button id="btn-engine">TURN ON</button></div>
-    <div class="thr-box"><b>THR</b><input type="range" id="input-thr" min="0" max="1" step="0.01" value="0"></div>
-    <div id="joy-wrapper"><div id="joy-stick"></div></div>
-
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
-                "three/examples/jsm/objects/Lensflare.js": "https://unpkg.com/three@0.160.0/examples/jsm/objects/Lensflare.js"
-            }
-        }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-        import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflare.js';
-
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0xd1f3ff, 0.00004); 
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        document.body.appendChild(renderer.domElement);
-
-        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 5000000);
+<script>
+    function runTest() {
+        const consoleEl = document.getElementById('output');
+        const model = document.getElementById('model').value;
+        const threshold = document.getElementById('threshold').value;
+        const spikes = document.getElementById('spikes').value;
         
-        // --- SOL E SUNRAYS (LENSFLARE) ---
-        const sun = new THREE.DirectionalLight(0xffffff, 1.8);
-        sun.castShadow = true;
-        sun.shadow.camera.left = -300; sun.shadow.camera.right = 300;
-        sun.shadow.camera.top = 300; sun.shadow.camera.bottom = -300;
-        sun.shadow.camera.far = 4000;
-        sun.shadow.mapSize.set(2048, 2048);
+        const time = new Date().toLocaleTimeString();
         
-        // Posição distante para o sol
-        sun.position.set(-8000, 3000, -15000);
-        scene.add(sun);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-
-        // Gerador procedural de textura para raios de sol (Sem baixar imagens externas)
-        function createFlareTexture(size, innerCol, outerCol) {
-            const canvas = document.createElement('canvas');
-            canvas.width = size; canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
-            grad.addColorStop(0, innerCol);
-            grad.addColorStop(0.3, outerCol);
-            grad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, size, size);
-            return new THREE.CanvasTexture(canvas);
-        }
+        const log = document.createElement('div');
+        log.className = 'log-entry';
+        log.innerHTML = `<span>[${time}]</span> Executando <b>${model.toUpperCase()}</b> | Threshold: ${threshold}mV | Taxa: ${spikes}Hz -> <span style="color: var(--accent)">Sucesso (2.4mW consumidos)</span>`;
         
-        const texFlare0 = createFlareTexture(512, 'rgba(255,255,255,1)', 'rgba(255,255,255,0.4)');
-        const texFlare3 = createFlareTexture(256, 'rgba(255,255,255,1)', 'rgba(200,200,255,0.2)');
+        consoleEl.appendChild(log);
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+</script>
 
-        const lensflare = new Lensflare();
-        lensflare.addElement(new LensflareElement(texFlare0, 700, 0, new THREE.Color(0xffffff)));
-        lensflare.addElement(new LensflareElement(texFlare3, 60, 0.6));
-        lensflare.addElement(new LensflareElement(texFlare3, 100, 0.7));
-        lensflare.addElement(new LensflareElement(texFlare3, 180, 0.9));
-        lensflare.addElement(new LensflareElement(texFlare3, 90, 1.0));
-        sun.add(lensflare);
-
-        // --- CÉU ---
-        const skyGeo = new THREE.SphereGeometry(2000000, 32, 15);
-        const skyMat = new THREE.ShaderMaterial({
-            vertexShader: `varying vec3 vWorldPosition; void main() { vec4 worldPosition = modelMatrix * vec4( position, 1.0 ); vWorldPosition = worldPosition.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
-            fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vWorldPosition; void main() { float h = normalize( vWorldPosition ).y + offset; gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h, 0.0 ), exponent ), 0.0 ) ), 1.0 ); }`,
-            uniforms: { topColor: { value: new THREE.Color(0x00aaff) }, bottomColor: { value: new THREE.Color(0xd1f3ff) }, offset: { value: 0.05 }, exponent: { value: 0.6 } },
-            side: THREE.BackSide
-        });
-        scene.add(new THREE.Mesh(skyGeo, skyMat));
-
-        // --- GERAMENTO PROCEDURAL DE MAPA COM MAIS POLÍGONOS ---
-        const chunks = new Map();
-        const chunkSize = 2000;
-        const chunkMat = new THREE.MeshStandardMaterial({ color: 0x337a33, roughness: 0.9, flatShading: true });
-
-        function getTerrainHeight(x, z) {
-            let h = Math.sin(x * 0.0005) * 300 + Math.cos(z * 0.0006) * 300;
-            h += Math.sin(x * 0.002 + z * 0.001) * 80;
-            h += Math.sin(x * 0.006) * 40; // Frequência extra para detalhar polígonos
-            h += Math.sin(x * 0.02 + z * 0.02) * 8; // Ruído alto para visual rochoso
-            
-            let onRunwayZ = z < 500 && z > -4500;
-            if(onRunwayZ) {
-                let dx = Math.abs(x);
-                let blend = Math.max(0, Math.min(1, (dx - 200) / 400));
-                return h * blend; 
-            }
-            return h;
-        }
-
-        function updateChunks(px, pz) {
-            const cx = Math.floor(px / chunkSize);
-            const cz = Math.floor(pz / chunkSize);
-            const viewDist = 2;
-
-            let activeChunks = new Set();
-
-            for(let x = cx - viewDist; x <= cx + viewDist; x++) {
-                for(let z = cz - viewDist; z <= cz + viewDist; z++) {
-                    let key = `${x},${z}`;
-                    activeChunks.add(key);
-                    if(!chunks.has(key)) {
-                        // AUMENTADO DE 32x32 PARA 128x128 -> Muito mais polígonos e detalhes!
-                        let geo = new THREE.PlaneGeometry(chunkSize, chunkSize, 128, 128);
-                        geo.rotateX(-Math.PI / 2);
-                        let pos = geo.attributes.position;
-                        for(let i=0; i<pos.count; i++) {
-                            let vx = pos.getX(i) + x * chunkSize;
-                            let vz = pos.getZ(i) + z * chunkSize;
-                            pos.setY(i, getTerrainHeight(vx, vz));
-                        }
-                        geo.computeVertexNormals();
-                        let mesh = new THREE.Mesh(geo, chunkMat);
-                        mesh.position.set(x * chunkSize, 0, z * chunkSize);
-                        mesh.receiveShadow = true;
-                        scene.add(mesh);
-                        chunks.set(key, mesh);
-                    }
-                }
-            }
-
-            for(let [key, mesh] of chunks.entries()) {
-                if(!activeChunks.has(key)) {
-                    scene.remove(mesh);
-                    mesh.geometry.dispose();
-                    chunks.delete(key);
-                }
-            }
-        }
-
-        // --- PISTA ---
-        const runwayWidth = 120;
-        const runway = new THREE.Mesh(new THREE.PlaneGeometry(runwayWidth, 4000), new THREE.MeshStandardMaterial({ color: 0x1a1a1a }));
-        runway.rotation.x = -Math.PI / 2; 
-        runway.position.y = 0.05; runway.position.z = -1900; 
-        runway.receiveShadow = true;
-        scene.add(runway);
-
-        for(let i = 0; i > -3900; i -= 60) {
-            const stripe = new THREE.Mesh(new THREE.PlaneGeometry(2, 15), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
-            stripe.rotation.x = -Math.PI / 2; 
-            stripe.position.set(0, 0.06, i); 
-            scene.add(stripe);
-        }
-
-        // --- AVIÃO ---
-        const planeGroup = new THREE.Group();
-        planeGroup.rotation.order = "YXZ";
-        const modelInner = new THREE.Group();
-        planeGroup.add(modelInner);
-        scene.add(planeGroup);
-        planeGroup.position.set(0, 0.6, 0);
-
-        let velocity = new THREE.Vector3(0, 0, 0);
-
-        let engine = false, thr = 0, joy = { x: 0, y: 0 };
-        const keys = { w:false, a:false, s:false, d:false, q:false, e:false };
-        
-        window.addEventListener('keydown', e => { if (keys[e.key.toLowerCase()] !== undefined) keys[e.key.toLowerCase()] = true; });
-        window.addEventListener('keyup', e => { if (keys[e.key.toLowerCase()] !== undefined) keys[e.key.toLowerCase()] = false; });
-
-        const loader = new GLTFLoader();
-        window.changePlane = function(fileName) {
-            while(modelInner.children.length > 0) modelInner.remove(modelInner.children[0]); 
-            planeGroup.position.set(0, 0.6, 0);
-            planeGroup.rotation.set(0, 0, 0);
-            velocity.set(0, 0, 0);
-
-            loader.load(fileName, (gltf) => {
-                gltf.scene.rotation.y = Math.PI; 
-                gltf.scene.position.y = -0.55; 
-                gltf.scene.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
-                modelInner.add(gltf.scene);
-            }, undefined, (error) => console.error("Erro ao carregar:", fileName));
-        };
-        window.changePlane('t1.glb');
-
-        // --- CONTROLES DE CÂMERA ---
-        let camTheta = Math.PI, camPhi = 0.2, camDist = 35;
-        let targetCamTheta = Math.PI, targetCamPhi = 0.2;
-        let isMovingCam = false, lastX = 0, lastY = 0;
-
-        const updateCam = (x, y) => {
-            if (!isMovingCam) return;
-            targetCamTheta -= (x - lastX) * 0.005;
-            targetCamPhi = Math.max(0.05, Math.min(1.4, targetCamPhi + (y - lastY) * 0.005));
-            lastX = x; lastY = y;
-        };
-
-        window.addEventListener('mousedown', e => { if(e.button===0){isMovingCam = true; lastX = e.clientX; lastY = e.clientY;} });
-        window.addEventListener('mousemove', e => updateCam(e.clientX, e.clientY));
-        window.addEventListener('mouseup', () => isMovingCam = false);
-        window.addEventListener('touchstart', e => {
-            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !document.getElementById('joy-wrapper').contains(e.target)) {
-                isMovingCam = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
-            }
-        });
-        window.addEventListener('touchmove', e => updateCam(e.touches[0].clientX, e.touches[0].clientY));
-        window.addEventListener('touchend', () => isMovingCam = false);
-
-        // --- JOYSTICK MOBILE ---
-        const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
-        const moveJoy = (e) => {
-            const r = wrap.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            joy.x = ((cx - r.left - 70) / 70) * 0.6; 
-            joy.y = ((cy - r.top - 70) / 70) * 0.6;  
-            stick.style.transform = `translate(${joy.x * 60}px, ${joy.y * 60}px)`;
-        };
-        wrap.onpointermove = (e) => { if(e.buttons === 1 || e.touches) moveJoy(e); };
-        wrap.onpointerup = () => { joy = { x: 0, y: 0 }; stick.style.transform = `translate(0,0)`; };
-
-        document.getElementById('btn-engine').onclick = (e) => { 
-            engine = !engine; e.target.innerText = engine ? "OFF" : "ON"; 
-        };
-        document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
-
-        const clock = new THREE.Clock();
-
-        function loop() {
-            const dt = Math.min(clock.getDelta(), 0.1);
-
-            updateChunks(planeGroup.position.x, planeGroup.position.z);
-
-            // --- FÍSICA HÍBRIDA: CONTROLE DO SISTEMA ANTIGO + MATEMÁTICA AERODINÂMICA ---
-            const airspeed = velocity.length();
-
-            // Inputs
-            let pitchInput = joy.y + (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
-            let rollInput = joy.x + (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-            let yawInput = (keys.q ? 1 : 0) - (keys.e ? 1 : 0);
-
-            // 1. ROTAÇÃO RESPONSIVA DO SISTEMA ANTIGO (Dependente do fluxo de ar)
-            const airDensity = 1.225;
-            const dynPressure = 0.5 * airDensity * airspeed * airspeed;
-            const ctrlEffect = Math.max(0.01, Math.min(1.0, dynPressure / 2000)); 
-
-            let targetPitch = pitchInput * 0.8;
-            let targetRoll = -rollInput * 0.8;
-
-            // Retornamos ao modo macio (Lerp) que deixa o voo "gostoso" e não horrível
-            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, dt * 1.5 * ctrlEffect);
-            planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, targetRoll, dt * 1.5 * ctrlEffect);
-            
-            // Yaw coordenado com roll (Sistema anterior) + Yaw manual
-            planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.5;
-            planeGroup.rotation.y += yawInput * dt * ctrlEffect;
-
-            // 2. LEIS DA AERODINÂMICA (Posição dirigida por Forças e Vetores)
-            const localForward = new THREE.Vector3(0, 0, 1).applyQuaternion(planeGroup.quaternion);
-            const localUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
-            const localRight = new THREE.Vector3(1, 0, 0).applyQuaternion(planeGroup.quaternion);
-
-            const wingArea = 16.0;
-            const mass = 1200;
-            const gravity = 9.81;
-
-            let velForward = velocity.dot(localForward);
-            let velUp = velocity.dot(localUp);
-            
-            // Cálculo do Ângulo de Ataque (Alpha)
-            let alpha = airspeed > 2.0 ? Math.atan2(-velUp, velForward) : 0;
-            
-            // Coeficientes Baseados em Matemática de Voo (Sustentação e Stall)
-            let cl = 2 * Math.PI * alpha + 0.1; 
-            if (alpha > 0.3) cl = Math.max(0, 1.8 - (alpha - 0.3) * 5.0); // Efeito Stall
-            if (alpha < -0.3) cl = Math.min(0, -1.8 - (alpha + 0.3) * 5.0);
-            
-            let cd = 0.025 + (0.05 * cl * cl); // Arrasto Parasita + Arrasto Induzido
-
-            // Forças (N)
-            let liftForce = dynPressure * wingArea * cl;
-            let dragForce = dynPressure * wingArea * cd;
-            let engineForce = engine ? thr * 18000 : 0; 
-
-            let netForce = new THREE.Vector3();
-            netForce.add(localForward.clone().multiplyScalar(engineForce)); // Empuxo
-            if (airspeed > 0.1) netForce.add(velocity.clone().normalize().multiplyScalar(-dragForce)); // Arrasto
-            netForce.add(localUp.clone().multiplyScalar(liftForce)); // Sustentação
-            netForce.add(new THREE.Vector3(0, -mass * gravity, 0)); // Peso/Gravidade
-
-            // Segunda Lei de Newton (Aceleração = Força Resultante / Massa)
-            velocity.add(netForce.multiplyScalar(dt / mass));
-
-            // Estabilidade aerodinâmica (mata o escorregamento lateral horrível)
-            let sideSlip = velocity.dot(localRight);
-            velocity.sub(localRight.multiplyScalar(sideSlip * 0.95 * dt * 40)); 
-
-            // Colisão com Terreno (Segurança e Física de Solo)
-            let groundY = getTerrainHeight(planeGroup.position.x, planeGroup.position.z);
-            const onRunway = Math.abs(planeGroup.position.x) < 150 && planeGroup.position.z <= 200 && planeGroup.position.z >= -4200;
-            if(onRunway) groundY = Math.max(groundY, 0.05);
-
-            if (planeGroup.position.y <= groundY + 0.55) {
-                planeGroup.position.y = groundY + 0.55;
-                if (velocity.y < 0) velocity.y *= -0.2; // Amortece o pouso
-                
-                velocity.x *= 0.98; // Atrito Solo
-                velocity.z *= 0.98;
-
-                planeGroup.rotation.z *= 0.9; // Nivelar asas no chão
-                if(planeGroup.rotation.x > 0.02) planeGroup.rotation.x *= 0.9;
-            }
-
-            // Atualiza posição do avião baseada na velocidade integrada
-            planeGroup.position.add(velocity.clone().multiplyScalar(dt));
-
-            // --- ATUALIZAÇÃO DE CÂMERA E UI ---
-            camTheta = THREE.MathUtils.lerp(camTheta, targetCamTheta, 0.1);
-            camPhi = THREE.MathUtils.lerp(camPhi, targetCamPhi, 0.1);
-            
-            // Fixa o Sol acompanhando a Câmera de longe
-            sun.position.set(planeGroup.position.x - 8000, planeGroup.position.y + 3000, planeGroup.position.z - 15000);
-            
-            camera.position.set(
-                planeGroup.position.x + camDist * Math.sin(camTheta) * Math.cos(camPhi),
-                planeGroup.position.y + camDist * Math.sin(camPhi),
-                planeGroup.position.z + camDist * Math.cos(camTheta) * Math.cos(camPhi)
-            );
-            camera.lookAt(planeGroup.position);
-
-            document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(airspeed * 1.94384)} kts`;
-            document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.max(0, Math.round(planeGroup.position.y - groundY - 0.55))} m`;
-            document.getElementById('ui-wnd').innerText = `WIND: 0 kts`;
-
-            renderer.render(scene, camera);
-            requestAnimationFrame(loop);
-        }
-        loop();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
 </body>
 </html>
