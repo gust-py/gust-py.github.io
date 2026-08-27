@@ -68,13 +68,6 @@
             background-color: var(--bg-surface-hover);
         }
 
-        .history-title {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            padding-left: 10px;
-        }
-
         .history-list {
             list-style: none;
             overflow-y: auto;
@@ -266,14 +259,13 @@
     <aside class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="startNewChat()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Novo Teste SNN
+            Nova conversa
         </button>
         
-        <div class="history-title">Testes Recentes</div>
         <ul class="history-list" id="history-list">
-            <li class="history-item">Simulação LIF - Alta Freq...</li>
-            <li class="history-item">Análise de Peso Sináptico</li>
-            <li class="history-item">Treinamento STDP Básico</li>
+            <li class="history-item">Conversa anterior 1</li>
+            <li class="history-item">Conversa anterior 2</li>
+            <li class="history-item">Conversa anterior 3</li>
         </ul>
     </aside>
 
@@ -291,14 +283,14 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
                 </div>
                 <div class="message-content">
-                    Olá. Sou o modelo de processamento neuromórfico. Insira os parâmetros de disparo (spikes) ou faça perguntas sobre a rede neural pulsante.
+                    Olá! Como posso ajudar você hoje?
                 </div>
             </div>
         </div>
 
         <div class="input-wrapper">
             <div class="input-box">
-                <textarea id="user-input" rows="1" placeholder="Envie um comando para a rede SNN..." oninput="autoResize(this)" onkeypress="handleEnter(event)"></textarea>
+                <textarea id="user-input" rows="1" placeholder="Digite uma mensagem..." oninput="autoResize(this)" onkeypress="handleEnter(event)"></textarea>
                 <button class="send-btn" onclick="sendMessage()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
@@ -340,7 +332,7 @@
 
             // Simulate AI response
             setTimeout(() => {
-                const response = `Processando: "${text}".\nAnálise de taxa de disparo concluída. O modelo Izhikevich convergiu com estabilidade em 2.4ms.`;
+                const response = `Recebi sua mensagem: "${text}". Como posso ajudar com isso?`;
                 addMessage(response, 'ai');
             }, 800);
         }
@@ -369,7 +361,7 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
                     </div>
                     <div class="message-content">
-                        Nova sessão neuromórfica iniciada. Memória sináptica redefinida.
+                        Olá! Como posso ajudar você hoje?
                     </div>
                 </div>
             `;
