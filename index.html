@@ -2,13 +2,12 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - Hangar</title>
+    <title>Flight Simulator - Realistic Physics & Procedural Map</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; touch-action: none; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; z-index: 10; }
         .info { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         
-        /* Menu de Seleção de Aviões */
         #hangar { position: absolute; top: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 30; }
         .btn-plane { padding: 10px; background: rgba(0,0,0,0.6); color: white; border: 1px solid #fff; cursor: pointer; transition: 0.3s; }
         .btn-plane:hover { background: #fff; color: #000; }
@@ -26,6 +25,8 @@
     <div id="ui">
         <div class="info" id="ui-spd">SPEED: 0 kts</div>
         <div class="info" id="ui-alt">ALTITUDE: 0 m</div>
+        <div class="info" id="ui-wnd">WIND: 0 kts</div>
+        <div class="info" style="font-size: 14px; margin-top: 10px; color: #ddd;">CONTROLS: W/S (Pitch), A/D (Roll), Q/E (Yaw)</div>
     </div>
 
     <div id="hangar">
@@ -55,7 +56,7 @@
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0xd1f3ff, 100, 50000); 
+        scene.fog = new THREE.Fog(0xd1f3ff, 100, 30000); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -84,61 +85,112 @@
         });
         scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-        // --- PLANETA ---
-        const planetRadius = 637000;
-        const planet = new THREE.Mesh(new THREE.SphereGeometry(planetRadius, 128, 128), new THREE.MeshStandardMaterial({ color: 0x337a33 }));
-        planet.position.y = -planetRadius; planet.receiveShadow = true;
-        scene.add(planet);
+        // --- GERAMENTO PROCEDURAL DE MAPA ---
+        const chunks = new Map();
+        const chunkSize = 2000;
+        const chunkMat = new THREE.MeshStandardMaterial({ color: 0x337a33, roughness: 0.8, flatShading: true });
+
+        function getTerrainHeight(x, z) {
+            let h = Math.sin(x * 0.0005) * 300 + Math.cos(z * 0.0006) * 300;
+            h += Math.sin(x * 0.002 + z * 0.001) * 80;
+            h += Math.sin(x * 0.01) * 10;
+            
+            // Suaviza e achata a área da pista (perto de x=0 e z entre 500 e -4500)
+            let onRunwayZ = z < 500 && z > -4500;
+            if(onRunwayZ) {
+                let dx = Math.abs(x);
+                let blend = Math.max(0, Math.min(1, (dx - 150) / 300));
+                return h * blend; 
+            }
+            return h;
+        }
+
+        function updateChunks(px, pz) {
+            const cx = Math.floor(px / chunkSize);
+            const cz = Math.floor(pz / chunkSize);
+            const viewDist = 2; // Grid 5x5 de chunks ao redor do avião
+
+            let activeChunks = new Set();
+
+            for(let x = cx - viewDist; x <= cx + viewDist; x++) {
+                for(let z = cz - viewDist; z <= cz + viewDist; z++) {
+                    let key = `${x},${z}`;
+                    activeChunks.add(key);
+                    if(!chunks.has(key)) {
+                        let geo = new THREE.PlaneGeometry(chunkSize, chunkSize, 32, 32);
+                        geo.rotateX(-Math.PI / 2);
+                        let pos = geo.attributes.position;
+                        for(let i=0; i<pos.count; i++) {
+                            let vx = pos.getX(i) + x * chunkSize;
+                            let vz = pos.getZ(i) + z * chunkSize;
+                            pos.setY(i, getTerrainHeight(vx, vz));
+                        }
+                        geo.computeVertexNormals();
+                        let mesh = new THREE.Mesh(geo, chunkMat);
+                        mesh.position.set(x * chunkSize, 0, z * chunkSize);
+                        mesh.receiveShadow = true;
+                        scene.add(mesh);
+                        chunks.set(key, mesh);
+                    }
+                }
+            }
+
+            for(let [key, mesh] of chunks.entries()) {
+                if(!activeChunks.has(key)) {
+                    scene.remove(mesh);
+                    mesh.geometry.dispose();
+                    chunks.delete(key);
+                }
+            }
+        }
 
         // --- PISTA ---
         const runwayWidth = 120;
         const runway = new THREE.Mesh(new THREE.PlaneGeometry(runwayWidth, 4000), new THREE.MeshStandardMaterial({ color: 0x1a1a1a }));
         runway.rotation.x = -Math.PI / 2; 
-        runway.position.y = 0.01; runway.position.z = -1900; 
+        runway.position.y = 0.05; runway.position.z = -1900; 
         runway.receiveShadow = true;
         scene.add(runway);
 
-        // Faixas brancas (AJUSTADAS: mais finas e curtas)
         for(let i = 0; i > -3900; i -= 60) {
             const stripe = new THREE.Mesh(new THREE.PlaneGeometry(2, 15), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
             stripe.rotation.x = -Math.PI / 2; 
-            stripe.position.set(0, 0.02, i); 
+            stripe.position.set(0, 0.06, i); 
             scene.add(stripe);
         }
 
-        // --- AVIÃO E LÓGICA DE CARREGAMENTO ---
+        // --- AVIÃO E FÍSICA AERODINÂMICA ---
         const planeGroup = new THREE.Group();
+        planeGroup.rotation.order = "YXZ";
         const modelInner = new THREE.Group();
         planeGroup.add(modelInner);
         scene.add(planeGroup);
         planeGroup.position.set(0, 0.6, 0);
 
-        let speed = 0, engine = false, thr = 0, joy = { x: 0, y: 0 };
-        const loader = new GLTFLoader();
+        let velocity = new THREE.Vector3(0, 0, 0);
+        let wind = new THREE.Vector3(0, 0, 0);
+        let windTime = 0;
 
+        let engine = false, thr = 0, joy = { x: 0, y: 0 };
+        const keys = { w:false, a:false, s:false, d:false, q:false, e:false };
+        
+        window.addEventListener('keydown', e => { if (keys[e.key.toLowerCase()] !== undefined) keys[e.key.toLowerCase()] = true; });
+        window.addEventListener('keyup', e => { if (keys[e.key.toLowerCase()] !== undefined) keys[e.key.toLowerCase()] = false; });
+
+        const loader = new GLTFLoader();
         window.changePlane = function(fileName) {
-            // Limpa o modelo anterior
-            while(modelInner.children.length > 0){ 
-                modelInner.remove(modelInner.children[0]); 
-            }
-            
-            // Reseta posição para a pista ao trocar (opcional)
+            while(modelInner.children.length > 0) modelInner.remove(modelInner.children[0]); 
             planeGroup.position.set(0, 0.6, 0);
             planeGroup.rotation.set(0, 0, 0);
-            speed = 0;
+            velocity.set(0, 0, 0);
 
             loader.load(fileName, (gltf) => {
                 gltf.scene.rotation.y = Math.PI; 
                 gltf.scene.position.y = -0.55; 
                 gltf.scene.traverse(n => { if(n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
                 modelInner.add(gltf.scene);
-            }, undefined, (error) => {
-                console.error("Erro ao carregar modelo: " + fileName);
-                alert("Certifique-se que o arquivo " + fileName + " existe na pasta!");
-            });
+            }, undefined, (error) => console.error("Erro ao carregar:", fileName));
         };
-
-        // Carrega o primeiro por padrão
         window.changePlane('t1.glb');
 
         // --- CONTROLES DE CÂMERA ---
@@ -164,7 +216,7 @@
         window.addEventListener('touchmove', e => updateCam(e.touches[0].clientX, e.touches[0].clientY));
         window.addEventListener('touchend', () => isMovingCam = false);
 
-        // --- JOYSTICK ---
+        // --- JOYSTICK MOBILE ---
         const stick = document.getElementById('joy-stick'), wrap = document.getElementById('joy-wrapper');
         const moveJoy = (e) => {
             const r = wrap.getBoundingClientRect();
@@ -183,40 +235,107 @@
         document.getElementById('input-thr').oninput = (e) => thr = parseFloat(e.target.value);
 
         const clock = new THREE.Clock();
-        const raycaster = new THREE.Raycaster();
-        const downVec = new THREE.Vector3(0, -1, 0);
 
         function loop() {
-            const dt = clock.getDelta();
-            const rayOrigin = planeGroup.position.clone().add(new THREE.Vector3(0, 10, 0));
-            raycaster.set(rayOrigin, downVec);
-            const hits = raycaster.intersectObject(planet);
-            let groundY = (hits.length > 0) ? hits[0].point.y : 0;
+            const dt = Math.min(clock.getDelta(), 0.1);
+            windTime += dt;
 
-            const onRunway = Math.abs(planeGroup.position.x) < (runwayWidth/2) && planeGroup.position.z <= 0 && planeGroup.position.z >= -4000;
-            if(onRunway) groundY = 0.01;
+            updateChunks(planeGroup.position.x, planeGroup.position.z);
 
-            const currentAlt = planeGroup.position.y - groundY;
-            const isGrounded = currentAlt <= 0.6;
+            // Vento variável procedural
+            wind.set(
+                Math.sin(windTime * 0.1) * 3 + 2, 
+                0, 
+                Math.cos(windTime * 0.15) * 3 - 1
+            );
 
-            speed = THREE.MathUtils.lerp(speed, engine ? thr * ((currentAlt > 10) ? 316 : 160) : 0, dt * 0.6);
+            // Eixos locais reais do avião
+            const localForward = new THREE.Vector3(0, 0, 1).applyQuaternion(planeGroup.quaternion);
+            const localUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
+            const localRight = new THREE.Vector3(1, 0, 0).applyQuaternion(planeGroup.quaternion);
 
-            if (isGrounded) {
+            // Cálculos de Aerodinâmica
+            const airspeedVec = velocity.clone().sub(wind);
+            const airspeed = airspeedVec.length();
+            const airspeedDir = airspeed > 0.1 ? airspeedVec.clone().normalize() : localForward;
+
+            const forwardSpeed = airspeedVec.dot(localForward);
+            const upSpeed = airspeedVec.dot(localUp);
+            const aoa = Math.atan2(-upSpeed, Math.max(0.1, forwardSpeed)); // Ângulo de ataque (Alpha)
+
+            const airDensity = 1.225;
+            const wingArea = 16;
+            const mass = 1000;
+            const gravity = new THREE.Vector3(0, -9.81 * mass, 0);
+
+            // Forças
+            const dynamicPressure = 0.5 * airDensity * airspeed * airspeed;
+            
+            // Thrust
+            const thrustMagnitude = engine ? thr * 16000 : 0;
+            const thrustForce = localForward.clone().multiplyScalar(thrustMagnitude);
+
+            // Lift
+            let cl = aoa * 5.0 + 0.1;
+            if (aoa > 0.3) cl = 1.2 - (aoa - 0.3) * 2.0; // Stall
+            if (aoa < -0.3) cl = -1.0;
+            const liftMagnitude = dynamicPressure * wingArea * cl;
+            const liftForce = localUp.clone().multiplyScalar(liftMagnitude);
+
+            // Drag
+            const cd = 0.02 + (aoa * aoa * 0.15); // Parasitic + induced
+            const dragMagnitude = dynamicPressure * wingArea * cd;
+            const dragForce = airspeedDir.clone().multiplyScalar(-dragMagnitude);
+
+            // Newton
+            const netForce = new THREE.Vector3().add(thrustForce).add(liftForce).add(dragForce).add(gravity);
+            const acceleration = netForce.divideScalar(mass);
+            
+            velocity.add(acceleration.multiplyScalar(dt));
+
+            // Colisão e Terreno
+            let groundY = getTerrainHeight(planeGroup.position.x, planeGroup.position.z);
+            const onRunway = Math.abs(planeGroup.position.x) < 150 && planeGroup.position.z <= 200 && planeGroup.position.z >= -4200;
+            if(onRunway) groundY = Math.max(groundY, 0.05);
+
+            if (planeGroup.position.y <= groundY + 0.55) {
                 planeGroup.position.y = groundY + 0.55;
-                planeGroup.rotation.y -= joy.x * dt * 0.6;
-                if (speed > 100) planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.2, dt * 1.5);
-                if (speed > 140 && planeGroup.rotation.x > 0.02) planeGroup.position.y += speed * dt * 0.5;
-            } else {
-                planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, joy.y * 0.8, dt * 1.2);
-                planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, -joy.x * 0.7, dt * 1.2);
-                planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.5;
-                planeGroup.position.y += ((speed / 160) * Math.max(0, 1 + planeGroup.rotation.x) - 1.05) * 60 * dt;
-                if (planeGroup.position.y < groundY + 0.55) planeGroup.position.y = groundY + 0.55;
-            }
-            planeGroup.translateZ(speed * dt * 0.85);
+                if (velocity.y < 0) velocity.y *= -0.1; // absorção de impacto suave
+                
+                velocity.x *= 0.98; // atrito solo
+                velocity.z *= 0.98;
 
+                planeGroup.rotation.z *= 0.9; // auto-nivelar roll no solo
+                if(planeGroup.rotation.x > 0.05) planeGroup.rotation.x *= 0.9; // não enfiar nariz no chão
+            }
+
+            planeGroup.position.add(velocity.clone().multiplyScalar(dt));
+
+            // Controles combinados (Mobile + WASD)
+            let pitchInput = joy.y + (keys.s ? 1 : 0) + (keys.w ? -1 : 0);
+            let rollInput = joy.x + (keys.d ? 1 : 0) + (keys.a ? -1 : 0);
+            let yawInput = (keys.q ? 1 : 0) + (keys.e ? -1 : 0);
+
+            // Efetividade dos controles baseada na pressão aerodinâmica
+            const ctrlEffect = Math.min(1.0, dynamicPressure / 2500);
+            
+            if (planeGroup.position.y > groundY + 0.6) {
+                planeGroup.rotateX(pitchInput * dt * 1.5 * ctrlEffect);
+                planeGroup.rotateZ(-rollInput * dt * 2.5 * ctrlEffect);
+                planeGroup.rotateY(yawInput * dt * 1.0 * ctrlEffect);
+                
+                // Efeito cata-vento (Weathervane / coordenação automática de curva)
+                const rightSpeed = airspeedVec.dot(localRight);
+                if (airspeed > 10) planeGroup.rotateY(rightSpeed * dt * -0.015);
+            } else {
+                // Controle de solo (taxi)
+                if (airspeed > 2) planeGroup.rotateY(yawInput * dt * 0.8);
+            }
+
+            // Atualização da Câmera
             camTheta = THREE.MathUtils.lerp(camTheta, targetCamTheta, 0.1);
             camPhi = THREE.MathUtils.lerp(camPhi, targetCamPhi, 0.1);
+            sun.position.set(planeGroup.position.x, planeGroup.position.y + 1000, planeGroup.position.z);
             camera.position.set(
                 planeGroup.position.x + camDist * Math.sin(camTheta) * Math.cos(camPhi),
                 planeGroup.position.y + camDist * Math.sin(camPhi),
@@ -224,8 +343,10 @@
             );
             camera.lookAt(planeGroup.position);
 
-            document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(speed)} kts`;
-            document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.max(0, Math.round(currentAlt))} m`;
+            // Atualização UI (Conversão m/s para nós)
+            document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(airspeed * 1.94384)} kts`;
+            document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.max(0, Math.round(planeGroup.position.y - groundY - 0.55))} m`;
+            document.getElementById('ui-wnd').innerText = `WIND: ${Math.round(wind.length() * 1.94384)} kts`;
 
             renderer.render(scene, camera);
             requestAnimationFrame(loop);
@@ -238,5 +359,4 @@
         });
     </script>
 </body>
-    </html>
-
+</html>
