@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Flight Simulator - Realistic Physics & Procedural Map</title>
+    <title>Flight Simulator - Physics & Graphics Upgrade</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; touch-action: none; }
         #ui { position: absolute; top: 20px; left: 20px; color: #FFF; pointer-events: none; text-shadow: 2px 2px 4px #000; z-index: 10; }
@@ -46,7 +46,8 @@
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+                "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
+                "three/examples/jsm/objects/Lensflare.js": "https://unpkg.com/three@0.160.0/examples/jsm/objects/Lensflare.js"
             }
         }
     </script>
@@ -54,9 +55,10 @@
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+        import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflare.js';
 
         const scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0xd1f3ff, 100, 30000); 
+        scene.fog = new THREE.FogExp2(0xd1f3ff, 0.00004); 
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -66,40 +68,68 @@
 
         const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 5000000);
         
-        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        // --- SOL E SUNRAYS (LENSFLARE) ---
+        const sun = new THREE.DirectionalLight(0xffffff, 1.8);
         sun.castShadow = true;
-        sun.shadow.camera.left = -200; sun.shadow.camera.right = 200;
-        sun.shadow.camera.top = 200; sun.shadow.camera.bottom = -200;
-        sun.shadow.camera.far = 3000;
+        sun.shadow.camera.left = -300; sun.shadow.camera.right = 300;
+        sun.shadow.camera.top = 300; sun.shadow.camera.bottom = -300;
+        sun.shadow.camera.far = 4000;
         sun.shadow.mapSize.set(2048, 2048);
+        
+        // Posição distante para o sol
+        sun.position.set(-8000, 3000, -15000);
         scene.add(sun);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+        // Gerador procedural de textura para raios de sol (Sem baixar imagens externas)
+        function createFlareTexture(size, innerCol, outerCol) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+            grad.addColorStop(0, innerCol);
+            grad.addColorStop(0.3, outerCol);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, size, size);
+            return new THREE.CanvasTexture(canvas);
+        }
+        
+        const texFlare0 = createFlareTexture(512, 'rgba(255,255,255,1)', 'rgba(255,255,255,0.4)');
+        const texFlare3 = createFlareTexture(256, 'rgba(255,255,255,1)', 'rgba(200,200,255,0.2)');
+
+        const lensflare = new Lensflare();
+        lensflare.addElement(new LensflareElement(texFlare0, 700, 0, new THREE.Color(0xffffff)));
+        lensflare.addElement(new LensflareElement(texFlare3, 60, 0.6));
+        lensflare.addElement(new LensflareElement(texFlare3, 100, 0.7));
+        lensflare.addElement(new LensflareElement(texFlare3, 180, 0.9));
+        lensflare.addElement(new LensflareElement(texFlare3, 90, 1.0));
+        sun.add(lensflare);
 
         // --- CÉU ---
         const skyGeo = new THREE.SphereGeometry(2000000, 32, 15);
         const skyMat = new THREE.ShaderMaterial({
             vertexShader: `varying vec3 vWorldPosition; void main() { vec4 worldPosition = modelMatrix * vec4( position, 1.0 ); vWorldPosition = worldPosition.xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }`,
             fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent; varying vec3 vWorldPosition; void main() { float h = normalize( vWorldPosition ).y + offset; gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h, 0.0 ), exponent ), 0.0 ) ), 1.0 ); }`,
-            uniforms: { topColor: { value: new THREE.Color(0x00d4ff) }, bottomColor: { value: new THREE.Color(0xffffff) }, offset: { value: 0.05 }, exponent: { value: 0.6 } },
+            uniforms: { topColor: { value: new THREE.Color(0x00aaff) }, bottomColor: { value: new THREE.Color(0xd1f3ff) }, offset: { value: 0.05 }, exponent: { value: 0.6 } },
             side: THREE.BackSide
         });
         scene.add(new THREE.Mesh(skyGeo, skyMat));
 
-        // --- GERAMENTO PROCEDURAL DE MAPA ---
+        // --- GERAMENTO PROCEDURAL DE MAPA COM MAIS POLÍGONOS ---
         const chunks = new Map();
         const chunkSize = 2000;
-        const chunkMat = new THREE.MeshStandardMaterial({ color: 0x337a33, roughness: 0.8, flatShading: true });
+        const chunkMat = new THREE.MeshStandardMaterial({ color: 0x337a33, roughness: 0.9, flatShading: true });
 
         function getTerrainHeight(x, z) {
             let h = Math.sin(x * 0.0005) * 300 + Math.cos(z * 0.0006) * 300;
             h += Math.sin(x * 0.002 + z * 0.001) * 80;
-            h += Math.sin(x * 0.01) * 10;
+            h += Math.sin(x * 0.006) * 40; // Frequência extra para detalhar polígonos
+            h += Math.sin(x * 0.02 + z * 0.02) * 8; // Ruído alto para visual rochoso
             
-            // Suaviza e achata a área da pista (perto de x=0 e z entre 500 e -4500)
             let onRunwayZ = z < 500 && z > -4500;
             if(onRunwayZ) {
                 let dx = Math.abs(x);
-                let blend = Math.max(0, Math.min(1, (dx - 150) / 300));
+                let blend = Math.max(0, Math.min(1, (dx - 200) / 400));
                 return h * blend; 
             }
             return h;
@@ -108,7 +138,7 @@
         function updateChunks(px, pz) {
             const cx = Math.floor(px / chunkSize);
             const cz = Math.floor(pz / chunkSize);
-            const viewDist = 2; // Grid 5x5 de chunks ao redor do avião
+            const viewDist = 2;
 
             let activeChunks = new Set();
 
@@ -117,7 +147,8 @@
                     let key = `${x},${z}`;
                     activeChunks.add(key);
                     if(!chunks.has(key)) {
-                        let geo = new THREE.PlaneGeometry(chunkSize, chunkSize, 32, 32);
+                        // AUMENTADO DE 32x32 PARA 128x128 -> Muito mais polígonos e detalhes!
+                        let geo = new THREE.PlaneGeometry(chunkSize, chunkSize, 128, 128);
                         geo.rotateX(-Math.PI / 2);
                         let pos = geo.attributes.position;
                         for(let i=0; i<pos.count; i++) {
@@ -159,7 +190,7 @@
             scene.add(stripe);
         }
 
-        // --- AVIÃO E FÍSICA AERODINÂMICA ---
+        // --- AVIÃO ---
         const planeGroup = new THREE.Group();
         planeGroup.rotation.order = "YXZ";
         const modelInner = new THREE.Group();
@@ -168,8 +199,6 @@
         planeGroup.position.set(0, 0.6, 0);
 
         let velocity = new THREE.Vector3(0, 0, 0);
-        let wind = new THREE.Vector3(0, 0, 0);
-        let windTime = 0;
 
         let engine = false, thr = 0, joy = { x: 0, y: 0 };
         const keys = { w:false, a:false, s:false, d:false, q:false, e:false };
@@ -238,104 +267,99 @@
 
         function loop() {
             const dt = Math.min(clock.getDelta(), 0.1);
-            windTime += dt;
 
             updateChunks(planeGroup.position.x, planeGroup.position.z);
 
-            // Vento variável procedural
-            wind.set(
-                Math.sin(windTime * 0.1) * 3 + 2, 
-                0, 
-                Math.cos(windTime * 0.15) * 3 - 1
-            );
+            // --- FÍSICA HÍBRIDA: CONTROLE DO SISTEMA ANTIGO + MATEMÁTICA AERODINÂMICA ---
+            const airspeed = velocity.length();
 
-            // Eixos locais reais do avião
+            // Inputs
+            let pitchInput = joy.y + (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+            let rollInput = joy.x + (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+            let yawInput = (keys.q ? 1 : 0) - (keys.e ? 1 : 0);
+
+            // 1. ROTAÇÃO RESPONSIVA DO SISTEMA ANTIGO (Dependente do fluxo de ar)
+            const airDensity = 1.225;
+            const dynPressure = 0.5 * airDensity * airspeed * airspeed;
+            const ctrlEffect = Math.max(0.01, Math.min(1.0, dynPressure / 2000)); 
+
+            let targetPitch = pitchInput * 0.8;
+            let targetRoll = -rollInput * 0.8;
+
+            // Retornamos ao modo macio (Lerp) que deixa o voo "gostoso" e não horrível
+            planeGroup.rotation.x = THREE.MathUtils.lerp(planeGroup.rotation.x, targetPitch, dt * 1.5 * ctrlEffect);
+            planeGroup.rotation.z = THREE.MathUtils.lerp(planeGroup.rotation.z, targetRoll, dt * 1.5 * ctrlEffect);
+            
+            // Yaw coordenado com roll (Sistema anterior) + Yaw manual
+            planeGroup.rotation.y -= planeGroup.rotation.z * dt * 0.5;
+            planeGroup.rotation.y += yawInput * dt * ctrlEffect;
+
+            // 2. LEIS DA AERODINÂMICA (Posição dirigida por Forças e Vetores)
             const localForward = new THREE.Vector3(0, 0, 1).applyQuaternion(planeGroup.quaternion);
             const localUp = new THREE.Vector3(0, 1, 0).applyQuaternion(planeGroup.quaternion);
             const localRight = new THREE.Vector3(1, 0, 0).applyQuaternion(planeGroup.quaternion);
 
-            // Cálculos de Aerodinâmica
-            const airspeedVec = velocity.clone().sub(wind);
-            const airspeed = airspeedVec.length();
-            const airspeedDir = airspeed > 0.1 ? airspeedVec.clone().normalize() : localForward;
+            const wingArea = 16.0;
+            const mass = 1200;
+            const gravity = 9.81;
 
-            const forwardSpeed = airspeedVec.dot(localForward);
-            const upSpeed = airspeedVec.dot(localUp);
-            const aoa = Math.atan2(-upSpeed, Math.max(0.1, forwardSpeed)); // Ângulo de ataque (Alpha)
-
-            const airDensity = 1.225;
-            const wingArea = 16;
-            const mass = 1000;
-            const gravity = new THREE.Vector3(0, -9.81 * mass, 0);
-
-            // Forças
-            const dynamicPressure = 0.5 * airDensity * airspeed * airspeed;
+            let velForward = velocity.dot(localForward);
+            let velUp = velocity.dot(localUp);
             
-            // Thrust
-            const thrustMagnitude = engine ? thr * 16000 : 0;
-            const thrustForce = localForward.clone().multiplyScalar(thrustMagnitude);
-
-            // Lift
-            let cl = aoa * 5.0 + 0.1;
-            if (aoa > 0.3) cl = 1.2 - (aoa - 0.3) * 2.0; // Stall
-            if (aoa < -0.3) cl = -1.0;
-            const liftMagnitude = dynamicPressure * wingArea * cl;
-            const liftForce = localUp.clone().multiplyScalar(liftMagnitude);
-
-            // Drag
-            const cd = 0.02 + (aoa * aoa * 0.15); // Parasitic + induced
-            const dragMagnitude = dynamicPressure * wingArea * cd;
-            const dragForce = airspeedDir.clone().multiplyScalar(-dragMagnitude);
-
-            // Newton
-            const netForce = new THREE.Vector3().add(thrustForce).add(liftForce).add(dragForce).add(gravity);
-            const acceleration = netForce.divideScalar(mass);
+            // Cálculo do Ângulo de Ataque (Alpha)
+            let alpha = airspeed > 2.0 ? Math.atan2(-velUp, velForward) : 0;
             
-            velocity.add(acceleration.multiplyScalar(dt));
+            // Coeficientes Baseados em Matemática de Voo (Sustentação e Stall)
+            let cl = 2 * Math.PI * alpha + 0.1; 
+            if (alpha > 0.3) cl = Math.max(0, 1.8 - (alpha - 0.3) * 5.0); // Efeito Stall
+            if (alpha < -0.3) cl = Math.min(0, -1.8 - (alpha + 0.3) * 5.0);
+            
+            let cd = 0.025 + (0.05 * cl * cl); // Arrasto Parasita + Arrasto Induzido
 
-            // Colisão e Terreno
+            // Forças (N)
+            let liftForce = dynPressure * wingArea * cl;
+            let dragForce = dynPressure * wingArea * cd;
+            let engineForce = engine ? thr * 18000 : 0; 
+
+            let netForce = new THREE.Vector3();
+            netForce.add(localForward.clone().multiplyScalar(engineForce)); // Empuxo
+            if (airspeed > 0.1) netForce.add(velocity.clone().normalize().multiplyScalar(-dragForce)); // Arrasto
+            netForce.add(localUp.clone().multiplyScalar(liftForce)); // Sustentação
+            netForce.add(new THREE.Vector3(0, -mass * gravity, 0)); // Peso/Gravidade
+
+            // Segunda Lei de Newton (Aceleração = Força Resultante / Massa)
+            velocity.add(netForce.multiplyScalar(dt / mass));
+
+            // Estabilidade aerodinâmica (mata o escorregamento lateral horrível)
+            let sideSlip = velocity.dot(localRight);
+            velocity.sub(localRight.multiplyScalar(sideSlip * 0.95 * dt * 40)); 
+
+            // Colisão com Terreno (Segurança e Física de Solo)
             let groundY = getTerrainHeight(planeGroup.position.x, planeGroup.position.z);
             const onRunway = Math.abs(planeGroup.position.x) < 150 && planeGroup.position.z <= 200 && planeGroup.position.z >= -4200;
             if(onRunway) groundY = Math.max(groundY, 0.05);
 
             if (planeGroup.position.y <= groundY + 0.55) {
                 planeGroup.position.y = groundY + 0.55;
-                if (velocity.y < 0) velocity.y *= -0.1; // absorção de impacto suave
+                if (velocity.y < 0) velocity.y *= -0.2; // Amortece o pouso
                 
-                velocity.x *= 0.98; // atrito solo
+                velocity.x *= 0.98; // Atrito Solo
                 velocity.z *= 0.98;
 
-                planeGroup.rotation.z *= 0.9; // auto-nivelar roll no solo
-                if(planeGroup.rotation.x > 0.05) planeGroup.rotation.x *= 0.9; // não enfiar nariz no chão
+                planeGroup.rotation.z *= 0.9; // Nivelar asas no chão
+                if(planeGroup.rotation.x > 0.02) planeGroup.rotation.x *= 0.9;
             }
 
+            // Atualiza posição do avião baseada na velocidade integrada
             planeGroup.position.add(velocity.clone().multiplyScalar(dt));
 
-            // Controles combinados (Mobile + WASD)
-            let pitchInput = joy.y + (keys.s ? 1 : 0) + (keys.w ? -1 : 0);
-            let rollInput = joy.x + (keys.d ? 1 : 0) + (keys.a ? -1 : 0);
-            let yawInput = (keys.q ? 1 : 0) + (keys.e ? -1 : 0);
-
-            // Efetividade dos controles baseada na pressão aerodinâmica
-            const ctrlEffect = Math.min(1.0, dynamicPressure / 2500);
-            
-            if (planeGroup.position.y > groundY + 0.6) {
-                planeGroup.rotateX(pitchInput * dt * 1.5 * ctrlEffect);
-                planeGroup.rotateZ(-rollInput * dt * 2.5 * ctrlEffect);
-                planeGroup.rotateY(yawInput * dt * 1.0 * ctrlEffect);
-                
-                // Efeito cata-vento (Weathervane / coordenação automática de curva)
-                const rightSpeed = airspeedVec.dot(localRight);
-                if (airspeed > 10) planeGroup.rotateY(rightSpeed * dt * -0.015);
-            } else {
-                // Controle de solo (taxi)
-                if (airspeed > 2) planeGroup.rotateY(yawInput * dt * 0.8);
-            }
-
-            // Atualização da Câmera
+            // --- ATUALIZAÇÃO DE CÂMERA E UI ---
             camTheta = THREE.MathUtils.lerp(camTheta, targetCamTheta, 0.1);
             camPhi = THREE.MathUtils.lerp(camPhi, targetCamPhi, 0.1);
-            sun.position.set(planeGroup.position.x, planeGroup.position.y + 1000, planeGroup.position.z);
+            
+            // Fixa o Sol acompanhando a Câmera de longe
+            sun.position.set(planeGroup.position.x - 8000, planeGroup.position.y + 3000, planeGroup.position.z - 15000);
+            
             camera.position.set(
                 planeGroup.position.x + camDist * Math.sin(camTheta) * Math.cos(camPhi),
                 planeGroup.position.y + camDist * Math.sin(camPhi),
@@ -343,10 +367,9 @@
             );
             camera.lookAt(planeGroup.position);
 
-            // Atualização UI (Conversão m/s para nós)
             document.getElementById('ui-spd').innerText = `SPEED: ${Math.round(airspeed * 1.94384)} kts`;
             document.getElementById('ui-alt').innerText = `ALTITUDE: ${Math.max(0, Math.round(planeGroup.position.y - groundY - 0.55))} m`;
-            document.getElementById('ui-wnd').innerText = `WIND: ${Math.round(wind.length() * 1.94384)} kts`;
+            document.getElementById('ui-wnd').innerText = `WIND: 0 kts`;
 
             renderer.render(scene, camera);
             requestAnimationFrame(loop);
