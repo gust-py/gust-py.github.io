@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>chat</title>
-    <!-- prismjs para syntax highlighting (usando tema escuro customizado) -->
+    <!-- prismjs for syntax highlighting (using custom dark theme) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
     <style>
         :root {
@@ -111,7 +111,7 @@
             border-color: var(--accent);
         }
 
-        /* área do script em execução na sidebar */
+        /* script view container in sidebar */
         .script-view-container {
             flex-grow: 1;
             display: flex;
@@ -136,7 +136,7 @@
 
         .script-code-box {
             flex-grow: 1;
-            background-color: #131314 !important; /* cinza escuro correspondente ao fundo do site */
+            background-color: #131314 !important;
             border-radius: 8px;
             overflow: auto;
             max-height: 100%;
@@ -317,7 +317,7 @@
             border-color: #ffffff;
         }
 
-        /* scrollbar customizada com borda branca ao passar o mouse */
+        /* custom scrollbar with white border on hover */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -348,20 +348,20 @@
     <aside class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="startNewChat()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            nova conversa
+            new chat
         </button>
         
         <div class="config-box">
             <label for="groq-token">groq api key</label>
             <input type="password" id="groq-token" placeholder="gsk_..." />
             
-            <label for="groq-model">modelo</label>
+            <label for="groq-model">model</label>
             <input type="text" id="groq-model" value="openai/gpt-oss-120b" />
         </div>
 
         <div class="script-view-container">
-            <span class="script-view-title">script em execução (payload atual):</span>
-            <pre class="script-code-box"><code class="language-json" id="script-code-display">// aguardando envio de mensagem...</code></pre>
+            <span class="script-view-title">running script (current payload):</span>
+            <pre class="script-code-box"><code class="language-json" id="script-code-display">// waiting for message input...</code></pre>
         </div>
     </aside>
 
@@ -377,7 +377,7 @@
 
         <div class="input-wrapper">
             <div class="input-box">
-                <textarea id="user-input" rows="1" placeholder="digita alguma coisa..." oninput="autoResize(this)" onkeypress="handleEnter(event)"></textarea>
+                <textarea id="user-input" rows="1" placeholder="type something..." oninput="autoResize(this)" onkeypress="handleEnter(event)"></textarea>
                 <button class="send-btn" onclick="sendMessage()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
@@ -385,7 +385,7 @@
         </div>
     </main>
 
-    <!-- prismjs script para realce de sintaxe -->
+    <!-- prismjs script for syntax highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
 
@@ -396,7 +396,7 @@
         const scriptCodeDisplay = document.getElementById('script-code-display');
 
         let messageHistory = [
-            { role: "system", content: "você é um assistente humano e casual. responda sempre usando apenas letras minúsculas, sem usar emojis em hipótese alguma, sem formalidades exageradas, de forma direta e natural." }
+            { role: "system", content: "you are a casual and human assistant. always respond using only lowercase letters, without using emojis under any circumstances, without exaggerated formalities, in a direct and natural way." }
         ];
 
         function toggleSidebar() {
@@ -429,7 +429,7 @@
             const model = document.getElementById('groq-model').value.trim();
 
             if (!apiKey) {
-                alert('insira sua api key da groq no menu lateral.');
+                alert('enter your groq api key in the sidebar menu.');
                 return;
             }
 
@@ -477,7 +477,7 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
             } catch (error) {
-                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">erro na conexao: ${error.message.toLowerCase()}</span>`;
+                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">connection error: ${error.message.toLowerCase()}</span>`;
             }
         }
 
@@ -485,11 +485,11 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
 
-            const avatarIcon = sender === 'user' ? 'vc' : 'ai';
+            const avatarIcon = sender === 'user' ? 'us' : 'ai';
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.innerHTML = text ? text.toLowerCase().replace(/\n/g, '<br>') : '<span style="color: var(--text-secondary);">pensando...</span>';
+            contentDiv.innerHTML = text ? text.toLowerCase().replace(/\n/g, '<br>') : '<span style="color: var(--text-secondary);">thinking...</span>';
 
             msgDiv.innerHTML = `<div class="avatar">${avatarIcon}</div>`;
             msgDiv.appendChild(contentDiv);
@@ -502,10 +502,10 @@
 
         function startNewChat() {
             messageHistory = [
-                { role: "system", content: "você é um assistente humano e casual. responda sempre usando apenas letras minúsculas, sem usar emojis em hipótese alguma, sem formalidades exageradas, de forma direta e natural." }
+                { role: "system", content: "you are a casual and human assistant. always respond using only lowercase letters, without using emojis under any circumstances, without exaggerated formalities, in a direct and natural way." }
             ];
             chatContainer.innerHTML = '';
-            scriptCodeDisplay.textContent = '// nova conversa iniciada...';
+            scriptCodeDisplay.textContent = '// new chat started...';
             Prism.highlightElement(scriptCodeDisplay);
         }
     </script>
