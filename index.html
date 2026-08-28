@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test AI Chat - Groq</title>
+    <title>chat</title>
     <style>
         :root {
             --bg-base: #131314;
@@ -11,7 +11,7 @@
             --bg-surface-hover: #2a2b2f;
             --text-primary: #e3e3e3;
             --text-secondary: #c4c7c5;
-            --accent: #f55036; /* Cor temática da Groq */
+            --accent: #f55036;
             --sidebar-width: 280px;
         }
 
@@ -19,7 +19,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, blinkmacsystemfont, "segoe ui", roboto, helvetica, arial, sans-serif;
         }
 
         body {
@@ -30,7 +30,7 @@
             overflow: hidden;
         }
 
-        /* --- Sidebar --- */
+        /* --- sidebar --- */
         .sidebar {
             width: var(--sidebar-width);
             background-color: var(--bg-surface);
@@ -104,7 +104,7 @@
             margin-top: 1rem;
         }
 
-        /* --- Main Content --- */
+        /* --- main content --- */
         .main-content {
             flex-grow: 1;
             display: flex;
@@ -141,7 +141,7 @@
             font-weight: 500;
         }
 
-        /* --- Chat Area --- */
+        /* --- chat area --- */
         .chat-container {
             flex-grow: 1;
             overflow-y: auto;
@@ -175,6 +175,7 @@
             flex-shrink: 0;
             color: #fff;
             font-weight: bold;
+            font-size: 0.9rem;
         }
 
         .message.user .avatar {
@@ -196,7 +197,7 @@
             background-color: #333;
         }
 
-        /* --- Input Area --- */
+        /* --- input area --- */
         .input-wrapper {
             padding: 2rem;
             max-width: 800px;
@@ -254,7 +255,7 @@
             background-color: rgba(245, 80, 54, 0.1);
         }
 
-        /* Scrollbar */
+        /* scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -275,14 +276,14 @@
     <aside class="sidebar" id="sidebar">
         <button class="new-chat-btn" onclick="startNewChat()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Nova conversa
+            nova conversa
         </button>
         
         <div class="config-box">
-            <label for="groq-token">Groq API Key</label>
+            <label for="groq-token">groq api key</label>
             <input type="password" id="groq-token" placeholder="gsk_..." />
             
-            <label for="groq-model">Modelo</label>
+            <label for="groq-model">modelo</label>
             <input type="text" id="groq-model" value="openai/gpt-oss-120b" />
         </div>
 
@@ -294,21 +295,21 @@
             <button class="menu-btn" onclick="toggleSidebar()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <span class="header-title">Test AI (Groq)</span>
+            <span class="header-title">chat</span>
         </header>
 
         <div class="chat-container" id="chat-container">
             <div class="message ai">
-                <div class="avatar">G</div>
+                <div class="avatar">ai</div>
                 <div class="message-content">
-                    Olá! Insira sua chave da Groq API na barra lateral para começar.
+                    fala aí, coloca tua chave da groq ali no menu do lado esquerdo e bora trocar ideia.
                 </div>
             </div>
         </div>
 
         <div class="input-wrapper">
             <div class="input-box">
-                <textarea id="user-input" rows="1" placeholder="Digite uma mensagem..." oninput="autoResize(this)" onkeypress="handleEnter(event)"></textarea>
+                <textarea id="user-input" rows="1" placeholder="digita alguma coisa..." oninput="autoResize(this)" onkeypress="handleEnter(event)"></textarea>
                 <button class="send-btn" onclick="sendMessage()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 </button>
@@ -321,8 +322,9 @@
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
 
-        // Histórico de mensagens para manter o contexto da conversa na Groq
-        let messageHistory = [];
+        let messageHistory = [
+            { role: "system", content: "você é um assistente amigável e casual. responda sempre usando apenas letras minúsculas, sem formalidades exageradas, de forma bem natural e humana." }
+        ];
 
         function toggleSidebar() {
             sidebar.classList.toggle('collapsed');
@@ -348,7 +350,7 @@
             const model = document.getElementById('groq-model').value.trim();
 
             if (!apiKey) {
-                alert('Por favor, insira a sua chave da Groq API na barra lateral.');
+                alert('coloca tua api key da groq lá no menu lateral primeiro.');
                 return;
             }
 
@@ -370,7 +372,7 @@
                     body: JSON.stringify({
                         model: model,
                         messages: messageHistory,
-                        temperature: 0.7
+                        temperature: 0.8
                     })
                 });
 
@@ -380,7 +382,10 @@
                 }
 
                 const data = await response.json();
-                const resultText = data.choices[0].message.content;
+                let resultText = data.choices[0].message.content;
+
+                // força tudo para minúsculo para garantir a vibe humana e sem maiúsculas
+                resultText = resultText.toLowerCase();
 
                 messageHistory.push({ role: "assistant", content: resultText });
 
@@ -388,7 +393,7 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
             } catch (error) {
-                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">Erro ao conectar com a API da Groq: ${error.message}</span>`;
+                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">poxa, deu ruim aqui na conexão com a groq: ${error.message.toLowerCase()}</span>`;
             }
         }
 
@@ -396,11 +401,11 @@
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
 
-            const avatarIcon = sender === 'user' ? 'U' : 'G';
+            const avatarIcon = sender === 'user' ? 'vc' : 'ai';
 
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-            contentDiv.innerHTML = text ? text.replace(/\n/g, '<br>') : '<span style="color: var(--text-secondary);">Pensando...</span>';
+            contentDiv.innerHTML = text ? text.toLowerCase().replace(/\n/g, '<br>') : '<span style="color: var(--text-secondary);">pensando...</span>';
 
             msgDiv.innerHTML = `<div class="avatar">${avatarIcon}</div>`;
             msgDiv.appendChild(contentDiv);
@@ -412,12 +417,14 @@
         }
 
         function startNewChat() {
-            messageHistory = []; // Limpa o histórico da conversa
+            messageHistory = [
+                { role: "system", content: "você é um assistente amigável e casual. responda sempre usando apenas letras minúsculas, sem formalidades exageradas, de forma bem natural e humana." }
+            ];
             chatContainer.innerHTML = `
                 <div class="message ai">
-                    <div class="avatar">G</div>
+                    <div class="avatar">ai</div>
                     <div class="message-content">
-                        Nova conversa iniciada. Como posso ajudar você hoje?
+                        recomeçamos por aqui. do que quer falar agora?
                     </div>
                 </div>
             `;
