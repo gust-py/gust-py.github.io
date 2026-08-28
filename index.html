@@ -298,14 +298,7 @@
             <span class="header-title">chat</span>
         </header>
 
-        <div class="chat-container" id="chat-container">
-            <div class="message ai">
-                <div class="avatar">ai</div>
-                <div class="message-content">
-                    fala aí, coloca tua chave da groq ali no menu do lado esquerdo e bora trocar ideia.
-                </div>
-            </div>
-        </div>
+        <div class="chat-container" id="chat-container"></div>
 
         <div class="input-wrapper">
             <div class="input-box">
@@ -323,7 +316,7 @@
         const userInput = document.getElementById('user-input');
 
         let messageHistory = [
-            { role: "system", content: "você é um assistente amigável e casual. responda sempre usando apenas letras minúsculas, sem formalidades exageradas, de forma bem natural e humana." }
+            { role: "system", content: "você é um assistente humano e casual. responda sempre usando apenas letras minúsculas, sem usar emojis em hipótese alguma, sem formalidades exageradas, de forma direta e natural." }
         ];
 
         function toggleSidebar() {
@@ -350,7 +343,7 @@
             const model = document.getElementById('groq-model').value.trim();
 
             if (!apiKey) {
-                alert('coloca tua api key da groq lá no menu lateral primeiro.');
+                alert('insira sua api key da groq no menu lateral.');
                 return;
             }
 
@@ -384,8 +377,10 @@
                 const data = await response.json();
                 let resultText = data.choices[0].message.content;
 
-                // força tudo para minúsculo para garantir a vibe humana e sem maiúsculas
-                resultText = resultText.toLowerCase();
+                // remove emojis e força letras minúsculas
+                resultText = resultText
+                    .toLowerCase()
+                    .replace(/([\u2700-\u27bf]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26ff]|\uD83E[\uDD10-\uDDFF])/g, '');
 
                 messageHistory.push({ role: "assistant", content: resultText });
 
@@ -393,7 +388,7 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
             } catch (error) {
-                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">poxa, deu ruim aqui na conexão com a groq: ${error.message.toLowerCase()}</span>`;
+                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">erro na conexao: ${error.message.toLowerCase()}</span>`;
             }
         }
 
@@ -418,16 +413,9 @@
 
         function startNewChat() {
             messageHistory = [
-                { role: "system", content: "você é um assistente amigável e casual. responda sempre usando apenas letras minúsculas, sem formalidades exageradas, de forma bem natural e humana." }
+                { role: "system", content: "você é um assistente humano e casual. responda sempre usando apenas letras minúsculas, sem usar emojis em hipótese alguma, sem formalidades exageradas, de forma direta e natural." }
             ];
-            chatContainer.innerHTML = `
-                <div class="message ai">
-                    <div class="avatar">ai</div>
-                    <div class="message-content">
-                        recomeçamos por aqui. do que quer falar agora?
-                    </div>
-                </div>
-            `;
+            chatContainer.innerHTML = '';
         }
     </script>
 </body>
