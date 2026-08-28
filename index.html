@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neuromorphic AI Chat</title>
+    <title>Test AI Chat</title>
     <style>
         :root {
             --bg-base: #131314;
@@ -60,7 +60,7 @@
             border-radius: 50px;
             cursor: pointer;
             font-size: 0.9rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
             transition: background 0.2s;
         }
 
@@ -68,25 +68,40 @@
             background-color: var(--bg-surface-hover);
         }
 
+        .config-box {
+            background-color: var(--bg-base);
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .config-box label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .config-box input {
+            background: var(--bg-surface);
+            border: 1px solid #444;
+            color: var(--text-primary);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .config-box input:focus {
+            border-color: var(--accent);
+        }
+
         .history-list {
             list-style: none;
             overflow-y: auto;
             flex-grow: 1;
-        }
-
-        .history-item {
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .history-item:hover {
-            background-color: var(--bg-surface-hover);
+            margin-top: 1rem;
         }
 
         /* --- Main Content --- */
@@ -174,6 +189,7 @@
             font-size: 1rem;
             line-height: 1.6;
             max-width: 80%;
+            word-break: break-word;
         }
 
         .message.user .message-content {
@@ -262,8 +278,15 @@
             Nova conversa
         </button>
         
-        <ul class="history-list" id="history-list">
-        </ul>
+        <div class="config-box">
+            <label for="hf-token">Hugging Face Token</label>
+            <input type="password" id="hf-token" placeholder="hf_..." />
+            
+            <label for="hf-model">Modelo (Endpoint)</label>
+            <input type="text" id="hf-model" value="meta-llama/Llama-3.1-8B-Instruct" />
+        </div>
+
+        <ul class="history-list" id="history-list"></ul>
     </aside>
 
     <main class="main-content">
@@ -271,7 +294,7 @@
             <button class="menu-btn" onclick="toggleSidebar()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <span class="header-title">Neuromorphic AI</span>
+            <span class="header-title">Test AI</span>
         </header>
 
         <div class="chat-container" id="chat-container">
@@ -280,7 +303,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
                 </div>
                 <div class="message-content">
-                    Olá! Como posso ajudar você hoje?
+                    Olá! Insira seu token da Hugging Face na barra lateral para começar a conversar com o Llama.
                 </div>
             </div>
         </div>
@@ -316,22 +339,58 @@
             }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
 
-            // Add user message
+            const token = document.getElementById('hf-token').value.trim();
+            const model = document.getElementById('hf-model').value.trim();
+
+            if (!token) {
+                alert('Por favor, insira o seu token da Hugging Face na barra lateral.');
+                return;
+            }
+
             addMessage(text, 'user');
-            
-            // Clear input
             userInput.value = '';
             autoResize(userInput);
 
-            // Simulate AI response
-            setTimeout(() => {
-                const response = `Recebi sua mensagem: "${text}". Como posso ajudar com isso?`;
-                addMessage(response, 'ai');
-            }, 800);
+            const aiMsgContent = addMessage('', 'ai');
+
+            try {
+                const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        inputs: text,
+                        parameters: { max_new_tokens: 500, return_full_text: false }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro na API: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                let resultText = '';
+
+                if (Array.isArray(data) && data[0]?.generated_text) {
+                    resultText = data[0].generated_text;
+                } else if (data.generated_text) {
+                    resultText = data.generated_text;
+                } else {
+                    resultText = JSON.stringify(data);
+                }
+
+                aiMsgContent.innerHTML = resultText.replace(/\n/g, '<br>');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            } catch (error) {
+                aiMsgContent.innerHTML = `<span style="color: #ff6b6b;">Erro ao conectar com a API: ${error.message}</span>`;
+            }
         }
 
         function addMessage(text, sender) {
@@ -342,13 +401,17 @@
                 ? 'U' 
                 : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>';
 
-            msgDiv.innerHTML = `
-                <div class="avatar">${avatarIcon}</div>
-                <div class="message-content">${text.replace(/\n/g, '<br>')}</div>
-            `;
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = text ? text.replace(/\n/g, '<br>') : '<span style="color: var(--text-secondary);">Pensando...</span>';
+
+            msgDiv.innerHTML = `<div class="avatar">${avatarIcon}</div>`;
+            msgDiv.appendChild(contentDiv);
 
             chatContainer.appendChild(msgDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            return contentDiv;
         }
 
         function startNewChat() {
@@ -358,7 +421,7 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
                     </div>
                     <div class="message-content">
-                        Olá! Como posso ajudar você hoje?
+                        Nova conversa iniciada. Como posso ajudar você hoje?
                     </div>
                 </div>
             `;
