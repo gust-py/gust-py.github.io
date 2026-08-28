@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>chat</title>
+    <!-- prismjs para syntax highlighting com tema claro -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
     <style>
         :root {
             --bg-base: #131314;
@@ -11,8 +13,8 @@
             --bg-surface-hover: #2a2b2f;
             --text-primary: #e3e3e3;
             --text-secondary: #c4c7c5;
-            --accent: #f55036;
-            --sidebar-width: 280px;
+            --accent: #ffffff; /* trocado de laranja para branco */
+            --sidebar-width: 450px; /* aumentado para caber o código ao lado */
         }
 
         * {
@@ -60,7 +62,7 @@
             border-radius: 50px;
             cursor: pointer;
             font-size: 0.9rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             transition: background 0.2s;
         }
 
@@ -76,6 +78,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.8rem;
+            margin-bottom: 1rem;
         }
 
         .config-box label {
@@ -97,11 +100,33 @@
             border-color: var(--accent);
         }
 
-        .history-list {
-            list-style: none;
-            overflow-y: auto;
+        /* área do script em execução na sidebar */
+        .script-view-container {
             flex-grow: 1;
-            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: hidden;
+        }
+
+        .script-view-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .script-code-box {
+            flex-grow: 1;
+            background-color: #f8f9fa !important; /* fundo branco/claro do tema do prism */
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 100%;
+            border: 1px solid #444;
+            margin: 0 !important;
+        }
+
+        .script-code-box code {
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 0.75rem !important;
         }
 
         /* --- main content --- */
@@ -173,7 +198,7 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            color: #fff;
+            color: #000;
             font-weight: bold;
             font-size: 0.9rem;
         }
@@ -252,7 +277,7 @@
         }
 
         .send-btn:hover {
-            background-color: rgba(245, 80, 54, 0.1);
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         /* scrollbar */
@@ -287,7 +312,10 @@
             <input type="text" id="groq-model" value="openai/gpt-oss-120b" />
         </div>
 
-        <ul class="history-list" id="history-list"></ul>
+        <div class="script-view-container">
+            <span class="script-view-title">script em execução (payload atual):</span>
+            <pre class="script-code-box"><code class="language-json" id="script-code-display">// aguardando envio de mensagem...</code></pre>
+        </div>
     </aside>
 
     <main class="main-content">
@@ -310,10 +338,15 @@
         </div>
     </main>
 
+    <!-- prismjs script para realce de sintaxe -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
     <script>
         const sidebar = document.getElementById('sidebar');
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
+        const scriptCodeDisplay = document.getElementById('script-code-display');
 
         let messageHistory = [
             { role: "system", content: "você é um assistente humano e casual. responda sempre usando apenas letras minúsculas, sem usar emojis em hipótese alguma, sem formalidades exageradas, de forma direta e natural." }
@@ -335,6 +368,12 @@
             }
         }
 
+        function updateScriptDisplay(payloadObj) {
+            const jsonString = JSON.stringify(payloadObj, null, 2);
+            scriptCodeDisplay.textContent = jsonString;
+            Prism.highlightElement(scriptCodeDisplay);
+        }
+
         async function sendMessage() {
             const text = userInput.value.trim();
             if (!text) return;
@@ -353,6 +392,15 @@
             userInput.value = '';
             autoResize(userInput);
 
+            const requestPayload = {
+                model: model,
+                messages: messageHistory,
+                temperature: 0.8
+            };
+
+            // atualiza a sidebar com o script/payload que está sendo executado
+            updateScriptDisplay(requestPayload);
+
             const aiMsgContent = addMessage('', 'ai');
 
             try {
@@ -362,11 +410,7 @@
                         'Authorization': `Bearer ${apiKey}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        model: model,
-                        messages: messageHistory,
-                        temperature: 0.8
-                    })
+                    body: JSON.stringify(requestPayload)
                 });
 
                 if (!response.ok) {
@@ -377,7 +421,6 @@
                 const data = await response.json();
                 let resultText = data.choices[0].message.content;
 
-                // remove emojis e força letras minúsculas
                 resultText = resultText
                     .toLowerCase()
                     .replace(/([\u2700-\u27bf]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26ff]|\uD83E[\uDD10-\uDDFF])/g, '');
@@ -416,6 +459,8 @@
                 { role: "system", content: "você é um assistente humano e casual. responda sempre usando apenas letras minúsculas, sem usar emojis em hipótese alguma, sem formalidades exageradas, de forma direta e natural." }
             ];
             chatContainer.innerHTML = '';
+            scriptCodeDisplay.textContent = '// nova conversa iniciada...';
+            Prism.highlightElement(scriptCodeDisplay);
         }
     </script>
 </body>
