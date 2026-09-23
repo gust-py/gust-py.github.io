@@ -1,334 +1,909 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Motor Virtual 3D - Burnout & Smoke Edition</title>
-    <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #020205; color: white; }
-        #ui {
-            position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.85);
-            padding: 20px; border-radius: 12px; border: 2px solid #0077ff; width: 280px;
-            z-index: 100; pointer-events: none; box-shadow: 0 0 20px rgba(0,119,255,0.4);
-        }
-        .info-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 14px; margin-bottom: 8px; }
-        .highlight { color: #00ff00; font-weight: bold; }
-        .controls-guide { font-size: 11px; color: #aaa; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; line-height: 1.5; }
-        h2 { margin: 0 0 12px 0; color: #0077ff; text-align: center; font-size: 16px; letter-spacing: 1px; }
-    </style>
+<meta charset="UTF-8">
+<title>MOTOR — BANCO DE ENSAIO · MONOCROMO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; overflow:hidden; background:#050505; color:#fff;
+         font-family:'IBM Plex Mono', monospace; }
+  canvas { display:block; }
+
+  #hud {
+    position:fixed; top:22px; left:22px; width:262px; z-index:10;
+    background:rgba(8,8,8,.78); border:1px solid rgba(255,255,255,.16);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    padding:16px 18px 18px; user-select:none;
+  }
+  #hudTitle { font-size:12px; font-weight:600; letter-spacing:.22em; }
+  #hudTitle em { font-style:normal; color:rgba(255,255,255,.35); }
+  #hudSub { font-size:8.5px; letter-spacing:.3em; text-transform:uppercase;
+            color:rgba(255,255,255,.35); margin:5px 0 12px; }
+  .row { display:flex; justify-content:space-between; align-items:baseline;
+         padding:5px 0; border-top:1px solid rgba(255,255,255,.08); }
+  .k { font-size:8.5px; letter-spacing:.16em; text-transform:uppercase;
+       color:rgba(255,255,255,.4); }
+  .v { font-size:12px; font-weight:400; }
+  #rpmtrack { position:relative; height:3px; background:rgba(255,255,255,.12); margin:10px 0 2px; }
+  #rpmfill { height:100%; width:0%; background:#fff; }
+  #redtick { position:absolute; left:92%; top:-3px; width:1px; height:9px;
+             background:rgba(255,255,255,.55); }
+  #cells { display:flex; gap:6px; margin-top:14px; }
+  .cell { flex:1; height:24px; border:1px solid rgba(255,255,255,.22);
+          display:flex; align-items:center; justify-content:center;
+          font-size:9px; letter-spacing:.1em; }
+  #keys { position:fixed; bottom:20px; left:0; right:0; text-align:center; z-index:10;
+          font-size:9.5px; letter-spacing:.12em; color:rgba(255,255,255,.35);
+          text-transform:uppercase; user-select:none; }
+  #keys b { color:rgba(255,255,255,.85); font-weight:600; }
+  @media (max-width:640px){ #hud{ width:210px; padding:12px 14px; } }
+</style>
 </head>
 <body>
-    <div id="ui">
-        <h2>MOTOR VIRTUAL 3D PRO</h2>
-        <div class="info-row"><span>Status:</span> <span id="uiStatus" class="highlight" style="color:#ffaa00;">OFF</span></div>
-        <div class="info-row"><span>Modo:</span> <span id="uiMode">Pistão (4 Cil)</span></div>
-        <div class="info-row"><span>RPM:</span> <span id="uiRpm">0</span></div>
-        <div class="info-row"><span>Velocidade:</span> <span id="uiSpeed">0 km/h</span></div>
-        <div class="info-row"><span>Marcha:</span> <span id="uiGear">N</span></div>
-        
-        <div class="controls-guide">
-            <b>CONTROLES (TECLADO):</b><br>
-            • <b>SPACE (Segurar):</b> Chave / Partida<br>
-            • <b>W (Segurar):</b> Acelerador<br>
-            • <b>A:</b> Desligar Motor<br>
-            • <b>↑ / ↓:</b> Subir / Descer Marcha<br>
-            • <b>T:</b> Trocar Wankel / Pistão
-        </div>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script>
-        let scene, camera, renderer, controls;
-        let pistons = [], rods = [], valves = [], sparks = [];
-        let crankshaftGroup, engineGroup;
-        let wankelGroup, wankelRotor, wankelShaft;
-        let isWankelMode = false;
-        
-        const WANKEL_R = 4, WANKEL_E = 0.65, WANKEL_DEPTH = 2.5;
-        let rpm = 0, engineOn = false, angle = 0, isStarting = false;
-        let currentGear = 0, kmh = 0, lastRpm = 0;
-        const CRANK_RADIUS = 1.6, ROD_LENGTH = 3.5;
+<div id="hud">
+  <div id="hudTitle">MOTOR <em>//</em> BANCO DE ENSAIO</div>
+  <div id="hudSub">monocromo · simulação 3d</div>
+  <div class="row"><span class="k">estado</span><span class="v" id="vState">DESLIGADO</span></div>
+  <div class="row"><span class="k">motor</span><span class="v" id="vMode">PISTÃO · L4</span></div>
+  <div class="row"><span class="k">marcha</span><span class="v" id="vGear">N</span></div>
+  <div class="row"><span class="k">velocidade</span><span class="v" id="vSpd">0 km/h</span></div>
+  <div class="row"><span class="k">rotação</span><span class="v" id="vRpm">0000</span></div>
+  <div id="rpmtrack"><div id="rpmfill"></div><i id="redtick"></i></div>
+  <div id="cells"></div>
+</div>
 
-        // Sistema de Partículas para Fumaça e Burnout
-        let smokeParticles = [];
-        const smokeGroup = new THREE.Group();
+<div id="keys">
+  <b>ESPAÇO</b> partida · <b>W</b> acelerador · <b>A</b> desligar ·
+  <b>↑ ↓</b> marchas · <b>T</b> motor · <b>C</b> órbita
+</div>
 
-        // Teclado
-        const keys = { w: false, space: false };
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ============================================================
+   MOTOR // BANCO DE ENSAIO — monocromo
+   L4 a pistão (ciclo de 4 tempos completo) + Wankel rotativo.
+   Desligamento procedural: freio motor → pêndulo de compressão
+   → assentamento com estalo. Áudio 100% sintetizado.
+   ============================================================ */
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'KeyW') keys.w = true;
-            if (e.code === 'Space') {
-                if (!keys.space) {
-                    keys.space = true;
-                    setupAudio();
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-                    isStarting = true;
-                }
-            }
-            if (e.code === 'KeyA') {
-                engineOn = false; isStarting = false; rpm = 0;
-            }
-            if (e.code === 'KeyT') {
-                isWankelMode = !isWankelMode;
-                rpm = 0; engineOn = false; kmh = 0; currentGear = 0;
-                document.getElementById('uiMode').innerText = isWankelMode ? "Wankel (Rotativo)" : "Pistão (4 Cil)";
-                rebuildEngine();
-            }
-            if (e.code === 'ArrowUp') { if (currentGear < 5) currentGear++; }
-            if (e.code === 'ArrowDown') { if (currentGear > -1) currentGear--; }
-        });
+// ---------- estado geral ----------
+let scene, camera, renderer, controls;
+let engineGroup = null, mode = 'piston';           // 'piston' | 'wankel'
+let phase = 'off';                                 // off | crank | run | stop
+let rpm = 0, angle = 0, totalDeg = 0, kmh = 0, gear = 0, throttle = 0;
+let clockT = 0, crankT = 0, runT = 0, coldT = 0, crankExtra = 0.5;
+let limiter = false, cutNow = false;
+const IDLE = 820, REDLINE = 9200, MAXRPM = 9600;
+const GEARR = { 1:133, 2:88, 3:63, 4:48, 5:40, R:118 };   // rpm por km/h
+const keys = { w:false };
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 
-        window.addEventListener('keyup', (e) => {
-            if (e.code === 'KeyW') keys.w = false;
-            if (e.code === 'Space') { keys.space = false; isStarting = false; }
-        });
+// ---------- geometria do L4 ----------
+const CR = 1.4, ROD = 3.2, SP = 2.2;
+const pinPhase = [0, Math.PI, Math.PI, 0];         // moentes: 0-180-180-0
+const firePhase = [0, 540, 180, 360];              // ciclo 720°, ordem 1-3-4-2
+const fireSeq   = [0, 2, 3, 1];
+let crankGroup, pistons = [], rods = [], valveGroups = [], springMeshes = [], retainers = [];
+let fireCount = 0, fireCountW = 0;
 
-        // Áudio Web Audio API
-        let audioCtx, engineOsc, lowPass, noiseGain, mainGain;
-        function setupAudio() {
-            if (audioCtx) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            mainGain = audioCtx.createGain(); mainGain.connect(audioCtx.destination); mainGain.gain.value = 0.6;
-            engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
-            lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = 300;
-            engineOsc.connect(lowPass); lowPass.connect(mainGain);
-            engineOsc.start();
-        }
+// ---------- Wankel ----------
+const WR = 2.6, WE = 0.55, WD = 2.2;
+let wkRotor = null, wkPulley = null;
 
-        // Inicialização do Ambiente 3D
-        init();
-        animate();
+// ---------- flashes de combustão ----------
+let flashGroup = null, flashes = [];
 
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x030308);
-            scene.fog = new THREE.FogExp2(0x030308, 0.025);
+// ---------- partículas ----------
+let smokeGroup, smokePool = [], poolIdx = 0, exAcc = 0, smokeTex, glowTex;
 
-            camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.body.appendChild(renderer.domElement);
+// ---------- materiais (escala de cinza) ----------
+let M;
+function makeMaterials(){
+  M = {
+    white : new THREE.MeshStandardMaterial({ color:0xf0f0f0, metalness:.85, roughness:.24 }),
+    steel : new THREE.MeshStandardMaterial({ color:0x9a9a9a, metalness:.9,  roughness:.42 }),
+    dark  : new THREE.MeshStandardMaterial({ color:0x232323, metalness:.55, roughness:.6  }),
+    black : new THREE.MeshStandardMaterial({ color:0x121212, metalness:.4,  roughness:.75 }),
+    glass : new THREE.MeshPhysicalMaterial({ color:0xffffff, metalness:0, roughness:.06,
+             transparent:true, opacity:.09, side:THREE.DoubleSide, depthWrite:false }),
+    housing:new THREE.MeshStandardMaterial({ color:0xd8d8d8, metalness:.5, roughness:.35,
+             transparent:true, opacity:.5 }),
+    ceramic:new THREE.MeshStandardMaterial({ color:0xe8e8e8, metalness:.05, roughness:.5 }),
+  };
+}
 
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
+// ---------- texturas de sprite (canvas) ----------
+function radialTex(stops){
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const gr = g.createRadialGradient(64,64,0,64,64,64);
+  stops.forEach(s=>gr.addColorStop(s[0], s[1]));
+  g.fillStyle = gr; g.fillRect(0,0,128,128);
+  const t = new THREE.CanvasTexture(c); return t;
+}
 
-            // Iluminação Avançada
-            scene.add(new THREE.AmbientLight(0x202530, 1.5));
-            
-            const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
-            dirLight.position.set(15, 25, 15);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
+// ============================ CENA ============================
+function init(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050505);
+  scene.fog = new THREE.FogExp2(0x050505, 0.028);
 
-            const pointLight = new THREE.PointLight(0x0077ff, 3, 20);
-            pointLight.position.set(0, 5, 5);
-            scene.add(pointLight);
+  camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, .1, 300);
+  camera.position.set(10.5, 5.5, 13);
 
-            scene.add(smokeGroup);
-            rebuildEngine();
-            window.addEventListener('resize', onWindowResize);
-        }
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  document.body.appendChild(renderer.domElement);
 
-        function rebuildEngine() {
-            if (engineGroup) scene.remove(engineGroup);
-            if (wankelGroup) scene.remove(wankelGroup);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = .06;
+  controls.minDistance = 4; controls.maxDistance = 45;
+  controls.maxPolarAngle = 1.52;
+  controls.autoRotateSpeed = .7;
+  controls.target.set(0, 2.2, 0);
 
-            if (isWankelMode) {
-                createWankelEngine();
-                controls.target.set(0, 0, 0);
-                camera.position.set(0, 2, 9);
-            } else {
-                createPistonEngine(4);
-                controls.target.set(0, 3, 0);
-                camera.position.set(10, 7, 14);
-            }
-            controls.update();
-        }
+  // iluminação P&B: key dura + fill fraca + recorte
+  scene.add(new THREE.AmbientLight(0xffffff, .18));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x0a0a0a, .22));
+  const key = new THREE.DirectionalLight(0xffffff, 2.1);
+  key.position.set(9, 15, 7); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = key.shadow.camera.bottom = -15;
+  key.shadow.camera.right = key.shadow.camera.top = 15;
+  key.shadow.camera.far = 60; key.shadow.bias = -0.0005;
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xffffff, .45);
+  fill.position.set(-11, 5, -9); scene.add(fill);
 
-        function createPistonEngine(numCyl) {
-            engineGroup = new THREE.Group(); scene.add(engineGroup);
-            pistons = []; rods = []; valves = []; sparks = [];
-            crankshaftGroup = new THREE.Group(); engineGroup.add(crankshaftGroup);
+  // chão + grade técnica
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(70, 48),
+    new THREE.MeshStandardMaterial({ color:0x0b0b0b, metalness:.1, roughness:.95 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = -3.1;
+  floor.receiveShadow = true; scene.add(floor);
+  const grid = new THREE.GridHelper(90, 45, 0x1e1e1e, 0x131313);
+  grid.position.y = -3.08; scene.add(grid);
 
-            const matMetal = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9, roughness: 0.15 });
-            const matPistao = new THREE.MeshStandardMaterial({ color: 0x0066ff, metalness: 0.7, roughness: 0.3 });
+  makeMaterials();
+  smokeTex = radialTex([[0,'rgba(255,255,255,.85)'],[.4,'rgba(255,255,255,.32)'],[1,'rgba(255,255,255,0)']]);
+  glowTex  = radialTex([[0,'rgba(255,255,255,1)'],[.25,'rgba(255,255,255,.55)'],[1,'rgba(255,255,255,0)']]);
 
-            for(let i = 0; i < numCyl; i++){
-                let x = i * 2.5 - (numCyl * 2.5 / 2) + 1.25;
-                let offset = (i * Math.PI) / 2;
+  // pool de fumaça
+  smokeGroup = new THREE.Group(); scene.add(smokeGroup);
+  for(let i=0;i<140;i++){
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:smokeTex, transparent:true, opacity:0, depthWrite:false }));
+    s.visible = false; smokeGroup.add(s);
+    smokePool.push({ s, life:0, max:1, size:1, gray:.8, base:.5,
+                     vel:new THREE.Vector3() });
+  }
 
-                let piston = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 1.2, 32), matPistao);
-                engineGroup.add(piston); pistons.push({ mesh: piston, x, offset });
+  // grupo persistente dos flashes de ignição
+  flashGroup = new THREE.Group(); scene.add(flashGroup);
+  for(let i=0;i<4;i++){
+    const l = new THREE.PointLight(0xffffff, 0, 6, 2);
+    const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:glowTex, transparent:true, opacity:0, depthWrite:false, depthTest:false }));
+    spr.renderOrder = 20; spr.scale.setScalar(1.2);
+    flashGroup.add(l, spr);
+    flashes.push({ l, spr, t:0 });
+  }
 
-                let rod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, ROD_LENGTH, 16), matMetal);
-                engineGroup.add(rod); rods.push({ mesh: rod, x, offset });
+  rebuildEngine();
+  addEventListener('resize', ()=>{
+    camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+}
 
-                let crankPart = new THREE.Group(); crankPart.position.x = x;
-                let pin = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.6, 16), matMetal);
-                pin.rotation.z = Math.PI / 2; pin.position.y = CRANK_RADIUS;
-                crankPart.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, CRANK_RADIUS * 1.5, 0.8), matMetal), pin);
-                crankPart.rotation.x = offset; crankshaftGroup.add(crankPart);
-            }
+// ======================= CONSTRUÇÃO: L4 =======================
+function buildPiston(){
+  engineGroup = new THREE.Group();
+  const n = 4;
+  crankGroup = new THREE.Group(); engineGroup.add(crankGroup);
+  pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
 
-            // Bloco Estético do Motor de Pistão transparente para ver dentro
-            const blockGeo = new THREE.BoxGeometry(numCyl * 2.5 + 1, 4, 3);
-            const blockMat = new THREE.MeshPhysicalMaterial({ color: 0x222225, metalness: 0.5, roughness: 0.4, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
-            let engineBlock = new THREE.Mesh(blockGeo, blockMat);
-            engineBlock.position.set(0, 3.5, 0);
-            engineGroup.add(engineBlock);
-        }
+  // --- virabrequim: eixo + moentes + contrapesos ---
+  crankGroup.add(Object.assign(
+    new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,10.6,16), M.steel),
+    { rotation:{ z:Math.PI/2 } }));
 
-        function createWankelEngine() {
-            wankelGroup = new THREE.Group(); scene.add(wankelGroup);
-            const matHousing = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.3, side: THREE.DoubleSide });
-            const matRotor = new THREE.MeshStandardMaterial({ color: 0x1f1f25, metalness: 0.85, roughness: 0.2 });
-            const matShaft = new THREE.MeshStandardMaterial({ color: 0x0077ff, metalness: 0.9, roughness: 0.1 });
+  for(let i=0;i<n;i++){
+    const x = i*SP - (n*SP/2) + SP/2;
+    const web = new THREE.Group(); web.position.x = x;
 
-            // Carcaça Wankel (Epitrocoide Visual)
-            let shape = new THREE.Shape();
-            for (let i = 0; i <= 100; i++) {
-                let t = (i / 100) * Math.PI * 2;
-                let x = (WANKEL_R + 0.2) * Math.cos(t) + WANKEL_E * Math.cos(3 * t);
-                let y = (WANKEL_R + 0.2) * Math.sin(t) + WANKEL_E * Math.sin(3 * t);
-                if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
-            }
-            let housingGeo = new THREE.ExtrudeGeometry(shape, { depth: WANKEL_DEPTH, bevelEnabled: false });
-            housingGeo.translate(0, 0, -WANKEL_DEPTH/2);
-            wankelGroup.add(new THREE.Mesh(housingGeo, matHousing));
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(.3, CR+.55, 1.02), M.steel);
+    plate.position.y = (CR-.55)/2; web.add(plate);
 
-            // Rotor Triangular
-            let rShape = new THREE.Shape();
-            rShape.moveTo(WANKEL_R * Math.cos(0), WANKEL_R * Math.sin(0));
-            rShape.quadraticCurveTo(0, WANKEL_R * 0.4, WANKEL_R * Math.cos(Math.PI*2/3), WANKEL_R * Math.sin(Math.PI*2/3));
-            rShape.quadraticCurveTo(-WANKEL_R * 0.4, -WANKEL_R * 0.4, WANKEL_R * Math.cos(Math.PI*4/3), WANKEL_R * Math.sin(Math.PI*4/3));
-            rShape.quadraticCurveTo(WANKEL_R * 0.4, -WANKEL_R * 0.4, WANKEL_R * Math.cos(0), WANKEL_R * Math.sin(0));
+    const cw = new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.3,24), M.steel);
+    cw.rotation.z = Math.PI/2; cw.position.y = -.6; web.add(cw);
 
-            let rotorGeo = new THREE.ExtrudeGeometry(rShape, { depth: WANKEL_DEPTH - 0.2, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 });
-            rotorGeo.translate(0, 0, -(WANKEL_DEPTH-0.2)/2);
-            wankelRotor = new THREE.Mesh(rotorGeo, matRotor);
-            wankelGroup.add(wankelRotor);
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.62,16), M.steel);
+    pin.rotation.z = Math.PI/2; pin.position.y = CR; web.add(pin);
 
-            // Eixo Excêntrico
-            wankelShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, WANKEL_DEPTH + 1, 16), matShaft);
-            wankelShaft.rotation.x = Math.PI / 2;
-            wankelGroup.add(wankelShaft);
-            wankelGroup.rotation.y = -Math.PI / 2;
-        }
+    web.rotation.x = pinPhase[i];
+    crankGroup.add(web);
 
-        // Sistema de Fumaça Realista (Burnout / Escapamento)
-        function spawnSmoke(x, y, z, intensity) {
-            const geo = new THREE.SphereGeometry(0.3 + Math.random() * 0.4, 8, 8);
-            const mat = new THREE.MeshBasicMaterial({
-                color: 0xdddddd,
-                transparent: true,
-                opacity: 0.45 * intensity
-            });
-            const p = new THREE.Mesh(geo, mat);
-            p.position.set(x + (Math.random() - 0.5)*0.5, y, z + (Math.random() - 0.5)*0.5);
-            smokeGroup.add(p);
-            smokeParticles.push({ mesh: p, life: 1.0, velocity: new THREE.Vector3((Math.random()-0.5)*0.05, 0.08 + Math.random()*0.05, (Math.random()-0.5)*0.05) });
-        }
+    const journal = new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,SP-.32,16), M.steel);
+    journal.rotation.z = Math.PI/2; journal.position.x = x - SP/2;
+    crankGroup.add(journal);
+  }
 
-        function updateSmoke() {
-            for (let i = smokeParticles.length - 1; i >= 0; i--) {
-                let sp = smokeParticles[i];
-                sp.life -= 0.02;
-                sp.mesh.position.add(sp.velocity);
-                sp.mesh.scale.multiplyScalar(1.03);
-                sp.mesh.material.opacity = sp.life * 0.4;
-                if (sp.life <= 0) {
-                    smokeGroup.remove(sp.mesh);
-                    sp.mesh.geometry.dispose();
-                    sp.mesh.material.dispose();
-                    smokeParticles.splice(i, 1);
-                }
-            }
-        }
+  // volante do motor (com furos) + polia dianteira canelada
+  const fly = new THREE.Group(); fly.position.x = -5.35;
+  const fd = new THREE.Mesh(new THREE.CylinderGeometry(1.85,1.85,.32,40), M.dark);
+  fd.rotation.z = Math.PI/2; fly.add(fd);
+  for(let i=0;i<6;i++){
+    const a = i/6*Math.PI*2;
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.4,10), M.black);
+    h.rotation.z = Math.PI/2;
+    h.position.set(0, Math.cos(a)*1.25, Math.sin(a)*1.25); fly.add(h);
+  }
+  crankGroup.add(fly);
+  for(let i=0;i<3;i++){
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,.09,28), M.dark);
+    p.rotation.z = Math.PI/2; p.position.x = 5.3 - .12 + i*.12;
+    crankGroup.add(p);
+  }
 
-        // Loop de Animação e Física
-        function animate() {
-            requestAnimationFrame(animate);
-            const dt = 1/60;
+  // geometrias compartilhadas
+  const springGeo = makeSpringGeometry();
+  const linerGeo  = new THREE.CylinderGeometry(.85,.85,3.3,32,1,true);
+  const ringGeo   = new THREE.CylinderGeometry(.775,.775,.05,28);
 
-            let throttleTarget = keys.w ? 9000 : 800;
+  for(let i=0;i<n;i++){
+    const x = i*SP - (n*SP/2) + SP/2;
 
-            if (isStarting) {
-                rpm += (600 - rpm) * 0.1;
-                if (rpm > 500) engineOn = true;
-            } else if (engineOn) {
-                if (!keys.w && rpm < 850 && currentGear === 0) {
-                    rpm += (800 - rpm) * 0.08;
-                } else {
-                    let gearRatio = currentGear === 0 ? 0 : [3.8, 2.4, 1.7, 1.2, 1.0][currentGear - 1];
-                    if (currentGear === 0) {
-                        rpm += (throttleTarget - rpm) * 0.1;
-                    } else {
-                        let targetRpm = (kmh / 3.6) * (gearRatio || 1) * 250 + (keys.w ? 1500 : 500);
-                        kmh += (keys.w ? 0.12 : -0.08) / (gearRatio || 1);
-                        if (kmh < 0) kmh = 0;
-                        rpm += (targetRpm - rpm) * 0.06;
-                    }
-                }
-                if (rpm > 9500) rpm = 9500;
-            } else {
-                rpm *= 0.92; kmh *= 0.98;
-                if (rpm < 10) rpm = 0;
-            }
+    // camisa de vidro
+    const liner = new THREE.Mesh(linerGeo, M.glass);
+    liner.position.set(x, 3.75, 0); engineGroup.add(liner);
 
-            angle += (rpm / 60) * (Math.PI * 2) / 60;
+    // pistão (coroa + anéis + pino)
+    const pg = new THREE.Group();
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.9,28), M.white);
+    pg.add(crown);
+    [.28,.1].forEach(ry=>{
+      const r = new THREE.Mesh(ringGeo, M.black); r.position.y = ry; pg.add(r);
+    });
+    const wp = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.5,10), M.dark);
+    wp.rotation.z = Math.PI/2; pg.add(wp);
+    pg.position.x = x; engineGroup.add(pg);
+    pistons.push(pg);
 
-            // Efeito de Burnout / Fumaça nos Pneus ou Escapamento se acelerando forte com marcha ou RPM alto
-            if (engineOn && keys.w && rpm > 4000) {
-                spawnSmoke(isWankelMode ? 0 : 3.5, isWankelMode ? -1.5 : 0, isWankelMode ? 2 : 2.5, rpm / 9000);
-            }
+    // biela (corpo + pé + cabeça)
+    const rg = new THREE.Group();
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,ROD,12), M.steel);
+    shaft.position.y = ROD/2; rg.add(shaft);
+    const big = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.42,16), M.steel);
+    big.rotation.z = Math.PI/2; rg.add(big);
+    const small = new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.34,14), M.steel);
+    small.rotation.z = Math.PI/2; small.position.y = ROD; rg.add(small);
+    rg.position.x = x; engineGroup.add(rg);
+    rods.push(rg);
 
-            // Animação Visual 3D
-            if (isWankelMode && wankelRotor) {
-                let rotorAngle = angle / 3;
-                wankelRotor.rotation.z = rotorAngle;
-                wankelRotor.position.set(WANKEL_E * Math.cos(angle), WANKEL_E * Math.sin(angle), 0);
-            } else if (!isWankelMode && crankshaftGroup) {
-                crankshaftGroup.rotation.x = angle;
-                pistons.forEach((p, i) => {
-                    let a = angle + p.offset;
-                    let pinY = Math.cos(a) * CRANK_RADIUS, pinZ = Math.sin(a) * CRANK_RADIUS;
-                    let y = pinY + Math.sqrt(ROD_LENGTH**2 - pinZ**2);
-                    p.mesh.position.set(p.x, y + 1.5, 0);
-                    rods[i].mesh.position.set(p.x, (y + 1.5 + pinY)/2, pinZ/2);
-                    rods[i].mesh.lookAt(p.x, y + 1.5, 0); rods[i].mesh.rotateX(Math.PI/2);
-                });
-            }
+    // válvulas de admissão e escape + molas
+    [[-.4,.27],[.4,.23]].forEach(([z,vr])=>{
+      const vg = new THREE.Group(); vg.position.set(x, 5.38, z);
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.35,8), M.steel);
+      stem.position.y = .675; vg.add(stem);
+      const head = new THREE.Mesh(new THREE.CylinderGeometry(vr,vr,.05,20), M.white);
+      vg.add(head);
+      const face = new THREE.Mesh(new THREE.CylinderGeometry(.06,vr,.13,20), M.white);
+      face.position.y = .09; vg.add(face);
+      const tappet = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.06,10), M.dark);
+      tappet.position.y = 1.34; vg.add(tappet);
+      engineGroup.add(vg); valveGroups.push(vg);
 
-            updateSmoke();
+      const sp = new THREE.Mesh(springGeo, M.steel);
+      sp.position.set(x, 5.98, z); engineGroup.add(sp); springMeshes.push(sp);
 
-            // Atualização de Áudio
-            if (audioCtx && engineOn && rpm > 50) {
-                mainGain.gain.setTargetAtTime(0.6, audioCtx.currentTime, 0.1);
-                let mult = isWankelMode ? 1.5 : 1.0;
-                engineOsc.frequency.setTargetAtTime((rpm / 60) * mult, audioCtx.currentTime, 0.05);
-            } else if (audioCtx) {
-                mainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
-            }
+      const ret = new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.05,12), M.dark);
+      ret.position.set(x, 6.6, z); engineGroup.add(ret); retainers.push(ret);
+    });
 
-            // Atualização do Painel HTML
-            document.getElementById('uiStatus').innerText = engineOn ? "LIGADO" : (isStarting ? "PARTIDA..." : "OFF");
-            document.getElementById('uiStatus').style.color = engineOn ? "#00ff00" : "#ffaa00";
-            document.getElementById('uiRpm').innerText = Math.round(rpm);
-            document.getElementById('uiSpeed').innerText = Math.round(kmh) + " km/h";
-            document.getElementById('uiGear').innerText = currentGear === 0 ? "N" : (currentGear === -1 ? "R" : currentGear);
+    // vela
+    const plug = new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.55,10), M.ceramic);
+    plug.position.set(x, 5.9, 0); engineGroup.add(plug);
+    const hex = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.12,6), M.dark);
+    hex.position.set(x, 5.68, 0); engineGroup.add(hex);
 
-            controls.update();
-            renderer.render(scene, camera);
-        }
+    // flash de combustão
+    flashes[i].l.position.set(x, 5.7, 0);
+    flashes[i].spr.position.set(x, 5.47, 0);
+    flashes[i].l.visible = flashes[i].spr.visible = true;
+  }
+  for(let i=n;i<4;i++) flashes[i].l.visible = flashes[i].spr.visible = false;
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-    </script>
+  // cabeçote (placa), placas laterais, mancais, pedestal, escape
+  const head = new THREE.Mesh(new THREE.BoxGeometry(n*SP+1.4,.22,2.3), M.dark);
+  head.position.y = 5.52; engineGroup.add(head);
+
+  [-5.55, 5.55].forEach(x=>{
+    const side = new THREE.Mesh(new THREE.BoxGeometry(.28,8.7,2.7), M.black);
+    side.position.set(x, 2.35, 0); engineGroup.add(side);
+    const brg = new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.08,20), M.white);
+    brg.rotation.z = Math.PI/2; brg.position.set(x>0? 5.38:-5.38, 0, 0);
+    engineGroup.add(brg);
+  });
+
+  const ped = new THREE.Mesh(new THREE.BoxGeometry(12.6,1.1,5.4), M.black);
+  ped.position.y = -2.55; engineGroup.add(ped);
+
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,11,14), M.dark);
+  pipe.rotation.z = Math.PI/2; pipe.position.set(-.4, 5.45, -1.85);
+  engineGroup.add(pipe);
+  const flange = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.1,14), M.steel);
+  flange.rotation.z = Math.PI/2; flange.position.set(-5.85, 5.45, -1.85);
+  engineGroup.add(flange);
+
+  finishBuild({ cam:[10.5,5.5,13], target:[0,2.2,0],
+                tip:[-5.9,5.45,-1.85], cells:['1','2','3','4'] });
+}
+
+function makeSpringGeometry(){
+  const pts = [], coils = 5, h = .62, r = .13;
+  for(let i=0;i<=64;i++){
+    const t = i/64;
+    pts.push(new THREE.Vector3(Math.cos(t*coils*Math.PI*2)*r, t*h, Math.sin(t*coils*Math.PI*2)*r));
+  }
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 96, .02, 6, false);
+}
+
+// ======================= CONSTRUÇÃO: WANKEL =======================
+function buildWankel(){
+  engineGroup = new THREE.Group(); engineGroup.position.y = 1.6;
+
+  // carcaça: epitrocoide paramétrica real (trajetória do vértice)
+  const shape = new THREE.Shape();
+  const RH = WR + .22;
+  for(let i=0;i<=360;i++){
+    const th = (i/360)*Math.PI*6;
+    const x = WE*Math.cos(th) + RH*Math.cos(th/3 + Math.PI/2);
+    const y = WE*Math.sin(th) + RH*Math.sin(th/3 + Math.PI/2);
+    i===0 ? shape.moveTo(x,y) : shape.lineTo(x,y);
+  }
+  const hGeo = new THREE.ExtrudeGeometry(shape, { depth:WD, bevelEnabled:false });
+  hGeo.translate(0,0,-WD/2);
+  const housing = new THREE.Mesh(hGeo, M.housing);
+  engineGroup.add(housing);
+
+  // rotor: triângulo equilátero com flanges em arco (Reuleaux)
+  const V = [90,210,330].map(a=>new THREE.Vector2(
+    WR*Math.cos(a*Math.PI/180), WR*Math.sin(a*Math.PI/180)));
+  const rShape = new THREE.Shape();
+  for(let i=0;i<3;i++){
+    const C = V[i], A = V[(i+1)%3], B = V[(i+2)%3];
+    const a0 = Math.atan2(A.y-C.y, A.x-C.x), a1 = Math.atan2(B.y-C.y, B.x-C.x);
+    if(i===0) rShape.moveTo(A.x, A.y);
+    rShape.absarc(C.x, C.y, Math.sqrt(3)*WR, a0, a1, true);
+  }
+  const rGeo = new THREE.ExtrudeGeometry(rShape,
+    { depth:WD-.25, bevelEnabled:true, bevelThickness:.05, bevelSize:.05 });
+  rGeo.translate(0,0,-(WD-.25)/2);
+  wkRotor = new THREE.Mesh(rGeo, M.dark);
+  engineGroup.add(wkRotor);
+
+  // engrenagem interna do rotor + pinion fixo (relação 2:3)
+  const gear = new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,.14,18), M.black);
+  gear.rotation.x = Math.PI/2; wkRotor.add(gear);
+  const pinion = new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.16,12), M.white);
+  pinion.rotation.x = Math.PI/2; pinion.position.z = .02; engineGroup.add(pinion);
+
+  // eixo excêntrico + polia frontal
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,3.6,18), M.steel);
+  shaft.rotation.x = Math.PI/2; engineGroup.add(shaft);
+  wkPulley = new THREE.Group(); wkPulley.position.z = 1.85;
+  const pd = new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.22,26), M.dark);
+  pd.rotation.x = Math.PI/2; wkPulley.add(pd);
+  for(let i=0;i<4;i++){
+    const a = i/4*Math.PI*2;
+    const h = new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8), M.black);
+    h.rotation.x = Math.PI/2;
+    h.position.set(Math.cos(a)*.5, Math.sin(a)*.5, 0); wkPulley.add(h);
+  }
+  engineGroup.add(wkPulley);
+
+  // aros de borda + 2 velas
+  [-WD/2, WD/2].forEach(z=>{
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(RH+WE, .06, 8, 72), M.steel);
+    ring.position.z = z; engineGroup.add(ring);
+  });
+  [[.55],[-.55]].forEach(([x])=>{
+    const plug = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8), M.ceramic);
+    plug.position.set(x, RH+WE+.05, .35); plug.rotation.x = .5;
+    engineGroup.add(plug);
+  });
+
+  // pedestal + escape
+  const ped = new THREE.Mesh(new THREE.BoxGeometry(7.5,2.6,4), M.black);
+  ped.position.y = -1.8; engineGroup.add(ped);
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,2.4,14), M.dark);
+  pipe.rotation.z = Math.PI/2; pipe.position.set(-3.9, .55, 0);
+  engineGroup.add(pipe);
+
+  flashes[0].l.position.set(.55, 3.9, 1.0); flashes[0].spr.position.set(.55, 3.4, 1.2);
+  flashes[1].l.position.set(-.55, 3.9, 1.0); flashes[1].spr.position.set(-.55, 3.4, 1.2);
+  flashes[0].l.visible = flashes[0].spr.visible = true;
+  flashes[1].l.visible = flashes[1].spr.visible = true;
+  for(let i=2;i<4;i++) flashes[i].l.visible = flashes[i].spr.visible = false;
+
+  finishBuild({ cam:[.6,2.8,10.8], target:[0,1.6,0],
+                tip:[-5.1, 2.15, 0], cells:['F1','F2','F3'] });
+}
+
+function finishBuild(opt){
+  engineGroup.traverse(o=>{ if(o.isMesh){ o.castShadow = true; } });
+  engineGroup.traverse(o=>{
+    if(o.isMesh && (o.material===M.glass || o.material===M.housing)) o.castShadow = false;
+  });
+  scene.add(engineGroup);
+  camera.position.set(...opt.cam);
+  controls.target.set(...opt.target);
+  controls.update();
+  buildCells(opt.cells);
+  buildOpt = opt;
+}
+let buildOpt = null;
+
+// =========================== HUD ===========================
+let cellEls = [], cellEnergy = [];
+function buildCells(labels){
+  const box = document.getElementById('cells');
+  box.innerHTML = ''; cellEls = []; cellEnergy = labels.map(()=>0);
+  labels.forEach(t=>{
+    const d = document.createElement('div');
+    d.className = 'cell'; d.textContent = t;
+    d.style.color = 'rgba(255,255,255,.35)';
+    box.appendChild(d); cellEls.push(d);
+  });
+}
+function updateCells(dt){
+  for(let i=0;i<cellEls.length;i++){
+    cellEnergy[i] = Math.max(0, cellEnergy[i] - dt*7);
+    const e = cellEnergy[i];
+    cellEls[i].style.background = e>0.01 ? `rgba(255,255,255,${e})` : 'transparent';
+    cellEls[i].style.color = e>0.45 ? '#050505' : 'rgba(255,255,255,.35)';
+  }
+}
+
+// ===================== FÍSICA / SIMULAÇÃO =====================
+function simulate(dt){
+  clockT += dt;
+  const tTarget = keys.w ? 1 : 0;
+  throttle += (tTarget - throttle) * Math.min(1, (tTarget>throttle? 6:4)*dt);
+
+  if (phase === 'crank'){
+    rpm += (330 - rpm) * Math.min(1, 5*dt);
+    crankT += dt;
+    if (crankT > 0.75 + crankExtra){           // o motor pega
+      phase = 'run'; runT = 0; coldT = 2.6;
+      rpm = Math.max(rpm*1.7, 520);
+    }
+  }
+  else if (phase === 'run'){
+    runT += dt;
+    limiter = rpm > REDLINE*0.995 && throttle > .1;
+    cutNow = limiter && (Math.floor(clockT*13)%2 === 0);
+
+    if (gear === 0){                            // ponto morto: rotação livre
+      const idle = IDLE + Math.sin(clockT*2.7)*22 + Math.sin(clockT*6.3)*11;
+      const target = throttle > .03 ? 1000 + throttle*(9500-1200) : idle;
+      rpm += (target - rpm) * Math.min(1, (target>rpm? 5.2 : 2.4)*dt);
+    } else if (gear === -1){                    // ré (arcade, suave)
+      const target = throttle > .03 ? -24 : 0;
+      kmh += (target - kmh) * Math.min(1, 1.1*dt);
+      const sp = Math.abs(kmh), c = Math.min(1, sp/6);
+      const engaged = sp*GEARR.R*c + (1-c)*IDLE;
+      rpm += (engaged - rpm) * Math.min(1, 9*dt);
+    } else {                                    // marchas 1–5 com embreagem
+      const ratio = GEARR[gear];
+      const sp = Math.abs(kmh), c = Math.min(1, sp/6);
+      const engaged = Math.max(sp*ratio*c + (1-c)*IDLE, IDLE*.85);
+      const tqCurve = Math.max(.12, 1.1 - Math.pow(rpm/REDLINE,2)*.55);
+      const torque = throttle * 34/(1+gear*.55) * tqCurve;
+      const drag = 1.0 + 0.00012*kmh*kmh + (throttle<.03 ? 3.5 : 0);
+      kmh += (torque - drag)*dt;
+      kmh = clamp(kmh, 0, REDLINE/ratio);
+      rpm += (engaged - rpm) * Math.min(1, 9*dt);
+    }
+    rpm = Math.min(rpm, MAXRPM);
+  }
+  else if (phase === 'stop'){
+    // DESLIGAMENTO PROCEDURAL: freio motor até ~500 rpm,
+    // depois pêndulo de compressão (o virabrequim chega a voltar)
+    if (rpm > 500){
+      rpm -= (420 + rpm*0.85)*dt;
+    } else {
+      const spring = 430;
+      rpm += (-Math.sin(angle*2)*spring - rpm*1.9 - Math.sign(rpm)*rpm*rpm*.02)*dt;
+      if (Math.abs(rpm) < 7 && Math.abs(Math.sin(angle*2)) > .93){
+        rpm = 0; phase = 'off';
+        playClack();
+        puffBackfire(2, .4);                    // respiro final
+      }
+    }
+  }
+  else { // off
+    rpm *= Math.max(0, 1 - 8*dt);
+    if (rpm < 1) rpm = 0;
+  }
+
+  // ângulo do virabrequim (pode girar de volta no pêndulo)
+  const dth = (rpm/60)*Math.PI*2*dt;
+  angle = ((angle + dth) % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
+  totalDeg += (rpm/6)*dt;
+}
+
+// ignição: dispara quando o contador cruza múltiplos de 180° (L4) ou 360° (wankel)
+function checkIgnition(){
+  if (phase !== 'run' || cutNow) return;
+  if (mode === 'piston'){
+    const nf = Math.floor(totalDeg/180);
+    if (nf !== fireCount){
+      fireCount = nf;
+      const idx = fireSeq[((fireCount%4)+4)%4];
+      flashes[idx].t = 1;
+      cellEnergy[idx] = 1;
+    }
+  } else {
+    const nf = Math.floor(totalDeg/360);
+    if (nf !== fireCountW){
+      fireCountW = nf;
+      const k = ((fireCountW%3)+3)%3, s = fireCountW%2;
+      flashes[s].t = 1;
+      if (cellEnergy[k] !== undefined) cellEnergy[k] = 1;
+    }
+  }
+}
+
+// ===================== ANIMAÇÃO VISUAL =====================
+function updateVisual(dt){
+  engineGroup.position.x = 0; engineGroup.position.z = 0;
+  if (rpm > 5){                                 // vibração sutil de bancada
+    const amp = (.012 + throttle*.02) * (mode==='wankel'?1.35:1) * (rpm/9000*.8 + .3);
+    engineGroup.position.x = Math.sin(clockT*117+1)*amp;
+    engineGroup.position.z = Math.sin(clockT*89)*amp;
+  }
+
+  if (mode === 'piston'){
+    crankGroup.rotation.x = angle;
+    for(let i=0;i<4;i++){
+      const a = angle + pinPhase[i];
+      const pinY = Math.cos(a)*CR, pinZ = Math.sin(a)*CR;
+      const y = pinY + Math.sqrt(ROD*ROD - pinZ*pinZ);
+      pistons[i].position.y = y + .35;
+      const rg = rods[i];
+      rg.position.set(rg.position.x, pinY, pinZ);
+      rg.rotation.x = Math.atan2(-pinZ, y - pinY);
+      // válvulas: ciclo de 720°, admissão 355–555°, escape 175–375°
+      const c = ((totalDeg - firePhase[i]) % 720 + 720) % 720;
+      const liftIn  = camLift(c, 355, 555);
+      const liftEx  = camLift(c, 175, 375);
+      const lift = i*2, base = 5.38;
+      valveGroups[lift].position.y   = base - liftIn*.2;
+      valveGroups[lift+1].position.y = base - liftEx*.2;
+      springMeshes[lift].scale.y   = (0.62 - liftIn*.2)/0.62;
+      springMeshes[lift+1].scale.y = (0.62 - liftEx*.2)/0.62;
+      retainers[lift].position.y   = 6.6 - liftIn*.2;
+      retainers[lift+1].position.y = 6.6 - liftEx*.2;
+    }
+  } else {
+    wkRotor.rotation.z = angle/3;
+    wkRotor.position.set(WE*Math.cos(angle), WE*Math.sin(angle), 0);
+    wkPulley.rotation.z = angle;
+  }
+
+  for(const f of flashes){
+    if (f.t > 0){
+      f.t = Math.max(0, f.t - dt*9);
+      f.l.intensity = f.t*4;
+      f.spr.material.opacity = f.t*.85;
+      f.spr.scale.setScalar(.7 + (1-f.t)*1.6);
+    } else { f.l.intensity = 0; f.spr.material.opacity = 0; }
+  }
+}
+function camLift(c, open, close){
+  const x = (c - open)/(close - open);
+  return (x<0 || x>1) ? 0 : Math.sin(Math.PI*x);
+}
+
+// ===================== FUMAÇA =====================
+function puff(x,y,z, size, life, gray, base, vx,vy,vz){
+  const p = smokePool[poolIdx]; poolIdx = (poolIdx+1)%smokePool.length;
+  p.s.visible = true;
+  p.s.position.set(x+(Math.random()-.5)*.3, y+(Math.random()-.5)*.15, z+(Math.random()-.5)*.3);
+  p.s.scale.setScalar(size);
+  p.s.material.color.setScalar(gray);
+  p.life = p.max = life; p.size = size; p.gray = gray; p.base = base;
+  p.vel.set(vx,vy,vz);
+}
+function updateSmoke(dt){
+  for(const p of smokePool){
+    if (p.life <= 0) continue;
+    p.life -= dt;
+    if (p.life <= 0){ p.s.visible = false; p.s.material.opacity = 0; continue; }
+    const t = 1 - p.life/p.max;
+    p.s.position.addScaledVector(p.vel, dt);
+    p.vel.multiplyScalar(1 - .55*dt); p.vel.y += .5*dt;
+    p.s.scale.setScalar(p.size*(1 + t*2.4));
+    p.s.material.opacity = p.base*Math.min(1, t*5)*(1-t);
+  }
+  // escapamento: taxa proporcional à frequência de explosões
+  if (rpm > 30){
+    const fireRate = Math.abs(rpm)/60 * (mode==='wankel'?1:2);
+    exAcc += fireRate*.11*dt;
+    const tip = buildOpt.tip;
+    while (exAcc > 1){
+      exAcc -= 1;
+      const str = .3 + throttle*.7;
+      puff(tip[0], tip[1], tip[2], .3+Math.random()*.3, .8+Math.random()*.4,
+           .82, .34*str, -(.7+Math.random()*.7), .25+Math.random()*.3, (Math.random()-.5)*.3);
+    }
+    if (coldT > 0){                             // partida a frio: fumaça extra
+      coldT -= dt;
+      if (Math.random() < dt*9)
+        puff(tip[0], tip[1], tip[2], .4, 1.3, .9, .3,
+             -(.4+Math.random()*.4), .3, (Math.random()-.5)*.4);
+    }
+    if (phase === 'crank' && Math.random() < dt*6)
+      puff(buildOpt.tip[0], buildOpt.tip[1], buildOpt.tip[2], .25, .9, .88, .18,
+           -(.3), .2, (Math.random()-.5)*.3);
+  }
+}
+function puffBackfire(n, size){
+  const tip = buildOpt.tip;
+  for(let i=0;i<n;i++)
+    puff(tip[0], tip[1], tip[2], size+.4+Math.random()*.5, 1.2+Math.random()*.5,
+         .55, .5, -(.9+Math.random()*1.2), .3+Math.random()*.6, (Math.random()-.5)*.9);
+}
+
+// ===================== ÁUDIO (Web Audio API) =====================
+let AC=null, master, comp, oscA, oscB, oscGain, shaper, lowpass,
+    noiseSrc, noiseBP, noiseGain, rumbleOsc, rumbleGain,
+    whineOsc, whineGain, lfoOsc, lfoDepth, noiseBuf, nextFire = 0;
+
+function initAudio(){
+  if (AC) return;
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+
+  comp = AC.createDynamicsCompressor();
+  comp.threshold.value = -14; comp.knee.value = 20; comp.ratio.value = 6;
+  comp.attack.value = .003; comp.release.value = .15;
+  comp.connect(AC.destination);
+
+  master = AC.createGain(); master.gain.value = 0; master.connect(comp);
+
+  noiseBuf = AC.createBuffer(1, AC.sampleRate*1.2, AC.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i] = Math.random()*2 - 1;
+
+  // camada tonal: onda periódica rica + saturação + filtro dinâmico
+  const wave = makeEngineWave();
+  oscA = AC.createOscillator(); oscA.setPeriodicWave(wave); oscA.frequency.value = 20;
+  oscB = AC.createOscillator(); oscB.setPeriodicWave(wave); oscB.frequency.value = 40;
+  oscB.detune.value = 7;
+  const gA = AC.createGain(); gA.gain.value = 1;
+  const gB = AC.createGain(); gB.gain.value = .35;
+  oscGain = AC.createGain(); oscGain.gain.value = 0;
+  shaper = AC.createWaveShaper();
+  const curve = new Float32Array(512);
+  for(let i=0;i<512;i++){ const x = i/255.5 - 1; curve[i] = Math.tanh(2.8*x); }
+  shaper.curve = curve; shaper.oversample = '2x';
+  lowpass = AC.createBiquadFilter(); lowpass.type = 'lowpass';
+  lowpass.frequency.value = 400; lowpass.Q.value = .7;
+  oscA.connect(gA).connect(oscGain); oscB.connect(gB).connect(oscGain);
+  oscGain.connect(shaper).connect(lowpass).connect(master);
+  oscA.start(); oscB.start();
+
+  // AM na frequência de explosão: o "lope" irregular da marcha lenta
+  lfoOsc = AC.createOscillator(); lfoOsc.type = 'sine'; lfoOsc.frequency.value = 20;
+  lfoDepth = AC.createGain(); lfoDepth.gain.value = 0;
+  lfoOsc.connect(lfoDepth).connect(oscGain.gain); lfoOsc.start();
+
+  // ruído: aspiração + sopro de escape + fricção na desaceleração
+  noiseSrc = AC.createBufferSource(); noiseSrc.buffer = noiseBuf; noiseSrc.loop = true;
+  noiseBP = AC.createBiquadFilter(); noiseBP.type = 'bandpass';
+  noiseBP.frequency.value = 900; noiseBP.Q.value = .5;
+  noiseGain = AC.createGain(); noiseGain.gain.value = 0;
+  noiseSrc.connect(noiseBP).connect(noiseGain).connect(master); noiseSrc.start();
+
+  // corpo grave contínuo
+  rumbleOsc = AC.createOscillator(); rumbleOsc.type = 'sine'; rumbleOsc.frequency.value = 52;
+  rumbleGain = AC.createGain(); rumbleGain.gain.value = 0;
+  rumbleOsc.connect(rumbleGain).connect(master); rumbleOsc.start();
+
+  // motor de partida (arranque)
+  whineOsc = AC.createOscillator(); whineOsc.type = 'sawtooth'; whineOsc.frequency.value = 260;
+  const wf = AC.createBiquadFilter(); wf.type = 'lowpass'; wf.frequency.value = 1400;
+  whineGain = AC.createGain(); whineGain.gain.value = 0;
+  whineOsc.connect(wf).connect(whineGain).connect(master); whineOsc.start();
+
+  setInterval(schedule, 30);
+}
+
+function makeEngineWave(){
+  const n = 28, real = new Float32Array(n), imag = new Float32Array(n);
+  const amp = [0,1,.62,.5,.29,.22,.16,.12,.10,.08,.06,.05,.04,.035,.03,.025,
+               .02,.018,.015,.013,.011,.01,.009,.008,.007,.006,.005,.004];
+  for(let i=1;i<n;i++){
+    const ph = Math.random()*Math.PI*2;
+    real[i] = amp[i]*Math.cos(ph); imag[i] = amp[i]*Math.sin(ph);
+  }
+  return AC.createPeriodicWave(real, imag);
+}
+
+// scheduler com lookahead: cada explosão vira um burst individual
+function schedule(){
+  if (!AC) return;
+  const now = AC.currentTime, tc = .06;
+  const f = Math.max(Math.abs(rpm)/60 * (mode==='wankel'?1:2), .5);
+  const combusting = phase==='run' && !cutNow && f > 1;
+  const compressing = phase === 'crank';
+
+  if (combusting || compressing){
+    if (nextFire < now) nextFire = now + .02;
+    while (nextFire < now + .14){
+      const cross = clamp(1.35 - f/40, 0, 1);    // em alta rotação o contínuo assume
+      if (combusting)
+        burst(nextFire, .25 + throttle*.75, cross*(.55+throttle*.45), true);
+      else
+        burst(nextFire, .12, .5, false);         // compressão sem ignição
+      nextFire += 1/f;
+    }
+  } else nextFire = now + .02;
+
+  oscA.frequency.setTargetAtTime(f, now, .03);
+  oscB.frequency.setTargetAtTime(f*2.02, now, .03);
+  lfoOsc.frequency.setTargetAtTime(f, now, .05);
+  lfoDepth.gain.setTargetAtTime(combusting ? clamp(.35 - f*.004, .06, .35) : 0, now, .1);
+  lowpass.frequency.setTargetAtTime(240 + throttle*2400 + (rpm/REDLINE)*900, now, .08);
+  oscGain.gain.setTargetAtTime(
+    combusting ? .3 : (phase==='stop' && Math.abs(rpm)>50 ? Math.min(.08, Math.abs(rpm)/9000*.12) : 0),
+    now, .05);
+  noiseBP.frequency.setTargetAtTime(500 + throttle*1600 + Math.abs(rpm)*.05, now, .1);
+  noiseGain.gain.setTargetAtTime(
+    phase==='run'  ? .03 + throttle*.12 + (rpm/REDLINE)*.05 :
+    phase==='stop' ? Math.min(.14, Math.abs(rpm)/REDLINE*.3) :
+    phase==='crank'? .05 : 0, now, .08);
+  rumbleGain.gain.setTargetAtTime(
+    combusting ? .05 + throttle*.1 : (phase==='crank'? .04 : 0), now, .1);
+  whineGain.gain.setTargetAtTime(phase==='crank' ? .045 : 0, now, .04);
+  whineOsc.frequency.setTargetAtTime(200 + Math.abs(rpm)*1.4, now, .05);
+  master.gain.setTargetAtTime(
+    phase==='run' ? .5 : phase==='crank' ? .4 : phase==='stop' ? .45 : 0, now, .1);
+}
+
+function burst(t0, load, vol, isFire){
+  if (vol <= 0.01) return;
+  const g = AC.createGain(); g.connect(master);
+  const o = AC.createOscillator(); o.type = 'sine';
+  const f0 = (mode==='wankel'? 120 : 88) + load*30;
+  o.frequency.setValueAtTime(f0, t0);
+  o.frequency.exponentialRampToValueAtTime(38, t0+.055);
+  g.gain.setValueAtTime(.0001, t0);
+  g.gain.exponentialRampToValueAtTime(.55*vol*(0.4+load), t0+.005);
+  g.gain.exponentialRampToValueAtTime(.0001, t0 + (isFire? .07+load*.06 : .045));
+  o.connect(g); o.start(t0); o.stop(t0+.2);
+  if (isFire){
+    const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+    src.playbackRate.value = .8 + Math.random()*.5;
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = 260 + load*1100 + Math.random()*180; bp.Q.value = .9;
+    const ng = AC.createGain();
+    ng.gain.setValueAtTime(.0001, t0);
+    ng.gain.exponentialRampToValueAtTime(.32*vol*(0.3+load), t0+.006);
+    ng.gain.exponentialRampToValueAtTime(.0001, t0+.05+load*.05);
+    src.connect(bp).connect(ng).connect(master);
+    src.start(t0); src.stop(t0+.18);
+  }
+}
+
+function playClack(){
+  if (!AC) return; const t0 = AC.currentTime;
+  const o = AC.createOscillator(); o.type = 'square'; o.frequency.value = 150;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(.14, t0);
+  g.gain.exponentialRampToValueAtTime(.0001, t0+.06);
+  o.connect(lp).connect(g).connect(master); o.start(t0); o.stop(t0+.1);
+  burst(t0+.004, .5, .8, true);
+}
+function playBackfire(){
+  if (!AC) return; const t0 = AC.currentTime;
+  const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+  src.playbackRate.value = .45;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(.0001, t0);
+  g.gain.exponentialRampToValueAtTime(.5, t0+.01);
+  g.gain.exponentialRampToValueAtTime(.0001, t0+.22);
+  src.connect(lp).connect(g).connect(master); src.start(t0); src.stop(t0+.3);
+  burst(t0, 1, 1, true);
+}
+
+// ===================== ENTRADA =====================
+addEventListener('keydown', e=>{
+  if (['Space','ArrowUp','ArrowDown'].includes(e.code)) e.preventDefault();
+  if (e.code === 'KeyW') keys.w = true;
+  if (e.code === 'Space' && !e.repeat){
+    if (phase === 'off' || phase === 'stop'){
+      initAudio();
+      if (AC.state === 'suspended') AC.resume();
+      phase = 'crank'; crankT = 0; crankExtra = .3 + Math.random()*.5;
+    }
+  }
+  if (e.code === 'KeyA' && !e.repeat && phase === 'run'){
+    phase = 'stop';                              // corte de ignição
+    playBackfire(); puffBackfire(5, .8);
+  }
+  if (e.code === 'KeyT' && !e.repeat){
+    mode = mode === 'piston' ? 'wankel' : 'piston';
+    phase = 'off'; rpm = 0; kmh = 0; gear = 0; throttle = 0;
+    fireCount = fireCountW = 0;
+    rebuildEngine();
+  }
+  if (e.code === 'KeyC' && !e.repeat) controls.autoRotate = !controls.autoRotate;
+  if (phase === 'run' && !e.repeat){
+    if (e.code === 'ArrowUp'   && gear <  5) gear++;
+    if (e.code === 'ArrowDown' && gear > -1) gear--;
+  }
+});
+addEventListener('keyup', e=>{ if (e.code === 'KeyW') keys.w = false; });
+
+function rebuildEngine(){
+  if (engineGroup){
+    engineGroup.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
+    scene.remove(engineGroup);
+  }
+  pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
+  wkRotor = wkPulley = null;
+  mode === 'wankel' ? buildWankel() : buildPiston();
+  document.getElementById('vMode').innerText =
+    mode === 'wankel' ? 'ROTATIVO · WANKEL' : 'PISTÃO · L4';
+}
+
+// ===================== HUD =====================
+function updateHUD(){
+  const st = { off:'DESLIGADO', crank:'PARTIDA…',
+               run: cutNow ? 'CORTE' : 'LIGADO', stop:'DESACELERANDO' }[phase];
+  document.getElementById('vState').innerText = st;
+  document.getElementById('vGear').innerText = gear===0 ? 'N' : gear===-1 ? 'R' : gear;
+  document.getElementById('vSpd').innerText = Math.round(Math.abs(kmh)) + ' km/h';
+  document.getElementById('vRpm').innerText = String(Math.round(rpm)).padStart(4,'0');
+  const fill = document.getElementById('rpmfill');
+  fill.style.width = clamp(rpm/10000*100, 0, 100) + '%';
+  fill.style.opacity = cutNow ? (Math.floor(clockT*13)%2 ? .3 : 1) : 1;
+}
+
+// ===================== LOOP =====================
+let lastT = performance.now();
+function animate(){
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = clamp((now - lastT)/1000, 0, .05);
+  lastT = now;
+
+  simulate(dt);
+  checkIgnition();
+  updateVisual(dt);
+  updateSmoke(dt);
+  updateCells(dt);
+  updateHUD();
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+init();
+animate();
+</script>
 </body>
 </html>
