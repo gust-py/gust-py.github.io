@@ -2,84 +2,56 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Motor Virtual 2D - Wankel & Pistons</title>
+    <title>Motor Virtual 3D - Burnout & Smoke Edition</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-            background: #050505;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        canvas {
-            display: block;
-            background: #09090c;
-        }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #020205; color: white; }
         #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 15px 20px;
-            border-radius: 10px;
-            border: 1px solid #333;
-            width: 280px;
-            z-index: 100;
-            pointer-events: none;
+            position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.85);
+            padding: 20px; border-radius: 12px; border: 2px solid #0077ff; width: 280px;
+            z-index: 100; pointer-events: none; box-shadow: 0 0 20px rgba(0,119,255,0.4);
         }
-        h2 { margin: 0 0 10px 0; color: #0077ff; font-size: 15px; text-align: center; }
-        .info-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 13px; margin-bottom: 6px; }
-        .controls-guide { font-size: 11px; color: #aaa; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; line-height: 1.4; }
-        .highlight { color: #00ff00; }
+        .info-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 14px; margin-bottom: 8px; }
+        .highlight { color: #00ff00; font-weight: bold; }
+        .controls-guide { font-size: 11px; color: #aaa; margin-top: 15px; border-top: 1px solid #444; padding-top: 10px; line-height: 1.5; }
+        h2 { margin: 0 0 12px 0; color: #0077ff; text-align: center; font-size: 16px; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-
     <div id="ui">
-        <h2>MOTOR VIRTUAL 2D</h2>
-        <div class="info-row"><span>Status:</span> <span id="uiStatus" class="highlight">OFF</span></div>
+        <h2>MOTOR VIRTUAL 3D PRO</h2>
+        <div class="info-row"><span>Status:</span> <span id="uiStatus" class="highlight" style="color:#ffaa00;">OFF</span></div>
         <div class="info-row"><span>Modo:</span> <span id="uiMode">Pistão (4 Cil)</span></div>
         <div class="info-row"><span>RPM:</span> <span id="uiRpm">0</span></div>
         <div class="info-row"><span>Velocidade:</span> <span id="uiSpeed">0 km/h</span></div>
         <div class="info-row"><span>Marcha:</span> <span id="uiGear">N</span></div>
         
         <div class="controls-guide">
-            <b>Controles:</b><br>
-            • <b>SPACE (Segurar):</b> Virar Chave (Ligar)<br>
+            <b>CONTROLES (TECLADO):</b><br>
+            • <b>SPACE (Segurar):</b> Chave / Partida<br>
             • <b>W (Segurar):</b> Acelerador<br>
             • <b>A:</b> Desligar Motor<br>
-            • <b>Seta Cima / Baixo:</b> Marchas<br>
-            • <b>T:</b> Alternar Wankel / Pistão
+            • <b>↑ / ↓:</b> Subir / Descer Marcha<br>
+            • <b>T:</b> Trocar Wankel / Pistão
         </div>
     </div>
 
-    <canvas id="simulationCanvas"></canvas>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script>
-        const canvas = document.getElementById('simulationCanvas');
-        const ctx = canvas.getContext('2d');
+        let scene, camera, renderer, controls;
+        let pistons = [], rods = [], valves = [], sparks = [];
+        let crankshaftGroup, engineGroup;
+        let wankelGroup, wankelRotor, wankelShaft;
+        let isWankelMode = false;
+        
+        const WANKEL_R = 4, WANKEL_E = 0.65, WANKEL_DEPTH = 2.5;
+        let rpm = 0, engineOn = false, angle = 0, isStarting = false;
+        let currentGear = 0, kmh = 0, lastRpm = 0;
+        const CRANK_RADIUS = 1.6, ROD_LENGTH = 3.5;
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        // --- VARIÁVEIS DE ESTADO ---
-        let isWankel = false;
-        let engineOn = false;
-        let isStarting = false;
-        let rpm = 0;
-        let kmh = 0;
-        let angle = 0;
-        let currentGear = 0; // 0 = N, -1 = R, 1-5 = Marchas
-        let maxGears = 5;
-        let gearRatios = [3.80, 2.40, 1.70, 1.25, 1.00];
+        // Sistema de Partículas para Fumaça e Burnout
+        let smokeParticles = [];
+        const smokeGroup = new THREE.Group();
 
         // Teclado
         const keys = { w: false, space: false };
@@ -87,215 +59,276 @@
         window.addEventListener('keydown', (e) => {
             if (e.code === 'KeyW') keys.w = true;
             if (e.code === 'Space') {
-                keys.space = true;
-                if (!audioCtx) setupAudio();
-                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-                isStarting = true;
+                if (!keys.space) {
+                    keys.space = true;
+                    setupAudio();
+                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                    isStarting = true;
+                }
             }
             if (e.code === 'KeyA') {
-                engineOn = false;
-                isStarting = false;
-                rpm = 0;
+                engineOn = false; isStarting = false; rpm = 0;
             }
             if (e.code === 'KeyT') {
-                isWankel = !isWankel;
-                rpm = 0;
-                engineOn = false;
-                document.getElementById('uiMode').innerText = isWankel ? "Wankel (Rotativo)" : "Pistão (4 Cil)";
+                isWankelMode = !isWankelMode;
+                rpm = 0; engineOn = false; kmh = 0; currentGear = 0;
+                document.getElementById('uiMode').innerText = isWankelMode ? "Wankel (Rotativo)" : "Pistão (4 Cil)";
+                rebuildEngine();
             }
-            if (e.code === 'ArrowUp') {
-                if (currentGear < maxGears) currentGear++;
-            }
-            if (e.code === 'ArrowDown') {
-                if (currentGear > -1) currentGear--;
-            }
+            if (e.code === 'ArrowUp') { if (currentGear < 5) currentGear++; }
+            if (e.code === 'ArrowDown') { if (currentGear > -1) currentGear--; }
         });
 
         window.addEventListener('keyup', (e) => {
             if (e.code === 'KeyW') keys.w = false;
-            if (e.code === 'Space') {
-                keys.space = false;
-                isStarting = false;
-            }
+            if (e.code === 'Space') { keys.space = false; isStarting = false; }
         });
 
-        // --- ÁUDIO (Web Audio API) ---
-        let audioCtx, engineOsc, lowPass, noiseGain;
-
+        // Áudio Web Audio API
+        let audioCtx, engineOsc, lowPass, noiseGain, mainGain;
         function setupAudio() {
             if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const mainGain = audioCtx.createGain();
-            mainGain.connect(audioCtx.destination);
-            mainGain.gain.value = 0.5;
-
-            engineOsc = audioCtx.createOscillator();
-            engineOsc.type = 'sawtooth';
-            
-            lowPass = audioCtx.createBiquadFilter();
-            lowPass.type = 'lowpass';
-            lowPass.frequency.value = 300;
-
-            engineOsc.connect(lowPass);
-            lowPass.connect(mainGain);
+            mainGain = audioCtx.createGain(); mainGain.connect(audioCtx.destination); mainGain.gain.value = 0.6;
+            engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
+            lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = 300;
+            engineOsc.connect(lowPass); lowPass.connect(mainGain);
             engineOsc.start();
         }
 
-        // --- LOOP PRINCIPAL DE FÍSICA E DESENHO ---
-        function update() {
-            // Acelerador baseado na tecla W
-            let throttleTarget = keys.w ? 8500 : 800;
+        // Inicialização do Ambiente 3D
+        init();
+        animate();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x030308);
+            scene.fog = new THREE.FogExp2(0x030308, 0.025);
+
+            camera = new THREE.PerspectiveCamera(55, window.innerWidth/window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            // Iluminação Avançada
+            scene.add(new THREE.AmbientLight(0x202530, 1.5));
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            dirLight.position.set(15, 25, 15);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0x0077ff, 3, 20);
+            pointLight.position.set(0, 5, 5);
+            scene.add(pointLight);
+
+            scene.add(smokeGroup);
+            rebuildEngine();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function rebuildEngine() {
+            if (engineGroup) scene.remove(engineGroup);
+            if (wankelGroup) scene.remove(wankelGroup);
+
+            if (isWankelMode) {
+                createWankelEngine();
+                controls.target.set(0, 0, 0);
+                camera.position.set(0, 2, 9);
+            } else {
+                createPistonEngine(4);
+                controls.target.set(0, 3, 0);
+                camera.position.set(10, 7, 14);
+            }
+            controls.update();
+        }
+
+        function createPistonEngine(numCyl) {
+            engineGroup = new THREE.Group(); scene.add(engineGroup);
+            pistons = []; rods = []; valves = []; sparks = [];
+            crankshaftGroup = new THREE.Group(); engineGroup.add(crankshaftGroup);
+
+            const matMetal = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.9, roughness: 0.15 });
+            const matPistao = new THREE.MeshStandardMaterial({ color: 0x0066ff, metalness: 0.7, roughness: 0.3 });
+
+            for(let i = 0; i < numCyl; i++){
+                let x = i * 2.5 - (numCyl * 2.5 / 2) + 1.25;
+                let offset = (i * Math.PI) / 2;
+
+                let piston = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 1.2, 32), matPistao);
+                engineGroup.add(piston); pistons.push({ mesh: piston, x, offset });
+
+                let rod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, ROD_LENGTH, 16), matMetal);
+                engineGroup.add(rod); rods.push({ mesh: rod, x, offset });
+
+                let crankPart = new THREE.Group(); crankPart.position.x = x;
+                let pin = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.6, 16), matMetal);
+                pin.rotation.z = Math.PI / 2; pin.position.y = CRANK_RADIUS;
+                crankPart.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, CRANK_RADIUS * 1.5, 0.8), matMetal), pin);
+                crankPart.rotation.x = offset; crankshaftGroup.add(crankPart);
+            }
+
+            // Bloco Estético do Motor de Pistão transparente para ver dentro
+            const blockGeo = new THREE.BoxGeometry(numCyl * 2.5 + 1, 4, 3);
+            const blockMat = new THREE.MeshPhysicalMaterial({ color: 0x222225, metalness: 0.5, roughness: 0.4, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+            let engineBlock = new THREE.Mesh(blockGeo, blockMat);
+            engineBlock.position.set(0, 3.5, 0);
+            engineGroup.add(engineBlock);
+        }
+
+        function createWankelEngine() {
+            wankelGroup = new THREE.Group(); scene.add(wankelGroup);
+            const matHousing = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.6, roughness: 0.3, side: THREE.DoubleSide });
+            const matRotor = new THREE.MeshStandardMaterial({ color: 0x1f1f25, metalness: 0.85, roughness: 0.2 });
+            const matShaft = new THREE.MeshStandardMaterial({ color: 0x0077ff, metalness: 0.9, roughness: 0.1 });
+
+            // Carcaça Wankel (Epitrocoide Visual)
+            let shape = new THREE.Shape();
+            for (let i = 0; i <= 100; i++) {
+                let t = (i / 100) * Math.PI * 2;
+                let x = (WANKEL_R + 0.2) * Math.cos(t) + WANKEL_E * Math.cos(3 * t);
+                let y = (WANKEL_R + 0.2) * Math.sin(t) + WANKEL_E * Math.sin(3 * t);
+                if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+            }
+            let housingGeo = new THREE.ExtrudeGeometry(shape, { depth: WANKEL_DEPTH, bevelEnabled: false });
+            housingGeo.translate(0, 0, -WANKEL_DEPTH/2);
+            wankelGroup.add(new THREE.Mesh(housingGeo, matHousing));
+
+            // Rotor Triangular
+            let rShape = new THREE.Shape();
+            rShape.moveTo(WANKEL_R * Math.cos(0), WANKEL_R * Math.sin(0));
+            rShape.quadraticCurveTo(0, WANKEL_R * 0.4, WANKEL_R * Math.cos(Math.PI*2/3), WANKEL_R * Math.sin(Math.PI*2/3));
+            rShape.quadraticCurveTo(-WANKEL_R * 0.4, -WANKEL_R * 0.4, WANKEL_R * Math.cos(Math.PI*4/3), WANKEL_R * Math.sin(Math.PI*4/3));
+            rShape.quadraticCurveTo(WANKEL_R * 0.4, -WANKEL_R * 0.4, WANKEL_R * Math.cos(0), WANKEL_R * Math.sin(0));
+
+            let rotorGeo = new THREE.ExtrudeGeometry(rShape, { depth: WANKEL_DEPTH - 0.2, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05 });
+            rotorGeo.translate(0, 0, -(WANKEL_DEPTH-0.2)/2);
+            wankelRotor = new THREE.Mesh(rotorGeo, matRotor);
+            wankelGroup.add(wankelRotor);
+
+            // Eixo Excêntrico
+            wankelShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, WANKEL_DEPTH + 1, 16), matShaft);
+            wankelShaft.rotation.x = Math.PI / 2;
+            wankelGroup.add(wankelShaft);
+            wankelGroup.rotation.y = -Math.PI / 2;
+        }
+
+        // Sistema de Fumaça Realista (Burnout / Escapamento)
+        function spawnSmoke(x, y, z, intensity) {
+            const geo = new THREE.SphereGeometry(0.3 + Math.random() * 0.4, 8, 8);
+            const mat = new THREE.MeshBasicMaterial({
+                color: 0xdddddd,
+                transparent: true,
+                opacity: 0.45 * intensity
+            });
+            const p = new THREE.Mesh(geo, mat);
+            p.position.set(x + (Math.random() - 0.5)*0.5, y, z + (Math.random() - 0.5)*0.5);
+            smokeGroup.add(p);
+            smokeParticles.push({ mesh: p, life: 1.0, velocity: new THREE.Vector3((Math.random()-0.5)*0.05, 0.08 + Math.random()*0.05, (Math.random()-0.5)*0.05) });
+        }
+
+        function updateSmoke() {
+            for (let i = smokeParticles.length - 1; i >= 0; i--) {
+                let sp = smokeParticles[i];
+                sp.life -= 0.02;
+                sp.mesh.position.add(sp.velocity);
+                sp.mesh.scale.multiplyScalar(1.03);
+                sp.mesh.material.opacity = sp.life * 0.4;
+                if (sp.life <= 0) {
+                    smokeGroup.remove(sp.mesh);
+                    sp.mesh.geometry.dispose();
+                    sp.mesh.material.dispose();
+                    smokeParticles.splice(i, 1);
+                }
+            }
+        }
+
+        // Loop de Animação e Física
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = 1/60;
+
+            let throttleTarget = keys.w ? 9000 : 800;
 
             if (isStarting) {
                 rpm += (600 - rpm) * 0.1;
                 if (rpm > 500) engineOn = true;
             } else if (engineOn) {
-                if (!keys.w && rpm < 750 && currentGear === 0) {
-                    // Mantém marcha lenta se soltar o acelerador em neutro
-                    rpm += (800 - rpm) * 0.05;
+                if (!keys.w && rpm < 850 && currentGear === 0) {
+                    rpm += (800 - rpm) * 0.08;
                 } else {
-                    let gearRatio = currentGear === 0 ? 0 : gearRatios[currentGear - 1];
+                    let gearRatio = currentGear === 0 ? 0 : [3.8, 2.4, 1.7, 1.2, 1.0][currentGear - 1];
                     if (currentGear === 0) {
-                        rpm += (throttleTarget - rpm) * 0.08;
+                        rpm += (throttleTarget - rpm) * 0.1;
                     } else {
-                        let targetRpm = (kmh / 3.6) * gearRatio * 300 + (keys.w ? 2000 : 500);
-                        kmh += (keys.w ? 0.15 : -0.1) / (gearRatio || 1);
+                        let targetRpm = (kmh / 3.6) * (gearRatio || 1) * 250 + (keys.w ? 1500 : 500);
+                        kmh += (keys.w ? 0.12 : -0.08) / (gearRatio || 1);
                         if (kmh < 0) kmh = 0;
-                        rpm += (targetRpm - rpm) * 0.05;
+                        rpm += (targetRpm - rpm) * 0.06;
                     }
                 }
-                if (rpm > 9000) rpm = 9000;
+                if (rpm > 9500) rpm = 9500;
             } else {
-                rpm *= 0.93;
-                kmh *= 0.98;
+                rpm *= 0.92; kmh *= 0.98;
                 if (rpm < 10) rpm = 0;
             }
 
-            // Atualiza rotação do motor visual
-            let rotSpeed = (rpm / 60) * 0.05;
-            angle += rotSpeed;
+            angle += (rpm / 60) * (Math.PI * 2) / 60;
 
-            // Atualiza Áudio
-            if (audioCtx && engineOn && rpm > 50) {
-                let freqMultiplier = isWankel ? 1.5 : 0.8;
-                engineOsc.frequency.setTargetAtTime((rpm / 60) * freqMultiplier, audioCtx.currentTime, 0.05);
+            // Efeito de Burnout / Fumaça nos Pneus ou Escapamento se acelerando forte com marcha ou RPM alto
+            if (engineOn && keys.w && rpm > 4000) {
+                spawnSmoke(isWankelMode ? 0 : 3.5, isWankelMode ? -1.5 : 0, isWankelMode ? 2 : 2.5, rpm / 9000);
             }
 
-            // Atualiza UI HTML
+            // Animação Visual 3D
+            if (isWankelMode && wankelRotor) {
+                let rotorAngle = angle / 3;
+                wankelRotor.rotation.z = rotorAngle;
+                wankelRotor.position.set(WANKEL_E * Math.cos(angle), WANKEL_E * Math.sin(angle), 0);
+            } else if (!isWankelMode && crankshaftGroup) {
+                crankshaftGroup.rotation.x = angle;
+                pistons.forEach((p, i) => {
+                    let a = angle + p.offset;
+                    let pinY = Math.cos(a) * CRANK_RADIUS, pinZ = Math.sin(a) * CRANK_RADIUS;
+                    let y = pinY + Math.sqrt(ROD_LENGTH**2 - pinZ**2);
+                    p.mesh.position.set(p.x, y + 1.5, 0);
+                    rods[i].mesh.position.set(p.x, (y + 1.5 + pinY)/2, pinZ/2);
+                    rods[i].mesh.lookAt(p.x, y + 1.5, 0); rods[i].mesh.rotateX(Math.PI/2);
+                });
+            }
+
+            updateSmoke();
+
+            // Atualização de Áudio
+            if (audioCtx && engineOn && rpm > 50) {
+                mainGain.gain.setTargetAtTime(0.6, audioCtx.currentTime, 0.1);
+                let mult = isWankelMode ? 1.5 : 1.0;
+                engineOsc.frequency.setTargetAtTime((rpm / 60) * mult, audioCtx.currentTime, 0.05);
+            } else if (audioCtx) {
+                mainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            }
+
+            // Atualização do Painel HTML
             document.getElementById('uiStatus').innerText = engineOn ? "LIGADO" : (isStarting ? "PARTIDA..." : "OFF");
-            document.getElementById('uiStatus.highlight').style.color = engineOn ? "#00ff00" : "#ffaa00";
+            document.getElementById('uiStatus').style.color = engineOn ? "#00ff00" : "#ffaa00";
             document.getElementById('uiRpm').innerText = Math.round(rpm);
             document.getElementById('uiSpeed').innerText = Math.round(kmh) + " km/h";
             document.getElementById('uiGear').innerText = currentGear === 0 ? "N" : (currentGear === -1 ? "R" : currentGear);
+
+            controls.update();
+            renderer.render(scene, camera);
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-
-            if (isWankel) {
-                drawWankel();
-            } else {
-                drawPistons();
-            }
-
-            ctx.restore();
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
-
-        // --- RENDERIZADOR DO MOTOR WANKEL 2D ---
-        function drawWankel() {
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 4;
-            ctx.fillStyle = '#111';
-
-            // Carcaça (Epitrocoide simplificada)
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 140, 140, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-
-            // Rotor Triancular Giratório
-            ctx.save();
-            let rotorAngle = angle / 3; // Relação Wankel 1:3
-            ctx.rotate(rotorAngle);
-
-            ctx.fillStyle = '#333';
-            ctx.strokeStyle = '#0077ff';
-            ctx.lineWidth = 3;
-
-            ctx.beginPath();
-            for (let i = 0; i < 3; i++) {
-                let a = i * ((Math.PI * 2) / 3);
-                let x = Math.cos(a) * 90;
-                let y = Math.sin(a) * 90;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.quadraticCurveTo(Math.cos(a - 0.5) * 50, Math.sin(a - 0.5) * 50, x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.stroke();
-
-            // Centro do Rotor
-            ctx.fillStyle = '#00ffff';
-            ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-
-            // Eixo Central
-            ctx.fillStyle = '#888';
-            ctx.beginPath();
-            ctx.arc(0, 0, 8, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // --- RENDERIZADOR DO MOTOR DE PISTÕES 2D (4 Cilindros) ---
-        function drawPistons() {
-            const numCyl = 4;
-            const spacing = 70;
-            const startX = -((numCyl - 1) * spacing) / 2;
-
-            for (let i = 0; i < numCyl; i++) {
-                let x = startX + (i * spacing);
-                let offset = (i * Math.PI) / 2;
-                let pistonY = -40 + Math.sin(angle + offset) * 35;
-
-                // Bloco / Cilindro
-                ctx.strokeStyle = '#666';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(x - 22, -110, 44, 90);
-
-                // Pistão
-                ctx.fillStyle = '#0077ff';
-                ctx.fillRect(x - 20, pistonY, 40, 30);
-
-                // Biela
-                ctx.strokeStyle = '#888';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(x, pistonY + 15);
-                ctx.lineTo(x + 10, 60); // Ligação ao virabrequim simplificada
-                ctx.stroke();
-            }
-
-            // Virabrequim (Eixo inferior)
-            ctx.fillStyle = '#aaa';
-            ctx.beginPath();
-            ctx.arc(0, 70, 25, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        // --- LOOP PRINCIPAL ---
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        loop();
     </script>
 </body>
 </html>
