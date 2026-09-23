@@ -52,7 +52,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-// ============ HOT ROD // CHASSI NU — completo ============
+// ============ HOT ROD // CHASSI NU — sem volante, sem escape ============
 let scene, camera, renderer, controls, keyLight;
 let mode='piston', phase='off';
 let rpm=0, angle=0, totalDeg=0, kmh=0, gear=0;
@@ -70,8 +70,8 @@ const keys={w:false,s:false,a:false,d:false};
 
 let carGroup, bodyGroup, bodyInner, wheelsGroup;
 let wheelSpins=[], steerGroups=[], springs=[];
-let driveshaft=null, engineCore=null, exhaustTip=null, steeringWheel=null;
-let coreBase={y:0.4,z:0.75};
+let driveshaft=null, engineCore=null, exhaustTip=null;
+let coreBase={y:0.3,z:0.85};
 const powerParts=[];
 let pos=new THREE.Vector3(0,0,0), yaw=0, prevKmh=0;
 let pitch=0, roll=0, heaveOff=0, hv=0, spinAngle=0, dist=0;
@@ -87,7 +87,7 @@ let fireCount=0, fireCountW=0;
 
 const WE=0.55, WD=2.2, WH=2.82;
 let wkRotor=null, wkPulley=null;
-const ESC=0.12;   // escala do motor (reduzido 1.5x)
+const ESC=0.12;   // escala do motor — bem menor
 
 let flashes=[];
 let smokeGroup, smokePool=[], poolIdx=0, exAcc=0, smokeTex, glowTex;
@@ -121,10 +121,6 @@ function cylBetween(p1,p2,r,mat){
   m.position.copy(a).addScaledVector(d,.5);
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
   return m;
-}
-function tubeCurve(pts,r,mat){
-  const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
-  return new THREE.Mesh(new THREE.TubeGeometry(c,48,r,10,false),mat);
 }
 function makeSpringGeometry(h,coils,r,tube){
   const pts=[];
@@ -421,44 +417,18 @@ function buildChassis(){
     const cross=new THREE.Mesh(new THREE.BoxGeometry(1.22,.1,.14),M.black);
     cross.position.set(0,.1,z); bodyInner.add(cross);
   });
-  bodyInner.add(cylBetween([0,.3,-.45],[0,.6,-.14],.025,M.steel));
-  const pivot=new THREE.Group(); pivot.position.set(0,.64,-.1); pivot.rotation.x=-.5;
-  steeringWheel=new THREE.Group(); pivot.add(steeringWheel);
-  const rim=new THREE.Mesh(new THREE.TorusGeometry(.17,.02,8,32),M.white);
-  steeringWheel.add(rim);
-  for(let i=0;i<3;i++){
-    const a=i/3*Math.PI*2;
-    const sp=new THREE.Mesh(new THREE.BoxGeometry(.024,.15,.024),M.dark);
-    sp.position.set(-Math.sin(a)*.075,Math.cos(a)*.075,0);
-    sp.rotation.z=a; steeringWheel.add(sp);
-  }
-  bodyInner.add(pivot);
-}
-function buildExhaust(headerSets){
-  headerSets.forEach(pts=>{
-    bodyInner.add(tubeCurve(pts,.045,M.steel));
-    const fl=new THREE.Mesh(new THREE.SphereGeometry(.068,10,8),M.dark);
-    fl.position.set(...pts[0]); bodyInner.add(fl);
-  });
-  bodyInner.add(tubeCurve([[.78,.84,.55],[.78,.8,-.25]],.055,M.steel));
-  const muff=new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.48,14),M.steel);
-  muff.rotation.x=Math.PI/2; muff.position.set(.78,.78,-.58); bodyInner.add(muff);
-  const noz=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.13,12),M.dark);
-  noz.rotation.x=Math.PI/2; noz.position.set(.78,.775,-.88); bodyInner.add(noz);
-  exhaustTip=new THREE.Object3D(); exhaustTip.position.set(.78,.775,-.98);
-  bodyInner.add(exhaustTip);
 }
 function buildTrans(){
   const rear=mode==='piston'?coreBase.z-5.42*ESC:coreBase.z-(WD/2+.12)*ESC;
   const bellZ=rear-.12, boxZ=bellZ-.3, tailZ=bellZ-.56;
   const bell=new THREE.Mesh(new THREE.CylinderGeometry(.3,.2,.24,14),M.dark);
-  bell.rotation.x=Math.PI/2; bell.position.set(0,.38,bellZ); bodyInner.add(bell);
+  bell.rotation.x=Math.PI/2; bell.position.set(0,.34,bellZ); bodyInner.add(bell);
   const box=new THREE.Mesh(new THREE.BoxGeometry(.26,.3,.36),M.steel);
-  box.position.set(0,.36,boxZ); bodyInner.add(box);
+  box.position.set(0,.32,boxZ); bodyInner.add(box);
   const tail=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.2,12),M.dark);
-  tail.rotation.x=Math.PI/2; tail.position.set(0,.3,tailZ); bodyInner.add(tail);
+  tail.rotation.x=Math.PI/2; tail.position.set(0,.28,tailZ); bodyInner.add(tail);
   const z1=tailZ-.1, z2=-1.6, len=Math.abs(z1-z2);
-  driveshaft=new THREE.Group(); driveshaft.position.set(0,.22,(z1+z2)/2);
+  driveshaft=new THREE.Group(); driveshaft.position.set(0,.2,(z1+z2)/2);
   const ds=new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,len,10),M.steel);
   ds.rotation.x=Math.PI/2; driveshaft.add(ds);
   const mark=new THREE.Mesh(new THREE.BoxGeometry(.012,.1,len*.7),M.dark);
@@ -479,28 +449,21 @@ function rebuildPowertrain(){
   mode==='wankel'?buildWankelCore(engineCore):buildPistonCore(engineCore);
   engineCore.traverse(o=>{ if(o.isMesh){ o.castShadow=true;
     if(o.material===M.glass||o.material===M.housing)o.castShadow=false; } });
-  coreBase=mode==='piston'?{y:0.4,z:0.75}:{y:0.5,z:1.15};
+  coreBase=mode==='piston'?{y:0.3,z:0.85}:{y:0.4,z:1.0};
   engineCore.scale.setScalar(ESC);
   engineCore.rotation.y=mode==='piston'?-Math.PI/2:0;
   engineCore.position.set(0,coreBase.y,coreBase.z);
   bodyInner.add(engineCore); powerParts.push(engineCore);
+  // coxins do motor
   [1,-1].forEach(s=>{
-    bodyInner.add(cylBetween([s*.5,.18,coreBase.z-.3],[s*.5,coreBase.y-.06,coreBase.z-.3],.04,M.dark));
+    bodyInner.add(cylBetween([s*.5,.18,coreBase.z-.3],[s*.5,coreBase.y-.04,coreBase.z-.3],.04,M.dark));
   });
-  const headers=[];
-  if(mode==='piston'){
-    const yT=coreBase.y+5.35*ESC;
-    for(let i=0;i<4;i++){
-      const zi=coreBase.z+(i*SP-3.3)*ESC;
-      headers.push([[.1,yT,zi],[.45,yT-.28,zi-.14],[.78,.84,zi-.45]]);
-    }
-  } else {
-    const yT=coreBase.y+3.35*ESC;
-    [-.09,.09].forEach(xw=>headers.push([[xw,yT,coreBase.z+.06],[.45,yT-.2,coreBase.z-.25],[.78,.84,.55]]));
-  }
-  buildExhaust(headers);
-  buildTrans();
+  // SEM ESCAPE — só a âncora invisível da fumaça (sai rente ao bloco)
+  exhaustTip=new THREE.Object3D();
+  exhaustTip.position.set(.45,coreBase.y+.1,coreBase.z-.55);
+  bodyInner.add(exhaustTip);
   powerParts.push(exhaustTip);
+  buildTrans();
   document.getElementById('vMode').innerText=mode==='wankel'?'ROTATIVO · WANKEL':'PISTÃO · L4';
 }
 function buildCar(){
@@ -681,7 +644,7 @@ function updateVisual(dt){
   carGroup.position.copy(pos);
   carGroup.rotation.y=yaw;
   if(rpm>5){
-    const amp=(.008+throttle*.014)*(mode==='wankel'?1.35:1)*(rpm/9000*.8+.3);
+    const amp=(.006+throttle*.012)*(mode==='wankel'?1.35:1)*(rpm/9000*.8+.3);
     engineCore.position.x=Math.sin(clockT*117+1)*amp;
     engineCore.position.z=coreBase.z+Math.sin(clockT*89)*amp;
   } else { engineCore.position.x=0; engineCore.position.z=coreBase.z; }
@@ -725,7 +688,6 @@ function updateVisual(dt){
     s.m.position.y=s.bot+len/2;
   }
   if(driveshaft)driveshaft.rotation.z+=(kmh/3.6)/0.62*dt*2.2;
-  if(steeringWheel)steeringWheel.rotation.z=-(steer/0.6)*2.6;
   keyLight.position.set(pos.x+9,16,pos.z-7);
   keyLight.target.position.set(pos.x,0,pos.z);
   for(const f of flashes){
