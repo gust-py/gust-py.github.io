@@ -68,7 +68,7 @@
    MOTOR // BANCO DE ENSAIO — monocromo
    L4 a pistão (ciclo de 4 tempos completo) + Wankel rotativo.
    Desligamento procedural: freio motor → pêndulo de compressão
-   → assentamento com estalo. Áudio 100% sintetizado.
+   → assentamento com estalo. Áudio 100% sintetizado, grave.
    ============================================================ */
 
 // ---------- estado geral ----------
@@ -92,7 +92,8 @@ let crankGroup, pistons = [], rods = [], valveGroups = [], springMeshes = [], re
 let fireCount = 0, fireCountW = 0;
 
 // ---------- Wankel ----------
-const WR = 2.6, WE = 0.55, WD = 2.2;
+const WE = 0.55, WD = 2.2;     // excentricidade e profundidade
+const WH = 2.82;               // raio gerador da carcaça (epitrocoide)
 let wkRotor = null, wkPulley = null;
 
 // ---------- flashes de combustão ----------
@@ -212,7 +213,7 @@ function buildPiston(){
   crankGroup = new THREE.Group(); engineGroup.add(crankGroup);
   pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
 
-  // --- virabrequim: eixo principal (CORREÇÃO: sem Object.assign) ---
+  // eixo principal do virabrequim
   const mainJournal = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,10.6,16), M.steel);
   mainJournal.rotation.z = Math.PI/2;
   crankGroup.add(mainJournal);
@@ -238,7 +239,7 @@ function buildPiston(){
     crankGroup.add(journal);
   }
 
-  // volante do motor (com furos) + polia dianteira
+  // volante do motor + polia dianteira
   const fly = new THREE.Group(); fly.position.x = -5.2;
   const fd = new THREE.Mesh(new THREE.CylinderGeometry(1.85,1.85,.32,40), M.dark);
   fd.rotation.z = Math.PI/2; fly.add(fd);
@@ -263,11 +264,9 @@ function buildPiston(){
   for(let i=0;i<n;i++){
     const x = i*SP - (n*SP/2) + SP/2;
 
-    // camisa de vidro
     const liner = new THREE.Mesh(linerGeo, M.glass);
     liner.position.set(x, 3.75, 0); engineGroup.add(liner);
 
-    // pistão (coroa + anéis + pino)
     const pg = new THREE.Group();
     const crown = new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.9,28), M.white);
     pg.add(crown);
@@ -279,7 +278,6 @@ function buildPiston(){
     pg.position.x = x; engineGroup.add(pg);
     pistons.push(pg);
 
-    // biela (corpo + pé + cabeça)
     const rg = new THREE.Group();
     const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,ROD,12), M.steel);
     shaft.position.y = ROD/2; rg.add(shaft);
@@ -290,7 +288,6 @@ function buildPiston(){
     rg.position.x = x; engineGroup.add(rg);
     rods.push(rg);
 
-    // válvulas + molas
     [[-.4,.27],[.4,.23]].forEach(([z,vr])=>{
       const vg = new THREE.Group(); vg.position.set(x, 5.38, z);
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.35,8), M.steel);
@@ -310,20 +307,17 @@ function buildPiston(){
       ret.position.set(x, 6.6, z); engineGroup.add(ret); retainers.push(ret);
     });
 
-    // vela
     const plug = new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.55,10), M.ceramic);
     plug.position.set(x, 5.9, 0); engineGroup.add(plug);
     const hex = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.12,6), M.dark);
     hex.position.set(x, 5.68, 0); engineGroup.add(hex);
 
-    // flash de combustão
     flashes[i].l.position.set(x, 5.7, 0);
     flashes[i].spr.position.set(x, 5.47, 0);
     flashes[i].l.visible = flashes[i].spr.visible = true;
   }
   for(let i=n;i<4;i++) flashes[i].l.visible = flashes[i].spr.visible = false;
 
-  // cabeçote, placas laterais, mancais, pedestal, escape
   const head = new THREE.Mesh(new THREE.BoxGeometry(n*SP+1.4,.22,2.3), M.dark);
   head.position.y = 5.52; engineGroup.add(head);
 
@@ -362,51 +356,54 @@ function makeSpringGeometry(){
 function buildWankel(){
   engineGroup = new THREE.Group(); engineGroup.position.y = 1.6;
 
+  // raio dos vértices do rotor: raio gerador da carcaça menos folga
+  const WRt = WH - 0.09;
+  const RHO = WRt * Math.sqrt(3);   // flancos Reuleaux (arco MENOR de 60°)
+
   // carcaça: epitrocoide paramétrica real (trajetória do vértice)
   const shape = new THREE.Shape();
-  const RH = WR + .22;
   for(let i=0;i<=360;i++){
     const th = (i/360)*Math.PI*6;
-    const x = WE*Math.cos(th) + RH*Math.cos(th/3 + Math.PI/2);
-    const y = WE*Math.sin(th) + RH*Math.sin(th/3 + Math.PI/2);
+    const x = WE*Math.cos(th) + WH*Math.cos(th/3 + Math.PI/2);
+    const y = WE*Math.sin(th) + WH*Math.sin(th/3 + Math.PI/2);
     i===0 ? shape.moveTo(x,y) : shape.lineTo(x,y);
   }
   const hGeo = new THREE.ExtrudeGeometry(shape, { depth:WD, bevelEnabled:false });
   hGeo.translate(0,0,-WD/2);
-  const housing = new THREE.Mesh(hGeo, M.housing);
-  engineGroup.add(housing);
+  engineGroup.add(new THREE.Mesh(hGeo, M.housing));
 
-  // rotor: triângulo com flanges em arco (Reuleaux)
+  // rotor: vértices alinhados ao raio gerador + flancos em arco MENOR
+  // (bug anterior: clockwise=true desenhava o arco de 300° → rotor gigante)
   const V = [90,210,330].map(a=>new THREE.Vector2(
-    WR*Math.cos(a*Math.PI/180), WR*Math.sin(a*Math.PI/180)));
+    WRt*Math.cos(a*Math.PI/180), WRt*Math.sin(a*Math.PI/180)));
   const rShape = new THREE.Shape();
   for(let i=0;i<3;i++){
     const C = V[i], A = V[(i+1)%3], B = V[(i+2)%3];
     const a0 = Math.atan2(A.y-C.y, A.x-C.x), a1 = Math.atan2(B.y-C.y, B.x-C.x);
     if(i===0) rShape.moveTo(A.x, A.y);
-    rShape.absarc(C.x, C.y, Math.sqrt(3)*WR, a0, a1, true);
+    rShape.absarc(C.x, C.y, RHO, a0, a1, false);
   }
   const rGeo = new THREE.ExtrudeGeometry(rShape,
-    { depth:WD-.25, bevelEnabled:true, bevelThickness:.05, bevelSize:.05 });
+    { depth:WD-.25, bevelEnabled:true, bevelThickness:.03, bevelSize:.03 });
   rGeo.translate(0,0,-(WD-.25)/2);
   wkRotor = new THREE.Mesh(rGeo, M.dark);
   engineGroup.add(wkRotor);
 
-  // engrenagem interna do rotor + pinion fixo (relação 2:3) com dentes
-  const gear = new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,.14,18), M.black);
+  // engrenagem interna do rotor + pinion fixo (relação 2:3)
+  const gear = new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.14,18), M.black);
   gear.rotation.x = Math.PI/2; wkRotor.add(gear);
   for(let i=0;i<18;i++){
     const a = i/18*Math.PI*2;
     const t = new THREE.Mesh(new THREE.BoxGeometry(.07,.14,.1), M.black);
-    t.position.set(Math.cos(a)*1.04, Math.sin(a)*1.04, 0);
+    t.position.set(Math.cos(a)*1.09, Math.sin(a)*1.09, 0);
     t.rotation.z = a; wkRotor.add(t);
   }
-  const pinion = new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.16,12), M.white);
+  const pinion = new THREE.Mesh(new THREE.CylinderGeometry(.58,.58,.16,12), M.white);
   pinion.rotation.x = Math.PI/2; pinion.position.z = .02; engineGroup.add(pinion);
   for(let i=0;i<12;i++){
     const a = i/12*Math.PI*2;
     const t = new THREE.Mesh(new THREE.BoxGeometry(.06,.12,.1), M.white);
-    t.position.set(Math.cos(a)*.62, Math.sin(a)*.62, .02);
+    t.position.set(Math.cos(a)*.64, Math.sin(a)*.64, .02);
     t.rotation.z = a; engineGroup.add(t);
   }
 
@@ -426,12 +423,12 @@ function buildWankel(){
 
   // aros de borda + 2 velas
   [-WD/2, WD/2].forEach(z=>{
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(RH+WE, .06, 8, 72), M.steel);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(WH+WE, .06, 8, 72), M.steel);
     ring.position.z = z; engineGroup.add(ring);
   });
   [.55,-.55].forEach(x=>{
     const plug = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8), M.ceramic);
-    plug.position.set(x, RH+WE+.05, .35); plug.rotation.x = .5;
+    plug.position.set(x, WH+WE+.08, .35); plug.rotation.x = .5;
     engineGroup.add(plug);
   });
 
@@ -442,8 +439,8 @@ function buildWankel(){
   pipe.rotation.z = Math.PI/2; pipe.position.set(-3.9, .55, 0);
   engineGroup.add(pipe);
 
-  flashes[0].l.position.set(.55, 3.9, 1.0); flashes[0].spr.position.set(.55, 3.4, 1.2);
-  flashes[1].l.position.set(-.55, 3.9, 1.0); flashes[1].spr.position.set(-.55, 3.4, 1.2);
+  flashes[0].l.position.set(.55, 3.0, .8); flashes[0].spr.position.set(.55, 2.9, .9);
+  flashes[1].l.position.set(-.55, 3.0, .8); flashes[1].spr.position.set(-.55, 2.9, .9);
   flashes[0].l.visible = flashes[0].spr.visible = true;
   flashes[1].l.visible = flashes[1].spr.visible = true;
   for(let i=2;i<4;i++) flashes[i].l.visible = flashes[i].spr.visible = false;
@@ -499,6 +496,11 @@ function simulate(dt){
     if (crankT > 0.75 + crankExtra){           // o motor pega
       phase = 'run'; runT = 0; coldT = 2.6;
       rpm = Math.max(rpm*1.7, 520);
+      if (AC){                                  // "pega" audível
+        const t0 = AC.currentTime;
+        burst(t0, .85, 1, true); burst(t0+.08, .6, .8, true);
+      }
+      puffBackfire(2, .5);
     }
   }
   else if (phase === 'run'){
@@ -506,17 +508,17 @@ function simulate(dt){
     limiter = rpm > REDLINE*0.995 && throttle > .1;
     cutNow = limiter && (Math.floor(clockT*13)%2 === 0);
 
-    if (gear === 0){                            // ponto morto: rotação livre
+    if (gear === 0){
       const idle = IDLE + Math.sin(clockT*2.7)*22 + Math.sin(clockT*6.3)*11;
       const target = throttle > .03 ? 1000 + throttle*(9500-1200) : idle;
       rpm += (target - rpm) * Math.min(1, (target>rpm? 5.2 : 2.4)*dt);
-    } else if (gear === -1){                    // ré (arcade, suave)
+    } else if (gear === -1){
       const target = throttle > .03 ? -24 : 0;
       kmh += (target - kmh) * Math.min(1, 1.1*dt);
       const sp = Math.abs(kmh), c = Math.min(1, sp/6);
       const engaged = sp*GEARR.R*c + (1-c)*IDLE;
       rpm += (engaged - rpm) * Math.min(1, 9*dt);
-    } else {                                    // marchas 1–5 com embreagem
+    } else {
       const ratio = GEARR[gear];
       const sp = Math.abs(kmh), c = Math.min(1, sp/6);
       const engaged = Math.max(sp*ratio*c + (1-c)*IDLE, IDLE*.85);
@@ -530,8 +532,7 @@ function simulate(dt){
     rpm = Math.min(rpm, MAXRPM);
   }
   else if (phase === 'stop'){
-    // DESLIGAMENTO PROCEDURAL: freio motor até ~500 rpm,
-    // depois pêndulo de compressão (o virabrequim chega a voltar)
+    // DESLIGAMENTO PROCEDURAL: freio motor → pêndulo de compressão
     stopT += dt;
     kmh *= Math.max(0, 1 - .5*dt);
     if (rpm > 500){
@@ -539,11 +540,10 @@ function simulate(dt){
     } else {
       const spring = 430;
       rpm += (-Math.sin(angle*2)*spring - rpm*1.9 - Math.sign(rpm)*rpm*rpm*.02)*dt;
-      // assenta quando quase parado E próximo do equilíbrio (sin2θ ≈ 0)
       if ((Math.abs(rpm) < 7 && Math.abs(Math.sin(angle*2)) < .12) || stopT > 6){
         rpm = 0; phase = 'off';
         playClack();
-        puffBackfire(2, .4);                    // respiro final
+        puffBackfire(2, .4);
       }
     }
   }
@@ -553,13 +553,11 @@ function simulate(dt){
     if (rpm < 1) rpm = 0;
   }
 
-  // ângulo do virabrequim (pode girar de volta no pêndulo)
   const dth = (rpm/60)*Math.PI*2*dt;
   angle = ((angle + dth) % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
   totalDeg += (rpm/6)*dt;
 }
 
-// ignição: dispara quando o contador cruza múltiplos de 180° (L4) ou 360° (wankel)
 function checkIgnition(){
   if (phase !== 'run' || cutNow) return;
   if (mode === 'piston'){
@@ -584,7 +582,7 @@ function checkIgnition(){
 // ===================== ANIMAÇÃO VISUAL =====================
 function updateVisual(dt){
   engineGroup.position.x = 0; engineGroup.position.z = 0;
-  if (rpm > 5){                                 // vibração sutil de bancada
+  if (rpm > 5){
     const amp = (.012 + throttle*.02) * (mode==='wankel'?1.35:1) * (rpm/9000*.8 + .3);
     engineGroup.position.x = Math.sin(clockT*117+1)*amp;
     engineGroup.position.z = Math.sin(clockT*89)*amp;
@@ -600,7 +598,6 @@ function updateVisual(dt){
       const rg = rods[i];
       rg.position.set(rg.position.x, pinY, pinZ);
       rg.rotation.x = Math.atan2(-pinZ, y - pinY);
-      // válvulas: ciclo de 720°, admissão 355–555°, escape 175–375°
       const c = ((totalDeg - firePhase[i]) % 720 + 720) % 720;
       const liftIn  = camLift(c, 355, 555);
       const liftEx  = camLift(c, 175, 375);
@@ -653,7 +650,6 @@ function updateSmoke(dt){
     p.s.scale.setScalar(p.size*(1 + t*2.4));
     p.s.material.opacity = p.base*Math.min(1, t*5)*(1-t);
   }
-  // escapamento: taxa proporcional à frequência de explosões
   if (rpm > 30){
     const fireRate = Math.abs(rpm)/60 * (mode==='wankel'?1:2);
     exAcc += fireRate*.11*dt;
@@ -664,7 +660,7 @@ function updateSmoke(dt){
       puff(tip[0], tip[1], tip[2], .3+Math.random()*.3, .8+Math.random()*.4,
            .82, .34*str, -(.7+Math.random()*.7), .25+Math.random()*.3, (Math.random()-.5)*.3);
     }
-    if (coldT > 0){                             // partida a frio: fumaça extra
+    if (coldT > 0){
       coldT -= dt;
       if (Math.random() < dt*9)
         puff(tip[0], tip[1], tip[2], .4, 1.3, .9, .3,
@@ -683,8 +679,10 @@ function puffBackfire(n, size){
 }
 
 // ===================== ÁUDIO (Web Audio API) =====================
-let AC=null, master, comp, oscA, oscB, oscGain, shaper, lowpass,
-    noiseSrc, noiseBP, noiseGain, rumbleOsc, rumbleGain,
+// Cadeia desenhada para som GRAVE: onda com poucos harmônicos,
+// sub-oitava, dois lowpass, highshelf -10dB e realce de corpo em ~105Hz.
+let AC=null, master, comp, muffle, body, oscA, oscB, oscGain, shaper,
+    lp1, lp2, noiseSrc, noiseBP, noiseLP, noiseGain, rumbleOsc, rumbleGain,
     whineOsc, whineGain, lfoOsc, lfoDepth, noiseBuf, nextFire = 0;
 
 function initAudio(){
@@ -692,32 +690,41 @@ function initAudio(){
   AC = new (window.AudioContext || window.webkitAudioContext)();
 
   comp = AC.createDynamicsCompressor();
-  comp.threshold.value = -14; comp.knee.value = 20; comp.ratio.value = 6;
-  comp.attack.value = .003; comp.release.value = .15;
+  comp.threshold.value = -16; comp.knee.value = 18; comp.ratio.value = 7;
+  comp.attack.value = .003; comp.release.value = .18;
   comp.connect(AC.destination);
 
-  master = AC.createGain(); master.gain.value = 0; master.connect(comp);
+  // realce de corpo + abafador de agudos ( mata a estridência )
+  body = AC.createBiquadFilter(); body.type = 'peaking';
+  body.frequency.value = 105; body.Q.value = 1.1; body.gain.value = 5;
+  body.connect(comp);
+  muffle = AC.createBiquadFilter(); muffle.type = 'highshelf';
+  muffle.frequency.value = 1100; muffle.gain.value = -10;
+  muffle.connect(body);
+
+  master = AC.createGain(); master.gain.value = 0; master.connect(muffle);
 
   noiseBuf = AC.createBuffer(1, AC.sampleRate*1.2, AC.sampleRate);
   const d = noiseBuf.getChannelData(0);
   for(let i=0;i<d.length;i++) d[i] = Math.random()*2 - 1;
 
-  // camada tonal: onda periódica rica + saturação + filtro dinâmico
+  // camada tonal: onda periódica escura + sub-oitava + saturação suave
   const wave = makeEngineWave();
   oscA = AC.createOscillator(); oscA.setPeriodicWave(wave); oscA.frequency.value = 20;
-  oscB = AC.createOscillator(); oscB.setPeriodicWave(wave); oscB.frequency.value = 40;
-  oscB.detune.value = 7;
+  oscB = AC.createOscillator(); oscB.setPeriodicWave(wave); oscB.frequency.value = 10;
+  oscB.detune.value = 6;
   const gA = AC.createGain(); gA.gain.value = 1;
-  const gB = AC.createGain(); gB.gain.value = .35;
+  const gB = AC.createGain(); gB.gain.value = .6;    // sub-oitava = corpo
   oscGain = AC.createGain(); oscGain.gain.value = 0;
   shaper = AC.createWaveShaper();
   const curve = new Float32Array(512);
-  for(let i=0;i<512;i++){ const x = i/255.5 - 1; curve[i] = Math.tanh(2.8*x); }
+  for(let i=0;i<512;i++){ const x = i/255.5 - 1; curve[i] = Math.tanh(2.2*x); }
   shaper.curve = curve; shaper.oversample = '2x';
-  lowpass = AC.createBiquadFilter(); lowpass.type = 'lowpass';
-  lowpass.frequency.value = 400; lowpass.Q.value = .7;
+  lp1 = AC.createBiquadFilter(); lp1.type = 'lowpass';
+  lp1.frequency.value = 200; lp1.Q.value = .6;
+  lp2 = AC.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 1400;
   oscA.connect(gA).connect(oscGain); oscB.connect(gB).connect(oscGain);
-  oscGain.connect(shaper).connect(lowpass).connect(master);
+  oscGain.connect(shaper).connect(lp1).connect(lp2).connect(master);
   oscA.start(); oscB.start();
 
   // AM na frequência de explosão: o "lope" irregular da marcha lenta
@@ -725,21 +732,23 @@ function initAudio(){
   lfoDepth = AC.createGain(); lfoDepth.gain.value = 0;
   lfoOsc.connect(lfoDepth).connect(oscGain.gain); lfoOsc.start();
 
-  // ruído: aspiração + sopro de escape + fricção na desaceleração
+  // ruído de aspiração/escape — centro baixo + lowpass (nada de "hiss")
   noiseSrc = AC.createBufferSource(); noiseSrc.buffer = noiseBuf; noiseSrc.loop = true;
   noiseBP = AC.createBiquadFilter(); noiseBP.type = 'bandpass';
-  noiseBP.frequency.value = 900; noiseBP.Q.value = .5;
+  noiseBP.frequency.value = 200; noiseBP.Q.value = .55;
+  noiseLP = AC.createBiquadFilter(); noiseLP.type = 'lowpass'; noiseLP.frequency.value = 800;
   noiseGain = AC.createGain(); noiseGain.gain.value = 0;
-  noiseSrc.connect(noiseBP).connect(noiseGain).connect(master); noiseSrc.start();
+  noiseSrc.connect(noiseBP).connect(noiseLP).connect(noiseGain).connect(master);
+  noiseSrc.start();
 
   // corpo grave contínuo
-  rumbleOsc = AC.createOscillator(); rumbleOsc.type = 'sine'; rumbleOsc.frequency.value = 52;
+  rumbleOsc = AC.createOscillator(); rumbleOsc.type = 'sine'; rumbleOsc.frequency.value = 46;
   rumbleGain = AC.createGain(); rumbleGain.gain.value = 0;
   rumbleOsc.connect(rumbleGain).connect(master); rumbleOsc.start();
 
-  // motor de partida (arranque)
-  whineOsc = AC.createOscillator(); whineOsc.type = 'sawtooth'; whineOsc.frequency.value = 260;
-  const wf = AC.createBiquadFilter(); wf.type = 'lowpass'; wf.frequency.value = 1400;
+  // motor de partida (arranque) — abafado
+  whineOsc = AC.createOscillator(); whineOsc.type = 'sawtooth'; whineOsc.frequency.value = 150;
+  const wf = AC.createBiquadFilter(); wf.type = 'lowpass'; wf.frequency.value = 600;
   whineGain = AC.createGain(); whineGain.gain.value = 0;
   whineOsc.connect(wf).connect(whineGain).connect(master); whineOsc.start();
 
@@ -747,9 +756,10 @@ function initAudio(){
 }
 
 function makeEngineWave(){
-  const n = 28, real = new Float32Array(n), imag = new Float32Array(n);
-  const amp = [0,1,.62,.5,.29,.22,.16,.12,.10,.08,.06,.05,.04,.035,.03,.025,
-               .02,.018,.015,.013,.011,.01,.009,.008,.007,.006,.005,.004];
+  // 16 harmônicos com queda acentuada — grave, sem "buzz"
+  const n = 16, real = new Float32Array(n), imag = new Float32Array(n);
+  const amp = [0, 1, .68, .42, .26, .18, .12, .08, .06,
+               .045, .03, .022, .016, .012, .009, .007];
   for(let i=1;i<n;i++){
     const ph = Math.random()*Math.PI*2;
     real[i] = amp[i]*Math.cos(ph); imag[i] = amp[i]*Math.sin(ph);
@@ -763,84 +773,87 @@ function schedule(){
   const now = AC.currentTime;
   const f = Math.max(Math.abs(rpm)/60 * (mode==='wankel'?1:2), .5);
   const combusting = phase==='run' && !cutNow && f > 1;
-  // compressão sem ignição: na partida E durante a desaceleração procedural
   const compressing = phase==='crank' || (phase==='stop' && Math.abs(rpm)>60);
 
   if (combusting || compressing){
     if (nextFire < now) nextFire = now + .02;
     while (nextFire < now + .14){
-      const cross = clamp(1.5 - f/100, 0, 1);    // em alta rotação o contínuo assume
+      const mix = clamp(1.4 - f/160, .3, 1);   // pulsos sempre presentes
       if (combusting)
-        burst(nextFire, .25 + throttle*.75, cross*(.55+throttle*.45), true);
+        burst(nextFire, .25 + throttle*.75, mix*(.5+throttle*.5), true);
       else {
-        const sv = phase==='stop' ? .45*Math.min(1, Math.abs(rpm)/900) : .5;
-        burst(nextFire, .12, sv, false);         // chug de compressão
+        const sv = phase==='stop' ? .4*Math.min(1, Math.abs(rpm)/900) : .5;
+        burst(nextFire, .1, sv, false);        // chug de compressão
       }
       nextFire += 1/Math.max(f, 1);
     }
   } else nextFire = now + .02;
 
   oscA.frequency.setTargetAtTime(f, now, .03);
-  oscB.frequency.setTargetAtTime(f*2.02, now, .03);
+  oscB.frequency.setTargetAtTime(Math.max(f*.5, 14), now, .03);
   lfoOsc.frequency.setTargetAtTime(f, now, .05);
-  lfoDepth.gain.setTargetAtTime(combusting ? clamp(.35 - f*.004, .06, .35) : 0, now, .1);
-  lowpass.frequency.setTargetAtTime(240 + throttle*2400 + (rpm/REDLINE)*900, now, .08);
+  lfoDepth.gain.setTargetAtTime(combusting ? clamp(.3 - f*.003, .05, .3) : 0, now, .1);
+  lp1.frequency.setTargetAtTime(150 + throttle*1100 + (rpm/REDLINE)*500, now, .08);
   oscGain.gain.setTargetAtTime(
-    combusting ? .3 : (phase==='stop' && Math.abs(rpm)>50 ? Math.min(.08, Math.abs(rpm)/9000*.12) : 0),
+    combusting ? .26 : (phase==='stop' && Math.abs(rpm)>50 ? Math.min(.06, Math.abs(rpm)/9000*.1) : 0),
     now, .05);
-  noiseBP.frequency.setTargetAtTime(500 + throttle*1600 + Math.abs(rpm)*.05, now, .1);
+  noiseBP.frequency.setTargetAtTime(160 + throttle*480 + Math.abs(rpm)*.02, now, .1);
   noiseGain.gain.setTargetAtTime(
-    phase==='run'  ? .03 + throttle*.12 + (rpm/REDLINE)*.05 :
-    phase==='stop' ? Math.min(.14, Math.abs(rpm)/REDLINE*.3) :
-    phase==='crank'? .05 : 0, now, .08);
+    phase==='run'  ? .025 + throttle*.09 + (rpm/REDLINE)*.03 :
+    phase==='stop' ? Math.min(.1, Math.abs(rpm)/REDLINE*.22) :
+    phase==='crank'? .04 : 0, now, .08);
+  rumbleOsc.frequency.setTargetAtTime(42 + (rpm/REDLINE)*26, now, .1);
   rumbleGain.gain.setTargetAtTime(
-    combusting ? .05 + throttle*.1 : (phase==='crank'? .04 : 0), now, .1);
-  whineGain.gain.setTargetAtTime(phase==='crank' ? .045 : 0, now, .04);
-  whineOsc.frequency.setTargetAtTime(200 + Math.abs(rpm)*1.4, now, .05);
+    combusting ? .06 + throttle*.09 : (phase==='crank'? .035 : 0), now, .1);
+  whineGain.gain.setTargetAtTime(phase==='crank' ? .028 : 0, now, .05);
+  whineOsc.frequency.setTargetAtTime(120 + Math.abs(rpm)*.5, now, .05);
   master.gain.setTargetAtTime(
-    phase==='run' ? .5 : phase==='crank' ? .4 : phase==='stop' ? .45 : 0, now, .1);
+    phase==='run' ? .55 : phase==='crank' ? .42 : phase==='stop' ? .5 : 0, now, .1);
 }
 
 function burst(t0, load, vol, isFire){
   if (vol <= 0.01) return;
+  // thump grave (sine com queda de pitch)
   const g = AC.createGain(); g.connect(master);
   const o = AC.createOscillator(); o.type = 'sine';
-  const f0 = (mode==='wankel'? 120 : 88) + load*30;
+  const f0 = (mode==='wankel'? 74 : 62) + load*26;
   o.frequency.setValueAtTime(f0, t0);
-  o.frequency.exponentialRampToValueAtTime(38, t0+.055);
+  o.frequency.exponentialRampToValueAtTime(34, t0+.06);
   g.gain.setValueAtTime(.0001, t0);
-  g.gain.exponentialRampToValueAtTime(.55*vol*(0.4+load), t0+.005);
-  g.gain.exponentialRampToValueAtTime(.0001, t0 + (isFire? .07+load*.06 : .045));
-  o.connect(g); o.start(t0); o.stop(t0+.2);
-  if (isFire){
-    const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-    src.playbackRate.value = .8 + Math.random()*.5;
-    const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
-    bp.frequency.value = 260 + load*1100 + Math.random()*180; bp.Q.value = .9;
-    const ng = AC.createGain();
-    ng.gain.setValueAtTime(.0001, t0);
-    ng.gain.exponentialRampToValueAtTime(.32*vol*(0.3+load), t0+.006);
-    ng.gain.exponentialRampToValueAtTime(.0001, t0+.05+load*.05);
-    src.connect(bp).connect(ng).connect(master);
-    src.start(t0); src.stop(t0+.18);
-  }
+  g.gain.exponentialRampToValueAtTime(.5*vol*(.45+load), t0+.006);
+  g.gain.exponentialRampToValueAtTime(.0001, t0 + (isFire? .085+load*.07 : .05));
+  o.connect(g); o.start(t0); o.stop(t0+.25);
+  // sopro de escape — abafado, sem estalo agudo
+  const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+  src.playbackRate.value = .45 + Math.random()*.3;
+  const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
+  bp.frequency.value = (isFire? 130 + load*380 : 110) + Math.random()*100;
+  bp.Q.value = .7;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 850;
+  const ng = AC.createGain();
+  const nv = Math.max(isFire? .3*vol*(.3+load) : .16*vol, .001);
+  ng.gain.setValueAtTime(.0001, t0);
+  ng.gain.exponentialRampToValueAtTime(nv, t0+.008);
+  ng.gain.exponentialRampToValueAtTime(.0001, t0 + (isFire? .055+load*.05 : .04));
+  src.connect(bp).connect(lp).connect(ng).connect(master);
+  src.start(t0); src.stop(t0+.2);
 }
 
 function playClack(){
   if (!AC) return; const t0 = AC.currentTime;
-  const o = AC.createOscillator(); o.type = 'square'; o.frequency.value = 150;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800;
+  const o = AC.createOscillator(); o.type = 'square'; o.frequency.value = 120;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
   const g = AC.createGain();
-  g.gain.setValueAtTime(.14, t0);
-  g.gain.exponentialRampToValueAtTime(.0001, t0+.06);
-  o.connect(lp).connect(g).connect(master); o.start(t0); o.stop(t0+.1);
+  g.gain.setValueAtTime(.12, t0);
+  g.gain.exponentialRampToValueAtTime(.0001, t0+.07);
+  o.connect(lp).connect(g).connect(master); o.start(t0); o.stop(t0+.12);
   burst(t0+.004, .5, .8, true);
 }
 function playBackfire(){
   if (!AC) return; const t0 = AC.currentTime;
   const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-  src.playbackRate.value = .45;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380;
+  src.playbackRate.value = .4;
+  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 300;
   const g = AC.createGain();
   g.gain.setValueAtTime(.0001, t0);
   g.gain.exponentialRampToValueAtTime(.5, t0+.01);
@@ -861,7 +874,7 @@ addEventListener('keydown', e=>{
     }
   }
   if (e.code === 'KeyA' && !e.repeat && phase === 'run'){
-    phase = 'stop'; stopT = 0;                   // corte de ignição
+    phase = 'stop'; stopT = 0;
     playBackfire(); puffBackfire(5, .8);
   }
   if (e.code === 'KeyT' && !e.repeat){
