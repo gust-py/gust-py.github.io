@@ -11,13 +11,10 @@
   body { margin:0; overflow:hidden; background:#050505; color:#fff;
          font-family:'IBM Plex Mono', monospace; }
   canvas { display:block; }
-
-  #hud {
-    position:fixed; top:22px; left:22px; width:262px; z-index:10;
-    background:rgba(8,8,8,.78); border:1px solid rgba(255,255,255,.16);
-    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    padding:16px 18px 18px; user-select:none;
-  }
+  #hud { position:fixed; top:22px; left:22px; width:262px; z-index:10;
+         background:rgba(8,8,8,.78); border:1px solid rgba(255,255,255,.16);
+         backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+         padding:16px 18px 18px; user-select:none; }
   #hudTitle { font-size:12px; font-weight:600; letter-spacing:.22em; }
   #hudTitle em { font-style:normal; color:rgba(255,255,255,.35); }
   #hudSub { font-size:8.5px; letter-spacing:.3em; text-transform:uppercase;
@@ -73,15 +70,11 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 /* ============================================================
-   HOT ROD // MONOCROMO
-   O motor (L4 a pistão ou Wankel rotativo — tecla T) agora vive
-   num hot rod dirigível: escapamento 4-em-1 com ponteira,
-   embreagem/câmbio manual 5 marchas + ré, cardã girando,
-   diferencial, eixos, molas visíveis e mapa com obstáculos.
+   HOT ROD // MONOCROMO — arquivo COMPLETO
    ============================================================ */
 
 // ---------- estado geral ----------
-let scene, camera, renderer, controls;
+let scene, camera, renderer, controls, keyLight;
 let mode = 'piston', phase = 'off';      // off | crank | run | stop
 let rpm = 0, angle = 0, totalDeg = 0, kmh = 0, gear = 0;
 let throttle = 0, brake = 0, steer = 0;
@@ -89,9 +82,9 @@ let clockT = 0, crankT = 0, stopT = 0, runT = 0, coldT = 0, crankExtra = 0.5;
 let limiter = false, cutNow = false;
 let REDLINE = 9200, MAXRPM = 9600;
 const IDLE = 820;
-const GEARR = { 1:133, 2:88, 3:63, 4:48, 5:40, R:118 };   // rpm por km/h
-const ACC   = { 1:30, 2:19, 3:13.5, 4:10, 5:8,  R:15 };   // pistão
-const ACCW  = { 1:26, 2:20, 3:16,  4:13, 5:11,  R:17 };   // wankel (puxa no alto)
+const GEARR = { 1:133, 2:88, 3:63, 4:48, 5:40, R:118 };
+const ACC   = { 1:30, 2:19, 3:13.5, 4:10, 5:8,  R:15 };
+const ACCW  = { 1:26, 2:20, 3:16,  4:13, 5:11,  R:17 };
 const WHEELBASE = 3.4;
 const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
 const keys = { w:false, s:false, a:false, d:false };
@@ -101,14 +94,14 @@ let carGroup, bodyGroup, bodyInner, wheelsGroup;
 let wheelSpins = [], steerGroups = [], springs = [];
 let driveshaft = null, engineCore = null, exhaustTip = null;
 let headSpot = null, steeringWheel = null, lightMat = null;
-let coreBase = { y:1.38, z:1.15 };
-const powerParts = [];                     // peças do powertrain (trocáveis via T)
+let coreBase = { y:1.0, z:1.15 };
+const powerParts = [];
 let pos = new THREE.Vector3(0,0,0), yaw = 0, prevKmh = 0;
 let pitch = 0, roll = 0, heaveOff = 0, hv = 0, spinAngle = 0, dist = 0;
 let camMode = 'chase', camShake = 0, thudCd = 0, everStarted = false;
 const CAMS = ['chase','orbit','hood'];
 
-// ---------- geometria do L4 ----------
+// ---------- L4 ----------
 const CR = 1.4, ROD = 3.2, SP = 2.2;
 const pinPhase = [0, Math.PI, Math.PI, 0];
 const firePhase = [0, 540, 180, 360];
@@ -119,19 +112,17 @@ let fireCount = 0, fireCountW = 0;
 // ---------- Wankel ----------
 const WE = 0.55, WD = 2.2, WH = 2.82;
 let wkRotor = null, wkPulley = null;
-const ESC = 0.26;                          // escala do motor montado no carro
+const ESC = 0.26;
 
-// ---------- flashes de combustão ----------
-let flashes = [];                          // reparentados ao motor atual
-
-// ---------- partículas ----------
+// ---------- flashes / partículas ----------
+let flashes = [];
 let smokeGroup, smokePool = [], poolIdx = 0, exAcc = 0, smokeTex, glowTex;
 
 // ---------- mapa ----------
 let obstacles = [];
 const tipV = new THREE.Vector3();
 
-// ---------- materiais (escala de cinza) ----------
+// ---------- materiais ----------
 let M;
 function makeMaterials(){
   M = {
@@ -158,7 +149,6 @@ function radialTex(stops){
   return new THREE.CanvasTexture(c);
 }
 
-// ---------- helpers de construção ----------
 function cylBetween(p1, p2, r, mat){
   const a = new THREE.Vector3(...p1), b = new THREE.Vector3(...p2);
   const d = new THREE.Vector3().subVectors(b, a);
@@ -171,7 +161,7 @@ function tubeCurve(pts, r, mat){
   const c = new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
   return new THREE.Mesh(new THREE.TubeGeometry(c, 48, r, 10, false), mat);
 }
-function makeSpringGeometry(h=0.62, coils=5, r=0.13, tube=0.02){
+function makeSpringGeometry(h, coils, r, tube){
   const pts = [];
   for(let i=0;i<=64;i++){
     const t = i/64;
@@ -206,18 +196,16 @@ function init(){
 
   scene.add(new THREE.AmbientLight(0xffffff, .18));
   scene.add(new THREE.HemisphereLight(0xffffff, 0x0a0a0a, .22));
-  const key = new THREE.DirectionalLight(0xffffff, 2.1);
-  key.position.set(9, 16, -7); key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.left = key.shadow.camera.bottom = -16;
-  key.shadow.camera.right = key.shadow.camera.top = 16;
-  key.shadow.camera.far = 80; key.shadow.bias = -0.0005;
-  scene.add(key); scene.add(key.target);
-  scene.userData.key = key;
+  keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+  keyLight.position.set(9, 16, -7); keyLight.castShadow = true;
+  keyLight.shadow.mapSize.set(2048, 2048);
+  keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -16;
+  keyLight.shadow.camera.right = keyLight.shadow.camera.top = 16;
+  keyLight.shadow.camera.far = 80; keyLight.shadow.bias = -0.0005;
+  scene.add(keyLight); scene.add(keyLight.target);
   const fill = new THREE.DirectionalLight(0xffffff, .45);
   fill.position.set(-11, 5, -9); scene.add(fill);
 
-  // chão gigante + grade técnica + marcações
   const floor = new THREE.Mesh(new THREE.CircleGeometry(420, 56),
     new THREE.MeshStandardMaterial({ color:0x0b0b0b, metalness:.1, roughness:.95 }));
   floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
@@ -243,7 +231,6 @@ function init(){
     smokePool.push({ s, life:0, max:1, size:1, gray:.8, base:.5, vel:new THREE.Vector3() });
   }
 
-  // flashes de ignição — serão reparentados ao motor montado
   for(let i=0;i<4;i++){
     const l = new THREE.PointLight(0xffffff, 0, 5, 2);
     const spr = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -261,7 +248,7 @@ function init(){
   });
 }
 
-// ======================= MAPA / OBSTÁCULOS =======================
+// ======================= MAPA =======================
 const obMat = () => new THREE.MeshStandardMaterial({ color:0x161616, metalness:.3, roughness:.85 });
 const edMat = new THREE.LineBasicMaterial({ color:0x4d4d4d });
 function addBlock(x, z, hx, h, hz){
@@ -275,19 +262,19 @@ function addBlock(x, z, hx, h, hz){
 function buildMap(){
   let seed = 7;
   const rnd = ()=>{ seed = (seed*16807)%2147483647; return seed/2147483647; };
-  for(let i=0;i<12;i++){                              // pilares
+  for(let i=0;i<12;i++){
     const a = rnd()*Math.PI*2, d = 22 + rnd()*115;
     addBlock(Math.cos(a)*d, Math.sin(a)*d, .8+rnd()*.9, 3+rnd()*5.5, .8+rnd()*.9);
   }
-  for(let i=0;i<7;i++){                               // blocos
+  for(let i=0;i<7;i++){
     const a = rnd()*Math.PI*2, d = 30 + rnd()*95;
     addBlock(Math.cos(a)*d, Math.sin(a)*d, 2+rnd()*2.6, 1.2+rnd()*3, 2+rnd()*2.8);
   }
-  addBlock(-16, 20, 1.1, 6, 1.1); addBlock(-16, 32, 1.1, 6, 1.1);   // portão 1
-  addBlock(34, -30, 1.1, 6, 1.1); addBlock(46, -30, 1.1, 6, 1.1);   // portão 2
+  addBlock(-16, 20, 1.1, 6, 1.1); addBlock(-16, 32, 1.1, 6, 1.1);
+  addBlock(34, -30, 1.1, 6, 1.1); addBlock(46, -30, 1.1, 6, 1.1);
 }
 
-// ======================= CONSTRUÇÃO: MOTOR L4 (core) =======================
+// ======================= MOTOR L4 (core) =======================
 function buildPistonCore(g){
   const n = 4;
   crankGroup = new THREE.Group(); g.add(crankGroup);
@@ -311,7 +298,6 @@ function buildPistonCore(g){
     crankGroup.add(journal);
   }
 
-  // volante (traseira, acopla a transmissão) + polia dianteira
   const fly = new THREE.Group(); fly.position.x = -5.2;
   const fd = new THREE.Mesh(new THREE.CylinderGeometry(1.85,1.85,.32,40), M.dark);
   fd.rotation.z = Math.PI/2; fly.add(fd);
@@ -326,7 +312,7 @@ function buildPistonCore(g){
     p.rotation.z = Math.PI/2; p.position.x = 5.1 + i*.12; crankGroup.add(p);
   }
 
-  const springGeo = makeSpringGeometry();
+  const springGeo = makeSpringGeometry(0.62, 5, 0.13, 0.02);
   const linerGeo  = new THREE.CylinderGeometry(.85,.85,3.3,32,1,true);
   const ringGeo   = new THREE.CylinderGeometry(.775,.775,.05,28);
 
@@ -393,7 +379,7 @@ function buildPistonCore(g){
   });
 }
 
-// ======================= CONSTRUÇÃO: WANKEL (core) =======================
+// ======================= MOTOR WANKEL (core) =======================
 function buildWankelCore(g){
   const WRt = WH - 0.09;
   const RHO = WRt * Math.sqrt(3);
@@ -462,14 +448,14 @@ function buildWankelCore(g){
     plug.position.set(x, WH+WE+.08, .35); plug.rotation.x = .5; g.add(plug);
   });
 
-  flashes[0].l.position.set(.55, 3.25, .5); flashes[0].spr.position.set(.55, 3.15, .55);
-  flashes[1].l.position.set(-.55, 3.25, .5); flashes[1].spr.position.set(-.55, 3.15, .55);
+  flashes[0].l.position.set(.55, 3.3, .4); flashes[0].spr.position.set(.55, 3.15, .45);
+  flashes[1].l.position.set(-.55, 3.3, .4); flashes[1].spr.position.set(-.55, 3.15, .45);
   flashes[0].l.visible = flashes[0].spr.visible = true;
   flashes[1].l.visible = flashes[1].spr.visible = true;
   g.add(flashes[0].l, flashes[0].spr, flashes[1].l, flashes[1].spr);
 }
 
-// ======================= CONSTRUÇÃO: O CARRO =======================
+// ======================= O CARRO =======================
 function makeWheel(r, w){
   const g = new THREE.Group();
   const spin = new THREE.Group(); g.add(spin);
@@ -477,7 +463,7 @@ function makeWheel(r, w){
   tire.rotation.z = Math.PI/2; spin.add(tire);
   const rim = new THREE.Mesh(new THREE.CylinderGeometry(r*.58,r*.58,w*.94,22), M.white);
   rim.rotation.z = Math.PI/2; spin.add(rim);
-  for(let i=0;i<5;i++){                       // raios escuros girando sobre o aro claro
+  for(let i=0;i<5;i++){
     const sp = new THREE.Mesh(new THREE.BoxGeometry(w*.55, r*1.1, .07), M.black);
     sp.rotation.x = i/5*Math.PI; spin.add(sp);
   }
@@ -492,32 +478,27 @@ function addWheel(x, z, w, steerable){
   if (steerable) steerGroups.push(wg.g);
 }
 function addSpring(x, z){
-  const m = new THREE.Mesh(makeSpringGeometry(0.32, 6, 0.12, 0.021), M.steel);
-  m.position.set(x, 0.68+0.16, z);
+  const m = new THREE.Mesh(makeSpringGeometry(0.22, 4, 0.11, 0.02), M.steel);
+  m.position.set(x, 0.7 + 0.11, z);
   wheelsGroup.add(m);
-  springs.push({ m, x, z, rest:0.32, bot:0.68 });
+  springs.push({ m, x, z, rest:0.22, bot:0.7 });
 }
 function buildRunningGear(){
-  // eixos (axles)
   wheelsGroup.add(cylBetween([-1.15,.62,-1.8],[1.15,.62,-1.8], .07, M.steel));
   wheelsGroup.add(cylBetween([-1.22,.62, 1.6],[1.22,.62, 1.6], .06, M.steel));
-  // braços de suspensão (four-link / hairpins)
   [[1],[-1]].forEach(([s])=>{
     wheelsGroup.add(cylBetween([s*.5,.98,1.05],[s*.85,.62,1.62], .035, M.dark));
     wheelsGroup.add(cylBetween([s*.5,.98,-1.25],[s*.85,.62,-1.78], .035, M.dark));
   });
-  // diferencial + semieixos
   const diff = new THREE.Mesh(new THREE.BoxGeometry(.5,.36,.4), M.steel);
   diff.position.set(0,.68,-1.8); wheelsGroup.add(diff);
-  wheelsGroup.add(cylBetween([0,.9,-1.56],[0,.72,-1.72], .09, M.steel));
+  wheelsGroup.add(cylBetween([0,.86,-1.52],[0,.74,-1.68], .09, M.steel));
   [[1],[-1]].forEach(([s])=>
     wheelsGroup.add(cylBetween([s*.24,.62,-1.8],[s*1.1,.62,-1.8], .05, M.steel)));
-  // molas
   addSpring( .85, 1.6); addSpring(-.85, 1.6);
   addSpring( .85,-1.8); addSpring(-.85,-1.8);
 }
 function buildBody(){
-  // chassi
   [[1],[-1]].forEach(([s])=>{
     const rail = new THREE.Mesh(new THREE.BoxGeometry(.14,.2,4.9), M.black);
     rail.position.set(s*.55, .1, .05); bodyInner.add(rail);
@@ -526,7 +507,6 @@ function buildBody(){
     const cross = new THREE.Mesh(new THREE.BoxGeometry(1.24,.12,.16), M.black);
     cross.position.set(0,.1,z); bodyInner.add(cross);
   });
-  // carroceria
   [[1],[-1]].forEach(([s])=>{
     const panel = new THREE.Mesh(new THREE.BoxGeometry(.09,.44,2.3), M.dark);
     panel.position.set(s*.84,.08,-.7); bodyInner.add(panel);
@@ -535,25 +515,21 @@ function buildBody(){
   floor.position.set(0,.12,-1); bodyInner.add(floor);
   const tail = new THREE.Mesh(new THREE.BoxGeometry(.95,.34,.5), M.dark);
   tail.position.set(0,.16,-2.2); bodyInner.add(tail);
-  // tanque-ferradura
   const tank = new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.9,24), M.white);
   tank.rotation.x = Math.PI/2; tank.position.set(0,.72,.15); bodyInner.add(tank);
   [0,.3].forEach(z=>{
     const strap = new THREE.Mesh(new THREE.TorusGeometry(.35,.02,8,32), M.dark);
     strap.position.set(0,.72,z); bodyInner.add(strap);
   });
-  // para-brisa
   [[1],[-1]].forEach(([s])=>
     bodyInner.add(cylBetween([s*.5,.68,-.2],[s*.5,1.02,-.32], .025, M.steel)));
   bodyInner.add(cylBetween([-.5,1.02,-.32],[.5,1.02,-.32], .025, M.steel));
   const ws = new THREE.Mesh(new THREE.PlaneGeometry(1.05,.42), M.glass);
   ws.position.set(0,.86,-.26); ws.rotation.x = -.28; bodyInner.add(ws);
-  // assento
   const seat = new THREE.Mesh(new THREE.BoxGeometry(.62,.1,.6), M.dark);
   seat.position.set(0,.24,-1.45); bodyInner.add(seat);
   const back = new THREE.Mesh(new THREE.BoxGeometry(.62,.62,.09), M.dark);
   back.position.set(0,.52,-1.78); back.rotation.x = .12; bodyInner.add(back);
-  // direção (volante gira junto com as rodas)
   bodyInner.add(cylBetween([0,.62,-.5],[0,.86,-.15], .03, M.steel));
   const pivot = new THREE.Group(); pivot.position.set(0,.9,-.12); pivot.rotation.x = -.5;
   steeringWheel = new THREE.Group(); pivot.add(steeringWheel);
@@ -568,7 +544,6 @@ function buildBody(){
   const hub = new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.04,10), M.dark);
   hub.rotation.x = Math.PI/2; steeringWheel.add(hub);
   bodyInner.add(pivot);
-  // radiador + faróis
   const radG = new THREE.BoxGeometry(1.15,1.0,.07);
   const rad = new THREE.Mesh(radG, M.dark);
   rad.position.set(0,.72,2.6);
@@ -580,7 +555,6 @@ function buildBody(){
     lamp.rotation.x = Math.PI/2; lamp.position.set(s*.42,.85,2.66);
     bodyInner.add(lamp);
   });
-  // farol real (spot)
   headSpot = new THREE.SpotLight(0xffffff, 0, 50, .55, .5, 1.2);
   headSpot.position.set(0,.95,2.6);
   headSpot.target.position.set(0,-.4,29);
@@ -611,17 +585,18 @@ function buildTrans(){
   const bell = new THREE.Mesh(new THREE.CylinderGeometry(.5,.36,.28,16), M.dark);
   bell.rotation.x = Math.PI/2; bell.position.set(0, yC, rearZ-.14); bodyInner.add(bell);
   const box = new THREE.Mesh(new THREE.BoxGeometry(.42,.44,.5), M.steel);
-  box.position.set(0, 1.1, rearZ-.5); bodyInner.add(box);
+  box.position.set(0, yC-.05, rearZ-.5); bodyInner.add(box);
   const tailC = new THREE.Mesh(new THREE.CylinderGeometry(.12,.18,.22,12), M.dark);
-  tailC.rotation.x = -Math.PI/2; tailC.position.set(0, .95, rearZ-.84); bodyInner.add(tailC);
-  // cardã girando
-  const len = (rearZ-.95) - (-1.58);
-  driveshaft = new THREE.Group(); driveshaft.position.set(0,.9,(rearZ-.95-1.58)/2);
-  const ds = new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,Math.abs(len),10), M.steel);
+  tailC.rotation.x = Math.PI/2; tailC.position.set(0, yC-.2, rearZ-.84); bodyInner.add(tailC);
+  const z1 = rearZ-.95, z2 = -1.58, len = Math.abs(z1-z2);
+  driveshaft = new THREE.Group(); driveshaft.position.set(0, yC-.28, (z1+z2)/2);
+  const ds = new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,10), M.steel);
   ds.rotation.x = Math.PI/2; driveshaft.add(ds);
+  const mark = new THREE.Mesh(new THREE.BoxGeometry(.016,.13,len*.7), M.dark);
+  mark.position.x = .075; driveshaft.add(mark);
   [-.35,.35].forEach(f=>{
     const c = new THREE.Mesh(new THREE.CylinderGeometry(.068,.068,.06,10), M.dark);
-    c.rotation.x = Math.PI/2; c.position.z = f*Math.abs(len); driveshaft.add(c);
+    c.rotation.x = Math.PI/2; c.position.z = f*len; driveshaft.add(c);
   });
   bodyInner.add(driveshaft);
 }
@@ -638,23 +613,28 @@ function rebuildPowertrain(){
   mode === 'wankel' ? buildWankelCore(engineCore) : buildPistonCore(engineCore);
   engineCore.traverse(o=>{ if(o.isMesh){ o.castShadow = true;
     if(o.material===M.glass || o.material===M.housing) o.castShadow = false; } });
-  coreBase = mode==='piston' ? { y:1.38, z:1.15 } : { y:1.45, z:1.3 };
+  coreBase = mode==='piston' ? { y:1.0, z:1.15 } : { y:1.15, z:1.3 };
   engineCore.scale.setScalar(ESC);
-  engineCore.rotation.y = -Math.PI/2;
+  engineCore.rotation.y = mode==='piston' ? -Math.PI/2 : 0;
   engineCore.position.set(0, coreBase.y, coreBase.z);
   bodyInner.add(engineCore); powerParts.push(engineCore);
 
-  // headers: 4 primários no L4, 2 no Wankel — todos caem no mesmo silenciador
+  // Coxins do motor
+  [1,-1].forEach(s=>{
+    bodyInner.add(cylBetween([s*.55,.62, coreBase.z-.2],
+      [s*.55, coreBase.y-.3, coreBase.z-.2], .05, M.dark));
+  });
+
+  // Headers 4-em-1 (L4) ou 2-em-1 (Wankel)
   const headers = [];
   if (mode === 'piston'){
     for(let i=0;i<4;i++){
-      const zi = 1.15 + (i*SP - 3.3)*ESC;
-      headers.push([[.36,2.72,zi+.03],[.8,1.9,zi],[.94,1.12,zi-.28],[.94,.84,zi-.85]]);
+      const zi = coreBase.z + (i*SP - 3.3)*ESC;
+      headers.push([[.34,2.4,zi+.04],[.75,1.7,zi-.15],[.94,1.15,zi-.5],[.94,.84,.62]]);
     }
   } else {
-    [-.55,.55].forEach(xl=>{
-      const zi = 1.3 + xl*ESC;
-      headers.push([[.32,2.08,zi],[.75,1.6,zi-.1],[.94,1.05,zi-.45],[.94,.84,zi-.9]]);
+    [-.16,.16].forEach(xw=>{
+      headers.push([[xw,2.0,1.42],[.55,1.5,1.15],[.94,1.05,.85],[.94,.84,.62]]);
     });
   }
   buildExhaust(headers);
@@ -666,7 +646,7 @@ function rebuildPowertrain(){
 function buildCar(){
   carGroup = new THREE.Group(); scene.add(carGroup);
   wheelsGroup = new THREE.Group(); carGroup.add(wheelsGroup);
-  bodyGroup = new THREE.Group(); bodyGroup.position.y = .9; carGroup.add(bodyGroup);
+  bodyGroup = new THREE.Group(); bodyGroup.position.y = 1.4; carGroup.add(bodyGroup);
   bodyInner = new THREE.Group(); bodyInner.position.y = -.9; bodyGroup.add(bodyInner);
   addWheel( 1.22, 1.6, .34, true);  addWheel(-1.22, 1.6, .34, true);
   addWheel( 1.15,-1.8, .46, false); addWheel(-1.15,-1.8, .46, false);
@@ -706,10 +686,10 @@ function updateCells(dt){
 }
 buildCells(['1','2','3','4']);
 
-// ===================== FÍSICA / SIMULAÇÃO =====================
+// ===================== FÍSICA =====================
 function tqCurve(){
   return mode === 'wankel'
-    ? 0.7 + 0.55*(rpm/REDLINE)                       // rotativo: cresce com o giro
+    ? 0.7 + 0.55*(rpm/REDLINE)
     : Math.max(.12, 1.1 - Math.pow(rpm/REDLINE,2)*.55);
 }
 function simulate(dt){
@@ -771,21 +751,19 @@ function simulate(dt){
     }
     coast(dt);
   }
-  else { // off
+  else {
     rpm *= Math.max(0, 1 - 8*dt); if (rpm < 1) rpm = 0;
     coast(dt);
   }
 
-  // movimento do carro (modelo bicicleta)
   const vms = kmh/3.6;
   const yawRate = vms * Math.tan(steer) / WHEELBASE;
   yaw += yawRate*dt;
   pos.x += Math.sin(yaw)*vms*dt;
   pos.z += Math.cos(yaw)*vms*dt;
   dist += Math.abs(vms)*dt;
-  collide(dt);
+  collide();
 
-  // dinâmica da carroceria: afundar/empinar/rolar + buracos
   const aLong = dt>0 ? (kmh - prevKmh)/dt/3.6 : 0; prevKmh = kmh;
   pitch += (clamp(-aLong*0.016, -.06, .075) - pitch) * Math.min(1, 5*dt);
   roll  += (clamp(yawRate*vms*0.05, -.08, .08) - roll) * Math.min(1, 5*dt);
@@ -804,7 +782,7 @@ function coast(dt){
   const drag = (1.4 + 0.0004*kmh*kmh)*dt;
   if (Math.abs(kmh) <= drag) kmh = 0; else kmh -= Math.sign(kmh)*drag;
 }
-function collide(dt){
+function collide(){
   const r = 1.5;
   for(const o of obstacles){
     const dx = pos.x - o.x, dz = pos.z - o.z;
@@ -852,7 +830,6 @@ function updateVisual(dt){
   carGroup.position.copy(pos);
   carGroup.rotation.y = yaw;
 
-  // tremor do motor no berço
   if (rpm > 5){
     const amp = (.012 + throttle*.02) * (mode==='wankel'?1.35:1) * (rpm/9000*.8 + .3);
     engineCore.position.x = Math.sin(clockT*117+1)*amp;
@@ -886,20 +863,17 @@ function updateVisual(dt){
     wkPulley.rotation.z = angle;
   }
 
-  // rodas: rotação + esterço
   spinAngle += (kmh/3.6)/0.62 * dt;
   wheelSpins.forEach(s=>s.rotation.x = spinAngle);
   steerGroups.forEach(g=>g.rotation.y = steer);
 
-  // carroceria: pitch/roll/heave
   bodyGroup.rotation.x = pitch;
   bodyGroup.rotation.z = roll;
-  bodyGroup.position.y = 0.9 + heaveOff;
+  bodyGroup.position.y = 1.4 + heaveOff;
 
-  // molas: comprimem/estiram conforme o canto
   for(const s of springs){
     const dy = (-s.z*pitch + s.x*roll) + heaveOff*0.9;
-    const len = clamp(s.rest + dy, .14, .52);
+    const len = clamp(s.rest + dy, .1, .38);
     s.m.scale.y = len/s.rest;
     s.m.position.y = s.bot + len/2;
   }
@@ -910,6 +884,9 @@ function updateVisual(dt){
   const on = phase === 'run';
   headSpot.intensity += ((on ? 1.6 : 0) - headSpot.intensity) * Math.min(1, 8*dt);
   lightMat.emissiveIntensity += ((on ? .9 : .05) - lightMat.emissiveIntensity) * Math.min(1, 8*dt);
+
+  keyLight.position.set(pos.x+9, 16, pos.z-7);
+  keyLight.target.position.set(pos.x, 0, pos.z);
 
   for(const f of flashes){
     if (f.t > 0){
@@ -960,8 +937,7 @@ function updateSmoke(dt){
     if (coldT > 0){
       coldT -= dt;
       if (Math.random() < dt*9)
-        puff(tipV.x, tipV.y, tipV.z, .4, 1.3, .9, .3,
-             -fx*.5, .3, -fz*.5);
+        puff(tipV.x, tipV.y, tipV.z, .4, 1.3, .9, .3, -fx*.5, .3, -fz*.5);
     }
   }
 }
@@ -974,8 +950,8 @@ function puffBackfire(n, size){
          .55, .5, -fx*(.9+Math.random()*1.2), .3+Math.random()*.6, -fz*(.9+Math.random()*1.2));
 }
 
-// ===================== ÁUDIO (Web Audio API) =====================
-let AC=null, master, comp, muffle, body, oscA, oscB, oscGain, shaper,
+// ===================== ÁUDIO =====================
+let AC=null, master, comp, muffle, bodyF, oscA, oscB, oscGain, shaper,
     lp1, lp2, noiseSrc, noiseBP, noiseLP, noiseGain, rumbleOsc, rumbleGain,
     whineOsc, whineGain, lfoOsc, lfoDepth, noiseBuf,
     rollSrc, rollLP, rollGain, skidBP, skidGain, nextFire = 0;
@@ -989,12 +965,12 @@ function initAudio(){
   comp.attack.value = .003; comp.release.value = .18;
   comp.connect(AC.destination);
 
-  body = AC.createBiquadFilter(); body.type = 'peaking';
-  body.frequency.value = 105; body.Q.value = 1.1; body.gain.value = 5;
-  body.connect(comp);
+  bodyF = AC.createBiquadFilter(); bodyF.type = 'peaking';
+  bodyF.frequency.value = 105; bodyF.Q.value = 1.1; bodyF.gain.value = 5;
+  bodyF.connect(comp);
   muffle = AC.createBiquadFilter(); muffle.type = 'highshelf';
   muffle.frequency.value = 1100; muffle.gain.value = -10;
-  muffle.connect(body);
+  muffle.connect(bodyF);
 
   master = AC.createGain(); master.gain.value = 0; master.connect(muffle);
 
@@ -1040,7 +1016,6 @@ function initAudio(){
   whineGain = AC.createGain(); whineGain.gain.value = 0;
   whineOsc.connect(wf).connect(whineGain).connect(master); whineOsc.start();
 
-  // rolamento dos pneus + derrapagem
   rollSrc = AC.createBufferSource(); rollSrc.buffer = noiseBuf; rollSrc.loop = true;
   rollLP = AC.createBiquadFilter(); rollLP.type = 'lowpass'; rollLP.frequency.value = 260;
   rollGain = AC.createGain(); rollGain.gain.value = 0;
@@ -1101,7 +1076,6 @@ function schedule(){
   whineOsc.frequency.setTargetAtTime(120 + Math.abs(rpm)*.5, now, .05);
   master.gain.setTargetAtTime(
     phase==='run' ? .55 : phase==='crank' ? .42 : phase==='stop' ? .5 : 0, now, .1);
-  // rolamento + derrapagem
   rollGain.gain.setTargetAtTime(clamp(Math.abs(kmh)/150, 0, 1)*.14, now, .1);
   rollLP.frequency.setTargetAtTime(150 + Math.abs(kmh)*1.4, now, .1);
   const skid = (Math.abs(steer) > .32 && Math.abs(kmh) > 26)
@@ -1196,7 +1170,7 @@ addEventListener('keydown', e=>{
   if (e.code === 'KeyC' && !e.repeat){
     camMode = CAMS[(CAMS.indexOf(camMode)+1)%CAMS.length];
     controls.enabled = camMode === 'orbit';
-    if (camMode === 'orbit'){ controls.target.copy(pos).y += 1.1; controls.update(); }
+    if (camMode === 'orbit'){ controls.target.set(pos.x, 1.1, pos.z); controls.update(); }
   }
 });
 addEventListener('keyup', e=>{
@@ -1206,7 +1180,6 @@ addEventListener('keyup', e=>{
   if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.d = false;
 });
 function swapEngine(){
-  // troca o motor montado, preservando posição/velocidade do carro
   const keep = { p: pos.clone(), yaw, kmh, dist, spin: spinAngle };
   mode = mode === 'piston' ? 'wankel' : 'piston';
   phase = 'off'; rpm = 0; gear = 0; throttle = 0; brake = 0; steer = 0; coldT = 0;
@@ -1214,7 +1187,7 @@ function swapEngine(){
   buildCar(); setModeVars();
   pos.copy(keep.p); yaw = keep.yaw; kmh = keep.kmh;
   dist = keep.dist; spinAngle = keep.spin; prevKmh = kmh;
-  if (camMode === 'orbit'){ controls.target.copy(pos).y += 1.1; }
+  if (camMode === 'orbit'){ controls.target.set(pos.x, 1.1, pos.z); }
 }
 
 // ===================== HUD =====================
@@ -1238,12 +1211,47 @@ function updateHUD(){
 function updateCamera(dt){
   const fx = Math.sin(yaw), fz = Math.cos(yaw);
   if (camMode === 'orbit'){
-    controls.target.lerp(new THREE.Vector3(pos.x, pos.y+1.1, pos.z), Math.min(1, 6*dt));
+    controls.target.lerp(new THREE.Vector3(pos.x, 1.1, pos.z), Math.min(1, 6*dt));
     controls.update();
-    return;
   }
-  if (camMode === 'chase'){
+  else if (camMode === 'chase'){
     const des = new THREE.Vector3(pos.x - fx*8.2, 3.3, pos.z - fz*8.2);
     camera.position.lerp(des, 1 - Math.exp(-4.2*dt));
     camera.lookAt(pos.x + fx*2.2, 1.15, pos.z + fz*2.2);
-  } else {
+  }
+  else { // hood
+    const des = new THREE.Vector3(pos.x + fx*1.1, 2.9 + heaveOff, pos.z + fz*1.1);
+    camera.position.lerp(des, 1 - Math.exp(-14*dt));
+    camera.lookAt(pos.x + fx*20, 1.4, pos.z + fz*20);
+  }
+  if (camShake > 0){
+    camShake = Math.max(0, camShake - dt*2.2);
+    camera.position.x += (Math.random()-.5)*camShake*.4;
+    camera.position.y += (Math.random()-.5)*camShake*.4;
+  }
+}
+
+// ===================== LOOP =====================
+let lastT = performance.now();
+function animate(){
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = clamp((now - lastT)/1000, 0, .05);
+  lastT = now;
+
+  simulate(dt);
+  checkIgnition();
+  updateVisual(dt);
+  updateSmoke(dt);
+  updateCells(dt);
+  updateHUD();
+  updateCamera(dt);
+
+  renderer.render(scene, camera);
+}
+
+init();
+animate();
+</script>
+</body>
+</html>
