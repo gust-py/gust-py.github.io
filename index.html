@@ -2,52 +2,37 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>HOT ROD — MOTOR VIVO · MONOCROMO</title>
+<title>HOT ROD — CHASSI NU · MONOCROMO</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23050505'/%3E%3Ccircle cx='8' cy='8' r='3.5' fill='none' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; }
-  body { margin:0; overflow:hidden; background:#050505; color:#fff;
-         font-family:'IBM Plex Mono', monospace; }
+  * { box-sizing:border-box; }
+  body { margin:0; overflow:hidden; background:#050505; color:#fff; font-family:'IBM Plex Mono',monospace; }
   canvas { display:block; }
-  #hud { position:fixed; top:22px; left:22px; width:262px; z-index:10;
-         background:rgba(8,8,8,.78); border:1px solid rgba(255,255,255,.16);
-         backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-         padding:16px 18px 18px; user-select:none; }
+  #hud { position:fixed; top:22px; left:22px; width:262px; z-index:10; background:rgba(8,8,8,.78);
+         border:1px solid rgba(255,255,255,.16); backdrop-filter:blur(10px); padding:16px 18px 18px; user-select:none; }
   #hudTitle { font-size:12px; font-weight:600; letter-spacing:.22em; }
   #hudTitle em { font-style:normal; color:rgba(255,255,255,.35); }
-  #hudSub { font-size:8.5px; letter-spacing:.3em; text-transform:uppercase;
-            color:rgba(255,255,255,.35); margin:5px 0 12px; }
-  .row { display:flex; justify-content:space-between; align-items:baseline;
-         padding:5px 0; border-top:1px solid rgba(255,255,255,.08); }
-  .k { font-size:8.5px; letter-spacing:.16em; text-transform:uppercase;
-       color:rgba(255,255,255,.4); }
-  .v { font-size:12px; font-weight:400; }
+  #hudSub { font-size:8.5px; letter-spacing:.3em; text-transform:uppercase; color:rgba(255,255,255,.35); margin:5px 0 12px; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; padding:5px 0; border-top:1px solid rgba(255,255,255,.08); }
+  .k { font-size:8.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.4); }
+  .v { font-size:12px; }
   #rpmtrack { position:relative; height:3px; background:rgba(255,255,255,.12); margin:10px 0 2px; }
   #rpmfill { height:100%; width:0%; background:#fff; }
-  #redtick { position:absolute; left:80%; top:-3px; width:1px; height:9px;
-             background:rgba(255,255,255,.55); }
+  #redtick { position:absolute; left:80%; top:-3px; width:1px; height:9px; background:rgba(255,255,255,.55); }
   #cells { display:flex; gap:6px; margin-top:14px; }
-  .cell { flex:1; height:24px; border:1px solid rgba(255,255,255,.22);
-          display:flex; align-items:center; justify-content:center;
-          font-size:9px; letter-spacing:.1em; }
-  #keys { position:fixed; bottom:20px; left:0; right:0; text-align:center; z-index:10;
-          font-size:9.5px; letter-spacing:.12em; color:rgba(255,255,255,.35);
-          text-transform:uppercase; user-select:none; }
+  .cell { flex:1; height:24px; border:1px solid rgba(255,255,255,.22); display:flex; align-items:center; justify-content:center; font-size:9px; }
+  #keys { position:fixed; bottom:20px; left:0; right:0; text-align:center; z-index:10; font-size:9.5px; letter-spacing:.12em; color:rgba(255,255,255,.35); text-transform:uppercase; }
   #keys b { color:rgba(255,255,255,.85); font-weight:600; }
-  #hint { position:fixed; left:50%; bottom:16%; transform:translateX(-50%); z-index:10;
-          font-size:10px; letter-spacing:.34em; color:rgba(255,255,255,.6);
-          border:1px solid rgba(255,255,255,.25); padding:11px 20px 11px 24px;
-          background:rgba(8,8,8,.6); user-select:none; pointer-events:none;
-          transition:opacity .5s; }
-  @media (max-width:640px){ #hud{ width:210px; padding:12px 14px; } }
+  #hint { position:fixed; left:50%; bottom:16%; transform:translateX(-50%); z-index:10; font-size:10px; letter-spacing:.34em;
+          color:rgba(255,255,255,.6); border:1px solid rgba(255,255,255,.25); padding:11px 20px 11px 24px; background:rgba(8,8,8,.6);
+          pointer-events:none; transition:opacity .5s; }
 </style>
 </head>
 <body>
-
 <div id="hud">
-  <div id="hudTitle">HOT ROD <em>//</em> MOTOR VIVO</div>
+  <div id="hudTitle">HOT ROD <em>//</em> CHASSI NU</div>
   <div id="hudSub">monocromo · estrada aberta</div>
   <div class="row"><span class="k">estado</span><span class="v" id="vState">DESLIGADO</span></div>
   <div class="row"><span class="k">motor</span><span class="v" id="vMode">PISTÃO · L4</span></div>
@@ -58,9 +43,7 @@
   <div id="rpmtrack"><div id="rpmfill"></div><i id="redtick"></i></div>
   <div id="cells"></div>
 </div>
-
 <div id="hint">ESPAÇO — LIGAR O MOTOR</div>
-
 <div id="keys">
   <b>ESPAÇO</b> partida/desliga · <b>W</b> acelera · <b>S</b> freia · <b>A D</b> direção ·
   <b>Q E</b> marchas · <b>T</b> motor · <b>C</b> câmera
@@ -69,1176 +52,1007 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-/* ============================================================
-   HOT ROD // MONOCROMO — arquivo COMPLETO
-   ============================================================ */
-
-// ---------- estado geral ----------
+// ============ HOT ROD // CHASSI NU — completo ============
 let scene, camera, renderer, controls, keyLight;
-let mode = 'piston', phase = 'off';      // off | crank | run | stop
-let rpm = 0, angle = 0, totalDeg = 0, kmh = 0, gear = 0;
-let throttle = 0, brake = 0, steer = 0;
-let clockT = 0, crankT = 0, stopT = 0, runT = 0, coldT = 0, crankExtra = 0.5;
-let limiter = false, cutNow = false;
-let REDLINE = 9200, MAXRPM = 9600;
-const IDLE = 820;
-const GEARR = { 1:133, 2:88, 3:63, 4:48, 5:40, R:118 };
-const ACC   = { 1:30, 2:19, 3:13.5, 4:10, 5:8,  R:15 };
-const ACCW  = { 1:26, 2:20, 3:16,  4:13, 5:11,  R:17 };
-const WHEELBASE = 3.4;
-const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-const keys = { w:false, s:false, a:false, d:false };
+let mode='piston', phase='off';
+let rpm=0, angle=0, totalDeg=0, kmh=0, gear=0;
+let throttle=0, brake=0, steer=0;
+let clockT=0, crankT=0, stopT=0, coldT=0, crankExtra=0.5;
+let limiter=false, cutNow=false;
+let REDLINE=9200, MAXRPM=9600;
+const IDLE=820;
+const GEARR={1:133,2:88,3:63,4:48,5:40,R:118};
+const ACC={1:30,2:19,3:13.5,4:10,5:8,R:15};
+const ACCW={1:26,2:20,3:16,4:13,5:11,R:17};
+const WHEELBASE=3.4;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const keys={w:false,s:false,a:false,d:false};
 
-// ---------- carro ----------
 let carGroup, bodyGroup, bodyInner, wheelsGroup;
-let wheelSpins = [], steerGroups = [], springs = [];
-let driveshaft = null, engineCore = null, exhaustTip = null;
-let headSpot = null, steeringWheel = null, lightMat = null;
-let coreBase = { y:1.0, z:1.15 };
-const powerParts = [];
-let pos = new THREE.Vector3(0,0,0), yaw = 0, prevKmh = 0;
-let pitch = 0, roll = 0, heaveOff = 0, hv = 0, spinAngle = 0, dist = 0;
-let camMode = 'chase', camShake = 0, thudCd = 0, everStarted = false;
-const CAMS = ['chase','orbit','hood'];
+let wheelSpins=[], steerGroups=[], springs=[];
+let driveshaft=null, engineCore=null, exhaustTip=null, steeringWheel=null;
+let coreBase={y:0.4,z:0.75};
+const powerParts=[];
+let pos=new THREE.Vector3(0,0,0), yaw=0, prevKmh=0;
+let pitch=0, roll=0, heaveOff=0, hv=0, spinAngle=0, dist=0;
+let camMode='chase', camShake=0, thudCd=0, everStarted=false;
+const CAMS=['chase','orbit','hood'];
 
-// ---------- L4 ----------
-const CR = 1.4, ROD = 3.2, SP = 2.2;
-const pinPhase = [0, Math.PI, Math.PI, 0];
-const firePhase = [0, 540, 180, 360];
-const fireSeq   = [0, 2, 3, 1];
-let crankGroup, pistons = [], rods = [], valveGroups = [], springMeshes = [], retainers = [];
-let fireCount = 0, fireCountW = 0;
+const CR=1.4, ROD=3.2, SP=2.2;
+const pinPhase=[0,Math.PI,Math.PI,0];
+const firePhase=[0,540,180,360];
+const fireSeq=[0,2,3,1];
+let crankGroup, pistons=[], rods=[], valveGroups=[], springMeshes=[], retainers=[];
+let fireCount=0, fireCountW=0;
 
-// ---------- Wankel ----------
-const WE = 0.55, WD = 2.2, WH = 2.82;
-let wkRotor = null, wkPulley = null;
-const ESC = 0.26;
+const WE=0.55, WD=2.2, WH=2.82;
+let wkRotor=null, wkPulley=null;
+const ESC=0.17;   // escala do motor (reduzido 1.5x)
 
-// ---------- flashes / partículas ----------
-let flashes = [];
-let smokeGroup, smokePool = [], poolIdx = 0, exAcc = 0, smokeTex, glowTex;
+let flashes=[];
+let smokeGroup, smokePool=[], poolIdx=0, exAcc=0, smokeTex, glowTex;
+let obstacles=[];
+const tipV=new THREE.Vector3();
 
-// ---------- mapa ----------
-let obstacles = [];
-const tipV = new THREE.Vector3();
-
-// ---------- materiais ----------
 let M;
 function makeMaterials(){
-  M = {
-    white : new THREE.MeshStandardMaterial({ color:0xf0f0f0, metalness:.85, roughness:.24 }),
-    steel : new THREE.MeshStandardMaterial({ color:0x9a9a9a, metalness:.9,  roughness:.42 }),
-    dark  : new THREE.MeshStandardMaterial({ color:0x232323, metalness:.55, roughness:.6  }),
-    black : new THREE.MeshStandardMaterial({ color:0x121212, metalness:.4,  roughness:.75 }),
-    glass : new THREE.MeshPhysicalMaterial({ color:0xffffff, metalness:0, roughness:.06,
-             transparent:true, opacity:.09, side:THREE.DoubleSide, depthWrite:false }),
-    housing:new THREE.MeshStandardMaterial({ color:0xd8d8d8, metalness:.5, roughness:.35,
-             transparent:true, opacity:.5 }),
-    ceramic:new THREE.MeshStandardMaterial({ color:0xe8e8e8, metalness:.05, roughness:.5 }),
+  M={
+    white:new THREE.MeshStandardMaterial({color:0xf0f0f0,metalness:.85,roughness:.24}),
+    steel:new THREE.MeshStandardMaterial({color:0x9a9a9a,metalness:.9,roughness:.42}),
+    dark:new THREE.MeshStandardMaterial({color:0x232323,metalness:.55,roughness:.6}),
+    black:new THREE.MeshStandardMaterial({color:0x121212,metalness:.4,roughness:.75}),
+    glass:new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.06,transparent:true,opacity:.09,side:THREE.DoubleSide,depthWrite:false}),
+    housing:new THREE.MeshStandardMaterial({color:0xd8d8d8,metalness:.5,roughness:.35,transparent:true,opacity:.5}),
+    ceramic:new THREE.MeshStandardMaterial({color:0xe8e8e8,metalness:.05,roughness:.5}),
   };
-  lightMat = new THREE.MeshStandardMaterial({ color:0xdddddd, metalness:.4, roughness:.3,
-             emissive:0xffffff, emissiveIntensity:.05 });
 }
-
 function radialTex(stops){
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d');
-  const gr = g.createRadialGradient(64,64,0,64,64,64);
-  stops.forEach(s=>gr.addColorStop(s[0], s[1]));
-  g.fillStyle = gr; g.fillRect(0,0,128,128);
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,0,64,64,64);
+  stops.forEach(s=>gr.addColorStop(s[0],s[1]));
+  g.fillStyle=gr; g.fillRect(0,0,128,128);
   return new THREE.CanvasTexture(c);
 }
-
-function cylBetween(p1, p2, r, mat){
-  const a = new THREE.Vector3(...p1), b = new THREE.Vector3(...p2);
-  const d = new THREE.Vector3().subVectors(b, a);
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 10), mat);
-  m.position.copy(a).addScaledVector(d, .5);
-  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), d.normalize());
+function cylBetween(p1,p2,r,mat){
+  const a=new THREE.Vector3(...p1), b=new THREE.Vector3(...p2);
+  const d=new THREE.Vector3().subVectors(b,a);
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),10),mat);
+  m.position.copy(a).addScaledVector(d,.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
   return m;
 }
-function tubeCurve(pts, r, mat){
-  const c = new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
-  return new THREE.Mesh(new THREE.TubeGeometry(c, 48, r, 10, false), mat);
+function tubeCurve(pts,r,mat){
+  const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));
+  return new THREE.Mesh(new THREE.TubeGeometry(c,48,r,10,false),mat);
 }
-function makeSpringGeometry(h, coils, r, tube){
-  const pts = [];
+function makeSpringGeometry(h,coils,r,tube){
+  const pts=[];
   for(let i=0;i<=64;i++){
-    const t = i/64;
-    pts.push(new THREE.Vector3(Math.cos(t*coils*Math.PI*2)*r, t*h, Math.sin(t*coils*Math.PI*2)*r));
+    const t=i/64;
+    pts.push(new THREE.Vector3(Math.cos(t*coils*Math.PI*2)*r,t*h,Math.sin(t*coils*Math.PI*2)*r));
   }
-  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 96, tube, 6, false);
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),96,tube,6,false);
 }
 
-// ============================ CENA ============================
 function init(){
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x050505);
-  scene.fog = new THREE.FogExp2(0x050505, 0.018);
-
-  camera = new THREE.PerspectiveCamera(50, innerWidth/innerHeight, .1, 600);
-  camera.position.set(0, 3.4, -9);
-
-  renderer = new THREE.WebGLRenderer({ antialias:true });
-  renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.outputEncoding = THREE.sRGBEncoding;
+  scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x050505);
+  scene.fog=new THREE.FogExp2(0x050505,0.018);
+  camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,600);
+  camera.position.set(0,3.4,-9);
+  renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.outputEncoding=THREE.sRGBEncoding;
   document.body.appendChild(renderer.domElement);
+  controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=.06;
+  controls.minDistance=3; controls.maxDistance=70;
+  controls.maxPolarAngle=1.53; controls.enabled=false;
 
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true; controls.dampingFactor = .06;
-  controls.minDistance = 3; controls.maxDistance = 70;
-  controls.maxPolarAngle = 1.53;
-  controls.enabled = false;
-
-  scene.add(new THREE.AmbientLight(0xffffff, .18));
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x0a0a0a, .22));
-  keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
-  keyLight.position.set(9, 16, -7); keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(2048, 2048);
-  keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -16;
-  keyLight.shadow.camera.right = keyLight.shadow.camera.top = 16;
-  keyLight.shadow.camera.far = 80; keyLight.shadow.bias = -0.0005;
+  scene.add(new THREE.AmbientLight(0xffffff,.18));
+  scene.add(new THREE.HemisphereLight(0xffffff,0x0a0a0a,.22));
+  keyLight=new THREE.DirectionalLight(0xffffff,2.1);
+  keyLight.position.set(9,16,-7); keyLight.castShadow=true;
+  keyLight.shadow.mapSize.set(2048,2048);
+  keyLight.shadow.camera.left=keyLight.shadow.camera.bottom=-16;
+  keyLight.shadow.camera.right=keyLight.shadow.camera.top=16;
+  keyLight.shadow.camera.far=80; keyLight.shadow.bias=-0.0005;
   scene.add(keyLight); scene.add(keyLight.target);
-  const fill = new THREE.DirectionalLight(0xffffff, .45);
-  fill.position.set(-11, 5, -9); scene.add(fill);
+  const fill=new THREE.DirectionalLight(0xffffff,.45);
+  fill.position.set(-11,5,-9); scene.add(fill);
 
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(420, 56),
-    new THREE.MeshStandardMaterial({ color:0x0b0b0b, metalness:.1, roughness:.95 }));
-  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
-  const grid = new THREE.GridHelper(480, 120, 0x1e1e1e, 0x121212);
-  grid.position.y = .01; scene.add(grid);
-  [12, 26].forEach(r=>{
-    const ring = new THREE.Mesh(new THREE.RingGeometry(r, r+.06, 72),
-      new THREE.MeshBasicMaterial({ color:0x2a2a2a, side:THREE.DoubleSide }));
-    ring.rotation.x = -Math.PI/2; ring.position.y = .02; scene.add(ring);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(420,56),
+    new THREE.MeshStandardMaterial({color:0x0b0b0b,metalness:.1,roughness:.95}));
+  floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+  const grid=new THREE.GridHelper(480,120,0x1e1e1e,0x121212);
+  grid.position.y=.01; scene.add(grid);
+  [12,26].forEach(r=>{
+    const ring=new THREE.Mesh(new THREE.RingGeometry(r,r+.06,72),
+      new THREE.MeshBasicMaterial({color:0x2a2a2a,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2; ring.position.y=.02; scene.add(ring);
   });
-
   buildMap();
-
   makeMaterials();
-  smokeTex = radialTex([[0,'rgba(255,255,255,.85)'],[.4,'rgba(255,255,255,.32)'],[1,'rgba(255,255,255,0)']]);
-  glowTex  = radialTex([[0,'rgba(255,255,255,1)'],[.25,'rgba(255,255,255,.55)'],[1,'rgba(255,255,255,0)']]);
-
-  smokeGroup = new THREE.Group(); scene.add(smokeGroup);
+  smokeTex=radialTex([[0,'rgba(255,255,255,.85)'],[.4,'rgba(255,255,255,.32)'],[1,'rgba(255,255,255,0)']]);
+  glowTex=radialTex([[0,'rgba(255,255,255,1)'],[.25,'rgba(255,255,255,.55)'],[1,'rgba(255,255,255,0)']]);
+  smokeGroup=new THREE.Group(); scene.add(smokeGroup);
   for(let i=0;i<160;i++){
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({
-      map:smokeTex, transparent:true, opacity:0, depthWrite:false }));
-    s.visible = false; smokeGroup.add(s);
-    smokePool.push({ s, life:0, max:1, size:1, gray:.8, base:.5, vel:new THREE.Vector3() });
+    const s=new THREE.Sprite(new THREE.SpriteMaterial({map:smokeTex,transparent:true,opacity:0,depthWrite:false}));
+    s.visible=false; smokeGroup.add(s);
+    smokePool.push({s,life:0,max:1,size:1,gray:.8,base:.5,vel:new THREE.Vector3()});
   }
-
   for(let i=0;i<4;i++){
-    const l = new THREE.PointLight(0xffffff, 0, 5, 2);
-    const spr = new THREE.Sprite(new THREE.SpriteMaterial({
-      map:glowTex, transparent:true, opacity:0, depthWrite:false, depthTest:false }));
-    spr.renderOrder = 20; spr.scale.setScalar(1.2);
-    flashes.push({ l, spr, t:0 });
+    const l=new THREE.PointLight(0xffffff,0,4,2);
+    const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,opacity:0,depthWrite:false,depthTest:false}));
+    spr.renderOrder=20; spr.scale.setScalar(1.2);
+    flashes.push({l,spr,t:0});
   }
-
   buildCar();
   setModeVars();
-
-  addEventListener('resize', ()=>{
-    camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
+  addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
   });
 }
 
-// ======================= MAPA =======================
-const obMat = () => new THREE.MeshStandardMaterial({ color:0x161616, metalness:.3, roughness:.85 });
-const edMat = new THREE.LineBasicMaterial({ color:0x4d4d4d });
-function addBlock(x, z, hx, h, hz){
-  const g = new THREE.BoxGeometry(hx*2, h, hz*2);
-  const m = new THREE.Mesh(g, obMat());
-  m.position.set(x, h/2, z);
-  m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g), edMat));
+const obMat=()=>new THREE.MeshStandardMaterial({color:0x161616,metalness:.3,roughness:.85});
+const edMat=new THREE.LineBasicMaterial({color:0x4d4d4d});
+function addBlock(x,z,hx,h,hz){
+  const g=new THREE.BoxGeometry(hx*2,h,hz*2);
+  const m=new THREE.Mesh(g,obMat());
+  m.position.set(x,h/2,z);
+  m.add(new THREE.LineSegments(new THREE.EdgesGeometry(g),edMat));
   scene.add(m);
-  obstacles.push({ x, z, hx:hx+.15, hz:hz+.15 });
+  obstacles.push({x,z,hx:hx+.15,hz:hz+.15});
 }
 function buildMap(){
-  let seed = 7;
-  const rnd = ()=>{ seed = (seed*16807)%2147483647; return seed/2147483647; };
+  let seed=7;
+  const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647;};
   for(let i=0;i<12;i++){
-    const a = rnd()*Math.PI*2, d = 22 + rnd()*115;
-    addBlock(Math.cos(a)*d, Math.sin(a)*d, .8+rnd()*.9, 3+rnd()*5.5, .8+rnd()*.9);
+    const a=rnd()*Math.PI*2,d=22+rnd()*115;
+    addBlock(Math.cos(a)*d,Math.sin(a)*d,.8+rnd()*.9,3+rnd()*5.5,.8+rnd()*.9);
   }
   for(let i=0;i<7;i++){
-    const a = rnd()*Math.PI*2, d = 30 + rnd()*95;
-    addBlock(Math.cos(a)*d, Math.sin(a)*d, 2+rnd()*2.6, 1.2+rnd()*3, 2+rnd()*2.8);
+    const a=rnd()*Math.PI*2,d=30+rnd()*95;
+    addBlock(Math.cos(a)*d,Math.sin(a)*d,2+rnd()*2.6,1.2+rnd()*3,2+rnd()*2.8);
   }
-  addBlock(-16, 20, 1.1, 6, 1.1); addBlock(-16, 32, 1.1, 6, 1.1);
-  addBlock(34, -30, 1.1, 6, 1.1); addBlock(46, -30, 1.1, 6, 1.1);
+  addBlock(-16,20,1.1,6,1.1); addBlock(-16,32,1.1,6,1.1);
+  addBlock(34,-30,1.1,6,1.1); addBlock(46,-30,1.1,6,1.1);
 }
 
-// ======================= MOTOR L4 (core) =======================
 function buildPistonCore(g){
-  const n = 4;
-  crankGroup = new THREE.Group(); g.add(crankGroup);
+  const n=4;
+  crankGroup=new THREE.Group(); g.add(crankGroup);
   pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
-
-  const mainJournal = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,10.6,16), M.steel);
-  mainJournal.rotation.z = Math.PI/2; crankGroup.add(mainJournal);
-
+  const mj=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,10.6,16),M.steel);
+  mj.rotation.z=Math.PI/2; crankGroup.add(mj);
   for(let i=0;i<n;i++){
-    const x = i*SP - (n*SP/2) + SP/2;
-    const web = new THREE.Group(); web.position.x = x;
-    const plate = new THREE.Mesh(new THREE.BoxGeometry(.3, CR+.55, 1.02), M.steel);
-    plate.position.y = (CR-.55)/2; web.add(plate);
-    const cw = new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.3,24), M.steel);
-    cw.rotation.z = Math.PI/2; cw.position.y = -.6; web.add(cw);
-    const pin = new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.62,16), M.steel);
-    pin.rotation.z = Math.PI/2; pin.position.y = CR; web.add(pin);
-    web.rotation.x = pinPhase[i]; crankGroup.add(web);
-    const journal = new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,SP-.32,16), M.steel);
-    journal.rotation.z = Math.PI/2; journal.position.x = x - SP/2;
-    crankGroup.add(journal);
+    const x=i*SP-(n*SP/2)+SP/2;
+    const web=new THREE.Group(); web.position.x=x;
+    const plate=new THREE.Mesh(new THREE.BoxGeometry(.3,CR+.55,1.02),M.steel);
+    plate.position.y=(CR-.55)/2; web.add(plate);
+    const cw=new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.05,.3,24),M.steel);
+    cw.rotation.z=Math.PI/2; cw.position.y=-.6; web.add(cw);
+    const pin=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.62,16),M.steel);
+    pin.rotation.z=Math.PI/2; pin.position.y=CR; web.add(pin);
+    web.rotation.x=pinPhase[i]; crankGroup.add(web);
+    const jr=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,SP-.32,16),M.steel);
+    jr.rotation.z=Math.PI/2; jr.position.x=x-SP/2; crankGroup.add(jr);
   }
-
-  const fly = new THREE.Group(); fly.position.x = -5.2;
-  const fd = new THREE.Mesh(new THREE.CylinderGeometry(1.85,1.85,.32,40), M.dark);
-  fd.rotation.z = Math.PI/2; fly.add(fd);
+  const fly=new THREE.Group(); fly.position.x=-5.2;
+  const fd=new THREE.Mesh(new THREE.CylinderGeometry(1.85,1.85,.32,40),M.dark);
+  fd.rotation.z=Math.PI/2; fly.add(fd);
   for(let i=0;i<6;i++){
-    const a = i/6*Math.PI*2;
-    const h = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.4,10), M.black);
-    h.rotation.z = Math.PI/2; h.position.set(0, Math.cos(a)*1.25, Math.sin(a)*1.25); fly.add(h);
+    const a=i/6*Math.PI*2;
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.4,10),M.black);
+    h.rotation.z=Math.PI/2; h.position.set(0,Math.cos(a)*1.25,Math.sin(a)*1.25); fly.add(h);
   }
   crankGroup.add(fly);
   for(let i=0;i<3;i++){
-    const p = new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,.09,28), M.dark);
-    p.rotation.z = Math.PI/2; p.position.x = 5.1 + i*.12; crankGroup.add(p);
+    const p=new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,.09,28),M.dark);
+    p.rotation.z=Math.PI/2; p.position.x=5.1+i*.12; crankGroup.add(p);
   }
-
-  const springGeo = makeSpringGeometry(0.62, 5, 0.13, 0.02);
-  const linerGeo  = new THREE.CylinderGeometry(.85,.85,3.3,32,1,true);
-  const ringGeo   = new THREE.CylinderGeometry(.775,.775,.05,28);
-
+  const sg=makeSpringGeometry(0.62,5,0.13,0.02);
+  const lg=new THREE.CylinderGeometry(.85,.85,3.3,32,1,true);
+  const rg2=new THREE.CylinderGeometry(.775,.775,.05,28);
   for(let i=0;i<n;i++){
-    const x = i*SP - (n*SP/2) + SP/2;
-    const liner = new THREE.Mesh(linerGeo, M.glass);
-    liner.position.set(x, 3.75, 0); g.add(liner);
-
-    const pg = new THREE.Group();
-    const crown = new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.9,28), M.white);
-    pg.add(crown);
-    [.28,.1].forEach(ry=>{
-      const r = new THREE.Mesh(ringGeo, M.black); r.position.y = ry; pg.add(r);
-    });
-    const wp = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.5,10), M.dark);
-    wp.rotation.z = Math.PI/2; pg.add(wp);
-    pg.position.x = x; g.add(pg); pistons.push(pg);
-
-    const rg = new THREE.Group();
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,ROD,12), M.steel);
-    shaft.position.y = ROD/2; rg.add(shaft);
-    const big = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.42,16), M.steel);
-    big.rotation.z = Math.PI/2; rg.add(big);
-    const small = new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.34,14), M.steel);
-    small.rotation.z = Math.PI/2; small.position.y = ROD; rg.add(small);
-    rg.position.x = x; g.add(rg); rods.push(rg);
-
+    const x=i*SP-(n*SP/2)+SP/2;
+    const liner=new THREE.Mesh(lg,M.glass); liner.position.set(x,3.75,0); g.add(liner);
+    const pg=new THREE.Group();
+    const crown=new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.9,28),M.white); pg.add(crown);
+    [.28,.1].forEach(ry=>{const r=new THREE.Mesh(rg2,M.black); r.position.y=ry; pg.add(r);});
+    const wp=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.5,10),M.dark);
+    wp.rotation.z=Math.PI/2; pg.add(wp);
+    pg.position.x=x; g.add(pg); pistons.push(pg);
+    const ro=new THREE.Group();
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,ROD,12),M.steel);
+    sh.position.y=ROD/2; ro.add(sh);
+    const big=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.42,16),M.steel);
+    big.rotation.z=Math.PI/2; ro.add(big);
+    const sm=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.34,14),M.steel);
+    sm.rotation.z=Math.PI/2; sm.position.y=ROD; ro.add(sm);
+    ro.position.x=x; g.add(ro); rods.push(ro);
     [[-.4,.27],[.4,.23]].forEach(([z,vr])=>{
-      const vg = new THREE.Group(); vg.position.set(x, 5.38, z);
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.35,8), M.steel);
-      stem.position.y = .675; vg.add(stem);
-      const head = new THREE.Mesh(new THREE.CylinderGeometry(vr,vr,.05,20), M.white);
-      vg.add(head);
-      const face = new THREE.Mesh(new THREE.CylinderGeometry(.06,vr,.13,20), M.white);
-      face.position.y = .09; vg.add(face);
-      const tappet = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.06,10), M.dark);
-      tappet.position.y = 1.34; vg.add(tappet);
+      const vg=new THREE.Group(); vg.position.set(x,5.38,z);
+      const st=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.35,8),M.steel);
+      st.position.y=.675; vg.add(st);
+      const hd=new THREE.Mesh(new THREE.CylinderGeometry(vr,vr,.05,20),M.white); vg.add(hd);
+      const fc=new THREE.Mesh(new THREE.CylinderGeometry(.06,vr,.13,20),M.white);
+      fc.position.y=.09; vg.add(fc);
+      const tp=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.06,10),M.dark);
+      tp.position.y=1.34; vg.add(tp);
       g.add(vg); valveGroups.push(vg);
-
-      const sp = new THREE.Mesh(springGeo, M.steel);
-      sp.position.set(x, 5.98, z); g.add(sp); springMeshes.push(sp);
-
-      const ret = new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.05,12), M.dark);
-      ret.position.set(x, 6.6, z); g.add(ret); retainers.push(ret);
+      const sp=new THREE.Mesh(sg,M.steel); sp.position.set(x,5.98,z); g.add(sp); springMeshes.push(sp);
+      const rt=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.05,12),M.dark);
+      rt.position.set(x,6.6,z); g.add(rt); retainers.push(rt);
     });
-
-    const plug = new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.55,10), M.ceramic);
-    plug.position.set(x, 5.9, 0); g.add(plug);
-    const hex = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.12,6), M.dark);
-    hex.position.set(x, 5.68, 0); g.add(hex);
-
-    flashes[i].l.position.set(x, 5.7, 0);
-    flashes[i].spr.position.set(x, 5.47, 0);
-    flashes[i].l.visible = flashes[i].spr.visible = true;
-    g.add(flashes[i].l, flashes[i].spr);
+    const plug=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.55,10),M.ceramic);
+    plug.position.set(x,5.9,0); g.add(plug);
+    const hex=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.12,6),M.dark);
+    hex.position.set(x,5.68,0); g.add(hex);
+    flashes[i].l.position.set(x,5.7,0);
+    flashes[i].spr.position.set(x,5.47,0);
+    flashes[i].l.visible=flashes[i].spr.visible=true;
+    g.add(flashes[i].l,flashes[i].spr);
   }
-
-  const head = new THREE.Mesh(new THREE.BoxGeometry(n*SP+1.4,.22,2.3), M.dark);
-  head.position.y = 5.52; g.add(head);
-
-  [-5.55, 5.55].forEach(x=>{
-    const side = new THREE.Mesh(new THREE.BoxGeometry(.28,8.7,2.7), M.black);
-    side.position.set(x, 2.35, 0); g.add(side);
+  const head=new THREE.Mesh(new THREE.BoxGeometry(n*SP+1.4,.22,2.3),M.dark);
+  head.position.y=5.52; g.add(head);
+  [-5.55,5.55].forEach(x=>{
+    const side=new THREE.Mesh(new THREE.BoxGeometry(.28,8.7,2.7),M.black);
+    side.position.set(x,2.35,0); g.add(side);
   });
 }
 
-// ======================= MOTOR WANKEL (core) =======================
 function buildWankelCore(g){
-  const WRt = WH - 0.09;
-  const RHO = WRt * Math.sqrt(3);
-
-  const shape = new THREE.Shape();
+  const WRt=WH-0.09, RHO=WRt*Math.sqrt(3);
+  const shape=new THREE.Shape();
   for(let i=0;i<=360;i++){
-    const th = (i/360)*Math.PI*6;
-    const x = WE*Math.cos(th) + WH*Math.cos(th/3 + Math.PI/2);
-    const y = WE*Math.sin(th) + WH*Math.sin(th/3 + Math.PI/2);
-    i===0 ? shape.moveTo(x,y) : shape.lineTo(x,y);
+    const th=(i/360)*Math.PI*6;
+    const x=WE*Math.cos(th)+WH*Math.cos(th/3+Math.PI/2);
+    const y=WE*Math.sin(th)+WH*Math.sin(th/3+Math.PI/2);
+    i===0?shape.moveTo(x,y):shape.lineTo(x,y);
   }
-  const hGeo = new THREE.ExtrudeGeometry(shape, { depth:WD, bevelEnabled:false });
+  const hGeo=new THREE.ExtrudeGeometry(shape,{depth:WD,bevelEnabled:false});
   hGeo.translate(0,0,-WD/2);
-  g.add(new THREE.Mesh(hGeo, M.housing));
-
-  const V = [90,210,330].map(a=>new THREE.Vector2(
-    WRt*Math.cos(a*Math.PI/180), WRt*Math.sin(a*Math.PI/180)));
-  const rShape = new THREE.Shape();
+  g.add(new THREE.Mesh(hGeo,M.housing));
+  const V=[90,210,330].map(a=>new THREE.Vector2(WRt*Math.cos(a*Math.PI/180),WRt*Math.sin(a*Math.PI/180)));
+  const rShape=new THREE.Shape();
   for(let i=0;i<3;i++){
-    const C = V[i], A = V[(i+1)%3], B = V[(i+2)%3];
-    const a0 = Math.atan2(A.y-C.y, A.x-C.x), a1 = Math.atan2(B.y-C.y, B.x-C.x);
-    if(i===0) rShape.moveTo(A.x, A.y);
-    rShape.absarc(C.x, C.y, RHO, a0, a1, false);
+    const C=V[i],A=V[(i+1)%3],B=V[(i+2)%3];
+    const a0=Math.atan2(A.y-C.y,A.x-C.x),a1=Math.atan2(B.y-C.y,B.x-C.x);
+    if(i===0)rShape.moveTo(A.x,A.y);
+    rShape.absarc(C.x,C.y,RHO,a0,a1,false);
   }
-  const rGeo = new THREE.ExtrudeGeometry(rShape,
-    { depth:WD-.25, bevelEnabled:true, bevelThickness:.03, bevelSize:.03 });
+  const rGeo=new THREE.ExtrudeGeometry(rShape,{depth:WD-.25,bevelEnabled:true,bevelThickness:.03,bevelSize:.03});
   rGeo.translate(0,0,-(WD-.25)/2);
-  wkRotor = new THREE.Mesh(rGeo, M.dark); g.add(wkRotor);
-
-  const gear = new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.14,18), M.black);
-  gear.rotation.x = Math.PI/2; wkRotor.add(gear);
+  wkRotor=new THREE.Mesh(rGeo,M.dark); g.add(wkRotor);
+  const gearM=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.14,18),M.black);
+  gearM.rotation.x=Math.PI/2; wkRotor.add(gearM);
   for(let i=0;i<18;i++){
-    const a = i/18*Math.PI*2;
-    const t = new THREE.Mesh(new THREE.BoxGeometry(.07,.14,.1), M.black);
-    t.position.set(Math.cos(a)*1.09, Math.sin(a)*1.09, 0);
-    t.rotation.z = a; wkRotor.add(t);
+    const a=i/18*Math.PI*2;
+    const t=new THREE.Mesh(new THREE.BoxGeometry(.07,.14,.1),M.black);
+    t.position.set(Math.cos(a)*1.09,Math.sin(a)*1.09,0); t.rotation.z=a; wkRotor.add(t);
   }
-  const pinion = new THREE.Mesh(new THREE.CylinderGeometry(.58,.58,.16,12), M.white);
-  pinion.rotation.x = Math.PI/2; pinion.position.z = .02; g.add(pinion);
+  const pinion=new THREE.Mesh(new THREE.CylinderGeometry(.58,.58,.16,12),M.white);
+  pinion.rotation.x=Math.PI/2; pinion.position.z=.02; g.add(pinion);
   for(let i=0;i<12;i++){
-    const a = i/12*Math.PI*2;
-    const t = new THREE.Mesh(new THREE.BoxGeometry(.06,.12,.1), M.white);
-    t.position.set(Math.cos(a)*.64, Math.sin(a)*.64, .02);
-    t.rotation.z = a; g.add(t);
+    const a=i/12*Math.PI*2;
+    const t=new THREE.Mesh(new THREE.BoxGeometry(.06,.12,.1),M.white);
+    t.position.set(Math.cos(a)*.64,Math.sin(a)*.64,.02); t.rotation.z=a; g.add(t);
   }
-
-  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,3.6,18), M.steel);
-  shaft.rotation.x = Math.PI/2; g.add(shaft);
-  wkPulley = new THREE.Group(); wkPulley.position.z = 1.85;
-  const pd = new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.22,26), M.dark);
-  pd.rotation.x = Math.PI/2; wkPulley.add(pd);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,3.6,18),M.steel);
+  shaft.rotation.x=Math.PI/2; g.add(shaft);
+  wkPulley=new THREE.Group(); wkPulley.position.z=1.85;
+  const pd=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.22,26),M.dark);
+  pd.rotation.x=Math.PI/2; wkPulley.add(pd);
   for(let i=0;i<4;i++){
-    const a = i/4*Math.PI*2;
-    const h = new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8), M.black);
-    h.rotation.x = Math.PI/2;
-    h.position.set(Math.cos(a)*.5, Math.sin(a)*.5, 0); wkPulley.add(h);
+    const a=i/4*Math.PI*2;
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8),M.black);
+    h.rotation.x=Math.PI/2; h.position.set(Math.cos(a)*.5,Math.sin(a)*.5,0); wkPulley.add(h);
   }
   g.add(wkPulley);
-
-  [-WD/2, WD/2].forEach(z=>{
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(WH+WE, .06, 8, 72), M.steel);
-    ring.position.z = z; g.add(ring);
+  [-WD/2,WD/2].forEach(z=>{
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(WH+WE,.06,8,72),M.steel);
+    ring.position.z=z; g.add(ring);
   });
   [.55,-.55].forEach(x=>{
-    const plug = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8), M.ceramic);
-    plug.position.set(x, WH+WE+.08, .35); plug.rotation.x = .5; g.add(plug);
+    const plug=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8),M.ceramic);
+    plug.position.set(x,WH+WE+.08,.35); plug.rotation.x=.5; g.add(plug);
   });
-
-  flashes[0].l.position.set(.55, 3.3, .4); flashes[0].spr.position.set(.55, 3.15, .45);
-  flashes[1].l.position.set(-.55, 3.3, .4); flashes[1].spr.position.set(-.55, 3.15, .45);
-  flashes[0].l.visible = flashes[0].spr.visible = true;
-  flashes[1].l.visible = flashes[1].spr.visible = true;
-  g.add(flashes[0].l, flashes[0].spr, flashes[1].l, flashes[1].spr);
+  flashes[0].l.position.set(.55,3.5,.4); flashes[0].spr.position.set(.55,3.35,.45);
+  flashes[1].l.position.set(-.55,3.5,.4); flashes[1].spr.position.set(-.55,3.35,.45);
+  flashes[0].l.visible=flashes[0].spr.visible=true;
+  flashes[1].l.visible=flashes[1].spr.visible=true;
+  g.add(flashes[0].l,flashes[0].spr,flashes[1].l,flashes[1].spr);
 }
 
-// ======================= O CARRO =======================
-function makeWheel(r, w){
-  const g = new THREE.Group();
-  const spin = new THREE.Group(); g.add(spin);
-  const tire = new THREE.Mesh(new THREE.CylinderGeometry(r,r,w,26), M.black);
-  tire.rotation.z = Math.PI/2; spin.add(tire);
-  const rim = new THREE.Mesh(new THREE.CylinderGeometry(r*.58,r*.58,w*.94,22), M.white);
-  rim.rotation.z = Math.PI/2; spin.add(rim);
+function makeWheel(r,w){
+  const g=new THREE.Group();
+  const spin=new THREE.Group(); g.add(spin);
+  const tire=new THREE.Mesh(new THREE.CylinderGeometry(r,r,w,26),M.black);
+  tire.rotation.z=Math.PI/2; spin.add(tire);
+  const rim=new THREE.Mesh(new THREE.CylinderGeometry(r*.58,r*.58,w*.94,22),M.white);
+  rim.rotation.z=Math.PI/2; spin.add(rim);
   for(let i=0;i<5;i++){
-    const sp = new THREE.Mesh(new THREE.BoxGeometry(w*.55, r*1.1, .07), M.black);
-    sp.rotation.x = i/5*Math.PI; spin.add(sp);
+    const sp=new THREE.Mesh(new THREE.BoxGeometry(w*.55,r*1.1,.07),M.black);
+    sp.rotation.x=i/5*Math.PI; spin.add(sp);
   }
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(r*.15,r*.15,w*.7,12), M.dark);
-  hub.rotation.z = Math.PI/2; spin.add(hub);
-  return { g, spin };
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(r*.15,r*.15,w*.7,12),M.dark);
+  hub.rotation.z=Math.PI/2; spin.add(hub);
+  return {g,spin};
 }
-function addWheel(x, z, w, steerable){
-  const wg = makeWheel(0.62, w);
-  wg.g.position.set(x, 0.62, z);
+function addWheel(x,z,w,st){
+  const wg=makeWheel(0.62,w);
+  wg.g.position.set(x,0.62,z);
   wheelsGroup.add(wg.g); wheelSpins.push(wg.spin);
-  if (steerable) steerGroups.push(wg.g);
+  if(st)steerGroups.push(wg.g);
 }
-function addSpring(x, z){
-  const m = new THREE.Mesh(makeSpringGeometry(0.22, 4, 0.11, 0.02), M.steel);
-  m.position.set(x, 0.7 + 0.11, z);
+function addSpring(x,z){
+  const m=new THREE.Mesh(makeSpringGeometry(0.22,4,0.11,0.02),M.steel);
+  m.position.set(x,0.81,z);
   wheelsGroup.add(m);
-  springs.push({ m, x, z, rest:0.22, bot:0.7 });
+  springs.push({m,x,z,rest:0.22,bot:0.7});
 }
 function buildRunningGear(){
-  wheelsGroup.add(cylBetween([-1.15,.62,-1.8],[1.15,.62,-1.8], .07, M.steel));
-  wheelsGroup.add(cylBetween([-1.22,.62, 1.6],[1.22,.62, 1.6], .06, M.steel));
+  wheelsGroup.add(cylBetween([-1.15,.62,-1.8],[1.15,.62,-1.8],.07,M.steel));
+  wheelsGroup.add(cylBetween([-1.22,.62,1.6],[1.22,.62,1.6],.06,M.steel));
   [[1],[-1]].forEach(([s])=>{
-    wheelsGroup.add(cylBetween([s*.5,.98,1.05],[s*.85,.62,1.62], .035, M.dark));
-    wheelsGroup.add(cylBetween([s*.5,.98,-1.25],[s*.85,.62,-1.78], .035, M.dark));
+    wheelsGroup.add(cylBetween([s*.5,.98,1.05],[s*.85,.62,1.62],.035,M.dark));
+    wheelsGroup.add(cylBetween([s*.5,.98,-1.25],[s*.85,.62,-1.78],.035,M.dark));
   });
-  const diff = new THREE.Mesh(new THREE.BoxGeometry(.5,.36,.4), M.steel);
+  const diff=new THREE.Mesh(new THREE.BoxGeometry(.44,.32,.36),M.steel);
   diff.position.set(0,.68,-1.8); wheelsGroup.add(diff);
-  wheelsGroup.add(cylBetween([0,.86,-1.52],[0,.74,-1.68], .09, M.steel));
-  [[1],[-1]].forEach(([s])=>
-    wheelsGroup.add(cylBetween([s*.24,.62,-1.8],[s*1.1,.62,-1.8], .05, M.steel)));
-  addSpring( .85, 1.6); addSpring(-.85, 1.6);
-  addSpring( .85,-1.8); addSpring(-.85,-1.8);
+  wheelsGroup.add(cylBetween([0,.84,-1.54],[0,.74,-1.68],.075,M.steel));
+  [[1],[-1]].forEach(([s])=>wheelsGroup.add(cylBetween([s*.22,.62,-1.8],[s*1.1,.62,-1.8],.05,M.steel)));
+  addSpring(.85,1.6); addSpring(-.85,1.6);
+  addSpring(.85,-1.8); addSpring(-.85,-1.8);
 }
-function buildBody(){
+function buildChassis(){
   [[1],[-1]].forEach(([s])=>{
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(.14,.2,4.9), M.black);
-    rail.position.set(s*.55, .1, .05); bodyInner.add(rail);
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(.12,.18,4.9),M.black);
+    rail.position.set(s*.55,.1,.05); bodyInner.add(rail);
   });
   [-2.2,-.9,.6,2.3].forEach(z=>{
-    const cross = new THREE.Mesh(new THREE.BoxGeometry(1.24,.12,.16), M.black);
+    const cross=new THREE.Mesh(new THREE.BoxGeometry(1.22,.1,.14),M.black);
     cross.position.set(0,.1,z); bodyInner.add(cross);
   });
-  [[1],[-1]].forEach(([s])=>{
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(.09,.44,2.3), M.dark);
-    panel.position.set(s*.84,.08,-.7); bodyInner.add(panel);
-  });
-  const floor = new THREE.Mesh(new THREE.BoxGeometry(1.55,.08,1.7), M.dark);
-  floor.position.set(0,.12,-1); bodyInner.add(floor);
-  const tail = new THREE.Mesh(new THREE.BoxGeometry(.95,.34,.5), M.dark);
-  tail.position.set(0,.16,-2.2); bodyInner.add(tail);
-  const tank = new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.9,24), M.white);
-  tank.rotation.x = Math.PI/2; tank.position.set(0,.72,.15); bodyInner.add(tank);
-  [0,.3].forEach(z=>{
-    const strap = new THREE.Mesh(new THREE.TorusGeometry(.35,.02,8,32), M.dark);
-    strap.position.set(0,.72,z); bodyInner.add(strap);
-  });
-  [[1],[-1]].forEach(([s])=>
-    bodyInner.add(cylBetween([s*.5,.68,-.2],[s*.5,1.02,-.32], .025, M.steel)));
-  bodyInner.add(cylBetween([-.5,1.02,-.32],[.5,1.02,-.32], .025, M.steel));
-  const ws = new THREE.Mesh(new THREE.PlaneGeometry(1.05,.42), M.glass);
-  ws.position.set(0,.86,-.26); ws.rotation.x = -.28; bodyInner.add(ws);
-  const seat = new THREE.Mesh(new THREE.BoxGeometry(.62,.1,.6), M.dark);
-  seat.position.set(0,.24,-1.45); bodyInner.add(seat);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(.62,.62,.09), M.dark);
-  back.position.set(0,.52,-1.78); back.rotation.x = .12; bodyInner.add(back);
-  bodyInner.add(cylBetween([0,.62,-.5],[0,.86,-.15], .03, M.steel));
-  const pivot = new THREE.Group(); pivot.position.set(0,.9,-.12); pivot.rotation.x = -.5;
-  steeringWheel = new THREE.Group(); pivot.add(steeringWheel);
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(.19,.024,8,32), M.white);
+  bodyInner.add(cylBetween([0,.3,-.45],[0,.6,-.14],.025,M.steel));
+  const pivot=new THREE.Group(); pivot.position.set(0,.64,-.1); pivot.rotation.x=-.5;
+  steeringWheel=new THREE.Group(); pivot.add(steeringWheel);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(.17,.02,8,32),M.white);
   steeringWheel.add(rim);
   for(let i=0;i<3;i++){
-    const a = i/3*Math.PI*2;
-    const sp = new THREE.Mesh(new THREE.BoxGeometry(.026,.17,.026), M.dark);
-    sp.position.set(-Math.sin(a)*.085, Math.cos(a)*.085, 0);
-    sp.rotation.z = a; steeringWheel.add(sp);
+    const a=i/3*Math.PI*2;
+    const sp=new THREE.Mesh(new THREE.BoxGeometry(.024,.15,.024),M.dark);
+    sp.position.set(-Math.sin(a)*.075,Math.cos(a)*.075,0);
+    sp.rotation.z=a; steeringWheel.add(sp);
   }
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.04,10), M.dark);
-  hub.rotation.x = Math.PI/2; steeringWheel.add(hub);
   bodyInner.add(pivot);
-  const radG = new THREE.BoxGeometry(1.15,1.0,.07);
-  const rad = new THREE.Mesh(radG, M.dark);
-  rad.position.set(0,.72,2.6);
-  rad.add(new THREE.LineSegments(new THREE.EdgesGeometry(radG),
-    new THREE.LineBasicMaterial({ color:0x5a5a5a })));
-  bodyInner.add(rad);
-  [[1],[-1]].forEach(([s])=>{
-    const lamp = new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.1,18), lightMat);
-    lamp.rotation.x = Math.PI/2; lamp.position.set(s*.42,.85,2.66);
-    bodyInner.add(lamp);
-  });
-  headSpot = new THREE.SpotLight(0xffffff, 0, 50, .55, .5, 1.2);
-  headSpot.position.set(0,.95,2.6);
-  headSpot.target.position.set(0,-.4,29);
-  bodyInner.add(headSpot, headSpot.target);
 }
 function buildExhaust(headerSets){
   headerSets.forEach(pts=>{
-    bodyInner.add(tubeCurve(pts, .055, M.steel));
-    const fl = new THREE.Mesh(new THREE.SphereGeometry(.085,10,8), M.dark);
+    bodyInner.add(tubeCurve(pts,.045,M.steel));
+    const fl=new THREE.Mesh(new THREE.SphereGeometry(.068,10,8),M.dark);
     fl.position.set(...pts[0]); bodyInner.add(fl);
   });
-  bodyInner.add(tubeCurve([[.94,.84,.6],[.94,.76,-.35],[.94,.68,-.68]], .07, M.steel));
-  const muff = new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.7,16), M.steel);
-  muff.rotation.x = Math.PI/2; muff.position.set(.94,.66,-1); bodyInner.add(muff);
-  [-.78,-1.22].forEach(z=>{
-    const c = new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.05,16), M.dark);
-    c.rotation.x = Math.PI/2; c.position.set(.94,.66,z); bodyInner.add(c);
-  });
-  bodyInner.add(tubeCurve([[.94,.66,-1.32],[.94,.6,-1.5]], .09, M.steel));
-  const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.18,14), M.dark);
-  nozzle.rotation.x = Math.PI/2; nozzle.position.set(.94,.6,-1.44); bodyInner.add(nozzle);
-  exhaustTip = new THREE.Object3D(); exhaustTip.position.set(.94,.58,-1.56);
+  bodyInner.add(tubeCurve([[.78,.84,.55],[.78,.8,-.25]],.055,M.steel));
+  const muff=new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.48,14),M.steel);
+  muff.rotation.x=Math.PI/2; muff.position.set(.78,.78,-.58); bodyInner.add(muff);
+  const noz=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.13,12),M.dark);
+  noz.rotation.x=Math.PI/2; noz.position.set(.78,.775,-.88); bodyInner.add(noz);
+  exhaustTip=new THREE.Object3D(); exhaustTip.position.set(.78,.775,-.98);
   bodyInner.add(exhaustTip);
 }
 function buildTrans(){
-  const rearZ = mode==='piston' ? -0.2 : 0.83;
-  const yC = coreBase.y;
-  const bell = new THREE.Mesh(new THREE.CylinderGeometry(.5,.36,.28,16), M.dark);
-  bell.rotation.x = Math.PI/2; bell.position.set(0, yC, rearZ-.14); bodyInner.add(bell);
-  const box = new THREE.Mesh(new THREE.BoxGeometry(.42,.44,.5), M.steel);
-  box.position.set(0, yC-.05, rearZ-.5); bodyInner.add(box);
-  const tailC = new THREE.Mesh(new THREE.CylinderGeometry(.12,.18,.22,12), M.dark);
-  tailC.rotation.x = Math.PI/2; tailC.position.set(0, yC-.2, rearZ-.84); bodyInner.add(tailC);
-  const z1 = rearZ-.95, z2 = -1.58, len = Math.abs(z1-z2);
-  driveshaft = new THREE.Group(); driveshaft.position.set(0, yC-.28, (z1+z2)/2);
-  const ds = new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,len,10), M.steel);
-  ds.rotation.x = Math.PI/2; driveshaft.add(ds);
-  const mark = new THREE.Mesh(new THREE.BoxGeometry(.016,.13,len*.7), M.dark);
-  mark.position.x = .075; driveshaft.add(mark);
-  [-.35,.35].forEach(f=>{
-    const c = new THREE.Mesh(new THREE.CylinderGeometry(.068,.068,.06,10), M.dark);
-    c.rotation.x = Math.PI/2; c.position.z = f*len; driveshaft.add(c);
+  const rear=mode==='piston'?coreBase.z-5.42*ESC:coreBase.z-(WD/2+.12)*ESC;
+  const bellZ=rear-.12, boxZ=bellZ-.3, tailZ=bellZ-.56;
+  const bell=new THREE.Mesh(new THREE.CylinderGeometry(.3,.2,.24,14),M.dark);
+  bell.rotation.x=Math.PI/2; bell.position.set(0,.38,bellZ); bodyInner.add(bell);
+  const box=new THREE.Mesh(new THREE.BoxGeometry(.26,.3,.36),M.steel);
+  box.position.set(0,.36,boxZ); bodyInner.add(box);
+  const tail=new THREE.Mesh(new THREE.CylinderGeometry(.13,.09,.2,12),M.dark);
+  tail.rotation.x=Math.PI/2; tail.position.set(0,.3,tailZ); bodyInner.add(tail);
+  const z1=tailZ-.1, z2=-1.6, len=Math.abs(z1-z2);
+  driveshaft=new THREE.Group(); driveshaft.position.set(0,.22,(z1+z2)/2);
+  const ds=new THREE.Mesh(new THREE.CylinderGeometry(.042,.042,len,10),M.steel);
+  ds.rotation.x=Math.PI/2; driveshaft.add(ds);
+  const mark=new THREE.Mesh(new THREE.BoxGeometry(.012,.1,len*.7),M.dark);
+  mark.position.x=.05; driveshaft.add(mark);
+  [-.32,.32].forEach(f=>{
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(.056,.056,.05,10),M.dark);
+    c.rotation.x=Math.PI/2; c.position.z=f*len; driveshaft.add(c);
   });
   bodyInner.add(driveshaft);
 }
-function disposeTree(o){
-  o.traverse(c=>{ if(c.isSprite) return; if(c.geometry) c.geometry.dispose(); });
-}
+function disposeTree(o){ o.traverse(c=>{ if(c.isSprite)return; if(c.geometry)c.geometry.dispose(); }); }
 function rebuildPowertrain(){
   powerParts.forEach(p=>{ bodyInner.remove(p); disposeTree(p); });
-  powerParts.length = 0;
+  powerParts.length=0;
   pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
-  wkRotor = wkPulley = null; fireCount = fireCountW = 0;
-
-  engineCore = new THREE.Group();
-  mode === 'wankel' ? buildWankelCore(engineCore) : buildPistonCore(engineCore);
-  engineCore.traverse(o=>{ if(o.isMesh){ o.castShadow = true;
-    if(o.material===M.glass || o.material===M.housing) o.castShadow = false; } });
-  coreBase = mode==='piston' ? { y:1.0, z:1.15 } : { y:1.15, z:1.3 };
+  wkRotor=wkPulley=null; fireCount=fireCountW=0;
+  engineCore=new THREE.Group();
+  mode==='wankel'?buildWankelCore(engineCore):buildPistonCore(engineCore);
+  engineCore.traverse(o=>{ if(o.isMesh){ o.castShadow=true;
+    if(o.material===M.glass||o.material===M.housing)o.castShadow=false; } });
+  coreBase=mode==='piston'?{y:0.4,z:0.75}:{y:0.5,z:1.15};
   engineCore.scale.setScalar(ESC);
-  engineCore.rotation.y = mode==='piston' ? -Math.PI/2 : 0;
-  engineCore.position.set(0, coreBase.y, coreBase.z);
+  engineCore.rotation.y=mode==='piston'?-Math.PI/2:0;
+  engineCore.position.set(0,coreBase.y,coreBase.z);
   bodyInner.add(engineCore); powerParts.push(engineCore);
-
-  // Coxins do motor
   [1,-1].forEach(s=>{
-    bodyInner.add(cylBetween([s*.55,.62, coreBase.z-.2],
-      [s*.55, coreBase.y-.3, coreBase.z-.2], .05, M.dark));
+    bodyInner.add(cylBetween([s*.5,.18,coreBase.z-.3],[s*.5,coreBase.y-.06,coreBase.z-.3],.04,M.dark));
   });
-
-  // Headers 4-em-1 (L4) ou 2-em-1 (Wankel)
-  const headers = [];
-  if (mode === 'piston'){
+  const headers=[];
+  if(mode==='piston'){
+    const yT=coreBase.y+5.35*ESC;
     for(let i=0;i<4;i++){
-      const zi = coreBase.z + (i*SP - 3.3)*ESC;
-      headers.push([[.34,2.4,zi+.04],[.75,1.7,zi-.15],[.94,1.15,zi-.5],[.94,.84,.62]]);
+      const zi=coreBase.z+(i*SP-3.3)*ESC;
+      headers.push([[.1,yT,zi],[.45,yT-.28,zi-.14],[.78,.84,zi-.45]]);
     }
   } else {
-    [-.16,.16].forEach(xw=>{
-      headers.push([[xw,2.0,1.42],[.55,1.5,1.15],[.94,1.05,.85],[.94,.84,.62]]);
-    });
+    const yT=coreBase.y+3.35*ESC;
+    [-.09,.09].forEach(xw=>headers.push([[xw,yT,coreBase.z+.06],[.45,yT-.2,coreBase.z-.25],[.78,.84,.55]]));
   }
   buildExhaust(headers);
   buildTrans();
   powerParts.push(exhaustTip);
-  document.getElementById('vMode').innerText =
-    mode === 'wankel' ? 'ROTATIVO · WANKEL' : 'PISTÃO · L4';
+  document.getElementById('vMode').innerText=mode==='wankel'?'ROTATIVO · WANKEL':'PISTÃO · L4';
 }
 function buildCar(){
-  carGroup = new THREE.Group(); scene.add(carGroup);
-  wheelsGroup = new THREE.Group(); carGroup.add(wheelsGroup);
-  bodyGroup = new THREE.Group(); bodyGroup.position.y = 1.4; carGroup.add(bodyGroup);
-  bodyInner = new THREE.Group(); bodyInner.position.y = -.9; bodyGroup.add(bodyInner);
-  addWheel( 1.22, 1.6, .34, true);  addWheel(-1.22, 1.6, .34, true);
-  addWheel( 1.15,-1.8, .46, false); addWheel(-1.15,-1.8, .46, false);
+  carGroup=new THREE.Group(); scene.add(carGroup);
+  wheelsGroup=new THREE.Group(); carGroup.add(wheelsGroup);
+  bodyGroup=new THREE.Group(); bodyGroup.position.y=1.4; carGroup.add(bodyGroup);
+  bodyInner=new THREE.Group(); bodyInner.position.y=-.9; bodyGroup.add(bodyInner);
+  addWheel(1.22,1.6,.34,true); addWheel(-1.22,1.6,.34,true);
+  addWheel(1.15,-1.8,.46,false); addWheel(-1.15,-1.8,.46,false);
   buildRunningGear();
-  buildBody();
+  buildChassis();
   rebuildPowertrain();
   carGroup.traverse(o=>{
-    if(o.isMesh){ o.castShadow = true; o.receiveShadow = true;
-      if(o.material===M.glass) o.castShadow = false; }
+    if(o.isMesh){ o.castShadow=true; o.receiveShadow=true;
+      if(o.material===M.glass)o.castShadow=false; }
   });
 }
 function setModeVars(){
-  if (mode === 'wankel'){ REDLINE = 10500; MAXRPM = 11000; }
-  else { REDLINE = 9200; MAXRPM = 9600; }
-  document.getElementById('redtick').style.left = (REDLINE/11500*100)+'%';
+  if(mode==='wankel'){REDLINE=10500;MAXRPM=11000;}
+  else{REDLINE=9200;MAXRPM=9600;}
+  document.getElementById('redtick').style.left=(REDLINE/11500*100)+'%';
 }
 
-// =========================== HUD ===========================
-let cellEls = [], cellEnergy = [];
+let cellEls=[], cellEnergy=[];
 function buildCells(labels){
-  const box = document.getElementById('cells');
-  box.innerHTML = ''; cellEls = []; cellEnergy = labels.map(()=>0);
+  const box=document.getElementById('cells');
+  box.innerHTML=''; cellEls=[]; cellEnergy=labels.map(()=>0);
   labels.forEach(t=>{
-    const d = document.createElement('div');
-    d.className = 'cell'; d.textContent = t;
-    d.style.color = 'rgba(255,255,255,.35)';
+    const d=document.createElement('div');
+    d.className='cell'; d.textContent=t;
+    d.style.color='rgba(255,255,255,.35)';
     box.appendChild(d); cellEls.push(d);
   });
 }
 function updateCells(dt){
   for(let i=0;i<cellEls.length;i++){
-    cellEnergy[i] = Math.max(0, cellEnergy[i] - dt*7);
-    const e = cellEnergy[i];
-    cellEls[i].style.background = e>0.01 ? `rgba(255,255,255,${e})` : 'transparent';
-    cellEls[i].style.color = e>0.45 ? '#050505' : 'rgba(255,255,255,.35)';
+    cellEnergy[i]=Math.max(0,cellEnergy[i]-dt*7);
+    const e=cellEnergy[i];
+    cellEls[i].style.background=e>0.01?`rgba(255,255,255,${e})`:'transparent';
+    cellEls[i].style.color=e>0.45?'#050505':'rgba(255,255,255,.35)';
   }
 }
 buildCells(['1','2','3','4']);
 
-// ===================== FÍSICA =====================
 function tqCurve(){
-  return mode === 'wankel'
-    ? 0.7 + 0.55*(rpm/REDLINE)
-    : Math.max(.12, 1.1 - Math.pow(rpm/REDLINE,2)*.55);
+  return mode==='wankel'?0.7+0.55*(rpm/REDLINE):Math.max(.12,1.1-Math.pow(rpm/REDLINE,2)*.55);
 }
 function simulate(dt){
-  clockT += dt; thudCd -= dt;
-  const tT = keys.w ? 1 : 0, bT = keys.s ? 1 : 0;
-  throttle += (tT - throttle) * Math.min(1, (tT>throttle? 6:8)*dt);
-  brake    += (bT - brake)    * Math.min(1, 10*dt);
-  const sT = (keys.a?1:0) - (keys.d?1:0);
-  const sMax = 0.6/(1 + Math.abs(kmh)*0.045);
-  steer += (sT*sMax - steer) * Math.min(1, 7*dt);
+  clockT+=dt; thudCd-=dt;
+  const tT=keys.w?1:0,bT=keys.s?1:0;
+  throttle+=(tT-throttle)*Math.min(1,(tT>throttle?6:8)*dt);
+  brake+=(bT-brake)*Math.min(1,10*dt);
+  const sT=(keys.a?1:0)-(keys.d?1:0);
+  const sMax=0.6/(1+Math.abs(kmh)*0.045);
+  steer+=(sT*sMax-steer)*Math.min(1,7*dt);
 
-  if (phase === 'crank'){
-    rpm += (330 - rpm) * Math.min(1, 5*dt);
-    crankT += dt;
-    if (crankT > 0.75 + crankExtra){
-      phase = 'run'; runT = 0; coldT = 2.6; everStarted = true;
-      rpm = Math.max(rpm*1.7, 520);
-      if (AC){ const t0 = AC.currentTime;
-        burst(t0, .85, 1, true); burst(t0+.08, .6, .8, true); }
-      puffBackfire(2, .5);
+  if(phase==='crank'){
+    rpm+=(330-rpm)*Math.min(1,5*dt);
+    crankT+=dt;
+    if(crankT>0.75+crankExtra){
+      phase='run'; coldT=2.6; everStarted=true;
+      rpm=Math.max(rpm*1.7,520);
+      if(AC){const t0=AC.currentTime; burst(t0,.85,1,true); burst(t0+.08,.6,.8,true);}
+      puffBackfire(2,.5);
     }
   }
-  else if (phase === 'run'){
-    runT += dt;
-    limiter = rpm > REDLINE*0.995 && throttle > .1;
-    cutNow = limiter && (Math.floor(clockT*13)%2 === 0);
-
-    if (gear === 0){
-      const idle = IDLE + Math.sin(clockT*2.7)*22 + Math.sin(clockT*6.3)*11;
-      const target = throttle > .03 ? 1000 + throttle*(REDLINE-1200) : idle;
-      rpm += (target - rpm) * Math.min(1, (target>rpm? 5.2 : 2.4)*dt);
+  else if(phase==='run'){
+    limiter=rpm>REDLINE*0.995&&throttle>.1;
+    cutNow=limiter&&(Math.floor(clockT*13)%2===0);
+    if(gear===0){
+      const idle=IDLE+Math.sin(clockT*2.7)*22+Math.sin(clockT*6.3)*11;
+      const target=throttle>.03?1000+throttle*(REDLINE-1200):idle;
+      rpm+=(target-rpm)*Math.min(1,(target>rpm?5.2:2.4)*dt);
     } else {
-      const key = gear === -1 ? 'R' : gear;
-      const ratio = GEARR[key];
-      const sp = Math.abs(kmh), c = Math.min(1, sp/7);
-      const engaged = Math.max(sp*ratio*c + (1-c)*IDLE, IDLE*.85);
-      rpm += (engaged - rpm) * Math.min(1, 9*dt);
-      const accTab = mode === 'wankel' ? ACCW : ACC;
-      const drive = throttle * accTab[key] * tqCurve() * (0.5 + 0.5*c);
-      kmh += (gear === -1 ? -1 : 1) * drive * dt;
-      if (gear === -1) kmh = Math.max(kmh, -REDLINE/ratio);
-      else kmh = Math.min(kmh, REDLINE/ratio);
+      const key=gear===-1?'R':gear;
+      const ratio=GEARR[key];
+      const sp=Math.abs(kmh),c=Math.min(1,sp/7);
+      const engaged=Math.max(sp*ratio*c+(1-c)*IDLE,IDLE*.85);
+      rpm+=(engaged-rpm)*Math.min(1,9*dt);
+      const accTab=mode==='wankel'?ACCW:ACC;
+      const drive=throttle*accTab[key]*tqCurve()*(0.5+0.5*c);
+      kmh+=(gear===-1?-1:1)*drive*dt;
+      if(gear===-1)kmh=Math.max(kmh,-REDLINE/ratio);
+      else kmh=Math.min(kmh,REDLINE/ratio);
     }
-    const bk = 30*brake*dt;
-    if (kmh > 0) kmh = Math.max(0, kmh - bk); else kmh = Math.min(0, kmh + bk);
-    const drag = (0.9 + 0.0004*kmh*kmh + (throttle<.03 ? 1.8 + Math.max(gear,0)*.25 : 0))*dt;
-    if (Math.abs(kmh) <= drag) kmh = 0; else kmh -= Math.sign(kmh)*drag;
-    rpm = Math.min(rpm, MAXRPM);
+    const bk=30*brake*dt;
+    if(kmh>0)kmh=Math.max(0,kmh-bk); else kmh=Math.min(0,kmh+bk);
+    const drag=(0.9+0.0004*kmh*kmh+(throttle<.03?1.8+Math.max(gear,0)*.25:0))*dt;
+    if(Math.abs(kmh)<=drag)kmh=0; else kmh-=Math.sign(kmh)*drag;
+    rpm=Math.min(rpm,MAXRPM);
   }
-  else if (phase === 'stop'){
-    stopT += dt;
-    if (rpm > 500) rpm -= (420 + rpm*0.85)*dt;
-    else {
-      const spring = 430;
-      rpm += (-Math.sin(angle*2)*spring - rpm*1.9 - Math.sign(rpm)*rpm*rpm*.02)*dt;
-      if ((Math.abs(rpm) < 7 && Math.abs(Math.sin(angle*2)) < .12) || stopT > 6){
-        rpm = 0; phase = 'off'; playClack(); puffBackfire(2, .4);
+  else if(phase==='stop'){
+    stopT+=dt;
+    if(rpm>500)rpm-=(420+rpm*0.85)*dt;
+    else{
+      rpm+=(-Math.sin(angle*2)*430-rpm*1.9-Math.sign(rpm)*rpm*rpm*.02)*dt;
+      if((Math.abs(rpm)<7&&Math.abs(Math.sin(angle*2))<.12)||stopT>6){
+        rpm=0; phase='off'; playClack(); puffBackfire(2,.4);
       }
     }
     coast(dt);
   }
-  else {
-    rpm *= Math.max(0, 1 - 8*dt); if (rpm < 1) rpm = 0;
+  else{
+    rpm*=Math.max(0,1-8*dt); if(rpm<1)rpm=0;
     coast(dt);
   }
 
-  const vms = kmh/3.6;
-  const yawRate = vms * Math.tan(steer) / WHEELBASE;
-  yaw += yawRate*dt;
-  pos.x += Math.sin(yaw)*vms*dt;
-  pos.z += Math.cos(yaw)*vms*dt;
-  dist += Math.abs(vms)*dt;
+  const vms=kmh/3.6;
+  const yawRate=vms*Math.tan(steer)/WHEELBASE;
+  yaw+=yawRate*dt;
+  pos.x+=Math.sin(yaw)*vms*dt;
+  pos.z+=Math.cos(yaw)*vms*dt;
+  dist+=Math.abs(vms)*dt;
   collide();
 
-  const aLong = dt>0 ? (kmh - prevKmh)/dt/3.6 : 0; prevKmh = kmh;
-  pitch += (clamp(-aLong*0.016, -.06, .075) - pitch) * Math.min(1, 5*dt);
-  roll  += (clamp(yawRate*vms*0.05, -.08, .08) - roll) * Math.min(1, 5*dt);
-  if (Math.abs(kmh) > 2 && Math.random() < dt*Math.abs(kmh)*0.09)
-    hv += (Math.random()-.35) * Math.min(1, Math.abs(kmh)/35) * 1.6;
-  hv += (-70*heaveOff - 9*hv)*dt;
-  heaveOff = clamp(heaveOff + hv*dt, -.1, .1);
+  const aLong=dt>0?(kmh-prevKmh)/dt/3.6:0; prevKmh=kmh;
+  pitch+=(clamp(-aLong*0.016,-.06,.075)-pitch)*Math.min(1,5*dt);
+  roll+=(clamp(yawRate*vms*0.05,-.08,.08)-roll)*Math.min(1,5*dt);
+  if(Math.abs(kmh)>2&&Math.random()<dt*Math.abs(kmh)*0.09)
+    hv+=(Math.random()-.35)*Math.min(1,Math.abs(kmh)/35)*1.6;
+  hv+=(-70*heaveOff-9*hv)*dt;
+  heaveOff=clamp(heaveOff+hv*dt,-.1,.1);
 
-  const dth = (rpm/60)*Math.PI*2*dt;
-  angle = ((angle + dth) % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
-  totalDeg += (rpm/6)*dt;
+  const dth=(rpm/60)*Math.PI*2*dt;
+  angle=((angle+dth)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+  totalDeg+=(rpm/6)*dt;
 }
 function coast(dt){
-  const bk = 26*brake*dt;
-  if (kmh > 0) kmh = Math.max(0, kmh - bk); else kmh = Math.min(0, kmh + bk);
-  const drag = (1.4 + 0.0004*kmh*kmh)*dt;
-  if (Math.abs(kmh) <= drag) kmh = 0; else kmh -= Math.sign(kmh)*drag;
+  const bk=26*brake*dt;
+  if(kmh>0)kmh=Math.max(0,kmh-bk); else kmh=Math.min(0,kmh+bk);
+  const drag=(1.4+0.0004*kmh*kmh)*dt;
+  if(Math.abs(kmh)<=drag)kmh=0; else kmh-=Math.sign(kmh)*drag;
 }
 function collide(){
-  const r = 1.5;
+  const r=1.5;
   for(const o of obstacles){
-    const dx = pos.x - o.x, dz = pos.z - o.z;
-    const cx = clamp(dx, -o.hx, o.hx), cz = clamp(dz, -o.hz, o.hz);
-    const px = dx - cx, pz = dz - cz, d2 = px*px + pz*pz;
-    if (d2 < r*r){
-      if (d2 < 1e-6){
-        const ox = o.hx + r - Math.abs(dx), oz = o.hz + r - Math.abs(dz);
-        if (ox < oz) pos.x = o.x + Math.sign(dx||1)*(o.hx + r);
-        else pos.z = o.z + Math.sign(dz||1)*(o.hz + r);
+    const dx=pos.x-o.x,dz=pos.z-o.z;
+    const cx=clamp(dx,-o.hx,o.hx),cz=clamp(dz,-o.hz,o.hz);
+    const px=dx-cx,pz=dz-cz,d2=px*px+pz*pz;
+    if(d2<r*r){
+      if(d2<1e-6){
+        const ox=o.hx+r-Math.abs(dx),oz=o.hz+r-Math.abs(dz);
+        if(ox<oz)pos.x=o.x+Math.sign(dx||1)*(o.hx+r);
+        else pos.z=o.z+Math.sign(dz||1)*(o.hz+r);
       } else {
-        const d = Math.sqrt(d2), push = r - d;
-        pos.x += px/d*push; pos.z += pz/d*push;
+        const d=Math.sqrt(d2),push=r-d;
+        pos.x+=px/d*push; pos.z+=pz/d*push;
       }
-      if (Math.abs(kmh) > 6 && thudCd <= 0){
-        playThud(); camShake = .5; thudCd = .5; kmh *= -.25;
-      } else kmh *= .9;
+      if(Math.abs(kmh)>6&&thudCd<=0){
+        playThud(); camShake=.5; thudCd=.5; kmh*=-.25;
+      } else kmh*=.9;
     }
   }
-  if (Math.abs(pos.x) > 250){ pos.x = Math.sign(pos.x)*250; kmh *= -.3; }
-  if (Math.abs(pos.z) > 250){ pos.z = Math.sign(pos.z)*250; kmh *= -.3; }
+  if(Math.abs(pos.x)>250){pos.x=Math.sign(pos.x)*250;kmh*=-.3;}
+  if(Math.abs(pos.z)>250){pos.z=Math.sign(pos.z)*250;kmh*=-.3;}
 }
 function checkIgnition(){
-  if (phase !== 'run' || cutNow) return;
-  if (mode === 'piston'){
-    const nf = Math.floor(totalDeg/180);
-    if (nf !== fireCount){
-      fireCount = nf;
-      const idx = fireSeq[((fireCount%4)+4)%4];
-      flashes[idx].t = 1; cellEnergy[idx] = 1;
+  if(phase!=='run'||cutNow)return;
+  if(mode==='piston'){
+    const nf=Math.floor(totalDeg/180);
+    if(nf!==fireCount){
+      fireCount=nf;
+      const idx=fireSeq[((fireCount%4)+4)%4];
+      flashes[idx].t=1; cellEnergy[idx]=1;
     }
   } else {
-    const nf = Math.floor(totalDeg/360);
-    if (nf !== fireCountW){
-      fireCountW = nf;
-      const k = ((fireCountW%3)+3)%3, s = fireCountW%2;
-      flashes[s].t = 1;
-      if (cellEnergy[k] !== undefined) cellEnergy[k] = 1;
+    const nf=Math.floor(totalDeg/360);
+    if(nf!==fireCountW){
+      fireCountW=nf;
+      const k=((fireCountW%3)+3)%3,s=fireCountW%2;
+      flashes[s].t=1;
+      if(cellEnergy[k]!==undefined)cellEnergy[k]=1;
     }
   }
 }
 
-// ===================== ANIMAÇÃO VISUAL =====================
 function updateVisual(dt){
   carGroup.position.copy(pos);
-  carGroup.rotation.y = yaw;
+  carGroup.rotation.y=yaw;
+  if(rpm>5){
+    const amp=(.008+throttle*.014)*(mode==='wankel'?1.35:1)*(rpm/9000*.8+.3);
+    engineCore.position.x=Math.sin(clockT*117+1)*amp;
+    engineCore.position.z=coreBase.z+Math.sin(clockT*89)*amp;
+  } else { engineCore.position.x=0; engineCore.position.z=coreBase.z; }
 
-  if (rpm > 5){
-    const amp = (.012 + throttle*.02) * (mode==='wankel'?1.35:1) * (rpm/9000*.8 + .3);
-    engineCore.position.x = Math.sin(clockT*117+1)*amp;
-    engineCore.position.z = coreBase.z + Math.sin(clockT*89)*amp;
-  } else { engineCore.position.x = 0; engineCore.position.z = coreBase.z; }
-
-  if (mode === 'piston'){
-    crankGroup.rotation.x = angle;
+  if(mode==='piston'){
+    crankGroup.rotation.x=angle;
     for(let i=0;i<4;i++){
-      const a = angle + pinPhase[i];
-      const pinY = Math.cos(a)*CR, pinZ = Math.sin(a)*CR;
-      const y = pinY + Math.sqrt(ROD*ROD - pinZ*pinZ);
-      pistons[i].position.y = y + .35;
-      const rg = rods[i];
-      rg.position.set(rg.position.x, pinY, pinZ);
-      rg.rotation.x = Math.atan2(-pinZ, y - pinY);
-      const c = ((totalDeg - firePhase[i]) % 720 + 720) % 720;
-      const liftIn  = camLift(c, 355, 555);
-      const liftEx  = camLift(c, 175, 375);
-      const v = i*2, base = 5.38;
-      valveGroups[v].position.y   = base - liftIn*.2;
-      valveGroups[v+1].position.y = base - liftEx*.2;
-      springMeshes[v].scale.y   = (0.62 - liftIn*.2)/0.62;
-      springMeshes[v+1].scale.y = (0.62 - liftEx*.2)/0.62;
-      retainers[v].position.y   = 6.6 - liftIn*.2;
-      retainers[v+1].position.y = 6.6 - liftEx*.2;
+      const a=angle+pinPhase[i];
+      const pinY=Math.cos(a)*CR,pinZ=Math.sin(a)*CR;
+      const y=pinY+Math.sqrt(ROD*ROD-pinZ*pinZ);
+      pistons[i].position.y=y+.35;
+      const rg=rods[i];
+      rg.position.set(rg.position.x,pinY,pinZ);
+      rg.rotation.x=Math.atan2(-pinZ,y-pinY);
+      const c=((totalDeg-firePhase[i])%720+720)%720;
+      const liftIn=camLift(c,355,555),liftEx=camLift(c,175,375);
+      const v=i*2,base=5.38;
+      valveGroups[v].position.y=base-liftIn*.2;
+      valveGroups[v+1].position.y=base-liftEx*.2;
+      springMeshes[v].scale.y=(0.62-liftIn*.2)/0.62;
+      springMeshes[v+1].scale.y=(0.62-liftEx*.2)/0.62;
+      retainers[v].position.y=6.6-liftIn*.2;
+      retainers[v+1].position.y=6.6-liftEx*.2;
     }
   } else {
-    wkRotor.rotation.z = angle/3;
-    wkRotor.position.set(WE*Math.cos(angle), WE*Math.sin(angle), 0);
-    wkPulley.rotation.z = angle;
+    wkRotor.rotation.z=angle/3;
+    wkRotor.position.set(WE*Math.cos(angle),WE*Math.sin(angle),0);
+    wkPulley.rotation.z=angle;
   }
 
-  spinAngle += (kmh/3.6)/0.62 * dt;
-  wheelSpins.forEach(s=>s.rotation.x = spinAngle);
-  steerGroups.forEach(g=>g.rotation.y = steer);
-
-  bodyGroup.rotation.x = pitch;
-  bodyGroup.rotation.z = roll;
-  bodyGroup.position.y = 1.4 + heaveOff;
-
+  spinAngle+=(kmh/3.6)/0.62*dt;
+  wheelSpins.forEach(s=>s.rotation.x=spinAngle);
+  steerGroups.forEach(g=>g.rotation.y=steer);
+  bodyGroup.rotation.x=pitch;
+  bodyGroup.rotation.z=roll;
+  bodyGroup.position.y=1.4+heaveOff;
   for(const s of springs){
-    const dy = (-s.z*pitch + s.x*roll) + heaveOff*0.9;
-    const len = clamp(s.rest + dy, .1, .38);
-    s.m.scale.y = len/s.rest;
-    s.m.position.y = s.bot + len/2;
+    const dy=(-s.z*pitch+s.x*roll)+heaveOff*0.9;
+    const len=clamp(s.rest+dy,.1,.38);
+    s.m.scale.y=len/s.rest;
+    s.m.position.y=s.bot+len/2;
   }
-
-  if (driveshaft) driveshaft.rotation.z += (kmh/3.6)/0.62 * dt * 2.2;
-  if (steeringWheel) steeringWheel.rotation.z = -(steer/0.6)*2.6;
-
-  const on = phase === 'run';
-  headSpot.intensity += ((on ? 1.6 : 0) - headSpot.intensity) * Math.min(1, 8*dt);
-  lightMat.emissiveIntensity += ((on ? .9 : .05) - lightMat.emissiveIntensity) * Math.min(1, 8*dt);
-
-  keyLight.position.set(pos.x+9, 16, pos.z-7);
-  keyLight.target.position.set(pos.x, 0, pos.z);
-
+  if(driveshaft)driveshaft.rotation.z+=(kmh/3.6)/0.62*dt*2.2;
+  if(steeringWheel)steeringWheel.rotation.z=-(steer/0.6)*2.6;
+  keyLight.position.set(pos.x+9,16,pos.z-7);
+  keyLight.target.position.set(pos.x,0,pos.z);
   for(const f of flashes){
-    if (f.t > 0){
-      f.t = Math.max(0, f.t - dt*9);
-      f.l.intensity = f.t*4;
-      f.spr.material.opacity = f.t*.85;
-      f.spr.scale.setScalar(.7 + (1-f.t)*1.6);
-    } else { f.l.intensity = 0; f.spr.material.opacity = 0; }
+    if(f.t>0){
+      f.t=Math.max(0,f.t-dt*9);
+      f.l.intensity=f.t*4;
+      f.spr.material.opacity=f.t*.85;
+      f.spr.scale.setScalar(.7+(1-f.t)*1.6);
+    } else { f.l.intensity=0; f.spr.material.opacity=0; }
   }
 }
-function camLift(c, open, close){
-  const x = (c - open)/(close - open);
-  return (x<0 || x>1) ? 0 : Math.sin(Math.PI*x);
+function camLift(c,open,close){
+  const x=(c-open)/(close-open);
+  return (x<0||x>1)?0:Math.sin(Math.PI*x);
 }
 
-// ===================== FUMAÇA =====================
-function puff(x,y,z, size, life, gray, base, vx,vy,vz){
-  const p = smokePool[poolIdx]; poolIdx = (poolIdx+1)%smokePool.length;
-  p.s.visible = true;
-  p.s.position.set(x+(Math.random()-.5)*.3, y+(Math.random()-.5)*.15, z+(Math.random()-.5)*.3);
+function puff(x,y,z,size,life,gray,base,vx,vy,vz){
+  const p=smokePool[poolIdx]; poolIdx=(poolIdx+1)%smokePool.length;
+  p.s.visible=true;
+  p.s.position.set(x+(Math.random()-.5)*.3,y+(Math.random()-.5)*.15,z+(Math.random()-.5)*.3);
   p.s.scale.setScalar(size);
   p.s.material.color.setScalar(gray);
-  p.life = p.max = life; p.size = size; p.gray = gray; p.base = base;
+  p.life=p.max=life; p.size=size; p.gray=gray; p.base=base;
   p.vel.set(vx,vy,vz);
 }
 function updateSmoke(dt){
   for(const p of smokePool){
-    if (p.life <= 0) continue;
-    p.life -= dt;
-    if (p.life <= 0){ p.s.visible = false; p.s.material.opacity = 0; continue; }
-    const t = 1 - p.life/p.max;
-    p.s.position.addScaledVector(p.vel, dt);
-    p.vel.multiplyScalar(1 - .55*dt); p.vel.y += .5*dt;
-    p.s.scale.setScalar(p.size*(1 + t*2.4));
-    p.s.material.opacity = p.base*Math.min(1, t*5)*(1-t);
+    if(p.life<=0)continue;
+    p.life-=dt;
+    if(p.life<=0){p.s.visible=false;p.s.material.opacity=0;continue;}
+    const t=1-p.life/p.max;
+    p.s.position.addScaledVector(p.vel,dt);
+    p.vel.multiplyScalar(1-.55*dt); p.vel.y+=.5*dt;
+    p.s.scale.setScalar(p.size*(1+t*2.4));
+    p.s.material.opacity=p.base*Math.min(1,t*5)*(1-t);
   }
-  if (rpm > 30 && exhaustTip){
+  if(rpm>30&&exhaustTip){
     exhaustTip.getWorldPosition(tipV);
-    const fx = Math.sin(yaw), fz = Math.cos(yaw);
-    const fireRate = Math.abs(rpm)/60 * (mode==='wankel'?1:2);
-    exAcc += fireRate*.11*dt;
-    while (exAcc > 1){
-      exAcc -= 1;
-      const str = .3 + throttle*.7;
-      puff(tipV.x, tipV.y, tipV.z, .3+Math.random()*.3, .8+Math.random()*.4,
-           .82, .34*str, -fx*(.8+Math.random()*.7), .25+Math.random()*.3, -fz*(.8+Math.random()*.7));
+    const fx=Math.sin(yaw),fz=Math.cos(yaw);
+    const fireRate=Math.abs(rpm)/60*(mode==='wankel'?1:2);
+    exAcc+=fireRate*.11*dt;
+    while(exAcc>1){
+      exAcc-=1;
+      const str=.3+throttle*.7;
+      puff(tipV.x,tipV.y,tipV.z,.3+Math.random()*.3,.8+Math.random()*.4,
+        .82,.34*str,-fx*(.8+Math.random()*.7),.25+Math.random()*.3,-fz*(.8+Math.random()*.7));
     }
-    if (coldT > 0){
-      coldT -= dt;
-      if (Math.random() < dt*9)
-        puff(tipV.x, tipV.y, tipV.z, .4, 1.3, .9, .3, -fx*.5, .3, -fz*.5);
+    if(coldT>0){
+      coldT-=dt;
+      if(Math.random()<dt*9)
+        puff(tipV.x,tipV.y,tipV.z,.4,1.3,.9,.3,-fx*.5,.3,-fz*.5);
     }
   }
 }
-function puffBackfire(n, size){
-  if (!exhaustTip) return;
+function puffBackfire(n,size){
+  if(!exhaustTip)return;
   exhaustTip.getWorldPosition(tipV);
-  const fx = Math.sin(yaw), fz = Math.cos(yaw);
+  const fx=Math.sin(yaw),fz=Math.cos(yaw);
   for(let i=0;i<n;i++)
-    puff(tipV.x, tipV.y, tipV.z, size+.4+Math.random()*.5, 1.2+Math.random()*.5,
-         .55, .5, -fx*(.9+Math.random()*1.2), .3+Math.random()*.6, -fz*(.9+Math.random()*1.2));
+    puff(tipV.x,tipV.y,tipV.z,size+.4+Math.random()*.5,1.2+Math.random()*.5,
+      .55,.5,-fx*(.9+Math.random()*1.2),.3+Math.random()*.6,-fz*(.9+Math.random()*1.2));
 }
 
-// ===================== ÁUDIO =====================
-let AC=null, master, comp, muffle, bodyF, oscA, oscB, oscGain, shaper,
-    lp1, lp2, noiseSrc, noiseBP, noiseLP, noiseGain, rumbleOsc, rumbleGain,
-    whineOsc, whineGain, lfoOsc, lfoDepth, noiseBuf,
-    rollSrc, rollLP, rollGain, skidBP, skidGain, nextFire = 0;
+let AC=null,master,comp,muffle,bodyF,oscA,oscB,oscGain,shaper,
+    lp1,lp2,noiseSrc,noiseBP,noiseLP,noiseGain,rumbleOsc,rumbleGain,
+    whineOsc,whineGain,lfoOsc,lfoDepth,noiseBuf,
+    rollSrc,rollLP,rollGain,skidBP,skidGain,nextFire=0;
 
 function initAudio(){
-  if (AC) return;
-  AC = new (window.AudioContext || window.webkitAudioContext)();
-
-  comp = AC.createDynamicsCompressor();
-  comp.threshold.value = -16; comp.knee.value = 18; comp.ratio.value = 7;
-  comp.attack.value = .003; comp.release.value = .18;
+  if(AC)return;
+  AC=new (window.AudioContext||window.webkitAudioContext)();
+  comp=AC.createDynamicsCompressor();
+  comp.threshold.value=-16; comp.knee.value=18; comp.ratio.value=7;
+  comp.attack.value=.003; comp.release.value=.18;
   comp.connect(AC.destination);
-
-  bodyF = AC.createBiquadFilter(); bodyF.type = 'peaking';
-  bodyF.frequency.value = 105; bodyF.Q.value = 1.1; bodyF.gain.value = 5;
+  bodyF=AC.createBiquadFilter(); bodyF.type='peaking';
+  bodyF.frequency.value=105; bodyF.Q.value=1.1; bodyF.gain.value=5;
   bodyF.connect(comp);
-  muffle = AC.createBiquadFilter(); muffle.type = 'highshelf';
-  muffle.frequency.value = 1100; muffle.gain.value = -10;
+  muffle=AC.createBiquadFilter(); muffle.type='highshelf';
+  muffle.frequency.value=1100; muffle.gain.value=-10;
   muffle.connect(bodyF);
-
-  master = AC.createGain(); master.gain.value = 0; master.connect(muffle);
-
-  noiseBuf = AC.createBuffer(1, AC.sampleRate*1.2, AC.sampleRate);
-  const d = noiseBuf.getChannelData(0);
-  for(let i=0;i<d.length;i++) d[i] = Math.random()*2 - 1;
-
-  const wave = makeEngineWave();
-  oscA = AC.createOscillator(); oscA.setPeriodicWave(wave); oscA.frequency.value = 20;
-  oscB = AC.createOscillator(); oscB.setPeriodicWave(wave); oscB.frequency.value = 10;
-  oscB.detune.value = 6;
-  const gA = AC.createGain(); gA.gain.value = 1;
-  const gB = AC.createGain(); gB.gain.value = .6;
-  oscGain = AC.createGain(); oscGain.gain.value = 0;
-  shaper = AC.createWaveShaper();
-  const curve = new Float32Array(512);
-  for(let i=0;i<512;i++){ const x = i/255.5 - 1; curve[i] = Math.tanh(2.2*x); }
-  shaper.curve = curve; shaper.oversample = '2x';
-  lp1 = AC.createBiquadFilter(); lp1.type = 'lowpass'; lp1.frequency.value = 200; lp1.Q.value = .6;
-  lp2 = AC.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 1400;
+  master=AC.createGain(); master.gain.value=0; master.connect(muffle);
+  noiseBuf=AC.createBuffer(1,AC.sampleRate*1.2,AC.sampleRate);
+  const d=noiseBuf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  const wave=makeEngineWave();
+  oscA=AC.createOscillator(); oscA.setPeriodicWave(wave); oscA.frequency.value=20;
+  oscB=AC.createOscillator(); oscB.setPeriodicWave(wave); oscB.frequency.value=10;
+  oscB.detune.value=6;
+  const gA=AC.createGain(); gA.gain.value=1;
+  const gB=AC.createGain(); gB.gain.value=.6;
+  oscGain=AC.createGain(); oscGain.gain.value=0;
+  shaper=AC.createWaveShaper();
+  const curve=new Float32Array(512);
+  for(let i=0;i<512;i++){const x=i/255.5-1; curve[i]=Math.tanh(2.2*x);}
+  shaper.curve=curve; shaper.oversample='2x';
+  lp1=AC.createBiquadFilter(); lp1.type='lowpass'; lp1.frequency.value=200; lp1.Q.value=.6;
+  lp2=AC.createBiquadFilter(); lp2.type='lowpass'; lp2.frequency.value=1400;
   oscA.connect(gA).connect(oscGain); oscB.connect(gB).connect(oscGain);
   oscGain.connect(shaper).connect(lp1).connect(lp2).connect(master);
   oscA.start(); oscB.start();
-
-  lfoOsc = AC.createOscillator(); lfoOsc.type = 'sine'; lfoOsc.frequency.value = 20;
-  lfoDepth = AC.createGain(); lfoDepth.gain.value = 0;
+  lfoOsc=AC.createOscillator(); lfoOsc.type='sine'; lfoOsc.frequency.value=20;
+  lfoDepth=AC.createGain(); lfoDepth.gain.value=0;
   lfoOsc.connect(lfoDepth).connect(oscGain.gain); lfoOsc.start();
-
-  noiseSrc = AC.createBufferSource(); noiseSrc.buffer = noiseBuf; noiseSrc.loop = true;
-  noiseBP = AC.createBiquadFilter(); noiseBP.type = 'bandpass';
-  noiseBP.frequency.value = 200; noiseBP.Q.value = .55;
-  noiseLP = AC.createBiquadFilter(); noiseLP.type = 'lowpass'; noiseLP.frequency.value = 800;
-  noiseGain = AC.createGain(); noiseGain.gain.value = 0;
+  noiseSrc=AC.createBufferSource(); noiseSrc.buffer=noiseBuf; noiseSrc.loop=true;
+  noiseBP=AC.createBiquadFilter(); noiseBP.type='bandpass';
+  noiseBP.frequency.value=200; noiseBP.Q.value=.55;
+  noiseLP=AC.createBiquadFilter(); noiseLP.type='lowpass'; noiseLP.frequency.value=800;
+  noiseGain=AC.createGain(); noiseGain.gain.value=0;
   noiseSrc.connect(noiseBP).connect(noiseLP).connect(noiseGain).connect(master);
   noiseSrc.start();
-
-  rumbleOsc = AC.createOscillator(); rumbleOsc.type = 'sine'; rumbleOsc.frequency.value = 46;
-  rumbleGain = AC.createGain(); rumbleGain.gain.value = 0;
+  rumbleOsc=AC.createOscillator(); rumbleOsc.type='sine'; rumbleOsc.frequency.value=46;
+  rumbleGain=AC.createGain(); rumbleGain.gain.value=0;
   rumbleOsc.connect(rumbleGain).connect(master); rumbleOsc.start();
-
-  whineOsc = AC.createOscillator(); whineOsc.type = 'sawtooth'; whineOsc.frequency.value = 150;
-  const wf = AC.createBiquadFilter(); wf.type = 'lowpass'; wf.frequency.value = 600;
-  whineGain = AC.createGain(); whineGain.gain.value = 0;
+  whineOsc=AC.createOscillator(); whineOsc.type='sawtooth'; whineOsc.frequency.value=150;
+  const wf=AC.createBiquadFilter(); wf.type='lowpass'; wf.frequency.value=600;
+  whineGain=AC.createGain(); whineGain.gain.value=0;
   whineOsc.connect(wf).connect(whineGain).connect(master); whineOsc.start();
-
-  rollSrc = AC.createBufferSource(); rollSrc.buffer = noiseBuf; rollSrc.loop = true;
-  rollLP = AC.createBiquadFilter(); rollLP.type = 'lowpass'; rollLP.frequency.value = 260;
-  rollGain = AC.createGain(); rollGain.gain.value = 0;
+  rollSrc=AC.createBufferSource(); rollSrc.buffer=noiseBuf; rollSrc.loop=true;
+  rollLP=AC.createBiquadFilter(); rollLP.type='lowpass'; rollLP.frequency.value=260;
+  rollGain=AC.createGain(); rollGain.gain.value=0;
   rollSrc.connect(rollLP).connect(rollGain).connect(master); rollSrc.start();
-  skidBP = AC.createBiquadFilter(); skidBP.type = 'bandpass';
-  skidBP.frequency.value = 640; skidBP.Q.value = 1.2;
-  skidGain = AC.createGain(); skidGain.gain.value = 0;
+  skidBP=AC.createBiquadFilter(); skidBP.type='bandpass';
+  skidBP.frequency.value=640; skidBP.Q.value=1.2;
+  skidGain=AC.createGain(); skidGain.gain.value=0;
   rollSrc.connect(skidBP).connect(skidGain).connect(master);
-
-  setInterval(schedule, 30);
+  setInterval(schedule,30);
 }
 function makeEngineWave(){
-  const n = 16, real = new Float32Array(n), imag = new Float32Array(n);
-  const amp = [0, 1, .68, .42, .26, .18, .12, .08, .06, .045, .03, .022, .016, .012, .009, .007];
+  const n=16,real=new Float32Array(n),imag=new Float32Array(n);
+  const amp=[0,1,.68,.42,.26,.18,.12,.08,.06,.045,.03,.022,.016,.012,.009,.007];
   for(let i=1;i<n;i++){
-    const ph = Math.random()*Math.PI*2;
-    real[i] = amp[i]*Math.cos(ph); imag[i] = amp[i]*Math.sin(ph);
+    const ph=Math.random()*Math.PI*2;
+    real[i]=amp[i]*Math.cos(ph); imag[i]=amp[i]*Math.sin(ph);
   }
-  return AC.createPeriodicWave(real, imag);
+  return AC.createPeriodicWave(real,imag);
 }
 function schedule(){
-  if (!AC) return;
-  const now = AC.currentTime;
-  const f = Math.max(Math.abs(rpm)/60 * (mode==='wankel'?1:2), .5);
-  const combusting = phase==='run' && !cutNow && f > 1;
-  const compressing = phase==='crank' || (phase==='stop' && Math.abs(rpm)>60);
-
-  if (combusting || compressing){
-    if (nextFire < now) nextFire = now + .02;
-    while (nextFire < now + .14){
-      const mix = clamp(1.4 - f/160, .3, 1);
-      if (combusting) burst(nextFire, .25 + throttle*.75, mix*(.5+throttle*.5), true);
-      else {
-        const sv = phase==='stop' ? .4*Math.min(1, Math.abs(rpm)/900) : .5;
-        burst(nextFire, .1, sv, false);
+  if(!AC)return;
+  const now=AC.currentTime;
+  const f=Math.max(Math.abs(rpm)/60*(mode==='wankel'?1:2),.5);
+  const combusting=phase==='run'&&!cutNow&&f>1;
+  const compressing=phase==='crank'||(phase==='stop'&&Math.abs(rpm)>60);
+  if(combusting||compressing){
+    if(nextFire<now)nextFire=now+.02;
+    while(nextFire<now+.14){
+      const mix=clamp(1.4-f/160,.3,1);
+      if(combusting)burst(nextFire,.25+throttle*.75,mix*(.5+throttle*.5),true);
+      else{
+        const sv=phase==='stop'?.4*Math.min(1,Math.abs(rpm)/900):.5;
+        burst(nextFire,.1,sv,false);
       }
-      nextFire += 1/Math.max(f, 1);
+      nextFire+=1/Math.max(f,1);
     }
-  } else nextFire = now + .02;
-
-  oscA.frequency.setTargetAtTime(f, now, .03);
-  oscB.frequency.setTargetAtTime(Math.max(f*.5, 14), now, .03);
-  lfoOsc.frequency.setTargetAtTime(f, now, .05);
-  lfoDepth.gain.setTargetAtTime(combusting ? clamp(.3 - f*.003, .05, .3) : 0, now, .1);
-  lp1.frequency.setTargetAtTime(150 + throttle*1100 + (rpm/REDLINE)*500, now, .08);
+  } else nextFire=now+.02;
+  oscA.frequency.setTargetAtTime(f,now,.03);
+  oscB.frequency.setTargetAtTime(Math.max(f*.5,14),now,.03);
+  lfoOsc.frequency.setTargetAtTime(f,now,.05);
+  lfoDepth.gain.setTargetAtTime(combusting?clamp(.3-f*.003,.05,.3):0,now,.1);
+  lp1.frequency.setTargetAtTime(150+throttle*1100+(rpm/REDLINE)*500,now,.08);
   oscGain.gain.setTargetAtTime(
-    combusting ? .26 : (phase==='stop' && Math.abs(rpm)>50 ? Math.min(.06, Math.abs(rpm)/9000*.1) : 0),
-    now, .05);
-  noiseBP.frequency.setTargetAtTime(160 + throttle*480 + Math.abs(rpm)*.02, now, .1);
+    combusting?.26:(phase==='stop'&&Math.abs(rpm)>50?Math.min(.06,Math.abs(rpm)/9000*.1):0),now,.05);
+  noiseBP.frequency.setTargetAtTime(160+throttle*480+Math.abs(rpm)*.02,now,.1);
   noiseGain.gain.setTargetAtTime(
-    phase==='run'  ? .025 + throttle*.09 + (rpm/REDLINE)*.03 :
-    phase==='stop' ? Math.min(.1, Math.abs(rpm)/REDLINE*.22) :
-    phase==='crank'? .04 : 0, now, .08);
-  rumbleOsc.frequency.setTargetAtTime(42 + (rpm/REDLINE)*26, now, .1);
-  rumbleGain.gain.setTargetAtTime(
-    combusting ? .06 + throttle*.09 : (phase==='crank'? .035 : 0), now, .1);
-  whineGain.gain.setTargetAtTime(phase==='crank' ? .028 : 0, now, .05);
-  whineOsc.frequency.setTargetAtTime(120 + Math.abs(rpm)*.5, now, .05);
+    phase==='run'?.025+throttle*.09+(rpm/REDLINE)*.03:
+    phase==='stop'?Math.min(.1,Math.abs(rpm)/REDLINE*.22):
+    phase==='crank'?.04:0,now,.08);
+  rumbleOsc.frequency.setTargetAtTime(42+(rpm/REDLINE)*26,now,.1);
+  rumbleGain.gain.setTargetAtTime(combusting?.06+throttle*.09:(phase==='crank'?.035:0),now,.1);
+  whineGain.gain.setTargetAtTime(phase==='crank'?.028:0,now,.05);
+  whineOsc.frequency.setTargetAtTime(120+Math.abs(rpm)*.5,now,.05);
   master.gain.setTargetAtTime(
-    phase==='run' ? .55 : phase==='crank' ? .42 : phase==='stop' ? .5 : 0, now, .1);
-  rollGain.gain.setTargetAtTime(clamp(Math.abs(kmh)/150, 0, 1)*.14, now, .1);
-  rollLP.frequency.setTargetAtTime(150 + Math.abs(kmh)*1.4, now, .1);
-  const skid = (Math.abs(steer) > .32 && Math.abs(kmh) > 26)
-    ? clamp((Math.abs(kmh)-26)/40, 0, 1)*.1 : 0;
-  skidGain.gain.setTargetAtTime(skid, now, .08);
+    phase==='run'?.55:phase==='crank'?.42:phase==='stop'?.5:0,now,.1);
+  rollGain.gain.setTargetAtTime(clamp(Math.abs(kmh)/150,0,1)*.14,now,.1);
+  rollLP.frequency.setTargetAtTime(150+Math.abs(kmh)*1.4,now,.1);
+  const skid=(Math.abs(steer)>.32&&Math.abs(kmh)>26)?clamp((Math.abs(kmh)-26)/40,0,1)*.1:0;
+  skidGain.gain.setTargetAtTime(skid,now,.08);
 }
-function burst(t0, load, vol, isFire){
-  if (vol <= 0.01) return;
-  const g = AC.createGain(); g.connect(master);
-  const o = AC.createOscillator(); o.type = 'sine';
-  const f0 = (mode==='wankel'? 74 : 62) + load*26;
-  o.frequency.setValueAtTime(f0, t0);
-  o.frequency.exponentialRampToValueAtTime(34, t0+.06);
-  g.gain.setValueAtTime(.0001, t0);
-  g.gain.exponentialRampToValueAtTime(.5*vol*(.45+load), t0+.006);
-  g.gain.exponentialRampToValueAtTime(.0001, t0 + (isFire? .085+load*.07 : .05));
+function burst(t0,load,vol,isFire){
+  if(vol<=0.01)return;
+  const g=AC.createGain(); g.connect(master);
+  const o=AC.createOscillator(); o.type='sine';
+  const f0=(mode==='wankel'?74:62)+load*26;
+  o.frequency.setValueAtTime(f0,t0);
+  o.frequency.exponentialRampToValueAtTime(34,t0+.06);
+  g.gain.setValueAtTime(.0001,t0);
+  g.gain.exponentialRampToValueAtTime(.5*vol*(.45+load),t0+.006);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+(isFire?.085+load*.07:.05));
   o.connect(g); o.start(t0); o.stop(t0+.25);
-  const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-  src.playbackRate.value = .45 + Math.random()*.3;
-  const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
-  bp.frequency.value = (isFire? 130 + load*380 : 110) + Math.random()*100;
-  bp.Q.value = .7;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 850;
-  const ng = AC.createGain();
-  const nv = Math.max(isFire? .3*vol*(.3+load) : .16*vol, .001);
-  ng.gain.setValueAtTime(.0001, t0);
-  ng.gain.exponentialRampToValueAtTime(nv, t0+.008);
-  ng.gain.exponentialRampToValueAtTime(.0001, t0 + (isFire? .055+load*.05 : .04));
+  const src=AC.createBufferSource(); src.buffer=noiseBuf; src.loop=true;
+  src.playbackRate.value=.45+Math.random()*.3;
+  const bp=AC.createBiquadFilter(); bp.type='bandpass';
+  bp.frequency.value=(isFire?130+load*380:110)+Math.random()*100;
+  bp.Q.value=.7;
+  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=850;
+  const ng=AC.createGain();
+  const nv=Math.max(isFire?.3*vol*(.3+load):.16*vol,.001);
+  ng.gain.setValueAtTime(.0001,t0);
+  ng.gain.exponentialRampToValueAtTime(nv,t0+.008);
+  ng.gain.exponentialRampToValueAtTime(.0001,t0+(isFire?.055+load*.05:.04));
   src.connect(bp).connect(lp).connect(ng).connect(master);
   src.start(t0); src.stop(t0+.2);
 }
 function playClack(){
-  if (!AC) return; const t0 = AC.currentTime;
-  const o = AC.createOscillator(); o.type = 'square'; o.frequency.value = 120;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500;
-  const g = AC.createGain();
-  g.gain.setValueAtTime(.12, t0);
-  g.gain.exponentialRampToValueAtTime(.0001, t0+.07);
+  if(!AC)return; const t0=AC.currentTime;
+  const o=AC.createOscillator(); o.type='square'; o.frequency.value=120;
+  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=500;
+  const g=AC.createGain();
+  g.gain.setValueAtTime(.12,t0);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+.07);
   o.connect(lp).connect(g).connect(master); o.start(t0); o.stop(t0+.12);
-  burst(t0+.004, .5, .8, true);
+  burst(t0+.004,.5,.8,true);
 }
 function playBackfire(){
-  if (!AC) return; const t0 = AC.currentTime;
-  const src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
-  src.playbackRate.value = .4;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 300;
-  const g = AC.createGain();
-  g.gain.setValueAtTime(.0001, t0);
-  g.gain.exponentialRampToValueAtTime(.5, t0+.01);
-  g.gain.exponentialRampToValueAtTime(.0001, t0+.22);
+  if(!AC)return; const t0=AC.currentTime;
+  const src=AC.createBufferSource(); src.buffer=noiseBuf; src.loop=true;
+  src.playbackRate.value=.4;
+  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=300;
+  const g=AC.createGain();
+  g.gain.setValueAtTime(.0001,t0);
+  g.gain.exponentialRampToValueAtTime(.5,t0+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+.22);
   src.connect(lp).connect(g).connect(master); src.start(t0); src.stop(t0+.3);
-  burst(t0, 1, 1, true);
+  burst(t0,1,1,true);
 }
 function playThud(){
-  if (!AC) return; const t0 = AC.currentTime;
-  const o = AC.createOscillator(); o.type = 'sine';
-  o.frequency.setValueAtTime(95, t0);
-  o.frequency.exponentialRampToValueAtTime(28, t0+.16);
-  const g = AC.createGain();
-  g.gain.setValueAtTime(.5, t0);
-  g.gain.exponentialRampToValueAtTime(.0001, t0+.22);
+  if(!AC)return; const t0=AC.currentTime;
+  const o=AC.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(95,t0);
+  o.frequency.exponentialRampToValueAtTime(28,t0+.16);
+  const g=AC.createGain();
+  g.gain.setValueAtTime(.5,t0);
+  g.gain.exponentialRampToValueAtTime(.0001,t0+.22);
   o.connect(g).connect(master); o.start(t0); o.stop(t0+.25);
-  const src = AC.createBufferSource(); src.buffer = noiseBuf;
-  const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 220;
-  const ng = AC.createGain();
-  ng.gain.setValueAtTime(.35, t0);
-  ng.gain.exponentialRampToValueAtTime(.0001, t0+.18);
+  const src=AC.createBufferSource(); src.buffer=noiseBuf;
+  const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=220;
+  const ng=AC.createGain();
+  ng.gain.setValueAtTime(.35,t0);
+  ng.gain.exponentialRampToValueAtTime(.0001,t0+.18);
   src.connect(lp).connect(ng).connect(master); src.start(t0); src.stop(t0+.2);
 }
 
-// ===================== ENTRADA =====================
-addEventListener('keydown', e=>{
-  if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
-  if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = true;
-  if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.s = true;
-  if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.a = true;
-  if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.d = true;
-  if (e.code === 'Space' && !e.repeat){
+addEventListener('keydown',e=>{
+  if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
+  if(e.code==='KeyW'||e.code==='ArrowUp')keys.w=true;
+  if(e.code==='KeyS'||e.code==='ArrowDown')keys.s=true;
+  if(e.code==='KeyA'||e.code==='ArrowLeft')keys.a=true;
+  if(e.code==='KeyD'||e.code==='ArrowRight')keys.d=true;
+  if(e.code==='Space'&&!e.repeat){
     initAudio();
-    if (AC.state === 'suspended') AC.resume();
-    if (phase === 'off' || phase === 'stop'){
-      phase = 'crank'; crankT = 0; crankExtra = .3 + Math.random()*.5;
-    } else if (phase === 'run'){
-      phase = 'stop'; stopT = 0; playBackfire(); puffBackfire(5, .8);
+    if(AC.state==='suspended')AC.resume();
+    if(phase==='off'||phase==='stop'){
+      phase='crank'; crankT=0; crankExtra=.3+Math.random()*.5;
+    } else if(phase==='run'){
+      phase='stop'; stopT=0; playBackfire(); puffBackfire(5,.8);
     }
   }
-  if (phase !== 'crank' && !e.repeat){
-    if (e.code === 'KeyE' && gear < 5) gear++;
-    if (e.code === 'KeyQ' && gear > -1) gear--;
+  if(phase!=='crank'&&!e.repeat){
+    if(e.code==='KeyE'&&gear<5)gear++;
+    if(e.code==='KeyQ'&&gear>-1)gear--;
   }
-  if (e.code === 'KeyT' && !e.repeat) swapEngine();
-  if (e.code === 'KeyC' && !e.repeat){
-    camMode = CAMS[(CAMS.indexOf(camMode)+1)%CAMS.length];
-    controls.enabled = camMode === 'orbit';
-    if (camMode === 'orbit'){ controls.target.set(pos.x, 1.1, pos.z); controls.update(); }
+  if(e.code==='KeyT'&&!e.repeat)swapEngine();
+  if(e.code==='KeyC'&&!e.repeat){
+    camMode=CAMS[(CAMS.indexOf(camMode)+1)%CAMS.length];
+    controls.enabled=camMode==='orbit';
+    if(camMode==='orbit'){controls.target.set(pos.x,1.1,pos.z);controls.update();}
   }
 });
-addEventListener('keyup', e=>{
-  if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = false;
-  if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.s = false;
-  if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.a = false;
-  if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.d = false;
+addEventListener('keyup',e=>{
+  if(e.code==='KeyW'||e.code==='ArrowUp')keys.w=false;
+  if(e.code==='KeyS'||e.code==='ArrowDown')keys.s=false;
+  if(e.code==='KeyA'||e.code==='ArrowLeft')keys.a=false;
+  if(e.code==='KeyD'||e.code==='ArrowRight')keys.d=false;
 });
 function swapEngine(){
-  const keep = { p: pos.clone(), yaw, kmh, dist, spin: spinAngle };
-  mode = mode === 'piston' ? 'wankel' : 'piston';
-  phase = 'off'; rpm = 0; gear = 0; throttle = 0; brake = 0; steer = 0; coldT = 0;
+  const keep={p:pos.clone(),yaw,kmh,dist,spin:spinAngle};
+  mode=mode==='piston'?'wankel':'piston';
+  phase='off'; rpm=0; gear=0; throttle=0; brake=0; steer=0; coldT=0;
   disposeTree(carGroup); scene.remove(carGroup);
   buildCar(); setModeVars();
-  pos.copy(keep.p); yaw = keep.yaw; kmh = keep.kmh;
-  dist = keep.dist; spinAngle = keep.spin; prevKmh = kmh;
-  if (camMode === 'orbit'){ controls.target.set(pos.x, 1.1, pos.z); }
+  pos.copy(keep.p); yaw=keep.yaw; kmh=keep.kmh;
+  dist=keep.dist; spinAngle=keep.spin; prevKmh=kmh;
+  if(camMode==='orbit')controls.target.set(pos.x,1.1,pos.z);
 }
 
-// ===================== HUD =====================
 function updateHUD(){
-  const st = { off:'DESLIGADO', crank:'PARTIDA…',
-               run: cutNow ? 'CORTE' : 'LIGADO', stop:'DESACELERANDO' }[phase];
-  document.getElementById('vState').innerText = st;
-  document.getElementById('vGear').innerText = gear===0 ? 'N' : gear===-1 ? 'R' : gear;
-  document.getElementById('vSpd').innerText = Math.round(Math.abs(kmh)) + ' km/h';
-  document.getElementById('vRpm').innerText = String(Math.round(rpm)).padStart(4,'0');
-  document.getElementById('vDist').innerText =
-    dist < 995 ? Math.round(dist)+' m' : (dist/1000).toFixed(2)+' km';
-  const fill = document.getElementById('rpmfill');
-  fill.style.width = clamp(rpm/11500*100, 0, 100) + '%';
-  fill.style.opacity = cutNow ? (Math.floor(clockT*13)%2 ? .3 : 1) : 1;
-  document.getElementById('hint').style.opacity =
-    (!everStarted && phase === 'off') ? 1 : 0;
+  const st={off:'DESLIGADO',crank:'PARTIDA…',run:cutNow?'CORTE':'LIGADO',stop:'DESACELERANDO'}[phase];
+  document.getElementById('vState').innerText=st;
+  document.getElementById('vGear').innerText=gear===0?'N':gear===-1?'R':gear;
+  document.getElementById('vSpd').innerText=Math.round(Math.abs(kmh))+' km/h';
+  document.getElementById('vRpm').innerText=String(Math.round(rpm)).padStart(4,'0');
+  document.getElementById('vDist').innerText=dist<995?Math.round(dist)+' m':(dist/1000).toFixed(2)+' km';
+  const fill=document.getElementById('rpmfill');
+  fill.style.width=clamp(rpm/11500*100,0,100)+'%';
+  fill.style.opacity=cutNow?(Math.floor(clockT*13)%2?.3:1):1;
+  document.getElementById('hint').style.opacity=(!everStarted&&phase==='off')?1:0;
 }
 
-// ===================== CÂMERA =====================
 function updateCamera(dt){
-  const fx = Math.sin(yaw), fz = Math.cos(yaw);
-  if (camMode === 'orbit'){
-    controls.target.lerp(new THREE.Vector3(pos.x, 1.1, pos.z), Math.min(1, 6*dt));
+  const fx=Math.sin(yaw),fz=Math.cos(yaw);
+  if(camMode==='orbit'){
+    controls.target.lerp(new THREE.Vector3(pos.x,1.1,pos.z),Math.min(1,6*dt));
     controls.update();
   }
-  else if (camMode === 'chase'){
-    const des = new THREE.Vector3(pos.x - fx*8.2, 3.3, pos.z - fz*8.2);
-    camera.position.lerp(des, 1 - Math.exp(-4.2*dt));
-    camera.lookAt(pos.x + fx*2.2, 1.15, pos.z + fz*2.2);
+  else if(camMode==='chase'){
+    const des=new THREE.Vector3(pos.x-fx*8.2,3.3,pos.z-fz*8.2);
+    camera.position.lerp(des,1-Math.exp(-4.2*dt));
+    camera.lookAt(pos.x+fx*2.2,1.15,pos.z+fz*2.2);
   }
-  else { // hood
-    const des = new THREE.Vector3(pos.x + fx*1.1, 2.9 + heaveOff, pos.z + fz*1.1);
-    camera.position.lerp(des, 1 - Math.exp(-14*dt));
-    camera.lookAt(pos.x + fx*20, 1.4, pos.z + fz*20);
+  else{
+    const des=new THREE.Vector3(pos.x+fx*1.1,2.9+heaveOff,pos.z+fz*1.1);
+    camera.position.lerp(des,1-Math.exp(-14*dt));
+    camera.lookAt(pos.x+fx*20,1.4,pos.z+fz*20);
   }
-  if (camShake > 0){
-    camShake = Math.max(0, camShake - dt*2.2);
-    camera.position.x += (Math.random()-.5)*camShake*.4;
-    camera.position.y += (Math.random()-.5)*camShake*.4;
+  if(camShake>0){
+    camShake=Math.max(0,camShake-dt*2.2);
+    camera.position.x+=(Math.random()-.5)*camShake*.4;
+    camera.position.y+=(Math.random()-.5)*camShake*.4;
   }
 }
 
-// ===================== LOOP =====================
-let lastT = performance.now();
+let lastT=performance.now();
 function animate(){
   requestAnimationFrame(animate);
-  const now = performance.now();
-  const dt = clamp((now - lastT)/1000, 0, .05);
-  lastT = now;
-
+  const now=performance.now();
+  const dt=clamp((now-lastT)/1000,0,.05);
+  lastT=now;
   simulate(dt);
   checkIgnition();
   updateVisual(dt);
@@ -1246,8 +1060,7 @@ function animate(){
   updateCells(dt);
   updateHUD();
   updateCamera(dt);
-
-  renderer.render(scene, camera);
+  renderer.render(scene,camera);
 }
 
 init();
