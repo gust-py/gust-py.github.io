@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MOTOR — BANCO DE ENSAIO · MONOCROMO</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23050505'/%3E%3Ccircle cx='8' cy='8' r='3.5' fill='none' stroke='white' stroke-width='1.5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
@@ -75,7 +76,7 @@ let scene, camera, renderer, controls;
 let engineGroup = null, mode = 'piston';           // 'piston' | 'wankel'
 let phase = 'off';                                 // off | crank | run | stop
 let rpm = 0, angle = 0, totalDeg = 0, kmh = 0, gear = 0, throttle = 0;
-let clockT = 0, crankT = 0, runT = 0, coldT = 0, crankExtra = 0.5;
+let clockT = 0, crankT = 0, stopT = 0, runT = 0, coldT = 0, crankExtra = 0.5;
 let limiter = false, cutNow = false;
 const IDLE = 820, REDLINE = 9200, MAXRPM = 9600;
 const GEARR = { 1:133, 2:88, 3:63, 4:48, 5:40, R:118 };   // rpm por km/h
@@ -123,7 +124,7 @@ function radialTex(stops){
   const gr = g.createRadialGradient(64,64,0,64,64,64);
   stops.forEach(s=>gr.addColorStop(s[0], s[1]));
   g.fillStyle = gr; g.fillRect(0,0,128,128);
-  const t = new THREE.CanvasTexture(c); return t;
+  return new THREE.CanvasTexture(c);
 }
 
 // ============================ CENA ============================
@@ -151,7 +152,7 @@ function init(){
   controls.autoRotateSpeed = .7;
   controls.target.set(0, 2.2, 0);
 
-  // iluminação P&B: key dura + fill fraca + recorte
+  // iluminação P&B: key dura + fill fraca
   scene.add(new THREE.AmbientLight(0xffffff, .18));
   scene.add(new THREE.HemisphereLight(0xffffff, 0x0a0a0a, .22));
   const key = new THREE.DirectionalLight(0xffffff, 2.1);
@@ -211,10 +212,10 @@ function buildPiston(){
   crankGroup = new THREE.Group(); engineGroup.add(crankGroup);
   pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
 
-  // --- virabrequim: eixo + moentes + contrapesos ---
-  crankGroup.add(Object.assign(
-    new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,10.6,16), M.steel),
-    { rotation:{ z:Math.PI/2 } }));
+  // --- virabrequim: eixo principal (CORREÇÃO: sem Object.assign) ---
+  const mainJournal = new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,10.6,16), M.steel);
+  mainJournal.rotation.z = Math.PI/2;
+  crankGroup.add(mainJournal);
 
   for(let i=0;i<n;i++){
     const x = i*SP - (n*SP/2) + SP/2;
@@ -237,8 +238,8 @@ function buildPiston(){
     crankGroup.add(journal);
   }
 
-  // volante do motor (com furos) + polia dianteira canelada
-  const fly = new THREE.Group(); fly.position.x = -5.35;
+  // volante do motor (com furos) + polia dianteira
+  const fly = new THREE.Group(); fly.position.x = -5.2;
   const fd = new THREE.Mesh(new THREE.CylinderGeometry(1.85,1.85,.32,40), M.dark);
   fd.rotation.z = Math.PI/2; fly.add(fd);
   for(let i=0;i<6;i++){
@@ -250,7 +251,7 @@ function buildPiston(){
   crankGroup.add(fly);
   for(let i=0;i<3;i++){
     const p = new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,.09,28), M.dark);
-    p.rotation.z = Math.PI/2; p.position.x = 5.3 - .12 + i*.12;
+    p.rotation.z = Math.PI/2; p.position.x = 5.1 + i*.12;
     crankGroup.add(p);
   }
 
@@ -289,7 +290,7 @@ function buildPiston(){
     rg.position.x = x; engineGroup.add(rg);
     rods.push(rg);
 
-    // válvulas de admissão e escape + molas
+    // válvulas + molas
     [[-.4,.27],[.4,.23]].forEach(([z,vr])=>{
       const vg = new THREE.Group(); vg.position.set(x, 5.38, z);
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,1.35,8), M.steel);
@@ -322,7 +323,7 @@ function buildPiston(){
   }
   for(let i=n;i<4;i++) flashes[i].l.visible = flashes[i].spr.visible = false;
 
-  // cabeçote (placa), placas laterais, mancais, pedestal, escape
+  // cabeçote, placas laterais, mancais, pedestal, escape
   const head = new THREE.Mesh(new THREE.BoxGeometry(n*SP+1.4,.22,2.3), M.dark);
   head.position.y = 5.52; engineGroup.add(head);
 
@@ -375,7 +376,7 @@ function buildWankel(){
   const housing = new THREE.Mesh(hGeo, M.housing);
   engineGroup.add(housing);
 
-  // rotor: triângulo equilátero com flanges em arco (Reuleaux)
+  // rotor: triângulo com flanges em arco (Reuleaux)
   const V = [90,210,330].map(a=>new THREE.Vector2(
     WR*Math.cos(a*Math.PI/180), WR*Math.sin(a*Math.PI/180)));
   const rShape = new THREE.Shape();
@@ -391,11 +392,23 @@ function buildWankel(){
   wkRotor = new THREE.Mesh(rGeo, M.dark);
   engineGroup.add(wkRotor);
 
-  // engrenagem interna do rotor + pinion fixo (relação 2:3)
+  // engrenagem interna do rotor + pinion fixo (relação 2:3) com dentes
   const gear = new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,.14,18), M.black);
   gear.rotation.x = Math.PI/2; wkRotor.add(gear);
+  for(let i=0;i<18;i++){
+    const a = i/18*Math.PI*2;
+    const t = new THREE.Mesh(new THREE.BoxGeometry(.07,.14,.1), M.black);
+    t.position.set(Math.cos(a)*1.04, Math.sin(a)*1.04, 0);
+    t.rotation.z = a; wkRotor.add(t);
+  }
   const pinion = new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.16,12), M.white);
   pinion.rotation.x = Math.PI/2; pinion.position.z = .02; engineGroup.add(pinion);
+  for(let i=0;i<12;i++){
+    const a = i/12*Math.PI*2;
+    const t = new THREE.Mesh(new THREE.BoxGeometry(.06,.12,.1), M.white);
+    t.position.set(Math.cos(a)*.62, Math.sin(a)*.62, .02);
+    t.rotation.z = a; engineGroup.add(t);
+  }
 
   // eixo excêntrico + polia frontal
   const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,3.6,18), M.steel);
@@ -416,15 +429,15 @@ function buildWankel(){
     const ring = new THREE.Mesh(new THREE.TorusGeometry(RH+WE, .06, 8, 72), M.steel);
     ring.position.z = z; engineGroup.add(ring);
   });
-  [[.55],[-.55]].forEach(([x])=>{
+  [.55,-.55].forEach(x=>{
     const plug = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8), M.ceramic);
     plug.position.set(x, RH+WE+.05, .35); plug.rotation.x = .5;
     engineGroup.add(plug);
   });
 
   // pedestal + escape
-  const ped = new THREE.Mesh(new THREE.BoxGeometry(7.5,2.6,4), M.black);
-  ped.position.y = -1.8; engineGroup.add(ped);
+  const ped = new THREE.Mesh(new THREE.BoxGeometry(7.5,1.4,4), M.black);
+  ped.position.y = -4.0; engineGroup.add(ped);
   const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,2.4,14), M.dark);
   pipe.rotation.z = Math.PI/2; pipe.position.set(-3.9, .55, 0);
   engineGroup.add(pipe);
@@ -519,12 +532,15 @@ function simulate(dt){
   else if (phase === 'stop'){
     // DESLIGAMENTO PROCEDURAL: freio motor até ~500 rpm,
     // depois pêndulo de compressão (o virabrequim chega a voltar)
+    stopT += dt;
+    kmh *= Math.max(0, 1 - .5*dt);
     if (rpm > 500){
       rpm -= (420 + rpm*0.85)*dt;
     } else {
       const spring = 430;
       rpm += (-Math.sin(angle*2)*spring - rpm*1.9 - Math.sign(rpm)*rpm*rpm*.02)*dt;
-      if (Math.abs(rpm) < 7 && Math.abs(Math.sin(angle*2)) > .93){
+      // assenta quando quase parado E próximo do equilíbrio (sin2θ ≈ 0)
+      if ((Math.abs(rpm) < 7 && Math.abs(Math.sin(angle*2)) < .12) || stopT > 6){
         rpm = 0; phase = 'off';
         playClack();
         puffBackfire(2, .4);                    // respiro final
@@ -533,6 +549,7 @@ function simulate(dt){
   }
   else { // off
     rpm *= Math.max(0, 1 - 8*dt);
+    kmh *= Math.max(0, 1 - .5*dt);
     if (rpm < 1) rpm = 0;
   }
 
@@ -587,13 +604,13 @@ function updateVisual(dt){
       const c = ((totalDeg - firePhase[i]) % 720 + 720) % 720;
       const liftIn  = camLift(c, 355, 555);
       const liftEx  = camLift(c, 175, 375);
-      const lift = i*2, base = 5.38;
-      valveGroups[lift].position.y   = base - liftIn*.2;
-      valveGroups[lift+1].position.y = base - liftEx*.2;
-      springMeshes[lift].scale.y   = (0.62 - liftIn*.2)/0.62;
-      springMeshes[lift+1].scale.y = (0.62 - liftEx*.2)/0.62;
-      retainers[lift].position.y   = 6.6 - liftIn*.2;
-      retainers[lift+1].position.y = 6.6 - liftEx*.2;
+      const v = i*2, base = 5.38;
+      valveGroups[v].position.y   = base - liftIn*.2;
+      valveGroups[v+1].position.y = base - liftEx*.2;
+      springMeshes[v].scale.y   = (0.62 - liftIn*.2)/0.62;
+      springMeshes[v+1].scale.y = (0.62 - liftEx*.2)/0.62;
+      retainers[v].position.y   = 6.6 - liftIn*.2;
+      retainers[v+1].position.y = 6.6 - liftEx*.2;
     }
   } else {
     wkRotor.rotation.z = angle/3;
@@ -654,8 +671,8 @@ function updateSmoke(dt){
              -(.4+Math.random()*.4), .3, (Math.random()-.5)*.4);
     }
     if (phase === 'crank' && Math.random() < dt*6)
-      puff(buildOpt.tip[0], buildOpt.tip[1], buildOpt.tip[2], .25, .9, .88, .18,
-           -(.3), .2, (Math.random()-.5)*.3);
+      puff(tip[0], tip[1], tip[2], .25, .9, .88, .18,
+           -.3, .2, (Math.random()-.5)*.3);
   }
 }
 function puffBackfire(n, size){
@@ -743,20 +760,23 @@ function makeEngineWave(){
 // scheduler com lookahead: cada explosão vira um burst individual
 function schedule(){
   if (!AC) return;
-  const now = AC.currentTime, tc = .06;
+  const now = AC.currentTime;
   const f = Math.max(Math.abs(rpm)/60 * (mode==='wankel'?1:2), .5);
   const combusting = phase==='run' && !cutNow && f > 1;
-  const compressing = phase === 'crank';
+  // compressão sem ignição: na partida E durante a desaceleração procedural
+  const compressing = phase==='crank' || (phase==='stop' && Math.abs(rpm)>60);
 
   if (combusting || compressing){
     if (nextFire < now) nextFire = now + .02;
     while (nextFire < now + .14){
-      const cross = clamp(1.35 - f/40, 0, 1);    // em alta rotação o contínuo assume
+      const cross = clamp(1.5 - f/100, 0, 1);    // em alta rotação o contínuo assume
       if (combusting)
         burst(nextFire, .25 + throttle*.75, cross*(.55+throttle*.45), true);
-      else
-        burst(nextFire, .12, .5, false);         // compressão sem ignição
-      nextFire += 1/f;
+      else {
+        const sv = phase==='stop' ? .45*Math.min(1, Math.abs(rpm)/900) : .5;
+        burst(nextFire, .12, sv, false);         // chug de compressão
+      }
+      nextFire += 1/Math.max(f, 1);
     }
   } else nextFire = now + .02;
 
@@ -841,7 +861,7 @@ addEventListener('keydown', e=>{
     }
   }
   if (e.code === 'KeyA' && !e.repeat && phase === 'run'){
-    phase = 'stop';                              // corte de ignição
+    phase = 'stop'; stopT = 0;                   // corte de ignição
     playBackfire(); puffBackfire(5, .8);
   }
   if (e.code === 'KeyT' && !e.repeat){
