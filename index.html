@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>motorforge i4 - simulador de motor 2d & áudio web</title>
     <!-- google fonts inter & jetbrains mono -->
-    <link href="https://fonts.googleapis.com/css2?family=inter:wght@300;400;500;600;700&family=jetbrains+mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -14,7 +14,7 @@
             text-transform: lowercase;
         }
         body {
-            font-family: 'inter', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #000000;
             color: #d1d5db;
             min-height: 100vh;
@@ -23,7 +23,7 @@
             justify-content: space-between;
         }
         .mono {
-            font-family: 'jetbrains mono', monospace;
+            font-family: 'JetBrains Mono', monospace;
         }
         header {
             background-color: rgba(10, 10, 10, 0.9);
@@ -173,7 +173,7 @@
     </header>
 
     <main class="container-main">
-        <div class="grid-layout" style="display: grid; grid-template-columns: 7fr 5fr; gap: 1.5rem;">
+        <div class="grid-layout">
             
             <!-- coluna esquerda -->
             <div style="display: flex; flex-direction: column; gap: 1.5rem;">
@@ -252,7 +252,7 @@
                             <div class="flex-between" style="margin: 0.5rem 0;">
                                 <div>
                                     <div style="font-size: 9px; color: #4b5563;">marcha atual</div>
-                                    <div id="gearDisplay" class="mono" style="font-size: 1.5rem; font-weight: 800; color: #ffffff;">n</div>
+                                    <div id="gearDisplay" class="mono" style="font-size: 1.5rem; font-weight: 800; color: #ffffff;">1</div>
                                 </div>
                                 <div style="display: flex; gap: 6px;">
                                     <button onclick="shiftGear(-1)" style="width: 36px; height: 36px; background: #171717; border: 1px solid #262626; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer;">-</button>
@@ -647,13 +647,13 @@
             if (rpm >= tuning.redline - 100) {
                 badge.style.background = 'rgba(239, 68, 68, 0.2)';
                 badge.style.color = '#ef4444';
-                badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                badge.textContent = 'corte de giro!';
-            } else if (throttle > 70) {
+                badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                badge.textContent = 'redline / corte';
+            } else if (throttle > 80) {
                 badge.style.background = 'rgba(16, 185, 129, 0.2)';
                 badge.style.color = '#10b981';
-                badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-                badge.textContent = 'aceleração total';
+                badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                badge.textContent = 'potência total';
             } else {
                 badge.style.background = 'rgba(245, 158, 11, 0.1)';
                 badge.style.color = '#f59e0b';
@@ -662,152 +662,68 @@
             }
         }
 
+        function getStrokeName(angle) {
+            let norm = angle % 720;
+            if (norm < 180) return { name: 'admissão', color: '#06b6d4', type: 'intake' };
+            if (norm < 360) return { name: 'compressão', color: '#f97316', type: 'compression' };
+            if (norm < 540) return { name: 'potência', color: '#10b981', type: 'combustion' };
+            return { name: 'exaustão', color: '#ef4444', type: 'exhaust' };
+        }
+
         function drawEngine() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#0a0a0a';
-            ctx.fillRect(40, 65, 540, 250);
-            ctx.strokeStyle = '#171717';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(40, 65, 540, 250);
-
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(40, 30, 540, 40);
-            ctx.strokeRect(40, 30, 540, 40);
-
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(40, 315, 540, 50);
-            ctx.strokeRect(40, 315, 540, 50);
+            const cylinderXOffsets = [110, 230, 350, 470];
             
-            ctx.fillStyle = 'rgba(249, 115, 22, 0.15)';
-            ctx.fillRect(45, 340, 530, 20);
-
-            const startX = 85;
-            const spacing = 125;
-            const bore = 75;
-            const stroke = 90;
-
             for (let i = 0; i < 4; i++) {
-                const cx = startX + (i * spacing);
-                const cylAngle = (crankAngle + cylinderPhases[i]) % 720;
-                
-                let strokeName = "";
-                let strokeColor = "";
-                if (cylAngle >= 0 && cylAngle < 180) { strokeName = "admissão"; strokeColor = "#06b6d4"; }
-                else if (cylAngle >= 180 && cylAngle < 360) { strokeName = "compressão"; strokeColor = "#f97316"; }
-                else if (cylAngle >= 360 && cylAngle < 540) { strokeName = "potência"; strokeColor = "#ef4444"; }
-                else { strokeName = "exaustão"; strokeColor = "#10b981"; }
+                let cx = cylinderXOffsets[i];
+                let cy = 130;
+                let cAngle = (crankAngle + cylinderPhases[i]) % 720;
+                let strokeInfo = getStrokeName(cAngle);
 
-                document.getElementById(`strokeC${i+1}`).textContent = strokeName;
-                document.getElementById(`strokeC${i+1}`).style.color = strokeColor;
+                // Atualizar textos dos cilindros no DOM levemente a cada frame
+                document.getElementById(`strokeC${i+1}`).textContent = strokeInfo.name;
+                document.getElementById(`strokeC${i+1}`).style.color = strokeInfo.color;
 
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(cx - (bore/2), 95, bore, 145);
-                ctx.strokeStyle = '#171717';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(cx - (bore/2), 95, bore, 145);
-
-                const pistonOffset = Math.cos((cylAngle * Math.PI) / 180) * (stroke / 2);
-                const pistonY = 95 + 45 + pistonOffset;
-
-                const intakeOpen = strokeName === "admissão";
-                const exhaustOpen = strokeName === "exaustão";
-
-                ctx.fillStyle = intakeOpen ? '#06b6d4' : '#475569';
-                ctx.beginPath();
-                ctx.moveTo(cx - 22, intakeOpen ? 68 : 72);
-                ctx.lineTo(cx - 10, intakeOpen ? 68 : 72);
-                ctx.lineTo(cx - 16, 95);
-                ctx.fill();
-
-                ctx.fillStyle = exhaustOpen ? '#10b981' : '#475569';
-                ctx.beginPath();
-                ctx.moveTo(cx + 10, exhaustOpen ? 68 : 72);
-                ctx.lineTo(cx + 22, exhaustOpen ? 68 : 72);
-                ctx.lineTo(cx + 16, 95);
-                ctx.fill();
-
-                if (strokeName === "potência" && cylAngle >= 360 && cylAngle <= 378) {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.moveTo(cx - 8, 95);
-                    ctx.lineTo(cx + 8, 115);
-                    ctx.moveTo(cx + 8, 95);
-                    ctx.lineTo(cx - 8, 115);
-                    ctx.stroke();
-
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                    ctx.fillRect(cx - (bore/2), 95, bore, 75);
-                }
-
-                if (strokeName === "admissão" && throttle > 5 && Math.random() < 0.4) {
-                    particles.push(new Particle(cx - 16, 75, 'intake'));
-                } else if (strokeName === "potência" && Math.random() < 0.3) {
-                    particles.push(new Particle(cx, pistonY + 10, 'combustion'));
-                } else if (strokeName === "exaustão" && Math.random() < 0.4) {
-                    particles.push(new Particle(cx + 16, 85, 'exhaust'));
-                }
-
-                ctx.fillStyle = '#171717';
-                ctx.fillRect(cx - (bore/2) + 2, pistonY, bore - 4, 30);
+                // Desenhar bloco do cilindro
                 ctx.strokeStyle = '#262626';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(cx - (bore/2) + 2, pistonY, bore - 4, 30);
+                ctx.lineWidth = 3;
+                ctx.strokeRect(cx - 35, cy, 70, 140);
 
-                ctx.fillStyle = '#6b7280';
-                ctx.fillRect(cx - (bore/2) + 2, pistonY + 4, bore - 4, 2);
-                ctx.fillRect(cx - (bore/2) + 2, pistonY + 12, bore - 4, 2);
+                // Cinemática do pistão e biela
+                let pistonY = cy + 20 + Math.sin((cAngle * Math.PI) / 180) * 40;
+                
+                // Desenhar pistão
+                ctx.fillStyle = '#374151';
+                ctx.fillRect(cx - 30, pistonY, 60, 30);
 
-                ctx.fillStyle = '#0a0a0a';
-                ctx.beginPath();
-                ctx.arc(cx, pistonY + 15, 5, 0, Math.PI * 2);
-                ctx.fill();
-
-                const rad = (cylAngle * Math.PI) / 180;
-                const crankPinX = cx + Math.sin(rad) * 26;
-                const crankPinY = 275 + Math.cos(rad) * 26;
-
-                ctx.strokeStyle = '#9ca3af';
-                ctx.lineWidth = 5;
-                ctx.beginPath();
-                ctx.moveTo(cx, pistonY + 15);
-                ctx.lineTo(crankPinX, crankPinY);
-                ctx.stroke();
-
-                ctx.fillStyle = '#6b7280';
-                ctx.beginPath();
-                ctx.arc(crankPinX, crankPinY, 6, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#4b5563';
-                ctx.font = '10px inter, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(`cil ${i+1}`, cx, 235);
+                // Spawn de partículas com base no ciclo
+                if (Math.random() < 0.3 && rpm > 600) {
+                    if (strokeInfo.type === 'intake') {
+                        particles.push(new Particle(cx, cy, 'intake'));
+                    } else if (strokeInfo.type === 'combustion') {
+                        particles.push(new Particle(cx, pistonY + 10, 'combustion'));
+                    } else if (strokeInfo.type === 'exhaust') {
+                        particles.push(new Particle(cx, cy, 'exhaust'));
+                    }
+                }
             }
 
-            for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update();
-                particles[i].draw();
-                if (particles[i].alpha <= 0) particles.splice(i, 1);
+            // Atualizar e renderizar partículas
+            for (let p = particles.length - 1; p >= 0; p--) {
+                particles[p].update();
+                particles[p].draw();
+                if (particles[p].alpha <= 0) {
+                    particles.splice(p, 1);
+                }
             }
-
-            ctx.strokeStyle = '#171717';
-            ctx.lineWidth = 8;
-            ctx.beginPath();
-            ctx.arc(310, 275, 30, 0, Math.PI * 2);
-            ctx.stroke();
-
-            ctx.fillStyle = '#0a0a0a';
-            ctx.beginPath();
-            ctx.arc(310, 275, 14, 0, Math.PI * 2);
-            ctx.fill();
         }
 
         let lastTime = performance.now();
-        function loop(now) {
-            const dt = Math.min(0.1, (now - lastTime) / 1000);
-            lastTime = now;
+        function loop(timestamp) {
+            let dt = (timestamp - lastTime) / 1000;
+            if (dt > 0.1) dt = 0.1;
+            lastTime = timestamp;
 
             if (engineRunning) {
                 updatePhysics(dt);
@@ -817,10 +733,7 @@
             requestAnimationFrame(loop);
         }
 
-        window.onload = function() {
-            updateTuning();
-            requestAnimationFrame(loop);
-        };
+        requestAnimationFrame(loop);
     </script>
 </body>
 </html>
