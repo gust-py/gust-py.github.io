@@ -1,435 +1,301 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Motor Virtual - Wankel Edition</title>
+    <meta charset="UTF-8">
+    <title>Motor Virtual 2D - Wankel & Pistons</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #050505; color: white; }
-        #ui { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.9); padding: 20px; border-radius: 12px; border: 2px solid #444; width: 300px; z-index: 100; max-height: 90vh; overflow-y: auto; transition: all 0.3s ease; }
-        .control-group { margin-bottom: 12px; }
-        input[type=range] { width: 100%; cursor: pointer; accent-color: #0077ff; }
-        input[type=text] {
-            width: 100%; background: #111; border: 1px solid #0077ff; color: #00ff00;
-            padding: 8px; font-family: monospace; border-radius: 4px; box-sizing: border-box; outline: none;
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: #050505;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        #igniteBtn {
-            background: radial-gradient(circle, #0077ff 0%, #003366 100%);
-            color: white; border: 4px solid #333; padding: 15px; border-radius: 50%;
-            cursor: pointer; width: 80px; height: 80px; font-weight: bold;
-            display: block; margin: 10px auto; text-transform: uppercase;
+        canvas {
+            display: block;
+            background: #09090c;
         }
-        .status { font-size: 14px; color: #00ff00; text-align: center; font-family: monospace; margin-top: 5px; }
-        .label-style { font-size: 11px; color: #aaa; text-transform: uppercase; margin-bottom: 3px; display: block; }
-        .gear-controls { text-align: center; margin: 10px 0; }
-        .gear-btn { background: #444; color: white; border: 2px solid #666; padding: 10px 18px; cursor: pointer; border-radius: 6px; }
-        
-        #wankelToggleBtn {
-            width: 100%; padding: 12px; background: #ff4400; color: white; border: none; border-radius: 6px; 
-            font-weight: bold; cursor: pointer; margin-bottom: 15px; text-transform: uppercase;
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            width: 280px;
+            z-index: 100;
+            pointer-events: none;
         }
-        #wankelToggleBtn.active-wankel { background: #0077ff; }
-        .hidden { display: none; }
+        h2 { margin: 0 0 10px 0; color: #0077ff; font-size: 15px; text-align: center; }
+        .info-row { display: flex; justify-content: space-between; font-family: monospace; font-size: 13px; margin-bottom: 6px; }
+        .controls-guide { font-size: 11px; color: #aaa; margin-top: 10px; border-top: 1px solid #333; padding-top: 8px; line-height: 1.4; }
+        .highlight { color: #00ff00; }
     </style>
 </head>
 <body>
+
     <div id="ui">
-        <h2 style="margin:0 0 10px 0; color: #0077ff; text-align:center; font-size: 16px;">MOTOR VIRTUAL PRO</h2>
+        <h2>MOTOR VIRTUAL 2D</h2>
+        <div class="info-row"><span>Status:</span> <span id="uiStatus" class="highlight">OFF</span></div>
+        <div class="info-row"><span>Modo:</span> <span id="uiMode">Pistão (4 Cil)</span></div>
+        <div class="info-row"><span>RPM:</span> <span id="uiRpm">0</span></div>
+        <div class="info-row"><span>Velocidade:</span> <span id="uiSpeed">0 km/h</span></div>
+        <div class="info-row"><span>Marcha:</span> <span id="uiGear">N</span></div>
         
-        <button id="wankelToggleBtn">Alternar para Motor Wankel</button>
-
-        <div id="pistonControls">
-            <div class="control-group">
-                <span class="label-style">Ordem de Ignição</span>
-                <input type="text" id="firingOrderInput" value="0,2,3,1">
-            </div>
-             <div class="control-group">
-                <span class="label-style">Cilindros: <span id="cylVal">4</span></span>
-                <input type="range" id="cylSlider" min="1" max="12" value="4">
-            </div>
+        <div class="controls-guide">
+            <b>Controles:</b><br>
+            • <b>SPACE (Segurar):</b> Virar Chave (Ligar)<br>
+            • <b>W (Segurar):</b> Acelerador<br>
+            • <b>A:</b> Desligar Motor<br>
+            • <b>Seta Cima / Baixo:</b> Marchas<br>
+            • <b>T:</b> Alternar Wankel / Pistão
         </div>
-
-        <div class="control-group">
-            <span class="label-style">Relações de Marcha (1ª a 8ª)</span>
-            <input type="text" id="gearRatiosInput" value="3.80, 2.40, 1.70, 1.25, 1.00, 0.85, 0.70, 0.55">
-        </div>
-
-        <div class="control-group">
-            <span class="label-style">Acelerador</span>
-            <input type="range" id="rpmSlider" min="0" max="9000" value="1000">
-        </div>
-
-        <div class="control-group">
-            <span class="label-style">Limite de Marchas</span>
-            <input type="range" id="gearCountSlider" min="1" max="8" value="5">
-            <span id="gearCountVal">5</span>
-        </div>
-
-        <div class="gear-controls">
-            <button class="gear-btn" id="gearDown">↓</button>
-            <span style="font-size:20px; font-weight:bold;" id="currentGearDisplay">N</span>
-            <button class="gear-btn" id="gearUp">↑</button>
-        </div>
-
-        <button id="igniteBtn">START</button>
-        <div class="status" id="engineStatus">OFF</div>
-        <div class="status" id="speedStatus">Vel: 0 km/h</div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <canvas id="simulationCanvas"></canvas>
+
     <script>
-        let scene, camera, renderer, controls;
-        // Piston vars
-        let pistons = [], rods = [], valves = [], sparks = [];
-        let crankshaftGroup, engineGroup;
-        // Wankel vars
-        let wankelGroup, wankelRotor, wankelShaft;
-        let isWankelMode = false;
-        const WANKEL_R = 4; // Raio do centro do rotor ao vértice
-        const WANKEL_E = 0.65; // Excentricidade do eixo
-        const WANKEL_DEPTH = 2.5;
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
 
-        // Shared vars
-        let rpm = 0, engineOn = false, angle = 0, isStarting = false;
-        let audioCtx, engineOsc, lowPass, noiseGain, mainGain, backfires = [], exhaustFlame, exhaustLight;
-        let currentGear = 0, kmh = 0, lastRpm = 0;
-        let lastBackfireTime = 0;
-        const CRANK_RADIUS = 1.6, ROD_LENGTH = 3.5;
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        // --- AUDIO SETUP (Mantido igual) ---
+        // --- VARIÁVEIS DE ESTADO ---
+        let isWankel = false;
+        let engineOn = false;
+        let isStarting = false;
+        let rpm = 0;
+        let kmh = 0;
+        let angle = 0;
+        let currentGear = 0; // 0 = N, -1 = R, 1-5 = Marchas
+        let maxGears = 5;
+        let gearRatios = [3.80, 2.40, 1.70, 1.25, 1.00];
+
+        // Teclado
+        const keys = { w: false, space: false };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyW') keys.w = true;
+            if (e.code === 'Space') {
+                keys.space = true;
+                if (!audioCtx) setupAudio();
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                isStarting = true;
+            }
+            if (e.code === 'KeyA') {
+                engineOn = false;
+                isStarting = false;
+                rpm = 0;
+            }
+            if (e.code === 'KeyT') {
+                isWankel = !isWankel;
+                rpm = 0;
+                engineOn = false;
+                document.getElementById('uiMode').innerText = isWankel ? "Wankel (Rotativo)" : "Pistão (4 Cil)";
+            }
+            if (e.code === 'ArrowUp') {
+                if (currentGear < maxGears) currentGear++;
+            }
+            if (e.code === 'ArrowDown') {
+                if (currentGear > -1) currentGear--;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyW') keys.w = false;
+            if (e.code === 'Space') {
+                keys.space = false;
+                isStarting = false;
+            }
+        });
+
+        // --- ÁUDIO (Web Audio API) ---
+        let audioCtx, engineOsc, lowPass, noiseGain;
+
         function setupAudio() {
             if (audioCtx) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            mainGain = audioCtx.createGain(); mainGain.connect(audioCtx.destination); mainGain.gain.value = 0.7;
-            engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
-            lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = 250;
-            const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
-            const data = noiseBuffer.getChannelData(0); for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
-            const noise = audioCtx.createBufferSource(); noise.buffer = noiseBuffer; noise.loop = true;
-            noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0.05;
-            engineOsc.connect(lowPass); lowPass.connect(mainGain); noise.connect(noiseGain); noiseGain.connect(mainGain);
-            engineOsc.start(); noise.start();
-        }
-        function triggerBackfire(vol = 1) {
-            const currentTime = Date.now();
-            if (!audioCtx || rpm < 4000 || (currentTime - lastBackfireTime < 200)) return;
-            lastBackfireTime = currentTime;
-            let finalVol = currentGear !== 0 ? vol * 0.4 : vol;
-            backfires.push({ time: 0, duration: 0.1, intensity: finalVol });
-            const popGain = audioCtx.createGain(); const noise = audioCtx.createBufferSource();
-            const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
-            const d = buffer.getChannelData(0); for(let i=0; i<d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 2);
-            noise.buffer = buffer; popGain.gain.setValueAtTime(finalVol * 7.5, audioCtx.currentTime); 
-            popGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-            noise.connect(popGain); popGain.connect(audioCtx.destination); noise.start();
+            const mainGain = audioCtx.createGain();
+            mainGain.connect(audioCtx.destination);
+            mainGain.gain.value = 0.5;
+
+            engineOsc = audioCtx.createOscillator();
+            engineOsc.type = 'sawtooth';
+            
+            lowPass = audioCtx.createBiquadFilter();
+            lowPass.type = 'lowpass';
+            lowPass.frequency.value = 300;
+
+            engineOsc.connect(lowPass);
+            lowPass.connect(mainGain);
+            engineOsc.start();
         }
 
-        // --- INIT & MAIN LOOP ---
-        init();
-        animate();
+        // --- LOOP PRINCIPAL DE FÍSICA E DESENHO ---
+        function update() {
+            // Acelerador baseado na tecla W
+            let throttleTarget = keys.w ? 8500 : 800;
 
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x020205);
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(10, 6, 14);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            scene.add(new THREE.AmbientLight(0x404040), new THREE.DirectionalLight(0xffffff, 1.2));
-            
-            // Inicializa com motor a pistão
-            createPistonEngine(parseInt(document.getElementById('cylSlider').value));
-            setupUI();
-        }
-
-        // --- PISTON ENGINE CREATION ---
-        function createPistonEngine(numCyl) {
-            if (wankelGroup) scene.remove(wankelGroup);
-            if (engineGroup) scene.remove(engineGroup);
-            engineGroup = new THREE.Group(); scene.add(engineGroup);
-            pistons = []; rods = []; valves = []; sparks = [];
-            crankshaftGroup = new THREE.Group(); engineGroup.add(crankshaftGroup);
-
-            const matMetal = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
-            const matPistao = new THREE.MeshStandardMaterial({ color: 0x0077ff, metalness: 0.6, roughness: 0.4 });
-            let firingOrderStr = document.getElementById('firingOrderInput').value;
-            let firingOrder = firingOrderStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-            // Fallback simples se a ordem for inválida para o número de cilindros
-            if (firingOrder.length < numCyl || Math.max(...firingOrder) >= numCyl) {
-                 firingOrder = Array.from({length: numCyl}, (_, i) => i);
-            }
-
-
-            for(let i = 0; i < numCyl; i++){
-                const x = i * 2.5 - (numCyl * 2.5 / 2) + 1.25;
-                const pos = firingOrder.indexOf(i);
-                // Se não encontrar na ordem, usa um padrão linear
-                const cylinderIndexForOffset = (pos !== -1) ? pos : i;
-                const offset = (cylinderIndexForOffset * (Math.PI * 4)) / numCyl;
-
-                const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 1.2, 32), matPistao);
-                engineGroup.add(piston); pistons.push({ mesh: piston, x, offset });
-
-                const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, ROD_LENGTH, 16), matMetal);
-                engineGroup.add(rod); rods.push({ mesh: rod, x, offset });
-
-                const crankPart = new THREE.Group(); crankPart.position.x = x;
-                const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.6, 16), matMetal);
-                pin.rotation.z = Math.PI / 2; pin.position.y = CRANK_RADIUS;
-                crankPart.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, CRANK_RADIUS * 1.5, 0.8), matMetal), pin);
-                crankPart.rotation.x = offset; crankshaftGroup.add(crankPart);
-
-                const sM = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshBasicMaterial({color: 0x00ffff}));
-                engineGroup.add(sM); sparks.push({ mesh: sM, x });
-                const vIn = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.25, 0.5), new THREE.MeshPhongMaterial({color: 0x00ff00}));
-                const vEx = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.25, 0.5), new THREE.MeshPhongMaterial({color: 0xff0000}));
-                engineGroup.add(vIn, vEx); valves.push({ in: vIn, ex: vEx, x });
-            }
-            // Exhaust logic (simplificada)
-            if(numCyl > 0) {
-                const exPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, numCyl * 2.5 + 2, 16), matMetal);
-                exPipe.rotation.z = Math.PI / 2; exPipe.position.set(0, 4, 3); engineGroup.add(exPipe);
-                exhaustFlame = new THREE.Mesh(new THREE.SphereGeometry(0.8), new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0 }));
-                exhaustFlame.position.set(numCyl * 1.25 + 1, 4, 3); engineGroup.add(exhaustFlame);
-                exhaustLight = new THREE.PointLight(0xff6600, 0, 20); exhaustLight.position.copy(exhaustFlame.position); engineGroup.add(exhaustLight);
-            }
-        }
-
-        // --- WANKEL ENGINE CREATION (Nova Função) ---
-        function createWankelEngine() {
-            if (engineGroup) scene.remove(engineGroup);
-            if (wankelGroup) scene.remove(wankelGroup);
-            wankelGroup = new THREE.Group();
-            scene.add(wankelGroup);
-            
-            // Materiais
-            const matHousingOuter = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.3 });
-            const matHousingInner = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.5, roughness: 0.5, side: THREE.DoubleSide });
-            const matRotor = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.4 });
-            const matShaft = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9 });
-            const matSeals = new THREE.MeshStandardMaterial({ color: 0xffff00, metalness: 0.5 });
-
-            // 1. Carcaça (Housing) - Epitrocoide
-            const housingShape = new THREE.Shape();
-            const steps = 100;
-            for (let i = 0; i <= steps; i++) {
-                const t = (i / steps) * Math.PI * 2;
-                // Equações paramétricas da epitrocoide (caminho do ápice)
-                // Ajustamos ligeiramente para criar a parede interna da carcaça
-                const x = (WANKEL_R + 0.2) * Math.cos(t) + WANKEL_E * Math.cos(3 * t);
-                const y = (WANKEL_R + 0.2) * Math.sin(t) + WANKEL_E * Math.sin(3 * t);
-                if (i === 0) housingShape.moveTo(x, y); else housingShape.lineTo(x, y);
-            }
-
-            // Extrusão da forma interna para criar a "parede"
-            const extrudeSettings = { steps: 1, depth: WANKEL_DEPTH, bevelEnabled: false };
-            const housingGeo = new THREE.ExtrudeGeometry(housingShape, extrudeSettings);
-            // Centralizar a geometria extrudada
-            housingGeo.translate(0, 0, -WANKEL_DEPTH / 2);
-            
-            // Criar a malha externa (um cilindro achatado para cobrir) e a interna
-            const housingMesh = new THREE.Mesh(housingGeo, matHousingInner);
-            wankelGroup.add(housingMesh);
-
-            // Adicionar tampas laterais (Side plates)
-            const plateGeo = new THREE.CylinderGeometry(WANKEL_R * 1.3, WANKEL_R * 1.3, 0.2, 32);
-            const plate1 = new THREE.Mesh(plateGeo, matHousingOuter); plate1.rotation.x = Math.PI/2; plate1.position.z = WANKEL_DEPTH/2 + 0.1;
-            const plate2 = new THREE.Mesh(plateGeo, matHousingOuter); plate2.rotation.x = Math.PI/2; plate2.position.z = -WANKEL_DEPTH/2 - 0.1;
-            wankelGroup.add(plate1, plate2);
-
-
-            // 2. Rotor
-            const rotorShape = new THREE.Shape();
-            const rotorRadius = WANKEL_R;
-            // Aproximação de um triângulo de Reuleaux (lados curvados)
-            rotorShape.moveTo(rotorRadius * Math.cos(0), rotorRadius * Math.sin(0));
-            rotorShape.quadraticCurveTo(0, rotorRadius * 0.5, rotorRadius * Math.cos(Math.PI * 2/3), rotorRadius * Math.sin(Math.PI * 2/3));
-            rotorShape.quadraticCurveTo(-rotorRadius * 0.866 * 0.5, -rotorRadius*0.5*0.5, rotorRadius * Math.cos(Math.PI * 4/3), rotorRadius * Math.sin(Math.PI * 4/3));
-            rotorShape.quadraticCurveTo(rotorRadius * 0.866 * 0.5, -rotorRadius*0.5*0.5, rotorRadius * Math.cos(0), rotorRadius * Math.sin(0));
-
-            const rotorGeo = new THREE.ExtrudeGeometry(rotorShape, { steps: 1, depth: WANKEL_DEPTH - 0.1, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 2 });
-            rotorGeo.translate(0, 0, -(WANKEL_DEPTH - 0.1) / 2);
-            wankelRotor = new THREE.Mesh(rotorGeo, matRotor);
-
-            // Apex Seals (Selos de ponta)
-            for(let i=0; i<3; i++) {
-                const a = i * (Math.PI * 2 / 3);
-                const seal = new THREE.Mesh(new THREE.SphereGeometry(0.15), matSeals);
-                seal.position.set(WANKEL_R * Math.cos(a), WANKEL_R * Math.sin(a), 0);
-                wankelRotor.add(seal);
-            }
-            // Engrenagem central do rotor (visual)
-            const rotorGear = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, WANKEL_DEPTH+0.1, 12), matShaft);
-            rotorGear.rotation.x = Math.PI/2;
-            wankelRotor.add(rotorGear);
-
-            wankelGroup.add(wankelRotor);
-
-            // 3. Eixo Excêntrico (Eccentric Shaft)
-            wankelShaft = new THREE.Group();
-            const mainShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, WANKEL_DEPTH + 2, 16), matShaft);
-            mainShaft.rotation.x = Math.PI / 2;
-            const eccentricLobe = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, WANKEL_DEPTH - 0.2, 16), matShaft);
-            eccentricLobe.rotation.x = Math.PI / 2;
-            eccentricLobe.position.y = WANKEL_E; // O lóbulo é deslocado pela excentricidade
-            
-            wankelShaft.add(mainShaft, eccentricLobe);
-            wankelGroup.add(wankelShaft);
-
-            // Rotaciona o grupo Wankel para ficar de frente para a câmera padrão
-            wankelGroup.rotation.y = -Math.PI / 2;
-            
-            exhaustFlame = null; // Wankel não usa o mesmo sistema de escape visual aqui
-        }
-
-
-        // --- ANIMATION LOOP (Atualizado para suportar ambos) ---
-        function animate() {
-            requestAnimationFrame(animate);
-            const dt = 1/60;
-            const throttle = parseInt(document.getElementById('rpmSlider').value);
-            const gearRatios = document.getElementById('gearRatiosInput').value.split(',').map(n => parseFloat(n.trim()));
-            
-            // Lógica de Física (RPM/Velocidade) - Comum aos dois
             if (isStarting) {
-                rpm += (600 - rpm) * 0.1; if (rpm > 550) engineOn = true;
+                rpm += (600 - rpm) * 0.1;
+                if (rpm > 500) engineOn = true;
             } else if (engineOn) {
-                if (throttle <= 0 && rpm < 900) { engineOn = false; }
-                const gearRatio = currentGear === 0 ? 0 : (gearRatios[currentGear - 1] || 1.0);
-                // Wankel sobe de giro mais rápido em neutro
-                let revSpeed = isWankelMode ? 0.25 : 0.15;
-                if (currentGear === 0) {
-                    rpm += (throttle - rpm) * revSpeed;
+                if (!keys.w && rpm < 750 && currentGear === 0) {
+                    // Mantém marcha lenta se soltar o acelerador em neutro
+                    rpm += (800 - rpm) * 0.05;
                 } else {
-                    let targetFromSpeed = (kmh / 3.6) / (2 * Math.PI * 0.32) * 60 * gearRatio * 4.10;
-                    kmh += (throttle - rpm) * 0.0012 / (gearRatio || 1);
-                    rpm = targetFromSpeed + (throttle * 0.04);
+                    let gearRatio = currentGear === 0 ? 0 : gearRatios[currentGear - 1];
+                    if (currentGear === 0) {
+                        rpm += (throttleTarget - rpm) * 0.08;
+                    } else {
+                        let targetRpm = (kmh / 3.6) * gearRatio * 300 + (keys.w ? 2000 : 500);
+                        kmh += (keys.w ? 0.15 : -0.1) / (gearRatio || 1);
+                        if (kmh < 0) kmh = 0;
+                        rpm += (targetRpm - rpm) * 0.05;
+                    }
                 }
-                // Wankel gira mais alto
-                let maxRpm = isWankelMode ? 10500 : 8600;
-                if (rpm > maxRpm + 200) { rpm = maxRpm; triggerBackfire(1.8); }
-            } else { rpm *= 0.92; kmh *= 0.98; if(rpm < 1) rpm = 0; }
-
-            // Backfire logic
-            if (lastRpm - rpm > 180 && rpm > 4000) triggerBackfire(1.2);
-            lastRpm = rpm;
-
-            // Atualização Visual
-            if (isWankelMode) {
-                // --- LÓGICA DE ANIMAÇÃO WANKEL ---
-                // O ângulo principal é o do eixo de saída (eccentric shaft)
-                angle += (rpm / 60) * (Math.PI * 2) / 60;
-                
-                // 1. Gira o eixo excêntrico na velocidade normal
-                wankelShaft.rotation.z = angle;
-
-                // 2. Move o centro do rotor numa órbita circular (definida pela excentricidade E)
-                // O centro do rotor segue o lóbulo do eixo excêntrico.
-                wankelRotor.position.set(
-                    WANKEL_E * Math.cos(angle),
-                    WANKEL_E * Math.sin(angle),
-                    0
-                );
-
-                // 3. Gira o rotor em torno do seu próprio centro.
-                // A relação chave do Wankel: O rotor gira a 1/3 da velocidade do eixo,
-                // na mesma direção do eixo (se a engrenagem interna for fixa na carcaça).
-                wankelRotor.rotation.z = angle / 3;
-
+                if (rpm > 9000) rpm = 9000;
             } else {
-                // --- LÓGICA DE ANIMAÇÃO PISTÃO (Mantida) ---
-                let intensity = 0;
-                for (let i = backfires.length - 1; i >= 0; i--) {
-                    backfires[i].time += dt;
-                    if (backfires[i].time >= backfires[i].duration) { backfires.splice(i, 1); continue; }
-                    intensity += (1 - backfires[i].time/backfires[i].duration) * backfires[i].intensity;
-                }
-                if (exhaustFlame) {
-                    exhaustFlame.material.opacity = intensity; exhaustFlame.scale.setScalar(0.5 + intensity * 3); exhaustLight.intensity = intensity * 25;
-                }
-
-                angle += (rpm / 60) * (Math.PI * 2) / 60;
-                crankshaftGroup.rotation.x = angle;
-                pistons.forEach((p, i) => {
-                    const a = angle + p.offset;
-                    const pinY = Math.cos(a) * CRANK_RADIUS, pinZ = Math.sin(a) * CRANK_RADIUS;
-                    const y = pinY + Math.sqrt(ROD_LENGTH**2 - pinZ**2);
-                    p.mesh.position.set(p.x, y + 1.5, 0);
-                    rods[i].mesh.position.set(p.x, (y + 1.5 + pinY)/2, pinZ/2);
-                    rods[i].mesh.lookAt(p.x, y + 1.5, 0); rods[i].mesh.rotateX(Math.PI/2);
-                    const cycle = a % (Math.PI * 4);
-                    valves[i].in.position.set(p.x - 0.4, (cycle < Math.PI) ? 7.5 : 8, 0);
-                    valves[i].ex.position.set(p.x + 0.4, (cycle > Math.PI*3) ? 7.5 : 8, 0);
-                    sparks[i].mesh.visible = cycle > Math.PI*1.9 && cycle < Math.PI*2.1 && engineOn && rpm > 400;
-                });
+                rpm *= 0.93;
+                kmh *= 0.98;
+                if (rpm < 10) rpm = 0;
             }
 
-            // Audio Update (Comum)
-            if (audioCtx) {
-                if (engineOn && rpm > 50) {
-                    mainGain.gain.setTargetAtTime(0.7, audioCtx.currentTime, 0.1);
-                    // Ajuste de frequência para Wankel soar mais agudo/rápido
-                    let freqMult = isWankelMode ? (3/2) : (pistons.length/2); 
-                    engineOsc.frequency.setTargetAtTime((rpm/60)*freqMult, audioCtx.currentTime, 0.05);
-                } else { mainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1); }
+            // Atualiza rotação do motor visual
+            let rotSpeed = (rpm / 60) * 0.05;
+            angle += rotSpeed;
+
+            // Atualiza Áudio
+            if (audioCtx && engineOn && rpm > 50) {
+                let freqMultiplier = isWankel ? 1.5 : 0.8;
+                engineOsc.frequency.setTargetAtTime((rpm / 60) * freqMultiplier, audioCtx.currentTime, 0.05);
             }
-            
-            // UI Updates
-            document.getElementById('engineStatus').innerText = engineOn ? `RPM: ${Math.round(rpm)}` : "OFF";
-            document.getElementById('speedStatus').innerText = `Vel: ${Math.round(kmh)} km/h`;
-            document.getElementById('currentGearDisplay').innerText = currentGear === 0 ? "N" : (currentGear === -1 ? "R" : currentGear);
-            renderer.render(scene, camera);
+
+            // Atualiza UI HTML
+            document.getElementById('uiStatus').innerText = engineOn ? "LIGADO" : (isStarting ? "PARTIDA..." : "OFF");
+            document.getElementById('uiStatus.highlight').style.color = engineOn ? "#00ff00" : "#ffaa00";
+            document.getElementById('uiRpm').innerText = Math.round(rpm);
+            document.getElementById('uiSpeed').innerText = Math.round(kmh) + " km/h";
+            document.getElementById('uiGear').innerText = currentGear === 0 ? "N" : (currentGear === -1 ? "R" : currentGear);
         }
 
-        // --- UI SETUP (Atualizado) ---
-        function setupUI() {
-            const wankelBtn = document.getElementById('wankelToggleBtn');
-            const pistonControls = document.getElementById('pistonControls');
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            wankelBtn.onclick = () => {
-                isWankelMode = !isWankelMode;
-                rpm = 0; engineOn = false; kmh = 0; // Reseta o motor na troca
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
 
-                if (isWankelMode) {
-                    wankelBtn.innerText = "Alternar para Motor a Pistão";
-                    wankelBtn.classList.add('active-wankel');
-                    pistonControls.classList.add('hidden');
-                    createWankelEngine();
-                    // Ajusta câmera para focar no Wankel
-                    controls.target.set(0,0,0);
-                    camera.position.set(8, 4, 0);
-                } else {
-                    wankelBtn.innerText = "Alternar para Motor Wankel";
-                    wankelBtn.classList.remove('active-wankel');
-                    pistonControls.classList.remove('hidden');
-                    createPistonEngine(parseInt(document.getElementById('cylSlider').value));
-                     // Retorna câmera padrão
-                    controls.target.set(0,4,0);
-                    camera.position.set(10, 6, 14);
-                }
-                controls.update();
-            };
+            if (isWankel) {
+                drawWankel();
+            } else {
+                drawPistons();
+            }
 
-            document.getElementById('cylSlider').oninput = (e) => { 
-                document.getElementById('cylVal').innerText = e.target.value; 
-                if(!isWankelMode) createPistonEngine(parseInt(e.target.value)); 
-            };
-            document.getElementById('firingOrderInput').onchange = () => {
-                 if(!isWankelMode) createPistonEngine(parseInt(document.getElementById('cylSlider').value));
-            };
-            document.getElementById('gearCountSlider').oninput = (e) => {
-                document.getElementById('gearCountVal').innerText = e.target.value;
-                if (currentGear > parseInt(e.target.value)) currentGear = parseInt(e.target.value);
-            };
-            document.getElementById('gearUp').onclick = () => { 
-                let max = parseInt(document.getElementById('gearCountSlider').value);
-                if(currentGear < max) currentGear++; 
-            };
-            document.getElementById('gearDown').onclick = () => { if(currentGear > -1) currentGear--; };
-            document.getElementById('igniteBtn').onmousedown = () => { setupAudio(); audioCtx.resume(); isStarting = true; };
-            document.getElementById('igniteBtn').onmouseup = () => isStarting = false;
+            ctx.restore();
         }
+
+        // --- RENDERIZADOR DO MOTOR WANKEL 2D ---
+        function drawWankel() {
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = '#111';
+
+            // Carcaça (Epitrocoide simplificada)
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 140, 140, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Rotor Triancular Giratório
+            ctx.save();
+            let rotorAngle = angle / 3; // Relação Wankel 1:3
+            ctx.rotate(rotorAngle);
+
+            ctx.fillStyle = '#333';
+            ctx.strokeStyle = '#0077ff';
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+            for (let i = 0; i < 3; i++) {
+                let a = i * ((Math.PI * 2) / 3);
+                let x = Math.cos(a) * 90;
+                let y = Math.sin(a) * 90;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.quadraticCurveTo(Math.cos(a - 0.5) * 50, Math.sin(a - 0.5) * 50, x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Centro do Rotor
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Eixo Central
+            ctx.fillStyle = '#888';
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // --- RENDERIZADOR DO MOTOR DE PISTÕES 2D (4 Cilindros) ---
+        function drawPistons() {
+            const numCyl = 4;
+            const spacing = 70;
+            const startX = -((numCyl - 1) * spacing) / 2;
+
+            for (let i = 0; i < numCyl; i++) {
+                let x = startX + (i * spacing);
+                let offset = (i * Math.PI) / 2;
+                let pistonY = -40 + Math.sin(angle + offset) * 35;
+
+                // Bloco / Cilindro
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x - 22, -110, 44, 90);
+
+                // Pistão
+                ctx.fillStyle = '#0077ff';
+                ctx.fillRect(x - 20, pistonY, 40, 30);
+
+                // Biela
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(x, pistonY + 15);
+                ctx.lineTo(x + 10, 60); // Ligação ao virabrequim simplificada
+                ctx.stroke();
+            }
+
+            // Virabrequim (Eixo inferior)
+            ctx.fillStyle = '#aaa';
+            ctx.beginPath();
+            ctx.arc(0, 70, 25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // --- LOOP PRINCIPAL ---
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
     </script>
 </body>
 </html>
