@@ -1,739 +1,435 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>motorforge i4 - simulador de motor 2d & áudio web</title>
-    <!-- google fonts inter & jetbrains mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Motor Virtual - Wankel Edition</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            text-transform: lowercase;
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #050505; color: white; }
+        #ui { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.9); padding: 20px; border-radius: 12px; border: 2px solid #444; width: 300px; z-index: 100; max-height: 90vh; overflow-y: auto; transition: all 0.3s ease; }
+        .control-group { margin-bottom: 12px; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: #0077ff; }
+        input[type=text] {
+            width: 100%; background: #111; border: 1px solid #0077ff; color: #00ff00;
+            padding: 8px; font-family: monospace; border-radius: 4px; box-sizing: border-box; outline: none;
         }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-            color: #d1d5db;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        #igniteBtn {
+            background: radial-gradient(circle, #0077ff 0%, #003366 100%);
+            color: white; border: 4px solid #333; padding: 15px; border-radius: 50%;
+            cursor: pointer; width: 80px; height: 80px; font-weight: bold;
+            display: block; margin: 10px auto; text-transform: uppercase;
         }
-        .mono {
-            font-family: 'JetBrains Mono', monospace;
+        .status { font-size: 14px; color: #00ff00; text-align: center; font-family: monospace; margin-top: 5px; }
+        .label-style { font-size: 11px; color: #aaa; text-transform: uppercase; margin-bottom: 3px; display: block; }
+        .gear-controls { text-align: center; margin: 10px 0; }
+        .gear-btn { background: #444; color: white; border: 2px solid #666; padding: 10px 18px; cursor: pointer; border-radius: 6px; }
+        
+        #wankelToggleBtn {
+            width: 100%; padding: 12px; background: #ff4400; color: white; border: none; border-radius: 6px; 
+            font-weight: bold; cursor: pointer; margin-bottom: 15px; text-transform: uppercase;
         }
-        header {
-            background-color: rgba(10, 10, 10, 0.9);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #1f1f1f;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            padding: 1rem;
-        }
-        .container-main {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 1.5rem;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-        @media(min-width: 1024px) {
-            .container-main {
-                grid-template-columns: 12fr;
-            }
-            .grid-layout {
-                display: grid;
-                grid-template-columns: 7fr 5fr;
-                gap: 1.5rem;
-            }
-        }
-        .panel {
-            background-color: #0a0a0a;
-            border: 1px solid #1f1f1f;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-        }
-        .btn {
-            background: linear-gradient(to right, rgba(6, 182, 212, 0.1), rgba(37, 99, 235, 0.1));
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            color: #06b6d4;
-            padding: 0.5rem 1rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn:hover {
-            background: linear-gradient(to right, rgba(6, 182, 212, 0.2), rgba(37, 99, 235, 0.2));
-        }
-        canvas {
-            background-color: #000000;
-            display: block;
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-            border-radius: 0.75rem;
-            border: 1px solid #171717;
-        }
-        input[type="range"] {
-            width: 100%;
-            height: 0.5rem;
-            background: #171717;
-            border-radius: 0.5rem;
-            outline: none;
-            -webkit-appearance: none;
-            cursor: pointer;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 1rem;
-            height: 1rem;
-            border-radius: 50%;
-            background: #06b6d4;
-            transition: transform 0.1s;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
-        .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 1rem;
-        }
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.75rem;
-        }
-        .grid-4 {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0.5rem;
-        }
-        .box-inner {
-            background-color: #000000;
-            border: 1px solid #171717;
-            border-radius: 0.75rem;
-            padding: 0.75rem;
-        }
-        .text-neon-cyan { color: #06b6d4; }
-        .text-neon-orange { color: #f97316; }
-        .text-neon-green { color: #10b981; }
-        .text-red { color: #ef4444; }
-        .text-muted { color: #6b7280; font-size: 0.75rem; }
-        footer {
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.75rem;
-            color: #4b5563;
-            border-top: 1px solid #171717;
-            margin-top: 2rem;
-        }
+        #wankelToggleBtn.active-wankel { background: #0077ff; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-
-    <header>
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <div style="background: rgba(6, 182, 212, 0.1); padding: 0.5rem; border-radius: 0.75rem; border: 1px solid rgba(6, 182, 212, 0.3); color: #06b6d4;">
-                    ⚙️
-                </div>
-                <div>
-                    <h1 style="font-size: 1rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.5rem;">
-                        motorforge i4 <span style="font-size: 9px; background: #06b6d4; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 700;">pro 2d</span>
-                    </h1>
-                    <p style="font-size: 0.75rem; color: #6b7280;">simulador termodinâmico, cinemático & áudio procedural</p>
-                </div>
-            </div>
-
-            <div>
-                <button id="audioEnableBtn" onclick="toggleAudioEngine()" class="btn">
-                    <span id="audioIcon">🔇</span>
-                    <span id="audioText">ligar som do motor</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="container-main">
-        <div class="grid-layout">
-            
-            <!-- coluna esquerda -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                
-                <div class="panel">
-                    <div class="flex-between" style="margin-bottom: 0.75rem; font-size: 0.75rem; color: #6b7280;">
-                        <span style="display: flex; align-items: center; gap: 0.5rem;">
-                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-                            corte transversal i4 (ordem de ignição: 1 - 3 - 4 - 2)
-                        </span>
-                        <span style="background: #000; padding: 0.25rem 0.5rem; border-radius: 0.375rem; border: 1px solid #171717; color: #9ca3af;">
-                            partículas & inércia ativas
-                        </span>
-                    </div>
-
-                    <div style="width: 100%; display: flex; justify-content: center; background: #000; border-radius: 0.75rem; padding: 0.5rem; border: 1px solid #171717;">
-                        <canvas id="engineCanvas" width="620" height="390"></canvas>
-                    </div>
-
-                    <div class="grid-4" style="margin-top: 1rem; text-align: center; font-size: 0.75rem; font-weight: 600;">
-                        <div id="boxC1" class="box-inner">
-                            <div class="text-muted">cilindro 1</div>
-                            <div id="strokeC1" class="text-neon-cyan" style="margin-top: 2px;">admissão</div>
-                        </div>
-                        <div id="boxC2" class="box-inner">
-                            <div class="text-muted">cilindro 2</div>
-                            <div id="strokeC2" class="text-neon-orange" style="margin-top: 2px;">compressão</div>
-                        </div>
-                        <div id="boxC3" class="box-inner">
-                            <div class="text-muted">cilindro 3</div>
-                            <div id="strokeC3" class="text-red" style="margin-top: 2px;">exaustão</div>
-                        </div>
-                        <div id="boxC4" class="box-inner">
-                            <div class="text-muted">cilindro 4</div>
-                            <div id="strokeC4" class="text-neon-green" style="margin-top: 2px;">potência</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- controles de condução -->
-                <div class="panel" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <h2 style="font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
-                        🎮 comandos de condução (pedais & marchas)
-                    </h2>
-
-                    <div class="grid-2">
-                        <div class="box-inner" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <div class="flex-between">
-                                <span class="text-muted">acelerador [seta cima]</span>
-                                <span id="throttleVal" class="mono" style="font-size: 0.875rem; font-weight: 700; color: #10b981;">0%</span>
-                            </div>
-                            <input id="throttleRange" type="range" min="0" max="100" value="0" oninput="setThrottle(this.value)">
-                            
-                            <div class="flex-between" style="margin-top: 0.25rem;">
-                                <span class="text-muted">freio [seta baixo]</span>
-                                <span id="brakeVal" class="mono" style="font-size: 0.875rem; font-weight: 700; color: #ef4444;">0%</span>
-                            </div>
-                            <input id="brakeRange" type="range" min="0" max="100" value="0" oninput="setBrake(this.value)" style="accent-color: #ef4444;">
-
-                            <div class="flex-between" style="margin-top: 0.25rem;">
-                                <span class="text-muted">embreagem [espaço]</span>
-                                <span id="clutchVal" class="mono" style="font-size: 0.875rem; font-weight: 700; color: #06b6d4;">0%</span>
-                            </div>
-                            <input id="clutchRange" type="range" min="0" max="100" value="0" oninput="setClutch(this.value)">
-                        </div>
-
-                        <div class="box-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
-                            <div class="flex-between">
-                                <span class="text-muted">modo câmbio</span>
-                                <div style="display: flex; gap: 4px; background: #171717; padding: 2px; border-radius: 6px; border: 1px solid #262626; font-size: 0.75rem;">
-                                    <button id="modeAuto" onclick="setTransmissionMode('auto')" style="padding: 4px 8px; border-radius: 4px; background: #06b6d4; color: #000; border: none; font-weight: 600; cursor: pointer;">auto</button>
-                                    <button id="modeManual" onclick="setTransmissionMode('manual')" style="padding: 4px 8px; border-radius: 4px; background: transparent; color: #6b7280; border: none; cursor: pointer;">manual</button>
-                                </div>
-                            </div>
-
-                            <div class="flex-between" style="margin: 0.5rem 0;">
-                                <div>
-                                    <div style="font-size: 9px; color: #4b5563;">marcha atual</div>
-                                    <div id="gearDisplay" class="mono" style="font-size: 1.5rem; font-weight: 800; color: #ffffff;">1</div>
-                                </div>
-                                <div style="display: flex; gap: 6px;">
-                                    <button onclick="shiftGear(-1)" style="width: 36px; height: 36px; background: #171717; border: 1px solid #262626; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer;">-</button>
-                                    <button onclick="shiftGear(1)" style="width: 36px; height: 36px; background: #171717; border: 1px solid #262626; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer;">+</button>
-                                </div>
-                            </div>
-
-                            <div class="flex-between" style="font-size: 0.75rem; color: #6b7280; border-top: 1px solid #171717; padding-top: 0.5rem;">
-                                <span>embreagem: <strong id="clutchStatusText" class="text-neon-green">acoplada</strong></span>
-                                <span>velocidade: <strong id="speedDisplay" class="mono" style="color: #fff;">0 km/h</strong></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- coluna direita -->
-            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-                
-                <div class="panel" style="display: flex; flex-direction: column; gap: 1.25rem;">
-                    <div class="flex-between">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em;">📊 painel telemetria</span>
-                        <span id="statusBadge" style="padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2);">marcha lenta</span>
-                    </div>
-
-                    <div class="grid-2">
-                        <div class="box-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
-                            <span class="text-muted">rotação do motor (rpm)</span>
-                            <div style="display: flex; align-items: baseline; gap: 4px; margin-top: 0.5rem;">
-                                <span id="rpmVal" class="mono" style="font-size: 1.75rem; font-weight: 800; color: #ffffff;">800</span>
-                                <span style="font-size: 0.75rem; color: #4b5563;">rpm</span>
-                            </div>
-                            <div style="width: 100%; background: #171717; height: 8px; border-radius: 4px; margin-top: 0.75rem; overflow: hidden;">
-                                <div id="rpmBar" style="background: linear-gradient(to right, #10b981, #f97316, #ef4444); height: 100%; width: 10%; transition: width 0.1s;"></div>
-                            </div>
-                        </div>
-
-                        <div class="box-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
-                            <span class="text-muted">torque / potência</span>
-                            <div style="display: flex; align-items: baseline; gap: 4px; margin-top: 0.5rem;">
-                                <span id="torqueVal" class="mono" style="font-size: 1.5rem; font-weight: 800; color: #f97316;">142</span>
-                                <span style="font-size: 0.75rem; color: #4b5563;">nm</span>
-                            </div>
-                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">potência: <strong id="hpVal" class="mono" style="color: #fff;">16</strong> cv</div>
-                        </div>
-                    </div>
-
-                    <div class="grid-3">
-                        <div class="box-inner" style="text-align: center;">
-                            <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">💧 combustível</div>
-                            <div id="fuelFlowVal" class="mono" style="font-size: 0.75rem; font-weight: 700; color: #fff;">0.8 l/h</div>
-                            <div style="font-size: 9px; color: #4b5563; margin-top: 2px;">total: <span id="totalFuelVal">0.05</span> l</div>
-                        </div>
-
-                        <div class="box-inner" style="text-align: center;">
-                            <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">🌡️ água / óleo</div>
-                            <div id="waterTempVal" class="mono" style="font-size: 0.75rem; font-weight: 700; color: #f97316;">88°c</div>
-                            <div style="font-size: 9px; color: #4b5563; margin-top: 2px;">óleo: <span id="oilTempVal">82</span>°c</div>
-                        </div>
-
-                        <div class="box-inner" style="text-align: center;">
-                            <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">💨 mistura afr</div>
-                            <div id="afrDisplay" class="mono" style="font-size: 0.75rem; font-weight: 700; color: #06b6d4;">14.7 : 1</div>
-                            <div style="font-size: 9px; color: #4b5563; margin-top: 2px;">estequiométrica</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- parâmetros mecânicos -->
-                <div class="panel" style="display: flex; flex-direction: column; gap: 1rem;">
-                    <div class="flex-between">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em;">🎛️ parâmetros mecânicos</span>
-                        <button onclick="resetTuning()" style="background: none; border: none; color: #06b6d4; font-size: 0.75rem; cursor: pointer;">restaurar padrão</button>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.75rem;">
-                        <div>
-                            <div class="flex-between" style="margin-bottom: 4px;">
-                                <span style="color: #6b7280;">taxa de compressão</span>
-                                <span id="compRatioVal" class="mono" style="font-weight: 700; color: #fff;">10.5 : 1</span>
-                            </div>
-                            <input id="compRange" type="range" min="8.0" max="14.0" step="0.5" value="10.5" oninput="updateTuning()">
-                        </div>
-
-                        <div>
-                            <div class="flex-between" style="margin-bottom: 4px;">
-                                <span style="color: #6b7280;">limite de rotação (redline)</span>
-                                <span id="redlineVal" class="mono" style="font-weight: 700; color: #fff;">6800 rpm</span>
-                            </div>
-                            <input id="redlineRange" type="range" min="4000" max="9000" step="200" value="6800" oninput="updateTuning()">
-                        </div>
-
-                        <div>
-                            <div class="flex-between" style="margin-bottom: 4px;">
-                                <span style="color: #6b7280;">cilindrada / deslocamento</span>
-                                <span id="dispVal" class="mono" style="font-weight: 700; color: #fff;">2.0 litros (i4)</span>
-                            </div>
-                            <input id="dispRange" type="range" min="1.0" max="4.0" step="0.2" value="2.0" oninput="updateTuning()">
-                        </div>
-
-                        <div>
-                            <div class="flex-between" style="margin-bottom: 4px;">
-                                <span style="color: #6b7280;">dosagem ar / combustível (afr)</span>
-                                <span id="afrSliderVal" class="mono" style="font-weight: 700; color: #fff;">14.7</span>
-                            </div>
-                            <input id="afrRange" type="range" min="11.0" max="18.0" step="0.2" value="14.7" oninput="updateTuning()">
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        motorforge i4 2d • desenvolvido com html5 canvas, css puro & web audio api procedural.
-    </footer>
-
-    <script>
-        const canvas = document.getElementById('engineCanvas');
-        const ctx = canvas.getContext('2d');
-
-        let engineRunning = true;
-        let audioActive = false;
-        let audioCtx = null;
-        let oscPrimary = null, oscSecondary = null, gainNode = null, exhaustFilter = null;
-
-        let tuning = {
-            compRatio: 10.5,
-            redline: 6800,
-            displacement: 2.0,
-            afr: 14.7
-        };
-
-        let rpm = 800;
-        let throttle = 0;
-        let brake = 0;
-        let clutch = 0;
-        let crankAngle = 0;
+    <div id="ui">
+        <h2 style="margin:0 0 10px 0; color: #0077ff; text-align:center; font-size: 16px;">MOTOR VIRTUAL PRO</h2>
         
-        let transmissionMode = 'auto';
-        let currentGear = 1;
-        const gearRatios = [0, 3.65, 2.37, 1.67, 1.28, 1.00, 0.82];
-        let vehicleSpeed = 0;
+        <button id="wankelToggleBtn">Alternar para Motor Wankel</button>
 
-        let totalFuel = 0.05;
-        let waterTemp = 88;
-        let oilTemp = 82;
+        <div id="pistonControls">
+            <div class="control-group">
+                <span class="label-style">Ordem de Ignição</span>
+                <input type="text" id="firingOrderInput" value="0,2,3,1">
+            </div>
+             <div class="control-group">
+                <span class="label-style">Cilindros: <span id="cylVal">4</span></span>
+                <input type="range" id="cylSlider" min="1" max="12" value="4">
+            </div>
+        </div>
 
-        const cylinderPhases = [0, 360, 180, 540];
+        <div class="control-group">
+            <span class="label-style">Relações de Marcha (1ª a 8ª)</span>
+            <input type="text" id="gearRatiosInput" value="3.80, 2.40, 1.70, 1.25, 1.00, 0.85, 0.70, 0.55">
+        </div>
 
-        let particles = [];
-        class Particle {
-            constructor(x, y, type) {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.vx = (Math.random() - 0.5) * 1.5;
-                this.vy = type === 'intake' ? 2 + Math.random() * 2 : (type === 'exhaust' ? -2 - Math.random() * 2 : (Math.random() - 0.5) * 3);
-                this.alpha = 1.0;
-                this.size = 2 + Math.random() * 2;
+        <div class="control-group">
+            <span class="label-style">Acelerador</span>
+            <input type="range" id="rpmSlider" min="0" max="9000" value="1000">
+        </div>
+
+        <div class="control-group">
+            <span class="label-style">Limite de Marchas</span>
+            <input type="range" id="gearCountSlider" min="1" max="8" value="5">
+            <span id="gearCountVal">5</span>
+        </div>
+
+        <div class="gear-controls">
+            <button class="gear-btn" id="gearDown">↓</button>
+            <span style="font-size:20px; font-weight:bold;" id="currentGearDisplay">N</span>
+            <button class="gear-btn" id="gearUp">↑</button>
+        </div>
+
+        <button id="igniteBtn">START</button>
+        <div class="status" id="engineStatus">OFF</div>
+        <div class="status" id="speedStatus">Vel: 0 km/h</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        // Piston vars
+        let pistons = [], rods = [], valves = [], sparks = [];
+        let crankshaftGroup, engineGroup;
+        // Wankel vars
+        let wankelGroup, wankelRotor, wankelShaft;
+        let isWankelMode = false;
+        const WANKEL_R = 4; // Raio do centro do rotor ao vértice
+        const WANKEL_E = 0.65; // Excentricidade do eixo
+        const WANKEL_DEPTH = 2.5;
+
+        // Shared vars
+        let rpm = 0, engineOn = false, angle = 0, isStarting = false;
+        let audioCtx, engineOsc, lowPass, noiseGain, mainGain, backfires = [], exhaustFlame, exhaustLight;
+        let currentGear = 0, kmh = 0, lastRpm = 0;
+        let lastBackfireTime = 0;
+        const CRANK_RADIUS = 1.6, ROD_LENGTH = 3.5;
+
+        // --- AUDIO SETUP (Mantido igual) ---
+        function setupAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            mainGain = audioCtx.createGain(); mainGain.connect(audioCtx.destination); mainGain.gain.value = 0.7;
+            engineOsc = audioCtx.createOscillator(); engineOsc.type = 'sawtooth';
+            lowPass = audioCtx.createBiquadFilter(); lowPass.type = 'lowpass'; lowPass.frequency.value = 250;
+            const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+            const data = noiseBuffer.getChannelData(0); for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+            const noise = audioCtx.createBufferSource(); noise.buffer = noiseBuffer; noise.loop = true;
+            noiseGain = audioCtx.createGain(); noiseGain.gain.value = 0.05;
+            engineOsc.connect(lowPass); lowPass.connect(mainGain); noise.connect(noiseGain); noiseGain.connect(mainGain);
+            engineOsc.start(); noise.start();
+        }
+        function triggerBackfire(vol = 1) {
+            const currentTime = Date.now();
+            if (!audioCtx || rpm < 4000 || (currentTime - lastBackfireTime < 200)) return;
+            lastBackfireTime = currentTime;
+            let finalVol = currentGear !== 0 ? vol * 0.4 : vol;
+            backfires.push({ time: 0, duration: 0.1, intensity: finalVol });
+            const popGain = audioCtx.createGain(); const noise = audioCtx.createBufferSource();
+            const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
+            const d = buffer.getChannelData(0); for(let i=0; i<d.length; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/d.length, 2);
+            noise.buffer = buffer; popGain.gain.setValueAtTime(finalVol * 7.5, audioCtx.currentTime); 
+            popGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            noise.connect(popGain); popGain.connect(audioCtx.destination); noise.start();
+        }
+
+        // --- INIT & MAIN LOOP ---
+        init();
+        animate();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020205);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+            camera.position.set(10, 6, 14);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            scene.add(new THREE.AmbientLight(0x404040), new THREE.DirectionalLight(0xffffff, 1.2));
+            
+            // Inicializa com motor a pistão
+            createPistonEngine(parseInt(document.getElementById('cylSlider').value));
+            setupUI();
+        }
+
+        // --- PISTON ENGINE CREATION ---
+        function createPistonEngine(numCyl) {
+            if (wankelGroup) scene.remove(wankelGroup);
+            if (engineGroup) scene.remove(engineGroup);
+            engineGroup = new THREE.Group(); scene.add(engineGroup);
+            pistons = []; rods = []; valves = []; sparks = [];
+            crankshaftGroup = new THREE.Group(); engineGroup.add(crankshaftGroup);
+
+            const matMetal = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
+            const matPistao = new THREE.MeshStandardMaterial({ color: 0x0077ff, metalness: 0.6, roughness: 0.4 });
+            let firingOrderStr = document.getElementById('firingOrderInput').value;
+            let firingOrder = firingOrderStr.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+            // Fallback simples se a ordem for inválida para o número de cilindros
+            if (firingOrder.length < numCyl || Math.max(...firingOrder) >= numCyl) {
+                 firingOrder = Array.from({length: numCyl}, (_, i) => i);
             }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.alpha -= 0.03;
+
+
+            for(let i = 0; i < numCyl; i++){
+                const x = i * 2.5 - (numCyl * 2.5 / 2) + 1.25;
+                const pos = firingOrder.indexOf(i);
+                // Se não encontrar na ordem, usa um padrão linear
+                const cylinderIndexForOffset = (pos !== -1) ? pos : i;
+                const offset = (cylinderIndexForOffset * (Math.PI * 4)) / numCyl;
+
+                const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 1.2, 32), matPistao);
+                engineGroup.add(piston); pistons.push({ mesh: piston, x, offset });
+
+                const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, ROD_LENGTH, 16), matMetal);
+                engineGroup.add(rod); rods.push({ mesh: rod, x, offset });
+
+                const crankPart = new THREE.Group(); crankPart.position.x = x;
+                const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.6, 16), matMetal);
+                pin.rotation.z = Math.PI / 2; pin.position.y = CRANK_RADIUS;
+                crankPart.add(new THREE.Mesh(new THREE.BoxGeometry(0.4, CRANK_RADIUS * 1.5, 0.8), matMetal), pin);
+                crankPart.rotation.x = offset; crankshaftGroup.add(crankPart);
+
+                const sM = new THREE.Mesh(new THREE.SphereGeometry(0.15), new THREE.MeshBasicMaterial({color: 0x00ffff}));
+                engineGroup.add(sM); sparks.push({ mesh: sM, x });
+                const vIn = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.25, 0.5), new THREE.MeshPhongMaterial({color: 0x00ff00}));
+                const vEx = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.25, 0.5), new THREE.MeshPhongMaterial({color: 0xff0000}));
+                engineGroup.add(vIn, vEx); valves.push({ in: vIn, ex: vEx, x });
             }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, this.alpha);
-                if (this.type === 'intake') ctx.fillStyle = '#06b6d4';
-                else if (this.type === 'combustion') ctx.fillStyle = '#f97316';
-                else ctx.fillStyle = '#475569';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+            // Exhaust logic (simplificada)
+            if(numCyl > 0) {
+                const exPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, numCyl * 2.5 + 2, 16), matMetal);
+                exPipe.rotation.z = Math.PI / 2; exPipe.position.set(0, 4, 3); engineGroup.add(exPipe);
+                exhaustFlame = new THREE.Mesh(new THREE.SphereGeometry(0.8), new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0 }));
+                exhaustFlame.position.set(numCyl * 1.25 + 1, 4, 3); engineGroup.add(exhaustFlame);
+                exhaustLight = new THREE.PointLight(0xff6600, 0, 20); exhaustLight.position.copy(exhaustFlame.position); engineGroup.add(exhaustLight);
             }
         }
 
-        function toggleAudioEngine() {
-            if (!audioActive) {
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    
-                    oscPrimary = audioCtx.createOscillator();
-                    oscPrimary.type = 'sawtooth';
-                    oscPrimary.frequency.setValueAtTime(40, audioCtx.currentTime);
+        // --- WANKEL ENGINE CREATION (Nova Função) ---
+        function createWankelEngine() {
+            if (engineGroup) scene.remove(engineGroup);
+            if (wankelGroup) scene.remove(wankelGroup);
+            wankelGroup = new THREE.Group();
+            scene.add(wankelGroup);
+            
+            // Materiais
+            const matHousingOuter = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.3 });
+            const matHousingInner = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.5, roughness: 0.5, side: THREE.DoubleSide });
+            const matRotor = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.4 });
+            const matShaft = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.9 });
+            const matSeals = new THREE.MeshStandardMaterial({ color: 0xffff00, metalness: 0.5 });
 
-                    oscSecondary = audioCtx.createOscillator();
-                    oscSecondary.type = 'triangle';
-                    oscSecondary.frequency.setValueAtTime(80, audioCtx.currentTime);
+            // 1. Carcaça (Housing) - Epitrocoide
+            const housingShape = new THREE.Shape();
+            const steps = 100;
+            for (let i = 0; i <= steps; i++) {
+                const t = (i / steps) * Math.PI * 2;
+                // Equações paramétricas da epitrocoide (caminho do ápice)
+                // Ajustamos ligeiramente para criar a parede interna da carcaça
+                const x = (WANKEL_R + 0.2) * Math.cos(t) + WANKEL_E * Math.cos(3 * t);
+                const y = (WANKEL_R + 0.2) * Math.sin(t) + WANKEL_E * Math.sin(3 * t);
+                if (i === 0) housingShape.moveTo(x, y); else housingShape.lineTo(x, y);
+            }
 
-                    exhaustFilter = audioCtx.createBiquadFilter();
-                    exhaustFilter.type = 'lowpass';
-                    exhaustFilter.frequency.setValueAtTime(350, audioCtx.currentTime);
+            // Extrusão da forma interna para criar a "parede"
+            const extrudeSettings = { steps: 1, depth: WANKEL_DEPTH, bevelEnabled: false };
+            const housingGeo = new THREE.ExtrudeGeometry(housingShape, extrudeSettings);
+            // Centralizar a geometria extrudada
+            housingGeo.translate(0, 0, -WANKEL_DEPTH / 2);
+            
+            // Criar a malha externa (um cilindro achatado para cobrir) e a interna
+            const housingMesh = new THREE.Mesh(housingGeo, matHousingInner);
+            wankelGroup.add(housingMesh);
 
-                    gainNode = audioCtx.createGain();
-                    gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            // Adicionar tampas laterais (Side plates)
+            const plateGeo = new THREE.CylinderGeometry(WANKEL_R * 1.3, WANKEL_R * 1.3, 0.2, 32);
+            const plate1 = new THREE.Mesh(plateGeo, matHousingOuter); plate1.rotation.x = Math.PI/2; plate1.position.z = WANKEL_DEPTH/2 + 0.1;
+            const plate2 = new THREE.Mesh(plateGeo, matHousingOuter); plate2.rotation.x = Math.PI/2; plate2.position.z = -WANKEL_DEPTH/2 - 0.1;
+            wankelGroup.add(plate1, plate2);
 
-                    oscPrimary.connect(exhaustFilter);
-                    oscSecondary.connect(exhaustFilter);
-                    exhaustFilter.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
 
-                    oscPrimary.start();
-                    oscSecondary.start();
+            // 2. Rotor
+            const rotorShape = new THREE.Shape();
+            const rotorRadius = WANKEL_R;
+            // Aproximação de um triângulo de Reuleaux (lados curvados)
+            rotorShape.moveTo(rotorRadius * Math.cos(0), rotorRadius * Math.sin(0));
+            rotorShape.quadraticCurveTo(0, rotorRadius * 0.5, rotorRadius * Math.cos(Math.PI * 2/3), rotorRadius * Math.sin(Math.PI * 2/3));
+            rotorShape.quadraticCurveTo(-rotorRadius * 0.866 * 0.5, -rotorRadius*0.5*0.5, rotorRadius * Math.cos(Math.PI * 4/3), rotorRadius * Math.sin(Math.PI * 4/3));
+            rotorShape.quadraticCurveTo(rotorRadius * 0.866 * 0.5, -rotorRadius*0.5*0.5, rotorRadius * Math.cos(0), rotorRadius * Math.sin(0));
 
-                    audioActive = true;
-                    document.getElementById('audioIcon').textContent = '🔊';
-                    document.getElementById('audioText').textContent = 'som ligado';
-                } catch (e) {
-                    console.error("erro ao iniciar web audio:", e);
+            const rotorGeo = new THREE.ExtrudeGeometry(rotorShape, { steps: 1, depth: WANKEL_DEPTH - 0.1, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 2 });
+            rotorGeo.translate(0, 0, -(WANKEL_DEPTH - 0.1) / 2);
+            wankelRotor = new THREE.Mesh(rotorGeo, matRotor);
+
+            // Apex Seals (Selos de ponta)
+            for(let i=0; i<3; i++) {
+                const a = i * (Math.PI * 2 / 3);
+                const seal = new THREE.Mesh(new THREE.SphereGeometry(0.15), matSeals);
+                seal.position.set(WANKEL_R * Math.cos(a), WANKEL_R * Math.sin(a), 0);
+                wankelRotor.add(seal);
+            }
+            // Engrenagem central do rotor (visual)
+            const rotorGear = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, WANKEL_DEPTH+0.1, 12), matShaft);
+            rotorGear.rotation.x = Math.PI/2;
+            wankelRotor.add(rotorGear);
+
+            wankelGroup.add(wankelRotor);
+
+            // 3. Eixo Excêntrico (Eccentric Shaft)
+            wankelShaft = new THREE.Group();
+            const mainShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, WANKEL_DEPTH + 2, 16), matShaft);
+            mainShaft.rotation.x = Math.PI / 2;
+            const eccentricLobe = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, WANKEL_DEPTH - 0.2, 16), matShaft);
+            eccentricLobe.rotation.x = Math.PI / 2;
+            eccentricLobe.position.y = WANKEL_E; // O lóbulo é deslocado pela excentricidade
+            
+            wankelShaft.add(mainShaft, eccentricLobe);
+            wankelGroup.add(wankelShaft);
+
+            // Rotaciona o grupo Wankel para ficar de frente para a câmera padrão
+            wankelGroup.rotation.y = -Math.PI / 2;
+            
+            exhaustFlame = null; // Wankel não usa o mesmo sistema de escape visual aqui
+        }
+
+
+        // --- ANIMATION LOOP (Atualizado para suportar ambos) ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = 1/60;
+            const throttle = parseInt(document.getElementById('rpmSlider').value);
+            const gearRatios = document.getElementById('gearRatiosInput').value.split(',').map(n => parseFloat(n.trim()));
+            
+            // Lógica de Física (RPM/Velocidade) - Comum aos dois
+            if (isStarting) {
+                rpm += (600 - rpm) * 0.1; if (rpm > 550) engineOn = true;
+            } else if (engineOn) {
+                if (throttle <= 0 && rpm < 900) { engineOn = false; }
+                const gearRatio = currentGear === 0 ? 0 : (gearRatios[currentGear - 1] || 1.0);
+                // Wankel sobe de giro mais rápido em neutro
+                let revSpeed = isWankelMode ? 0.25 : 0.15;
+                if (currentGear === 0) {
+                    rpm += (throttle - rpm) * revSpeed;
+                } else {
+                    let targetFromSpeed = (kmh / 3.6) / (2 * Math.PI * 0.32) * 60 * gearRatio * 4.10;
+                    kmh += (throttle - rpm) * 0.0012 / (gearRatio || 1);
+                    rpm = targetFromSpeed + (throttle * 0.04);
                 }
-            } else {
-                if (gainNode) gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                audioActive = false;
-                document.getElementById('audioIcon').textContent = '🔇';
-                document.getElementById('audioText').textContent = 'ligar som do motor';
-            }
-        }
+                // Wankel gira mais alto
+                let maxRpm = isWankelMode ? 10500 : 8600;
+                if (rpm > maxRpm + 200) { rpm = maxRpm; triggerBackfire(1.8); }
+            } else { rpm *= 0.92; kmh *= 0.98; if(rpm < 1) rpm = 0; }
 
-        function updateAudioSynthesis() {
-            if (!audioActive || !audioCtx) return;
-            const firingFreq = (rpm / 60) * 2;
-            oscPrimary.frequency.setTargetAtTime(firingFreq * 16, audioCtx.currentTime, 0.05);
-            oscSecondary.frequency.setTargetAtTime(firingFreq * 32, audioCtx.currentTime, 0.05);
+            // Backfire logic
+            if (lastRpm - rpm > 180 && rpm > 4000) triggerBackfire(1.2);
+            lastRpm = rpm;
 
-            const loadFactor = throttle / 100;
-            const targetGain = 0.03 + (loadFactor * 0.12) + (rpm / tuning.redline * 0.08);
-            gainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.05);
-            exhaustFilter.frequency.setTargetAtTime(250 + (rpm * 0.4), audioCtx.currentTime, 0.05);
-        }
-
-        function setThrottle(val) {
-            throttle = parseFloat(val);
-            document.getElementById('throttleRange').value = throttle;
-            document.getElementById('throttleVal').textContent = Math.round(throttle) + '%';
-        }
-
-        function setBrake(val) {
-            brake = parseFloat(val);
-            document.getElementById('brakeRange').value = brake;
-            document.getElementById('brakeVal').textContent = Math.round(brake) + '%';
-        }
-
-        function setClutch(val) {
-            clutch = parseFloat(val);
-            document.getElementById('clutchRange').value = clutch;
-            document.getElementById('clutchVal').textContent = Math.round(clutch) + '%';
-            const txt = document.getElementById('clutchStatusText');
-            if (clutch > 80) {
-                txt.textContent = 'desacoplada';
-                txt.style.color = '#ef4444';
-            } else if (clutch > 0) {
-                txt.textContent = 'patinando';
-                txt.style.color = '#f97316';
-            } else {
-                txt.textContent = 'acoplada';
-                txt.style.color = '#10b981';
-            }
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') {
-                setThrottle(Math.min(100, throttle + 10));
-            } else if (e.key === 'ArrowDown') {
-                setThrottle(Math.max(0, throttle - 10));
-                setBrake(throttle === 0 ? 50 : 0);
-            } else if (e.key === ' ') {
-                setClutch(100);
-            } else if (e.key === 'ArrowRight') {
-                shiftGear(1);
-            } else if (e.key === 'ArrowLeft') {
-                shiftGear(-1);
-            }
-        });
-
-        window.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowDown') {
-                setBrake(0);
-            } else if (e.key === ' ') {
-                setClutch(0);
-            }
-        });
-
-        function setTransmissionMode(mode) {
-            transmissionMode = mode;
-            const autoBtn = document.getElementById('modeAuto');
-            const manualBtn = document.getElementById('modeManual');
-            if (mode === 'auto') {
-                autoBtn.style.background = '#06b6d4';
-                autoBtn.style.color = '#000';
-                manualBtn.style.background = 'transparent';
-                manualBtn.style.color = '#6b7280';
-            } else {
-                manualBtn.style.background = '#06b6d4';
-                manualBtn.style.color = '#000';
-                autoBtn.style.background = 'transparent';
-                autoBtn.style.color = '#6b7280';
-            }
-        }
-
-        function shiftGear(dir) {
-            if (transmissionMode === 'auto') return;
-            currentGear = Math.max(1, Math.min(6, currentGear + dir));
-            document.getElementById('gearDisplay').textContent = currentGear;
-        }
-
-        function updateTuning() {
-            tuning.compRatio = parseFloat(document.getElementById('compRange').value);
-            tuning.redline = parseInt(document.getElementById('redlineRange').value);
-            tuning.displacement = parseFloat(document.getElementById('dispRange').value);
-            tuning.afr = parseFloat(document.getElementById('afrRange').value);
-
-            document.getElementById('compRatioVal').textContent = tuning.compRatio.toFixed(1) + ' : 1';
-            document.getElementById('redlineVal').textContent = tuning.redline + ' rpm';
-            document.getElementById('dispVal').textContent = tuning.displacement.toFixed(1) + ' litros (i4)';
-            document.getElementById('afrSliderVal').textContent = tuning.afr.toFixed(1);
-            document.getElementById('afrDisplay').textContent = tuning.afr.toFixed(1) + ' : 1';
-        }
-
-        function resetTuning() {
-            document.getElementById('compRange').value = 10.5;
-            document.getElementById('redlineRange').value = 6800;
-            document.getElementById('dispRange').value = 2.0;
-            document.getElementById('afrRange').value = 14.7;
-            updateTuning();
-        }
-
-        function updatePhysics(dt) {
-            const ve = 0.7 + (throttle * 0.003) - (Math.abs(rpm - 4200) / 9000);
-            const maxTorque = tuning.displacement * 78 * (tuning.compRatio / 10.5);
-            let genTorque = maxTorque * Math.max(0, ve) * (throttle / 100);
-
-            const friction = 14 + (rpm * 0.007);
-            const braking = (brake / 100) * 130;
-            
-            let load = 0;
-            const clutchEfficiency = 1.0 - (clutch / 100);
-            if (currentGear > 0 && clutchEfficiency > 0.05) {
-                load = vehicleSpeed * gearRatios[currentGear] * 1.7 * clutchEfficiency;
-            }
-
-            let netTorque = genTorque - friction - braking - load;
-            const inertia = 0.22;
-            let rpmDelta = (netTorque / inertia) * (dt * 60);
-
-            rpm += rpmDelta;
-
-            if (throttle === 0 && brake === 0 && rpm < 820) rpm = 800;
-            else if (rpm < 580) rpm = 580;
-
-            if (rpm > tuning.redline) rpm = tuning.redline;
-
-            if (currentGear > 0 && clutchEfficiency > 0.05) {
-                const targetSpd = (rpm / (gearRatios[currentGear] * 42)) * (tuning.displacement / 2.0) * clutchEfficiency;
-                vehicleSpeed += (targetSpd - vehicleSpeed) * 0.06;
-                if (vehicleSpeed < 0) vehicleSpeed = 0;
-            } else {
-                vehicleSpeed *= 0.98;
-            }
-
-            if (transmissionMode === 'auto') {
-                if (rpm > 5600 && currentGear < 6) currentGear++;
-                else if (rpm < 2100 && currentGear > 1) currentGear--;
-                document.getElementById('gearDisplay').textContent = currentGear;
-            }
-
-            const degPerSec = (rpm / 60) * 360;
-            crankAngle = (crankAngle + degPerSec * dt) % 720;
-
-            const fuelFlow = Math.max(0.6, (rpm / 1000) * (throttle / 100) * (tuning.displacement * 0.45));
-            totalFuel += (fuelFlow / 3600) * dt;
-
-            const heat = 75 + (rpm / tuning.redline * 35) + (throttle * 0.15);
-            waterTemp += (heat - waterTemp) * 0.01 * dt;
-            oilTemp += ((heat + 8) - oilTemp) * 0.008 * dt;
-
-            document.getElementById('rpmVal').textContent = Math.round(rpm);
-            document.getElementById('rpmBar').style.width = Math.min(100, (rpm / tuning.redline) * 100) + '%';
-            document.getElementById('torqueVal').textContent = Math.round(Math.max(0, genTorque));
-            document.getElementById('hpVal').textContent = Math.round((genTorque * rpm) / 9550);
-            document.getElementById('speedDisplay').textContent = Math.round(vehicleSpeed) + ' km/h';
-            document.getElementById('fuelFlowVal').textContent = fuelFlow.toFixed(1) + ' l/h';
-            document.getElementById('totalFuelVal').textContent = totalFuel.toFixed(2);
-            document.getElementById('waterTempVal').textContent = Math.round(waterTemp) + '°c';
-            document.getElementById('oilTempVal').textContent = Math.round(oilTemp) + '°c';
-
-            const badge = document.getElementById('statusBadge');
-            if (rpm >= tuning.redline - 100) {
-                badge.style.background = 'rgba(239, 68, 68, 0.2)';
-                badge.style.color = '#ef4444';
-                badge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                badge.textContent = 'redline / corte';
-            } else if (throttle > 80) {
-                badge.style.background = 'rgba(16, 185, 129, 0.2)';
-                badge.style.color = '#10b981';
-                badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                badge.textContent = 'potência total';
-            } else {
-                badge.style.background = 'rgba(245, 158, 11, 0.1)';
-                badge.style.color = '#f59e0b';
-                badge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
-                badge.textContent = 'marcha lenta';
-            }
-        }
-
-        function getStrokeName(angle) {
-            let norm = angle % 720;
-            if (norm < 180) return { name: 'admissão', color: '#06b6d4', type: 'intake' };
-            if (norm < 360) return { name: 'compressão', color: '#f97316', type: 'compression' };
-            if (norm < 540) return { name: 'potência', color: '#10b981', type: 'combustion' };
-            return { name: 'exaustão', color: '#ef4444', type: 'exhaust' };
-        }
-
-        function drawEngine() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const cylinderXOffsets = [110, 230, 350, 470];
-            
-            for (let i = 0; i < 4; i++) {
-                let cx = cylinderXOffsets[i];
-                let cy = 130;
-                let cAngle = (crankAngle + cylinderPhases[i]) % 720;
-                let strokeInfo = getStrokeName(cAngle);
-
-                // Atualizar textos dos cilindros no DOM levemente a cada frame
-                document.getElementById(`strokeC${i+1}`).textContent = strokeInfo.name;
-                document.getElementById(`strokeC${i+1}`).style.color = strokeInfo.color;
-
-                // Desenhar bloco do cilindro
-                ctx.strokeStyle = '#262626';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(cx - 35, cy, 70, 140);
-
-                // Cinemática do pistão e biela
-                let pistonY = cy + 20 + Math.sin((cAngle * Math.PI) / 180) * 40;
+            // Atualização Visual
+            if (isWankelMode) {
+                // --- LÓGICA DE ANIMAÇÃO WANKEL ---
+                // O ângulo principal é o do eixo de saída (eccentric shaft)
+                angle += (rpm / 60) * (Math.PI * 2) / 60;
                 
-                // Desenhar pistão
-                ctx.fillStyle = '#374151';
-                ctx.fillRect(cx - 30, pistonY, 60, 30);
+                // 1. Gira o eixo excêntrico na velocidade normal
+                wankelShaft.rotation.z = angle;
 
-                // Spawn de partículas com base no ciclo
-                if (Math.random() < 0.3 && rpm > 600) {
-                    if (strokeInfo.type === 'intake') {
-                        particles.push(new Particle(cx, cy, 'intake'));
-                    } else if (strokeInfo.type === 'combustion') {
-                        particles.push(new Particle(cx, pistonY + 10, 'combustion'));
-                    } else if (strokeInfo.type === 'exhaust') {
-                        particles.push(new Particle(cx, cy, 'exhaust'));
-                    }
+                // 2. Move o centro do rotor numa órbita circular (definida pela excentricidade E)
+                // O centro do rotor segue o lóbulo do eixo excêntrico.
+                wankelRotor.position.set(
+                    WANKEL_E * Math.cos(angle),
+                    WANKEL_E * Math.sin(angle),
+                    0
+                );
+
+                // 3. Gira o rotor em torno do seu próprio centro.
+                // A relação chave do Wankel: O rotor gira a 1/3 da velocidade do eixo,
+                // na mesma direção do eixo (se a engrenagem interna for fixa na carcaça).
+                wankelRotor.rotation.z = angle / 3;
+
+            } else {
+                // --- LÓGICA DE ANIMAÇÃO PISTÃO (Mantida) ---
+                let intensity = 0;
+                for (let i = backfires.length - 1; i >= 0; i--) {
+                    backfires[i].time += dt;
+                    if (backfires[i].time >= backfires[i].duration) { backfires.splice(i, 1); continue; }
+                    intensity += (1 - backfires[i].time/backfires[i].duration) * backfires[i].intensity;
                 }
+                if (exhaustFlame) {
+                    exhaustFlame.material.opacity = intensity; exhaustFlame.scale.setScalar(0.5 + intensity * 3); exhaustLight.intensity = intensity * 25;
+                }
+
+                angle += (rpm / 60) * (Math.PI * 2) / 60;
+                crankshaftGroup.rotation.x = angle;
+                pistons.forEach((p, i) => {
+                    const a = angle + p.offset;
+                    const pinY = Math.cos(a) * CRANK_RADIUS, pinZ = Math.sin(a) * CRANK_RADIUS;
+                    const y = pinY + Math.sqrt(ROD_LENGTH**2 - pinZ**2);
+                    p.mesh.position.set(p.x, y + 1.5, 0);
+                    rods[i].mesh.position.set(p.x, (y + 1.5 + pinY)/2, pinZ/2);
+                    rods[i].mesh.lookAt(p.x, y + 1.5, 0); rods[i].mesh.rotateX(Math.PI/2);
+                    const cycle = a % (Math.PI * 4);
+                    valves[i].in.position.set(p.x - 0.4, (cycle < Math.PI) ? 7.5 : 8, 0);
+                    valves[i].ex.position.set(p.x + 0.4, (cycle > Math.PI*3) ? 7.5 : 8, 0);
+                    sparks[i].mesh.visible = cycle > Math.PI*1.9 && cycle < Math.PI*2.1 && engineOn && rpm > 400;
+                });
             }
 
-            // Atualizar e renderizar partículas
-            for (let p = particles.length - 1; p >= 0; p--) {
-                particles[p].update();
-                particles[p].draw();
-                if (particles[p].alpha <= 0) {
-                    particles.splice(p, 1);
-                }
+            // Audio Update (Comum)
+            if (audioCtx) {
+                if (engineOn && rpm > 50) {
+                    mainGain.gain.setTargetAtTime(0.7, audioCtx.currentTime, 0.1);
+                    // Ajuste de frequência para Wankel soar mais agudo/rápido
+                    let freqMult = isWankelMode ? (3/2) : (pistons.length/2); 
+                    engineOsc.frequency.setTargetAtTime((rpm/60)*freqMult, audioCtx.currentTime, 0.05);
+                } else { mainGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1); }
             }
+            
+            // UI Updates
+            document.getElementById('engineStatus').innerText = engineOn ? `RPM: ${Math.round(rpm)}` : "OFF";
+            document.getElementById('speedStatus').innerText = `Vel: ${Math.round(kmh)} km/h`;
+            document.getElementById('currentGearDisplay').innerText = currentGear === 0 ? "N" : (currentGear === -1 ? "R" : currentGear);
+            renderer.render(scene, camera);
         }
 
-        let lastTime = performance.now();
-        function loop(timestamp) {
-            let dt = (timestamp - lastTime) / 1000;
-            if (dt > 0.1) dt = 0.1;
-            lastTime = timestamp;
+        // --- UI SETUP (Atualizado) ---
+        function setupUI() {
+            const wankelBtn = document.getElementById('wankelToggleBtn');
+            const pistonControls = document.getElementById('pistonControls');
 
-            if (engineRunning) {
-                updatePhysics(dt);
-                updateAudioSynthesis();
-                drawEngine();
-            }
-            requestAnimationFrame(loop);
+            wankelBtn.onclick = () => {
+                isWankelMode = !isWankelMode;
+                rpm = 0; engineOn = false; kmh = 0; // Reseta o motor na troca
+
+                if (isWankelMode) {
+                    wankelBtn.innerText = "Alternar para Motor a Pistão";
+                    wankelBtn.classList.add('active-wankel');
+                    pistonControls.classList.add('hidden');
+                    createWankelEngine();
+                    // Ajusta câmera para focar no Wankel
+                    controls.target.set(0,0,0);
+                    camera.position.set(8, 4, 0);
+                } else {
+                    wankelBtn.innerText = "Alternar para Motor Wankel";
+                    wankelBtn.classList.remove('active-wankel');
+                    pistonControls.classList.remove('hidden');
+                    createPistonEngine(parseInt(document.getElementById('cylSlider').value));
+                     // Retorna câmera padrão
+                    controls.target.set(0,4,0);
+                    camera.position.set(10, 6, 14);
+                }
+                controls.update();
+            };
+
+            document.getElementById('cylSlider').oninput = (e) => { 
+                document.getElementById('cylVal').innerText = e.target.value; 
+                if(!isWankelMode) createPistonEngine(parseInt(e.target.value)); 
+            };
+            document.getElementById('firingOrderInput').onchange = () => {
+                 if(!isWankelMode) createPistonEngine(parseInt(document.getElementById('cylSlider').value));
+            };
+            document.getElementById('gearCountSlider').oninput = (e) => {
+                document.getElementById('gearCountVal').innerText = e.target.value;
+                if (currentGear > parseInt(e.target.value)) currentGear = parseInt(e.target.value);
+            };
+            document.getElementById('gearUp').onclick = () => { 
+                let max = parseInt(document.getElementById('gearCountSlider').value);
+                if(currentGear < max) currentGear++; 
+            };
+            document.getElementById('gearDown').onclick = () => { if(currentGear > -1) currentGear--; };
+            document.getElementById('igniteBtn').onmousedown = () => { setupAudio(); audioCtx.resume(); isStarting = true; };
+            document.getElementById('igniteBtn').onmouseup = () => isStarting = false;
         }
-
-        requestAnimationFrame(loop);
     </script>
 </body>
 </html>
