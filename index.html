@@ -1,320 +1,375 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>motorforge i4 pro - simulador de motor 2d & áudio web</title>
-    <!-- tailwind css cdn -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        pureBlack: '#0b0b0b',
-                        panelDark: '#141414',
-                        panelBorder: '#262626',
-                        neonCyan: '#06b6d4',
-                        neonOrange: '#f97316',
-                        neonGreen: '#10b981'
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- fontawesome para ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>motorforge i4 - simulador de motor 2d & áudio web</title>
     <!-- google fonts inter & jetbrains mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=inter:wght@300;400;500;600;700&family=jetbrains+mono:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b0b0b;
-            color: #f3f4f6;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             text-transform: lowercase;
         }
+        body {
+            font-family: 'inter', sans-serif;
+            background-color: #000000;
+            color: #d1d5db;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
         .mono {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'jetbrains mono', monospace;
+        }
+        header {
+            background-color: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #1f1f1f;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            padding: 1rem;
+        }
+        .container-main {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        @media(min-width: 1024px) {
+            .container-main {
+                grid-template-columns: 12fr;
+            }
+            .grid-layout {
+                display: grid;
+                grid-template-columns: 7fr 5fr;
+                gap: 1.5rem;
+            }
+        }
+        .panel {
+            background-color: #0a0a0a;
+            border: 1px solid #1f1f1f;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .btn {
+            background: linear-gradient(to right, rgba(6, 182, 212, 0.1), rgba(37, 99, 235, 0.1));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            color: #06b6d4;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn:hover {
+            background: linear-gradient(to right, rgba(6, 182, 212, 0.2), rgba(37, 99, 235, 0.2));
+        }
+        canvas {
+            background-color: #000000;
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            border: 1px solid #171717;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 0.5rem;
+            background: #171717;
+            border-radius: 0.5rem;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
         }
         input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
             background: #06b6d4;
             transition: transform 0.1s;
         }
         input[type="range"]::-webkit-slider-thumb:hover {
             transform: scale(1.2);
         }
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        ::-webkit-scrollbar-track {
-            background: #0b0b0b;
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #262626;
-            border-radius: 3px;
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+        .box-inner {
+            background-color: #000000;
+            border: 1px solid #171717;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+        }
+        .text-neon-cyan { color: #06b6d4; }
+        .text-neon-orange { color: #f97316; }
+        .text-neon-green { color: #10b981; }
+        .text-red { color: #ef4444; }
+        .text-muted { color: #6b7280; font-size: 0.75rem; }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.75rem;
+            color: #4b5563;
+            border-top: 1px solid #171717;
+            margin-top: 2rem;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-neonCyan selection:text-black">
+<body>
 
-    <header class="bg-panelDark/90 backdrop-blur-md border-b border-panelBorder sticky top-0 z-50 px-4 py-3 shadow-2xl">
-        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="bg-neonCyan/10 p-2.5 rounded-xl border border-neonCyan/30 text-neonCyan">
-                    <i class="fa-solid fa-engine text-2xl"></i>
+    <header>
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="background: rgba(6, 182, 212, 0.1); padding: 0.5rem; border-radius: 0.75rem; border: 1px solid rgba(6, 182, 212, 0.3); color: #06b6d4;">
+                    ⚙️
                 </div>
                 <div>
-                    <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-                        motorforge i4 <span class="text-[10px] bg-neonCyan text-black px-2 py-0.5 rounded font-bold tracking-wider">ultimate 2d</span>
+                    <h1 style="font-size: 1rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.5rem;">
+                        motorforge i4 <span style="font-size: 9px; background: #06b6d4; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: 700;">pro 2d</span>
                     </h1>
-                    <p class="text-xs text-slate-400">simulador termodinâmico, cinemático & áudio procedural</p>
+                    <p style="font-size: 0.75rem; color: #6b7280;">simulador termodinâmico, cinemático & áudio procedural</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <button id="audioEnableBtn" onclick="toggleAudioEngine()" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-neonCyan/20 to-blue-600/20 hover:from-neonCyan/30 hover:to-blue-600/30 border border-neonCyan/40 text-sm font-semibold rounded-xl transition shadow-lg text-neonCyan">
-                    <i id="audioIcon" class="fa-solid fa-volume-xmark text-red-400"></i>
+            <div>
+                <button id="audioEnableBtn" onclick="toggleAudioEngine()" class="btn">
+                    <span id="audioIcon">🔇</span>
                     <span id="audioText">ligar som do motor</span>
-                </button>
-                <button onclick="openModal()" class="flex items-center gap-2 px-4 py-2 bg-panelBorder hover:bg-neutral-800 text-sm font-medium rounded-xl transition text-slate-300 border border-neutral-700">
-                    <i class="fa-brands fa-github"></i>
-                    <span>github pages</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
-        
-        <!-- coluna esquerda: canvas 2d + comandos -->
-        <div class="lg:col-span-7 flex flex-col gap-6">
+    <main class="container-main">
+        <div class="grid-layout" style="display: grid; grid-template-columns: 7fr 5fr; gap: 1.5rem;">
             
-            <div class="bg-panelDark border border-panelBorder rounded-2xl p-4 shadow-2xl relative overflow-hidden flex flex-col items-center">
-                <div class="w-full flex items-center justify-between text-xs text-slate-400 mb-3 px-1">
-                    <span class="flex items-center gap-2 font-medium">
-                        <span class="w-2.5 h-2.5 rounded-full bg-neonGreen animate-pulse"></span>
-                        corte 2d i4 (ordem de ignição: 1 - 3 - 4 - 2)
-                    </span>
-                    <span class="bg-black/50 px-2.5 py-1 rounded-lg border border-neutral-800 text-slate-300">
-                        inércia e fluxos ativos
-                    </span>
+            <!-- coluna esquerda -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <div class="panel">
+                    <div class="flex-between" style="margin-bottom: 0.75rem; font-size: 0.75rem; color: #6b7280;">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                            corte transversal i4 (ordem de ignição: 1 - 3 - 4 - 2)
+                        </span>
+                        <span style="background: #000; padding: 0.25rem 0.5rem; border-radius: 0.375rem; border: 1px solid #171717; color: #9ca3af;">
+                            partículas & inércia ativas
+                        </span>
+                    </div>
+
+                    <div style="width: 100%; display: flex; justify-content: center; background: #000; border-radius: 0.75rem; padding: 0.5rem; border: 1px solid #171717;">
+                        <canvas id="engineCanvas" width="620" height="390"></canvas>
+                    </div>
+
+                    <div class="grid-4" style="margin-top: 1rem; text-align: center; font-size: 0.75rem; font-weight: 600;">
+                        <div id="boxC1" class="box-inner">
+                            <div class="text-muted">cilindro 1</div>
+                            <div id="strokeC1" class="text-neon-cyan" style="margin-top: 2px;">admissão</div>
+                        </div>
+                        <div id="boxC2" class="box-inner">
+                            <div class="text-muted">cilindro 2</div>
+                            <div id="strokeC2" class="text-neon-orange" style="margin-top: 2px;">compressão</div>
+                        </div>
+                        <div id="boxC3" class="box-inner">
+                            <div class="text-muted">cilindro 3</div>
+                            <div id="strokeC3" class="text-red" style="margin-top: 2px;">exaustão</div>
+                        </div>
+                        <div id="boxC4" class="box-inner">
+                            <div class="text-muted">cilindro 4</div>
+                            <div id="strokeC4" class="text-neon-green" style="margin-top: 2px;">potência</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="w-full flex justify-center bg-black/70 rounded-xl p-2 border border-neutral-900 shadow-inner">
-                    <canvas id="engineCanvas" width="620" height="390" class="w-full max-w-full h-auto rounded-lg"></canvas>
+                <!-- controles de condução -->
+                <div class="panel" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <h2 style="font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
+                        🎮 comandos de condução (pedais & marchas)
+                    </h2>
+
+                    <div class="grid-2">
+                        <div class="box-inner" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div class="flex-between">
+                                <span class="text-muted">acelerador [seta cima]</span>
+                                <span id="throttleVal" class="mono" style="font-size: 0.875rem; font-weight: 700; color: #10b981;">0%</span>
+                            </div>
+                            <input id="throttleRange" type="range" min="0" max="100" value="0" oninput="setThrottle(this.value)">
+                            
+                            <div class="flex-between" style="margin-top: 0.25rem;">
+                                <span class="text-muted">freio [seta baixo]</span>
+                                <span id="brakeVal" class="mono" style="font-size: 0.875rem; font-weight: 700; color: #ef4444;">0%</span>
+                            </div>
+                            <input id="brakeRange" type="range" min="0" max="100" value="0" oninput="setBrake(this.value)" style="accent-color: #ef4444;">
+
+                            <div class="flex-between" style="margin-top: 0.25rem;">
+                                <span class="text-muted">embreagem [espaço]</span>
+                                <span id="clutchVal" class="mono" style="font-size: 0.875rem; font-weight: 700; color: #06b6d4;">0%</span>
+                            </div>
+                            <input id="clutchRange" type="range" min="0" max="100" value="0" oninput="setClutch(this.value)">
+                        </div>
+
+                        <div class="box-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
+                            <div class="flex-between">
+                                <span class="text-muted">modo câmbio</span>
+                                <div style="display: flex; gap: 4px; background: #171717; padding: 2px; border-radius: 6px; border: 1px solid #262626; font-size: 0.75rem;">
+                                    <button id="modeAuto" onclick="setTransmissionMode('auto')" style="padding: 4px 8px; border-radius: 4px; background: #06b6d4; color: #000; border: none; font-weight: 600; cursor: pointer;">auto</button>
+                                    <button id="modeManual" onclick="setTransmissionMode('manual')" style="padding: 4px 8px; border-radius: 4px; background: transparent; color: #6b7280; border: none; cursor: pointer;">manual</button>
+                                </div>
+                            </div>
+
+                            <div class="flex-between" style="margin: 0.5rem 0;">
+                                <div>
+                                    <div style="font-size: 9px; color: #4b5563;">marcha atual</div>
+                                    <div id="gearDisplay" class="mono" style="font-size: 1.5rem; font-weight: 800; color: #ffffff;">n</div>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button onclick="shiftGear(-1)" style="width: 36px; height: 36px; background: #171717; border: 1px solid #262626; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer;">-</button>
+                                    <button onclick="shiftGear(1)" style="width: 36px; height: 36px; background: #171717; border: 1px solid #262626; border-radius: 8px; color: #fff; font-weight: bold; cursor: pointer;">+</button>
+                                </div>
+                            </div>
+
+                            <div class="flex-between" style="font-size: 0.75rem; color: #6b7280; border-top: 1px solid #171717; padding-top: 0.5rem;">
+                                <span>embreagem: <strong id="clutchStatusText" class="text-neon-green">acoplada</strong></span>
+                                <span>velocidade: <strong id="speedDisplay" class="mono" style="color: #fff;">0 km/h</strong></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="w-full grid grid-cols-4 gap-2 mt-4 text-center text-xs font-semibold">
-                    <div id="boxC1" class="bg-black/60 border border-neutral-800 rounded-xl p-2 transition">
-                        <div class="text-slate-500 text-[10px]">cilindro 1</div>
-                        <div id="strokeC1" class="text-neonCyan mt-0.5">admissão</div>
-                    </div>
-                    <div id="boxC2" class="bg-black/60 border border-neutral-800 rounded-xl p-2 transition">
-                        <div class="text-slate-500 text-[10px]">cilindro 2</div>
-                        <div id="strokeC2" class="text-neonOrange mt-0.5">compressão</div>
-                    </div>
-                    <div id="boxC3" class="bg-black/60 border border-neutral-800 rounded-xl p-2 transition">
-                        <div class="text-slate-500 text-[10px]">cilindro 3</div>
-                        <div id="strokeC3" class="text-red-400 mt-0.5">exaustão</div>
-                    </div>
-                    <div id="boxC4" class="bg-black/60 border border-neutral-800 rounded-xl p-2 transition">
-                        <div class="text-slate-500 text-[10px]">cilindro 4</div>
-                        <div id="strokeC4" class="text-neonGreen mt-0.5">potência</div>
-                    </div>
-                </div>
             </div>
 
-            <!-- controles de condução -->
-            <div class="bg-panelDark border border-panelBorder rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fa-solid fa-gamepad text-neonCyan"></i> comandos de condução (pedais & marchas)
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-3 bg-black/40 p-4 rounded-xl border border-neutral-900">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-medium text-slate-400">acelerador [seta cima]</span>
-                            <span id="throttleVal" class="mono text-sm font-bold text-neonGreen">0%</span>
-                        </div>
-                        <input id="throttleRange" type="range" min="0" max="100" value="0" class="w-full accent-neonGreen h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="setThrottle(this.value)">
-                        
-                        <div class="flex justify-between items-center mt-1">
-                            <span class="text-xs font-medium text-slate-400">freio [seta baixo]</span>
-                            <span id="brakeVal" class="mono text-sm font-bold text-red-400">0%</span>
-                        </div>
-                        <input id="brakeRange" type="range" min="0" max="100" value="0" class="w-full accent-red-500 h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="setBrake(this.value)">
-
-                        <div class="flex justify-between items-center mt-1">
-                            <span class="text-xs font-medium text-slate-400">embreagem [espaço]</span>
-                            <span id="clutchVal" class="mono text-sm font-bold text-neonCyan">0%</span>
-                        </div>
-                        <input id="clutchRange" type="range" min="0" max="100" value="0" class="w-full accent-neonCyan h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="setClutch(this.value)">
+            <!-- coluna direita -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <div class="panel" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div class="flex-between">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em;">📊 painel telemetria</span>
+                        <span id="statusBadge" style="padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2);">marcha lenta</span>
                     </div>
 
-                    <div class="flex flex-col justify-between bg-black/40 p-4 rounded-xl border border-neutral-900">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-medium text-slate-400">modo câmbio</span>
-                            <div class="flex gap-1 bg-neutral-900 p-1 rounded-lg border border-neutral-800 text-xs">
-                                <button id="modeAuto" onclick="setTransmissionMode('auto')" class="px-2.5 py-1 rounded-md bg-neonCyan text-black font-semibold transition">auto</button>
-                                <button id="modeManual" onclick="setTransmissionMode('manual')" class="px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition">manual</button>
+                    <div class="grid-2">
+                        <div class="box-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
+                            <span class="text-muted">rotação do motor (rpm)</span>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-top: 0.5rem;">
+                                <span id="rpmVal" class="mono" style="font-size: 1.75rem; font-weight: 800; color: #ffffff;">800</span>
+                                <span style="font-size: 0.75rem; color: #4b5563;">rpm</span>
+                            </div>
+                            <div style="width: 100%; background: #171717; height: 8px; border-radius: 4px; margin-top: 0.75rem; overflow: hidden;">
+                                <div id="rpmBar" style="background: linear-gradient(to right, #10b981, #f97316, #ef4444); height: 100%; width: 10%; transition: width 0.1s;"></div>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between my-2">
-                            <div>
-                                <div class="text-[10px] text-slate-500 uppercase">marcha atual</div>
-                                <div id="gearDisplay" class="text-2xl font-extrabold mono text-white">n</div>
+                        <div class="box-inner" style="display: flex; flex-direction: column; justify-content: space-between;">
+                            <span class="text-muted">torque / potência</span>
+                            <div style="display: flex; align-items: baseline; gap: 4px; margin-top: 0.5rem;">
+                                <span id="torqueVal" class="mono" style="font-size: 1.5rem; font-weight: 800; color: #f97316;">142</span>
+                                <span style="font-size: 0.75rem; color: #4b5563;">nm</span>
                             </div>
-                            <div class="flex gap-1.5">
-                                <button onclick="shiftGear(-1)" class="w-10 h-10 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl font-bold flex items-center justify-center transition text-slate-300">-</button>
-                                <button onclick="shiftGear(1)" class="w-10 h-10 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-xl font-bold flex items-center justify-center transition text-slate-300">+</button>
-                            </div>
+                            <div style="font-size: 0.75rem; color: #6b7280; margin-top: 0.5rem;">potência: <strong id="hpVal" class="mono" style="color: #fff;">16</strong> cv</div>
+                        </div>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="box-inner" style="text-align: center;">
+                            <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">💧 combustível</div>
+                            <div id="fuelFlowVal" class="mono" style="font-size: 0.75rem; font-weight: 700; color: #fff;">0.8 l/h</div>
+                            <div style="font-size: 9px; color: #4b5563; margin-top: 2px;">total: <span id="totalFuelVal">0.05</span> l</div>
                         </div>
 
-                        <div class="flex justify-between items-center text-xs text-slate-400 pt-2 border-t border-neutral-900">
-                            <span>embreagem: <strong id="clutchStatusText" class="text-neonGreen">acoplada</strong></span>
-                            <span>velocidade: <strong id="speedDisplay" class="text-white mono">0 km/h</strong></span>
+                        <div class="box-inner" style="text-align: center;">
+                            <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">🌡️ água / óleo</div>
+                            <div id="waterTempVal" class="mono" style="font-size: 0.75rem; font-weight: 700; color: #f97316;">88°c</div>
+                            <div style="font-size: 9px; color: #4b5563; margin-top: 2px;">óleo: <span id="oilTempVal">82</span>°c</div>
+                        </div>
+
+                        <div class="box-inner" style="text-align: center;">
+                            <div style="font-size: 10px; color: #6b7280; margin-bottom: 2px;">💨 mistura afr</div>
+                            <div id="afrDisplay" class="mono" style="font-size: 0.75rem; font-weight: 700; color: #06b6d4;">14.7 : 1</div>
+                            <div style="font-size: 9px; color: #4b5563; margin-top: 2px;">estequiométrica</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
+                <!-- parâmetros mecânicos -->
+                <div class="panel" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div class="flex-between">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; letter-spacing: 0.05em;">🎛️ parâmetros mecânicos</span>
+                        <button onclick="resetTuning()" style="background: none; border: none; color: #06b6d4; font-size: 0.75rem; cursor: pointer;">restaurar padrão</button>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.75rem;">
+                        <div>
+                            <div class="flex-between" style="margin-bottom: 4px;">
+                                <span style="color: #6b7280;">taxa de compressão</span>
+                                <span id="compRatioVal" class="mono" style="font-weight: 700; color: #fff;">10.5 : 1</span>
+                            </div>
+                            <input id="compRange" type="range" min="8.0" max="14.0" step="0.5" value="10.5" oninput="updateTuning()">
+                        </div>
+
+                        <div>
+                            <div class="flex-between" style="margin-bottom: 4px;">
+                                <span style="color: #6b7280;">limite de rotação (redline)</span>
+                                <span id="redlineVal" class="mono" style="font-weight: 700; color: #fff;">6800 rpm</span>
+                            </div>
+                            <input id="redlineRange" type="range" min="4000" max="9000" step="200" value="6800" oninput="updateTuning()">
+                        </div>
+
+                        <div>
+                            <div class="flex-between" style="margin-bottom: 4px;">
+                                <span style="color: #6b7280;">cilindrada / deslocamento</span>
+                                <span id="dispVal" class="mono" style="font-weight: 700; color: #fff;">2.0 litros (i4)</span>
+                            </div>
+                            <input id="dispRange" type="range" min="1.0" max="4.0" step="0.2" value="2.0" oninput="updateTuning()">
+                        </div>
+
+                        <div>
+                            <div class="flex-between" style="margin-bottom: 4px;">
+                                <span style="color: #6b7280;">dosagem ar / combustível (afr)</span>
+                                <span id="afrSliderVal" class="mono" style="font-weight: 700; color: #fff;">14.7</span>
+                            </div>
+                            <input id="afrRange" type="range" min="11.0" max="18.0" step="0.2" value="14.7" oninput="updateTuning()">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-
-        <!-- coluna direita: telemetria e parâmetros -->
-        <div class="lg:col-span-5 flex flex-col gap-6">
-            
-            <div class="bg-panelDark border border-panelBorder rounded-2xl p-5 shadow-2xl flex flex-col gap-5">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-gauge-high text-neonCyan"></i> painel telemetria</span>
-                    <span id="statusBadge" class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">marcha lenta</span>
-                </h2>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-black/50 p-4 rounded-xl border border-neutral-900 flex flex-col justify-between">
-                        <span class="text-[11px] text-slate-400 font-medium">rotação do motor (rpm)</span>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <span id="rpmVal" class="text-3xl font-extrabold mono text-white">800</span>
-                            <span class="text-xs text-slate-500">rpm</span>
-                        </div>
-                        <div class="w-full bg-neutral-900 h-2 rounded-full mt-3 overflow-hidden">
-                            <div id="rpmBar" class="bg-gradient-to-r from-neonGreen via-neonOrange to-red-500 h-full w-[10%] transition-all duration-100"></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-black/50 p-4 rounded-xl border border-neutral-900 flex flex-col justify-between">
-                        <span class="text-[11px] text-slate-400 font-medium">torque / potência</span>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <span id="torqueVal" class="text-2xl font-extrabold mono text-neonOrange">142</span>
-                            <span class="text-xs text-slate-500">nm</span>
-                        </div>
-                        <div class="text-xs text-slate-400 mt-2">potência: <strong id="hpVal" class="text-white mono">16</strong> cv</div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-black/40 p-3 rounded-xl border border-neutral-900 text-center">
-                        <div class="text-[10px] text-slate-400 mb-1"><i class="fa-solid fa-droplet text-blue-400"></i> combustível</div>
-                        <div id="fuelFlowVal" class="mono text-xs font-bold text-white">0.8 l/h</div>
-                        <div class="text-[9px] text-slate-500 mt-0.5">total: <span id="totalFuelVal">0.05</span> l</div>
-                    </div>
-
-                    <div class="bg-black/40 p-3 rounded-xl border border-neutral-900 text-center">
-                        <div class="text-[10px] text-slate-400 mb-1"><i class="fa-solid fa-temperature-three-quarters text-neonOrange"></i> água / óleo</div>
-                        <div id="waterTempVal" class="mono text-xs font-bold text-neonOrange">88°c</div>
-                        <div class="text-[9px] text-slate-500 mt-0.5">óleo: <span id="oilTempVal">82</span>°c</div>
-                    </div>
-
-                    <div class="bg-black/40 p-3 rounded-xl border border-neutral-900 text-center">
-                        <div class="text-[10px] text-slate-400 mb-1"><i class="fa-solid fa-wind text-neonCyan"></i> mistura afr</div>
-                        <div id="afrDisplay" class="mono text-xs font-bold text-neonCyan">14.7 : 1</div>
-                        <div class="text-[9px] text-slate-500 mt-0.5">estequiométrica</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- parâmetros mecânicos -->
-            <div class="bg-panelDark border border-panelBorder rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
-                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-sliders text-neonCyan"></i> parâmetros mecânicos</span>
-                    <button onclick="resetTuning()" class="text-[11px] text-neonCyan hover:underline">restaurar padrão</button>
-                </h2>
-
-                <div class="flex flex-col gap-3 text-xs">
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-slate-400 font-medium">taxa de compressão</span>
-                            <span id="compRatioVal" class="mono font-bold text-white">10.5 : 1</span>
-                        </div>
-                        <input id="compRange" type="range" min="8.0" max="14.0" step="0.5" value="10.5" class="w-full accent-neonCyan h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="updateTuning()">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-slate-400 font-medium">limite de rotação (redline)</span>
-                            <span id="redlineVal" class="mono font-bold text-white">6800 rpm</span>
-                        </div>
-                        <input id="redlineRange" type="range" min="4000" max="9000" step="200" value="6800" class="w-full accent-neonCyan h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="updateTuning()">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-slate-400 font-medium">cilindrada / deslocamento</span>
-                            <span id="dispVal" class="mono font-bold text-white">2.0 litros (i4)</span>
-                        </div>
-                        <input id="dispRange" type="range" min="1.0" max="4.0" step="0.2" value="2.0" class="w-full accent-neonCyan h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="updateTuning()">
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="text-slate-400 font-medium">dosagem ar / combustível (afr)</span>
-                            <span id="afrSliderVal" class="mono font-bold text-white">14.7</span>
-                        </div>
-                        <input id="afrRange" type="range" min="11.0" max="18.0" step="0.2" value="14.7" class="w-full accent-neonCyan h-2 bg-neutral-900 rounded-lg cursor-pointer" oninput="updateTuning()">
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
     </main>
 
-    <!-- modal github pages -->
-    <div id="deployModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-panelDark border border-panelBorder max-w-xl w-full rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
-            <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fa-brands fa-github text-neonCyan"></i> publicar no github pages gratuitamente
-                </h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            
-            <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
-                <p>o github pages permite hospedar este site estático em minutos sem custos:</p>
-                <ol class="list-decimal list-inside space-y-2 text-slate-200">
-                    <li>copie o código deste arquivo e salve como <code class="bg-black px-1.5 py-0.5 rounded text-neonCyan font-mono">index.html</code>.</li>
-                    <li>crie um repositório público no seu <a href="https://github.com" target="_blank" class="text-neonCyan underline">github</a>.</li>
-                    <li>faça o upload do arquivo <code class="bg-black px-1.5 py-0.5 rounded text-neonCyan font-mono">index.html</code> na raiz do repositório.</li>
-                    <li>vá em <strong>settings</strong> > <strong>pages</strong>.</li>
-                    <li>em <em>branch</em>, escolha <code class="bg-black px-1.5 py-0.5 rounded text-slate-200 font-mono">main</code> e clique em <strong>save</strong>.</li>
-                    <li>o simulador estará online no link fornecido pelo github!</li>
-                </ol>
-            </div>
-
-            <div class="flex justify-end pt-2 border-t border-neutral-800">
-                <button onclick="closeModal()" class="px-5 py-2 bg-neutral-800 hover:bg-neutral-700 font-medium rounded-xl transition text-xs">
-                    fechar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <footer class="text-center py-4 text-[11px] text-slate-600 border-t border-neutral-900 mt-6">
-        motorforge i4 2d • desenvolvido com html5 canvas, tailwind css & web audio api procedural.
+    <footer>
+        motorforge i4 2d • desenvolvido com html5 canvas, css puro & web audio api procedural.
     </footer>
 
     <script>
@@ -336,7 +391,7 @@
         let rpm = 800;
         let throttle = 0;
         let brake = 0;
-        let clutch = 0; // 0 = acoplada, 100 = totalmente desacoplada
+        let clutch = 0;
         let crankAngle = 0;
         
         let transmissionMode = 'auto';
@@ -371,7 +426,7 @@
                 ctx.globalAlpha = Math.max(0, this.alpha);
                 if (this.type === 'intake') ctx.fillStyle = '#06b6d4';
                 else if (this.type === 'combustion') ctx.fillStyle = '#f97316';
-                else ctx.fillStyle = '#64748b';
+                else ctx.fillStyle = '#475569';
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -408,7 +463,7 @@
                     oscSecondary.start();
 
                     audioActive = true;
-                    document.getElementById('audioIcon').className = 'fa-solid fa-volume-high text-neonCyan';
+                    document.getElementById('audioIcon').textContent = '🔊';
                     document.getElementById('audioText').textContent = 'som ligado';
                 } catch (e) {
                     console.error("erro ao iniciar web audio:", e);
@@ -416,7 +471,7 @@
             } else {
                 if (gainNode) gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
                 audioActive = false;
-                document.getElementById('audioIcon').className = 'fa-solid fa-volume-xmark text-red-400';
+                document.getElementById('audioIcon').textContent = '🔇';
                 document.getElementById('audioText').textContent = 'ligar som do motor';
             }
         }
@@ -452,13 +507,13 @@
             const txt = document.getElementById('clutchStatusText');
             if (clutch > 80) {
                 txt.textContent = 'desacoplada';
-                txt.className = 'text-red-400';
+                txt.style.color = '#ef4444';
             } else if (clutch > 0) {
                 txt.textContent = 'patinando';
-                txt.className = 'text-neonOrange';
+                txt.style.color = '#f97316';
             } else {
                 txt.textContent = 'acoplada';
-                txt.className = 'text-neonGreen';
+                txt.style.color = '#10b981';
             }
         }
 
@@ -487,8 +542,19 @@
 
         function setTransmissionMode(mode) {
             transmissionMode = mode;
-            document.getElementById('modeAuto').className = mode === 'auto' ? 'px-2.5 py-1 rounded-md bg-neonCyan text-black font-semibold transition' : 'px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition';
-            document.getElementById('modeManual').className = mode === 'manual' ? 'px-2.5 py-1 rounded-md bg-neonCyan text-black font-semibold transition' : 'px-2.5 py-1 rounded-md text-slate-400 hover:text-white transition';
+            const autoBtn = document.getElementById('modeAuto');
+            const manualBtn = document.getElementById('modeManual');
+            if (mode === 'auto') {
+                autoBtn.style.background = '#06b6d4';
+                autoBtn.style.color = '#000';
+                manualBtn.style.background = 'transparent';
+                manualBtn.style.color = '#6b7280';
+            } else {
+                manualBtn.style.background = '#06b6d4';
+                manualBtn.style.color = '#000';
+                autoBtn.style.background = 'transparent';
+                autoBtn.style.color = '#6b7280';
+            }
         }
 
         function shiftGear(dir) {
@@ -517,9 +583,6 @@
             document.getElementById('afrRange').value = 14.7;
             updateTuning();
         }
-
-        function openModal() { document.getElementById('deployModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('deployModal').classList.add('hidden'); }
 
         function updatePhysics(dt) {
             const ve = 0.7 + (throttle * 0.003) - (Math.abs(rpm - 4200) / 9000);
@@ -582,13 +645,19 @@
 
             const badge = document.getElementById('statusBadge');
             if (rpm >= tuning.redline - 100) {
-                badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 uppercase animate-pulse';
+                badge.style.background = 'rgba(239, 68, 68, 0.2)';
+                badge.style.color = '#ef4444';
+                badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
                 badge.textContent = 'corte de giro!';
             } else if (throttle > 70) {
-                badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-bold bg-neonGreen/20 text-neonGreen border border-neonGreen/30 uppercase';
+                badge.style.background = 'rgba(16, 185, 129, 0.2)';
+                badge.style.color = '#10b981';
+                badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
                 badge.textContent = 'aceleração total';
             } else {
-                badge.className = 'px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase';
+                badge.style.background = 'rgba(245, 158, 11, 0.1)';
+                badge.style.color = '#f59e0b';
+                badge.style.borderColor = 'rgba(245, 158, 11, 0.2)';
                 badge.textContent = 'marcha lenta';
             }
         }
@@ -596,21 +665,21 @@
         function drawEngine() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#141414';
+            ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(40, 65, 540, 250);
-            ctx.strokeStyle = '#262626';
+            ctx.strokeStyle = '#171717';
             ctx.lineWidth = 3;
             ctx.strokeRect(40, 65, 540, 250);
 
-            ctx.fillStyle = '#0b0b0b';
+            ctx.fillStyle = '#000000';
             ctx.fillRect(40, 30, 540, 40);
             ctx.strokeRect(40, 30, 540, 40);
 
-            ctx.fillStyle = '#0b0b0b';
+            ctx.fillStyle = '#000000';
             ctx.fillRect(40, 315, 540, 50);
             ctx.strokeRect(40, 315, 540, 50);
             
-            ctx.fillStyle = 'rgba(249, 115, 22, 0.25)';
+            ctx.fillStyle = 'rgba(249, 115, 22, 0.15)';
             ctx.fillRect(45, 340, 530, 20);
 
             const startX = 85;
@@ -632,9 +701,9 @@
                 document.getElementById(`strokeC${i+1}`).textContent = strokeName;
                 document.getElementById(`strokeC${i+1}`).style.color = strokeColor;
 
-                ctx.fillStyle = '#050505';
+                ctx.fillStyle = '#000000';
                 ctx.fillRect(cx - (bore/2), 95, bore, 145);
-                ctx.strokeStyle = '#333333';
+                ctx.strokeStyle = '#171717';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(cx - (bore/2), 95, bore, 145);
 
@@ -644,14 +713,14 @@
                 const intakeOpen = strokeName === "admissão";
                 const exhaustOpen = strokeName === "exaustão";
 
-                ctx.fillStyle = intakeOpen ? '#06b6d4' : '#64748b';
+                ctx.fillStyle = intakeOpen ? '#06b6d4' : '#475569';
                 ctx.beginPath();
                 ctx.moveTo(cx - 22, intakeOpen ? 68 : 72);
                 ctx.lineTo(cx - 10, intakeOpen ? 68 : 72);
                 ctx.lineTo(cx - 16, 95);
                 ctx.fill();
 
-                ctx.fillStyle = exhaustOpen ? '#10b981' : '#64748b';
+                ctx.fillStyle = exhaustOpen ? '#10b981' : '#475569';
                 ctx.beginPath();
                 ctx.moveTo(cx + 10, exhaustOpen ? 68 : 72);
                 ctx.lineTo(cx + 22, exhaustOpen ? 68 : 72);
@@ -668,7 +737,7 @@
                     ctx.lineTo(cx - 8, 115);
                     ctx.stroke();
 
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                     ctx.fillRect(cx - (bore/2), 95, bore, 75);
                 }
 
@@ -680,17 +749,17 @@
                     particles.push(new Particle(cx + 16, 85, 'exhaust'));
                 }
 
-                ctx.fillStyle = '#475569';
+                ctx.fillStyle = '#171717';
                 ctx.fillRect(cx - (bore/2) + 2, pistonY, bore - 4, 30);
-                ctx.strokeStyle = '#94a3b8';
+                ctx.strokeStyle = '#262626';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(cx - (bore/2) + 2, pistonY, bore - 4, 30);
 
-                ctx.fillStyle = '#cbd5e1';
+                ctx.fillStyle = '#6b7280';
                 ctx.fillRect(cx - (bore/2) + 2, pistonY + 4, bore - 4, 2);
                 ctx.fillRect(cx - (bore/2) + 2, pistonY + 12, bore - 4, 2);
 
-                ctx.fillStyle = '#1e293b';
+                ctx.fillStyle = '#0a0a0a';
                 ctx.beginPath();
                 ctx.arc(cx, pistonY + 15, 5, 0, Math.PI * 2);
                 ctx.fill();
@@ -699,20 +768,20 @@
                 const crankPinX = cx + Math.sin(rad) * 26;
                 const crankPinY = 275 + Math.cos(rad) * 26;
 
-                ctx.strokeStyle = '#cbd5e1';
+                ctx.strokeStyle = '#9ca3af';
                 ctx.lineWidth = 5;
                 ctx.beginPath();
                 ctx.moveTo(cx, pistonY + 15);
                 ctx.lineTo(crankPinX, crankPinY);
                 ctx.stroke();
 
-                ctx.fillStyle = '#94a3b8';
+                ctx.fillStyle = '#6b7280';
                 ctx.beginPath();
                 ctx.arc(crankPinX, crankPinY, 6, 0, Math.PI * 2);
                 ctx.fill();
 
-                ctx.fillStyle = '#64748b';
-                ctx.font = '10px Inter, sans-serif';
+                ctx.fillStyle = '#4b5563';
+                ctx.font = '10px inter, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(`cil ${i+1}`, cx, 235);
             }
@@ -723,8 +792,35 @@
                 if (particles[i].alpha <= 0) particles.splice(i, 1);
             }
 
-            ctx.strokeStyle = '#333333';
+            ctx.strokeStyle = '#171717';
             ctx.lineWidth = 8;
             ctx.beginPath();
             ctx.arc(310, 275, 30, 0, Math.PI * 2);
             ctx.stroke();
+
+            ctx.fillStyle = '#0a0a0a';
+            ctx.beginPath();
+            ctx.arc(310, 275, 14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        let lastTime = performance.now();
+        function loop(now) {
+            const dt = Math.min(0.1, (now - lastTime) / 1000);
+            lastTime = now;
+
+            if (engineRunning) {
+                updatePhysics(dt);
+                updateAudioSynthesis();
+                drawEngine();
+            }
+            requestAnimationFrame(loop);
+        }
+
+        window.onload = function() {
+            updateTuning();
+            requestAnimationFrame(loop);
+        };
+    </script>
+</body>
+</html>
