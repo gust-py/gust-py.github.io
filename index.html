@@ -33,7 +33,7 @@
 <body>
 <div id="hud">
   <div id="hudTitle">HOT ROD <em>//</em> PISTA DE TESTES</div>
-  <div id="hudSub">monocromo · suspensão em prova</div>
+  <div id="hudSub">monocromo · suspensão independente</div>
   <div class="row"><span class="k">estado</span><span class="v" id="vState">DESLIGADO</span></div>
   <div class="row"><span class="k">motor</span><span class="v" id="vMode">PISTÃO · L4</span></div>
   <div class="row"><span class="k">marcha</span><span class="v" id="vGear">N</span></div>
@@ -53,7 +53,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-// ===== HOT ROD // PISTA DE TESTES — pistões coloridos, molas reativas =====
+// ===== HOT ROD // SUSPENSÃO INDEPENDENTE POR RODA =====
 let scene, camera, renderer, controls, keyLight;
 let mode='piston', phase='off';
 let rpm=0, angle=0, totalDeg=0, kmh=0, gear=0;
@@ -65,12 +65,13 @@ const IDLE=820;
 const GEARR={1:133,2:88,3:63,4:48,5:40,R:118};
 const ACC={1:30,2:19,3:13.5,4:10,5:8,R:15};
 const ACCW={1:26,2:20,3:16,4:13,5:11,R:17};
-const WHEELBASE=3.4;
+const WHEELBASE=3.4, WHEELR=0.62;
+const TRAVEL_UP=0.28, TRAVEL_DOWN=0.30;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const keys={w:false,s:false,a:false,d:false};
 
 let carGroup, bodyGroup, bodyInner, wheelsGroup;
-let wheelSpins=[], steerGroups=[], springs=[];
+let wheelSpins=[], steerGroups=[];
 let driveshaft=null, engineCore=null, exhaustTip=null;
 let coreBase={y:0.3,z:0.85};
 const powerParts=[];
@@ -79,13 +80,17 @@ let pitch=0, roll=0, tPitch=0, tRoll=0, heaveOff=0, hv=0, spinAngle=0, dist=0;
 let camMode='chase', camShake=0, thudCd=0, everStarted=false;
 const CAMS=['chase','orbit','hood'];
 
-// vertical / terreno
-let carY=0, vy=0, grounded=true, climbRate=0, prevCarY=0, vvS=0, prevVV=0, suspMax=0;
+// vertical / suspensão
+let carY=0, vy=0, grounded=true, climbRate=0, prevCarY=0, prevGroundY=0, vvS=0, prevVV=0, suspMax=0;
+// cantos: FL(+x) FR(-x) RL RR — cada um com roda, mola, braço e curso próprio
+const corners=[];
+let cornerH=[0,0,0,0];
+let frontAxle=null, hsL=null, hsR=null;
 
 // cores dos pistões
 const PISTON_HEX=[0xff4d4d,0x4da3ff,0xffd94d,0xff6ec7];
 const PISTON_RGB=[[255,77,77],[77,163,255],[255,217,77],[255,110,199]];
-// rampa de cor das molas: verde → amarelo → laranja → vermelho
+// rampa das molas: verde → amarelo → laranja → vermelho
 const SPR_STOPS=[[0,0x2bd879],[0.4,0xffe14d],[0.75,0xff9433],[1,0xff4040]];
 const tmpC=new THREE.Color();
 function rampColor(c,out){
@@ -113,7 +118,7 @@ const ESC=0.12;
 let flashes=[];
 let smokeGroup, smokePool=[], poolIdx=0, exAcc=0, smokeTex, glowTex;
 let obstacles=[];
-const features=[];   // zonas de teste de suspensão
+const features=[];
 const tipV=new THREE.Vector3();
 
 let M;
@@ -148,6 +153,19 @@ function cylBetween(p1,p2,r,mat){
   m.position.copy(a).addScaledVector(d,.5);
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
   return m;
+}
+// link dinâmico: cilindro unitário reposicionado a cada frame entre 2 pontos
+function makeLink(p1,p2,r,mat){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,8),mat);
+  setLink(m,p1,p2); return m;
+}
+function setLink(m,p1,p2){
+  const a=new THREE.Vector3(...p1), b=new THREE.Vector3(...p2);
+  const d=new THREE.Vector3().subVectors(b,a);
+  const len=Math.max(d.length(),0.01);
+  m.position.copy(a).addScaledVector(d,.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.multiplyScalar(1/len));
+  m.scale.set(1,len,1);
 }
 function makeSpringGeometry(h,coils,r,tube){
   const pts=[];
@@ -299,11 +317,11 @@ function addSteps(x,z,width,sw,sh,n,plat){
   m.position.set(x,H/2,z0+L+plat/2); edgeAdd(m);
 }
 function buildTestTrack(){
-  addWave(  5, 12, 6.4, 14, .15, 2.3, 'bump');   // quebra-molas
-  addWave(-11,-24, 7.0, 18, .30, 3.4, 'whoop');  // ondulação forte
-  addJump( 13, 20, 3.6,  6, 1.6);                // rampa de salto (cliff)
-  addTable(-20, -6, 4.4, 4, 3, 4, 1.1);          // mesa sobe-desce
-  addSteps( 24,-14, 3.6, 2, .3, 4, 2);           // degraus + queda
+  addWave(  5, 12, 6.4, 14, .15, 2.3, 'bump');
+  addWave(-11,-24, 7.0, 18, .30, 3.4, 'whoop');
+  addJump( 13, 20, 3.6,  6, 1.6);
+  addTable(-20, -6, 4.4, 4, 3, 4, 1.1);
+  addSteps( 24,-14, 3.6, 2, .3, 4, 2);
 }
 function terrainH(x,z){
   let h=0;
@@ -366,7 +384,7 @@ function buildPistonCore(g){
     const x=i*SP-(n*SP/2)+SP/2;
     const liner=new THREE.Mesh(lg,M.glass); liner.position.set(x,3.75,0); g.add(liner);
     const pg=new THREE.Group();
-    const crown=new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.9,28),M.piston[i]); // cor do pistão
+    const crown=new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.9,28),M.piston[i]);
     pg.add(crown);
     [.28,.1].forEach(ry=>{const r=new THREE.Mesh(rg2,M.black); r.position.y=ry; pg.add(r);});
     const wp=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.5,10),M.dark);
@@ -390,7 +408,7 @@ function buildPistonCore(g){
       const tp=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.06,10),M.dark);
       tp.position.y=1.34; vg.add(tp);
       g.add(vg); valveGroups.push(vg);
-      const sp=new THREE.Mesh(sg,springMat()); sp.position.set(x,5.98,z); g.add(sp); springMeshes.push(sp);
+      const sp2=new THREE.Mesh(sg,springMat()); sp2.position.set(x,5.98,z); g.add(sp2); springMeshes.push(sp2);
       const rt=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.05,12),M.dark);
       rt.position.set(x,6.6,z); g.add(rt); retainers.push(rt);
     });
@@ -495,31 +513,27 @@ function makeWheel(r,w){
   hub.rotation.z=Math.PI/2; spin.add(hub);
   return {g,spin};
 }
-function addWheel(x,z,w,st){
-  const wg=makeWheel(0.62,w);
-  wg.g.position.set(x,0.62,z);
-  wheelsGroup.add(wg.g); wheelSpins.push(wg.spin);
-  if(st)steerGroups.push(wg.g);
-}
-function addSpring(x,z){
-  const m=new THREE.Mesh(makeSpringGeometry(0.22,4,0.11,0.02),springMat());
-  m.position.set(x,0.81,z);
-  wheelsGroup.add(m);
-  springs.push({m,x,z,rest:0.22,bot:0.7});
-}
 function buildRunningGear(){
-  wheelsGroup.add(cylBetween([-1.15,.62,-1.8],[1.15,.62,-1.8],.07,M.steel));
-  wheelsGroup.add(cylBetween([-1.22,.62,1.6],[1.22,.62,1.6],.06,M.steel));
-  [[1],[-1]].forEach(([s])=>{
-    wheelsGroup.add(cylBetween([s*.5,.98,1.05],[s*.85,.62,1.62],.035,M.dark));
-    wheelsGroup.add(cylBetween([s*.5,.98,-1.25],[s*.85,.62,-1.78],.035,M.dark));
-  });
+  // eixo dianteiro rígido: link dinâmico entre as duas rodas (inclinam junto)
+  frontAxle=makeLink([1.22,.62,1.6],[-1.22,.62,1.6],.07,M.steel);
+  wheelsGroup.add(frontAxle);
+  // diferencial fixo no chassi + semi-eixos dinâmicos
   const diff=new THREE.Mesh(new THREE.BoxGeometry(.44,.32,.36),M.steel);
-  diff.position.set(0,.68,-1.8); wheelsGroup.add(diff);
-  wheelsGroup.add(cylBetween([0,.84,-1.54],[0,.74,-1.68],.075,M.steel));
-  [[1],[-1]].forEach(([s])=>wheelsGroup.add(cylBetween([s*.22,.62,-1.8],[s*1.1,.62,-1.8],.05,M.steel)));
-  addSpring(.85,1.6); addSpring(-.85,1.6);
-  addSpring(.85,-1.8); addSpring(-.85,-1.8);
+  diff.position.set(0,.62,-1.8); wheelsGroup.add(diff);
+  wheelsGroup.add(cylBetween([0,.34,-1.62],[0,.55,-1.72],.075,M.steel));
+  hsL=makeLink([.24,.62,-1.8],[1.15,.62,-1.8],.05,M.steel);
+  hsR=makeLink([-.24,.62,-1.8],[-1.15,.62,-1.8],.05,M.steel);
+  wheelsGroup.add(hsL,hsR);
+  // braços + molas por canto
+  corners.forEach(c=>{
+    const zm=c.bz-Math.sign(c.bz)*0.55;
+    c.arm=makeLink([c.bx*.38,.95,zm],[c.bx*.7,1.07,c.bz],.035,M.dark);
+    wheelsGroup.add(c.arm);
+    const m=new THREE.Mesh(makeSpringGeometry(0.22,4,0.11,0.02),springMat());
+    m.position.set(c.bx*.75,0.74,c.bz);
+    wheelsGroup.add(m);
+    c.spring=m;
+  });
 }
 function buildChassis(){
   [[1],[-1]].forEach(([s])=>{
@@ -586,11 +600,24 @@ function rebuildPowertrain(){
 }
 function buildCar(){
   carGroup=new THREE.Group(); scene.add(carGroup);
+  carGroup.rotation.order='YXZ';   // yaw → pitch → roll
   wheelsGroup=new THREE.Group(); carGroup.add(wheelsGroup);
   bodyGroup=new THREE.Group(); bodyGroup.position.y=1.4; carGroup.add(bodyGroup);
   bodyInner=new THREE.Group(); bodyInner.position.y=-.9; bodyGroup.add(bodyInner);
-  addWheel(1.22,1.6,.34,true); addWheel(-1.22,1.6,.34,true);
-  addWheel(1.15,-1.8,.46,false); addWheel(-1.15,-1.8,.46,false);
+  wheelSpins.length=0; steerGroups.length=0; corners.length=0;
+  const defs=[
+    {bx: 1.22, bz: 1.6, st:true, w:.34},
+    {bx:-1.22, bz: 1.6, st:true, w:.34},
+    {bx: 1.15, bz:-1.8, st:false,w:.46},
+    {bx:-1.15, bz:-1.8, st:false,w:.46}
+  ];
+  defs.forEach(d=>{
+    const wg=makeWheel(WHEELR,d.w);
+    wg.g.position.set(d.bx,WHEELR,d.bz);
+    wheelsGroup.add(wg.g); wheelSpins.push(wg.spin);
+    if(d.st)steerGroups.push(wg.g);
+    corners.push({bx:d.bx,bz:d.bz,g:wg.g,spring:null,arm:null,off:0});
+  });
   buildRunningGear();
   buildChassis();
   rebuildPowertrain();
@@ -701,21 +728,33 @@ function simulate(dt){
   dist+=Math.abs(vms)*dt;
   collide();
 
-  // ---- terreno + dinâmica vertical (pulos e aterrissagens) ----
-  const gH=terrainH(pos.x,pos.z);
+  // ---- altura do terreno SOB CADA RODA + voo/aterrissagem ----
+  const cyw=Math.cos(yaw), syw=Math.sin(yaw);
+  let hSum=0;
+  for(let i=0;i<4;i++){
+    const c=corners[i];
+    cornerH[i]=terrainH(pos.x+c.bx*cyw+c.bz*syw, pos.z-c.bx*syw+c.bz*cyw);
+    hSum+=cornerH[i];
+  }
+  const hAvgC=hSum/4;
+  const hF=(cornerH[0]+cornerH[1])/2, hBk=(cornerH[2]+cornerH[3])/2;
+  const hA=(cornerH[0]+cornerH[2])/2, hD=(cornerH[1]+cornerH[3])/2;
+
   if(grounded){
-    if(gH<carY-0.28&&Math.abs(kmh)>3){
-      grounded=false; vy=clamp(climbRate,-2,18);
+    const rate=(hAvgC-prevGroundY)/Math.max(dt,1e-4);
+    climbRate+=(clamp(rate,-30,30)-climbRate)*Math.min(1,12*dt);
+    if(hAvgC<carY-0.30&&Math.abs(kmh)>4){
+      grounded=false; vy=climbRate;          // o chão caiu — decola
     } else {
-      climbRate=clamp((gH-carY)/Math.max(dt,1e-4),-30,30);
-      carY=gH;
+      carY=clamp(hAvgC, carY-1.2, carY+0.9); // chassi assenta no terreno
     }
+    prevGroundY=hAvgC;
   }
   if(!grounded){
     vy-=22*dt; carY+=vy*dt;
-    if(carY<=gH){
+    if(carY<=hAvgC){
       const impact=-vy;
-      carY=gH; grounded=true; climbRate=0; vy=0;
+      carY=hAvgC; grounded=true; vy=0; climbRate=0; prevGroundY=hAvgC;
       if(impact>0.8){
         hv-=clamp(impact,0,9)*0.3;
         camShake=Math.min(.9,camShake+impact*.07);
@@ -723,22 +762,27 @@ function simulate(dt){
       }
     }
   }
+
+  // pitch/roll do CHASSI = plano ajustado às 4 rodas
+  let tpT,trT2;
+  if(grounded){
+    tpT=-Math.atan2(hF-hBk,3.4);
+    trT2= Math.atan2(hA-hD,2.44);
+  } else {
+    tpT=clamp(-vy*0.035,-.32,.32);   // no ar: rotação natural de salto
+    trT2=tRoll;
+  }
+  tPitch+=(tpT-tPitch)*Math.min(1,9*dt);
+  tRoll +=(trT2-tRoll)*Math.min(1,9*dt);
+
+  // dinâmica vertical (squash de aterrissagem)
   const vV=clamp((carY-prevCarY)/Math.max(dt,1e-4),-40,40);
   vvS+=(vV-vvS)*Math.min(1,12*dt);
   const aV=clamp((vvS-prevVV)/Math.max(dt,1e-4),-60,60);
   hv-=aV*0.011;
   prevVV=vvS; prevCarY=carY;
-  hv=clamp(hv,-3,3);
 
-  // inclinação do terreno (pitch/roll) + dinâmica de aceleração
-  const fx=Math.sin(yaw),fz=Math.cos(yaw);
-  const hF=terrainH(pos.x+fx*1.7,pos.z+fz*1.7), hB=terrainH(pos.x-fx*1.7,pos.z-fz*1.7);
-  const hL=terrainH(pos.x-fz*1.2,pos.z+fx*1.2), hR=terrainH(pos.x+fz*1.2,pos.z-fx*1.2);
-  const tpT=grounded?-Math.atan2(hF-hB,WHEELBASE)*0.9:clamp(-vy*0.05,-.4,.35);
-  const trT=grounded?Math.atan2(hR-hL,2.4)*0.9:tRoll;
-  tPitch+=(tpT-tPitch)*Math.min(1,7*dt);
-  tRoll +=(trT-tRoll)*Math.min(1,7*dt);
-
+  // pitch/roll dinâmicos (aceleração/canto) + heave
   const aLong=dt>0?(kmh-prevKmh)/dt/3.6:0; prevKmh=kmh;
   pitch+=(clamp(-aLong*0.016,-.06,.075)-pitch)*Math.min(1,5*dt);
   roll +=(clamp(yawRate*vms*0.05,-.08,.08)-roll)*Math.min(1,5*dt);
@@ -802,9 +846,11 @@ function checkIgnition(){
 
 // ===================== ANIMAÇÃO VISUAL =====================
 function updateVisual(dt){
-  carGroup.position.copy(pos);
-  carGroup.position.y=carY;
+  carGroup.position.set(pos.x,carY,pos.z);
   carGroup.rotation.y=yaw;
+  carGroup.rotation.x=tPitch;   // chassi inclina com o terreno
+  carGroup.rotation.z=tRoll;
+
   if(rpm>5){
     const amp=(.006+throttle*.012)*(mode==='wankel'?1.35:1)*(rpm/9000*.8+.3);
     engineCore.position.x=Math.sin(clockT*117+1)*amp;
@@ -830,7 +876,6 @@ function updateVisual(dt){
       springMeshes[v+1].scale.y=(0.62-liftEx*.2)/0.62;
       retainers[v].position.y=6.6-liftIn*.2;
       retainers[v+1].position.y=6.6-liftEx*.2;
-      // cor das molas de valva: verde → vermelho conforme abertura
       rampColor(liftIn*.95,springMeshes[v].material.color);
       rampColor(liftEx*.95,springMeshes[v+1].material.color);
     }
@@ -840,25 +885,53 @@ function updateVisual(dt){
     wkPulley.rotation.z=angle;
   }
 
-  spinAngle+=(kmh/3.6)/0.62*dt;
+  // ---- SUSPENSÃO INDEPENDENTE: cada roda segue seu ponto do terreno ----
+  suspMax=0;
+  const cp=Math.cos(tPitch), sp=Math.sin(tPitch);
+  const cr=Math.cos(tRoll), sr=Math.sin(tRoll);
+  for(let i=0;i<4;i++){
+    const c=corners[i];
+    // altura do ponto de montagem da roda no chassi inclinado
+    const yMount=WHEELR*cp*cr - c.bz*sp + c.bx*sr*cp;
+    let target;
+    if(grounded){
+      // resíduo entre o terreno real e o plano do chassi = curso da suspensão
+      target=clamp((cornerH[i]+WHEELR)-(carY+yMount), -TRAVEL_DOWN, TRAVEL_UP);
+    } else {
+      target=-0.24;   // no ar: rodas em extensão (droop)
+    }
+    c.off+=(target-c.off)*Math.min(1,22*dt);
+    c.g.position.y=WHEELR+c.off;
+
+    // mola: esticada entre o topo da roda e a montagem no chassi
+    const bottom=c.g.position.y+0.12;
+    const len=clamp(1.18-bottom, 0.14, 0.74);
+    c.spring.scale.y=len/0.22;
+    c.spring.position.set(c.bx*.75,bottom,c.bz);
+    const comp=clamp((0.44-len)/(0.44-0.16),0,1);   // comprimida → vermelha
+    rampColor(comp,c.spring.material.color);
+    if(comp>suspMax)suspMax=comp;
+
+    // braçosuspend: monte fixo no chassi ↔ roda
+    const zm=c.bz-Math.sign(c.bz)*0.55;
+    setLink(c.arm,[c.bx*.38,.95,zm],[c.bx*.7,c.g.position.y+0.45,c.bz]);
+  }
+  // eixo dianteiro acompanha as duas rodas (inclinam juntas ou separadas)
+  setLink(frontAxle,[1.22,corners[0].g.position.y,1.6],[-1.22,corners[1].g.position.y,1.6]);
+  // semi-eixos traseiros mergulham conforme a roda sobe/desce
+  setLink(hsL,[.24,.62,-1.8],[1.15,corners[2].g.position.y,-1.8]);
+  setLink(hsR,[-.24,.62,-1.8],[-1.15,corners[3].g.position.y,-1.8]);
+
+  spinAngle+=(kmh/3.6)/WHEELR*dt;
   wheelSpins.forEach(s=>s.rotation.x=spinAngle);
   steerGroups.forEach(g=>g.rotation.y=steer);
-  bodyGroup.rotation.x=pitch+tPitch;
-  bodyGroup.rotation.z=roll+tRoll;
+
+  // carroceria: só dinâmica (aceleração/canto/squash) — o terreno já está no chassi
+  bodyGroup.rotation.x=pitch;
+  bodyGroup.rotation.z=roll;
   bodyGroup.position.y=1.4+heaveOff;
 
-  suspMax=0;
-  for(const s of springs){
-    const dy=(-s.z*(pitch+tPitch)+s.x*(roll+tRoll))+heaveOff*0.9;
-    const len=clamp(s.rest+dy,.1,.38);
-    s.m.scale.y=len/s.rest;
-    s.m.position.y=s.bot+len/2;
-    // cor da mola de suspensão: compressão → amarelo/laranja/vermelho
-    const comp=clamp((s.rest-len)/(s.rest*0.55),0,1);
-    rampColor(comp,s.m.material.color);
-    if(comp>suspMax)suspMax=comp;
-  }
-  if(driveshaft)driveshaft.rotation.z+=(kmh/3.6)/0.62*dt*2.2;
+  if(driveshaft)driveshaft.rotation.z+=(kmh/3.6)/WHEELR*dt*2.2;
   keyLight.position.set(pos.x+9,16,pos.z-7);
   keyLight.target.position.set(pos.x,carY,pos.z);
   for(const f of flashes){
@@ -1144,7 +1217,7 @@ function swapEngine(){
   buildCar(); setModeVars();
   pos.copy(keep.p); yaw=keep.yaw; kmh=keep.kmh;
   dist=keep.dist; spinAngle=keep.spin; prevKmh=kmh;
-  carY=keep.carY; grounded=keep.grounded; prevCarY=carY;
+  carY=keep.carY; grounded=keep.grounded; prevCarY=carY; prevGroundY=carY;
   if(camMode==='orbit')controls.target.set(pos.x,carY+1.1,pos.z);
 }
 
