@@ -53,7 +53,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-// ===== HOT ROD // SUSPENSÃO INDEPENDENTE POR RODA =====
+// ===== HOT ROD // L4 + WANKEL 3-ROTORES (corte aberto, HP alto) =====
 let scene, camera, renderer, controls, keyLight;
 let mode='piston', phase='off';
 let rpm=0, angle=0, totalDeg=0, kmh=0, gear=0;
@@ -64,7 +64,8 @@ let REDLINE=9200, MAXRPM=9600;
 const IDLE=820;
 const GEARR={1:133,2:88,3:63,4:48,5:40,R:118};
 const ACC={1:30,2:19,3:13.5,4:10,5:8,R:15};
-const ACCW={1:26,2:20,3:16,4:13,5:11,R:17};
+// Wankel 3-rotor: MUITO mais potência em todas as marchas
+const ACCW={1:38,2:30,3:25,4:21,5:17,R:26};
 const WHEELBASE=3.4, WHEELR=0.62;
 const TRAVEL_UP=0.28, TRAVEL_DOWN=0.30;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -80,17 +81,13 @@ let pitch=0, roll=0, tPitch=0, tRoll=0, heaveOff=0, hv=0, spinAngle=0, dist=0;
 let camMode='chase', camShake=0, thudCd=0, everStarted=false;
 const CAMS=['chase','orbit','hood'];
 
-// vertical / suspensão
 let carY=0, vy=0, grounded=true, climbRate=0, prevCarY=0, prevGroundY=0, vvS=0, prevVV=0, suspMax=0;
-// cantos: FL(+x) FR(-x) RL RR — cada um com roda, mola, braço e curso próprio
 const corners=[];
 let cornerH=[0,0,0,0];
 let frontAxle=null, hsL=null, hsR=null;
 
-// cores dos pistões
 const PISTON_HEX=[0xff4d4d,0x4da3ff,0xffd94d,0xff6ec7];
 const PISTON_RGB=[[255,77,77],[77,163,255],[255,217,77],[255,110,199]];
-// rampa das molas: verde → amarelo → laranja → vermelho
 const SPR_STOPS=[[0,0x2bd879],[0.4,0xffe14d],[0.75,0xff9433],[1,0xff4040]];
 const tmpC=new THREE.Color();
 function rampColor(c,out){
@@ -111,8 +108,9 @@ const fireSeq=[0,2,3,1];
 let crankGroup, pistons=[], rods=[], valveGroups=[], springMeshes=[], retainers=[];
 let fireCount=0, fireCountW=0;
 
-const WE=0.55, WD=2.2, WH=2.82;
-let wkRotor=null, wkPulley=null;
+// ---- Wankel 3-rotores, carcaça em corte ----
+const WKE=0.55, WKR=2.82, WKD=1.55, WKGAP=0.3, WKN=3;
+let wkRotors=[], wkPulley=null, wkFly=null, wkHalf=2.625;
 const ESC=0.12;
 
 let flashes=[];
@@ -129,10 +127,11 @@ function makeMaterials(){
     dark:new THREE.MeshStandardMaterial({color:0x232323,metalness:.55,roughness:.6}),
     black:new THREE.MeshStandardMaterial({color:0x121212,metalness:.4,roughness:.75}),
     glass:new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:0,roughness:.06,transparent:true,opacity:.09,side:THREE.DoubleSide,depthWrite:false}),
-    housing:new THREE.MeshStandardMaterial({color:0xd8d8d8,metalness:.5,roughness:.35,transparent:true,opacity:.5}),
+    // carcaça OPACA — sem transparência, sem sobreposição estranha
+    housing:new THREE.MeshStandardMaterial({color:0xbfbfbf,metalness:.65,roughness:.32}),
     ceramic:new THREE.MeshStandardMaterial({color:0xe8e8e8,metalness:.05,roughness:.5}),
   };
-  M.piston=PISTON_HEX.map(h=>new THREE.MeshStandardMaterial({color:h,metalness:.55,roughness:.35}));
+  M.piston=PISTON_HEX.map(h=>new THREE.MeshStandardMaterial({color:h,metalness:.5,roughness:.38}));
 }
 function springMat(){
   const m=new THREE.MeshStandardMaterial({color:0x2bd879,metalness:.3,roughness:.45});
@@ -154,7 +153,6 @@ function cylBetween(p1,p2,r,mat){
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());
   return m;
 }
-// link dinâmico: cilindro unitário reposicionado a cada frame entre 2 pontos
 function makeLink(p1,p2,r,mat){
   const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,8),mat);
   setLink(m,p1,p2); return m;
@@ -231,8 +229,8 @@ function init(){
   for(let i=0;i<4;i++){
     const l=new THREE.PointLight(0xffffff,0,4,2);
     const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,opacity:0,depthWrite:false,depthTest:false}));
-    spr.renderOrder=20; spr.scale.setScalar(1.2);
-    flashes.push({l,spr,t:0});
+    spr.renderOrder=20;
+    flashes.push({l,spr,t:0,big:2.2});
   }
   buildCar();
   setModeVars();
@@ -418,6 +416,7 @@ function buildPistonCore(g){
     hex.position.set(x,5.68,0); g.add(hex);
     flashes[i].l.color.setHex(PISTON_HEX[i]);
     flashes[i].spr.material.color.setHex(PISTON_HEX[i]);
+    flashes[i].big=2.2;
     flashes[i].l.position.set(x,5.7,0);
     flashes[i].spr.position.set(x,5.47,0);
     flashes[i].l.visible=flashes[i].spr.visible=true;
@@ -431,19 +430,25 @@ function buildPistonCore(g){
   });
 }
 
-// ======================= MOTOR WANKEL =======================
+// ============ MOTOR WANKEL 3-ROTORES — CORTE ABERTO ============
 function buildWankelCore(g){
-  const WRt=WH-0.09, RHO=WRt*Math.sqrt(3);
+  const WRt=WKR-0.12, RHO=WRt*Math.sqrt(3);
+  wkRotors=[]; wkPulley=null; wkFly=null;
+
+  // perfil epitrocoide (compartilhado pelas 3 câmaras)
   const shape=new THREE.Shape();
   for(let i=0;i<=360;i++){
     const th=(i/360)*Math.PI*6;
-    const x=WE*Math.cos(th)+WH*Math.cos(th/3+Math.PI/2);
-    const y=WE*Math.sin(th)+WH*Math.sin(th/3+Math.PI/2);
+    const x=WKE*Math.cos(th)+WKR*Math.cos(th/3+Math.PI/2);
+    const y=WKE*Math.sin(th)+WKR*Math.sin(th/3+Math.PI/2);
     i===0?shape.moveTo(x,y):shape.lineTo(x,y);
   }
-  const hGeo=new THREE.ExtrudeGeometry(shape,{depth:WD,bevelEnabled:false});
-  hGeo.translate(0,0,-WD/2);
-  g.add(new THREE.Mesh(hGeo,M.housing));
+  // corte: a carcaça cobre só a metade traseira da câmara;
+  // a frente fica ABERTA mostrando o rotor colorido
+  const HD=WKD*0.52;
+  const hGeo=new THREE.ExtrudeGeometry(shape,{depth:HD,bevelEnabled:false});
+
+  // rotor Reuleaux (compartilhado, colorido por câmara)
   const V=[90,210,330].map(a=>new THREE.Vector2(WRt*Math.cos(a*Math.PI/180),WRt*Math.sin(a*Math.PI/180)));
   const rShape=new THREE.Shape();
   for(let i=0;i<3;i++){
@@ -452,49 +457,93 @@ function buildWankelCore(g){
     if(i===0)rShape.moveTo(A.x,A.y);
     rShape.absarc(C.x,C.y,RHO,a0,a1,false);
   }
-  const rGeo=new THREE.ExtrudeGeometry(rShape,{depth:WD-.25,bevelEnabled:true,bevelThickness:.03,bevelSize:.03});
-  rGeo.translate(0,0,-(WD-.25)/2);
-  wkRotor=new THREE.Mesh(rGeo,M.dark); g.add(wkRotor);
-  const gearM=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.15,.14,18),M.black);
-  gearM.rotation.x=Math.PI/2; wkRotor.add(gearM);
-  for(let i=0;i<18;i++){
-    const a=i/18*Math.PI*2;
-    const t=new THREE.Mesh(new THREE.BoxGeometry(.07,.14,.1),M.black);
-    t.position.set(Math.cos(a)*1.09,Math.sin(a)*1.09,0); t.rotation.z=a; wkRotor.add(t);
+  const RD=WKD-0.28;
+  const rGeo=new THREE.ExtrudeGeometry(rShape,{depth:RD,bevelEnabled:true,bevelThickness:.03,bevelSize:.03});
+  rGeo.translate(0,0,-RD/2);
+
+  const total=WKN*WKD+(WKN-1)*WKGAP;
+  wkHalf=total/2;
+  const z0=-wkHalf+WKD/2;
+
+  // placas de extremidade e intermediárias opacas
+  const endGeo=new THREE.CylinderGeometry(WKR+.14,WKR+.14,.16,48);
+  const midGeo=new THREE.CylinderGeometry(WKR+.12,WKR+.12,WKGAP-.04,48);
+  [-wkHalf+.08, wkHalf-.08].forEach(z=>{
+    const m=new THREE.Mesh(endGeo,M.steel); m.rotation.x=Math.PI/2;
+    m.position.z=z; g.add(m);
+  });
+  for(let i=0;i<WKN-1;i++){
+    const zg=z0+WKD/2+WKGAP/2+i*(WKD+WKGAP);
+    const m=new THREE.Mesh(midGeo,M.steel); m.rotation.x=Math.PI/2;
+    m.position.z=zg; g.add(m);
   }
-  const pinion=new THREE.Mesh(new THREE.CylinderGeometry(.58,.58,.16,12),M.white);
-  pinion.rotation.x=Math.PI/2; pinion.position.z=.02; g.add(pinion);
-  for(let i=0;i<12;i++){
-    const a=i/12*Math.PI*2;
-    const t=new THREE.Mesh(new THREE.BoxGeometry(.06,.12,.1),M.white);
-    t.position.set(Math.cos(a)*.64,Math.sin(a)*.64,.02); t.rotation.z=a; g.add(t);
-  }
-  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,3.6,18),M.steel);
+
+  // eixo excêntrico único atravessando as 3 câmaras
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,total+1.6,16),M.steel);
   shaft.rotation.x=Math.PI/2; g.add(shaft);
-  wkPulley=new THREE.Group(); wkPulley.position.z=1.85;
+
+  for(let i=0;i<WKN;i++){
+    const z=z0+i*(WKD+WKGAP);
+
+    // carcaça opaca encostada no fundo da câmara
+    const hMesh=new THREE.Mesh(hGeo,M.housing);
+    hMesh.position.z=z-(WKD-HD)/2;
+    g.add(hMesh);
+
+    // aro da boca aberta + aro traseiro (contorno da câmara)
+    const lip=new THREE.Mesh(new THREE.TorusGeometry(WKE+WKR,.055,8,72),M.steel);
+    lip.position.z=z-WKD/2+HD; g.add(lip);
+    const ring2=new THREE.Mesh(new THREE.TorusGeometry(WKE+WKR,.055,8,72),M.steel);
+    ring2.position.z=z+WKD/2; g.add(ring2);
+
+    // ROTOR colorido com marcador de giro (cubo no eixo + selos de ápice)
+    const rot=new THREE.Mesh(rGeo,M.piston[i]);
+    rot.position.z=z;
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.16,12),M.black);
+    hub.rotation.x=Math.PI/2; hub.position.z=RD/2+.02; rot.add(hub);
+    V.forEach(vv=>{
+      const seal=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),M.black);
+      seal.position.set(vv.x,vv.y,0); rot.add(seal);
+    });
+    g.add(rot);
+    wkRotors.push({mesh:rot,z,p:i*(Math.PI*2/3)});
+
+    // vela na boca da câmara
+    const plug=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8),M.ceramic);
+    plug.position.set(0,WKE+WKR+.14,z-WKD/2+HD+.1); plug.rotation.x=.45; g.add(plug);
+
+    // flash da câmara (cor do rotor), visível na boca aberta
+    flashes[i].l.color.setHex(PISTON_HEX[i]);
+    flashes[i].spr.material.color.setHex(PISTON_HEX[i]);
+    flashes[i].big=2.6;
+    flashes[i].l.position.set(0,WKE+WKR-.45,z-WKD/2+HD+.12);
+    flashes[i].spr.position.set(0,WKE+WKR-.6,z-WKD/2+HD+.15);
+    flashes[i].l.visible=flashes[i].spr.visible=true;
+    g.add(flashes[i].l,flashes[i].spr);
+  }
+  flashes[3].l.visible=flashes[3].spr.visible=false;
+
+  // polia frontal + volante traseiro
+  wkPulley=new THREE.Group(); wkPulley.position.z=wkHalf+.62;
   const pd=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.22,26),M.dark);
   pd.rotation.x=Math.PI/2; wkPulley.add(pd);
   for(let i=0;i<4;i++){
     const a=i/4*Math.PI*2;
     const h=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8),M.black);
-    h.rotation.x=Math.PI/2; h.position.set(Math.cos(a)*.5,Math.sin(a)*.5,0); wkPulley.add(h);
+    h.rotation.x=Math.PI/2;
+    h.position.set(Math.cos(a)*.5,Math.sin(a)*.5,0); wkPulley.add(h);
   }
   g.add(wkPulley);
-  [-WD/2,WD/2].forEach(z=>{
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(WH+WE,.06,8,72),M.steel);
-    ring.position.z=z; g.add(ring);
-  });
-  [.55,-.55].forEach(x=>{
-    const plug=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.5,8),M.ceramic);
-    plug.position.set(x,WH+WE+.08,.35); plug.rotation.x=.5; g.add(plug);
-  });
-  flashes[0].l.color.setHex(PISTON_HEX[1]); flashes[0].spr.material.color.setHex(PISTON_HEX[1]);
-  flashes[1].l.color.setHex(PISTON_HEX[2]); flashes[1].spr.material.color.setHex(PISTON_HEX[2]);
-  flashes[0].l.position.set(.55,3.5,.4); flashes[0].spr.position.set(.55,3.35,.45);
-  flashes[1].l.position.set(-.55,3.5,.4); flashes[1].spr.position.set(-.55,3.35,.45);
-  flashes[0].l.visible=flashes[0].spr.visible=true;
-  flashes[1].l.visible=flashes[1].spr.visible=true;
-  g.add(flashes[0].l,flashes[0].spr,flashes[1].l,flashes[1].spr);
+  wkFly=new THREE.Group(); wkFly.position.z=-wkHalf-.5;
+  const fw=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,.24,36),M.dark);
+  fw.rotation.x=Math.PI/2; wkFly.add(fw);
+  for(let i=0;i<6;i++){
+    const a=i/6*Math.PI*2;
+    const h=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.3,8),M.black);
+    h.rotation.x=Math.PI/2;
+    h.position.set(Math.cos(a)*.95,Math.sin(a)*.95,0); wkFly.add(h);
+  }
+  g.add(wkFly);
 }
 
 // ======================= CARRO =======================
@@ -514,17 +563,14 @@ function makeWheel(r,w){
   return {g,spin};
 }
 function buildRunningGear(){
-  // eixo dianteiro rígido: link dinâmico entre as duas rodas (inclinam junto)
   frontAxle=makeLink([1.22,.62,1.6],[-1.22,.62,1.6],.07,M.steel);
   wheelsGroup.add(frontAxle);
-  // diferencial fixo no chassi + semi-eixos dinâmicos
   const diff=new THREE.Mesh(new THREE.BoxGeometry(.44,.32,.36),M.steel);
   diff.position.set(0,.62,-1.8); wheelsGroup.add(diff);
   wheelsGroup.add(cylBetween([0,.34,-1.62],[0,.55,-1.72],.075,M.steel));
   hsL=makeLink([.24,.62,-1.8],[1.15,.62,-1.8],.05,M.steel);
   hsR=makeLink([-.24,.62,-1.8],[-1.15,.62,-1.8],.05,M.steel);
   wheelsGroup.add(hsL,hsR);
-  // braços + molas por canto
   corners.forEach(c=>{
     const zm=c.bz-Math.sign(c.bz)*0.55;
     c.arm=makeLink([c.bx*.38,.95,zm],[c.bx*.7,1.07,c.bz],.035,M.dark);
@@ -546,7 +592,7 @@ function buildChassis(){
   });
 }
 function buildTrans(){
-  const rear=mode==='piston'?coreBase.z-5.42*ESC:coreBase.z-(WD/2+.12)*ESC;
+  const rear=mode==='piston'?coreBase.z-5.42*ESC:coreBase.z-(wkHalf+0.12)*ESC;
   const bellZ=rear-.12, boxZ=bellZ-.3, tailZ=bellZ-.56;
   const bell=new THREE.Mesh(new THREE.CylinderGeometry(.3,.2,.24,14),M.dark);
   bell.rotation.x=Math.PI/2; bell.position.set(0,.34,bellZ); bodyInner.add(bell);
@@ -577,12 +623,12 @@ function rebuildPowertrain(){
   powerParts.forEach(p=>{ bodyInner.remove(p); disposeTree(p); });
   powerParts.length=0;
   pistons=[]; rods=[]; valveGroups=[]; springMeshes=[]; retainers=[];
-  wkRotor=wkPulley=null; fireCount=fireCountW=0;
+  wkRotors=[]; wkPulley=null; wkFly=null; fireCount=fireCountW=0;
   engineCore=new THREE.Group();
   mode==='wankel'?buildWankelCore(engineCore):buildPistonCore(engineCore);
   engineCore.traverse(o=>{ if(o.isMesh){ o.castShadow=true;
-    if(o.material===M.glass||o.material===M.housing)o.castShadow=false; } });
-  coreBase=mode==='piston'?{y:0.3,z:0.85}:{y:0.4,z:1.0};
+    if(o.material===M.glass)o.castShadow=false; } });
+  coreBase=mode==='piston'?{y:0.3,z:0.85}:{y:0.42,z:1.05};
   engineCore.scale.setScalar(ESC);
   engineCore.rotation.y=mode==='piston'?-Math.PI/2:0;
   engineCore.position.set(0,coreBase.y,coreBase.z);
@@ -596,11 +642,12 @@ function rebuildPowertrain(){
   powerParts.push(exhaustTip);
   buildTrans();
   buildCells(mode==='piston'?['P1','P2','P3','P4']:['R1','R2','R3']);
-  document.getElementById('vMode').innerText=mode==='wankel'?'ROTATIVO · WANKEL':'PISTÃO · L4';
+  document.getElementById('vMode').innerText=
+    mode==='wankel'?'ROTATIVO · 3-ROTOR':'PISTÃO · L4';
 }
 function buildCar(){
   carGroup=new THREE.Group(); scene.add(carGroup);
-  carGroup.rotation.order='YXZ';   // yaw → pitch → roll
+  carGroup.rotation.order='YXZ';
   wheelsGroup=new THREE.Group(); carGroup.add(wheelsGroup);
   bodyGroup=new THREE.Group(); bodyGroup.position.y=1.4; carGroup.add(bodyGroup);
   bodyInner=new THREE.Group(); bodyInner.position.y=-.9; bodyGroup.add(bodyInner);
@@ -627,7 +674,7 @@ function buildCar(){
   });
 }
 function setModeVars(){
-  if(mode==='wankel'){REDLINE=10500;MAXRPM=11000;}
+  if(mode==='wankel'){REDLINE=11000;MAXRPM=11500;}
   else{REDLINE=9200;MAXRPM=9600;}
   document.getElementById('redtick').style.left=(REDLINE/11500*100)+'%';
 }
@@ -658,7 +705,7 @@ function updateCells(dt){
 
 // ===================== FÍSICA =====================
 function tqCurve(){
-  return mode==='wankel'?0.7+0.55*(rpm/REDLINE):Math.max(.12,1.1-Math.pow(rpm/REDLINE,2)*.55);
+  return mode==='wankel'?0.8+0.5*(rpm/REDLINE):Math.max(.12,1.1-Math.pow(rpm/REDLINE,2)*.55);
 }
 function simulate(dt){
   clockT+=dt; thudCd-=dt;
@@ -728,7 +775,6 @@ function simulate(dt){
   dist+=Math.abs(vms)*dt;
   collide();
 
-  // ---- altura do terreno SOB CADA RODA + voo/aterrissagem ----
   const cyw=Math.cos(yaw), syw=Math.sin(yaw);
   let hSum=0;
   for(let i=0;i<4;i++){
@@ -744,9 +790,9 @@ function simulate(dt){
     const rate=(hAvgC-prevGroundY)/Math.max(dt,1e-4);
     climbRate+=(clamp(rate,-30,30)-climbRate)*Math.min(1,12*dt);
     if(hAvgC<carY-0.30&&Math.abs(kmh)>4){
-      grounded=false; vy=climbRate;          // o chão caiu — decola
+      grounded=false; vy=climbRate;
     } else {
-      carY=clamp(hAvgC, carY-1.2, carY+0.9); // chassi assenta no terreno
+      carY=clamp(hAvgC, carY-1.2, carY+0.9);
     }
     prevGroundY=hAvgC;
   }
@@ -763,26 +809,23 @@ function simulate(dt){
     }
   }
 
-  // pitch/roll do CHASSI = plano ajustado às 4 rodas
   let tpT,trT2;
   if(grounded){
     tpT=-Math.atan2(hF-hBk,3.4);
     trT2= Math.atan2(hA-hD,2.44);
   } else {
-    tpT=clamp(-vy*0.035,-.32,.32);   // no ar: rotação natural de salto
+    tpT=clamp(-vy*0.035,-.32,.32);
     trT2=tRoll;
   }
   tPitch+=(tpT-tPitch)*Math.min(1,9*dt);
   tRoll +=(trT2-tRoll)*Math.min(1,9*dt);
 
-  // dinâmica vertical (squash de aterrissagem)
   const vV=clamp((carY-prevCarY)/Math.max(dt,1e-4),-40,40);
   vvS+=(vV-vvS)*Math.min(1,12*dt);
   const aV=clamp((vvS-prevVV)/Math.max(dt,1e-4),-60,60);
   hv-=aV*0.011;
   prevVV=vvS; prevCarY=carY;
 
-  // pitch/roll dinâmicos (aceleração/canto) + heave
   const aLong=dt>0?(kmh-prevKmh)/dt/3.6:0; prevKmh=kmh;
   pitch+=(clamp(-aLong*0.016,-.06,.075)-pitch)*Math.min(1,5*dt);
   roll +=(clamp(yawRate*vms*0.05,-.08,.08)-roll)*Math.min(1,5*dt);
@@ -837,9 +880,8 @@ function checkIgnition(){
     const nf=Math.floor(totalDeg/360);
     if(nf!==fireCountW){
       fireCountW=nf;
-      const k=((fireCountW%3)+3)%3,s=fireCountW%2;
-      flashes[s].t=1;
-      if(cellEnergy[k]!==undefined)cellEnergy[k]=1;
+      const k=((fireCountW%3)+3)%3;
+      flashes[k].t=1; cellEnergy[k]=1;
     }
   }
 }
@@ -848,7 +890,7 @@ function checkIgnition(){
 function updateVisual(dt){
   carGroup.position.set(pos.x,carY,pos.z);
   carGroup.rotation.y=yaw;
-  carGroup.rotation.x=tPitch;   // chassi inclina com o terreno
+  carGroup.rotation.x=tPitch;
   carGroup.rotation.z=tRoll;
 
   if(rpm>5){
@@ -880,45 +922,42 @@ function updateVisual(dt){
       rampColor(liftEx*.95,springMeshes[v+1].material.color);
     }
   } else {
-    wkRotor.rotation.z=angle/3;
-    wkRotor.position.set(WE*Math.cos(angle),WE*Math.sin(angle),0);
-    wkPulley.rotation.z=angle;
+    for(const r of wkRotors){
+      const a=angle+r.p;
+      r.mesh.rotation.z=a/3;
+      r.mesh.position.set(WKE*Math.cos(a),WKE*Math.sin(a),r.z);
+    }
+    if(wkPulley)wkPulley.rotation.z=angle;
+    if(wkFly)wkFly.rotation.z=angle;
   }
 
-  // ---- SUSPENSÃO INDEPENDENTE: cada roda segue seu ponto do terreno ----
   suspMax=0;
   const cp=Math.cos(tPitch), sp=Math.sin(tPitch);
   const cr=Math.cos(tRoll), sr=Math.sin(tRoll);
   for(let i=0;i<4;i++){
     const c=corners[i];
-    // altura do ponto de montagem da roda no chassi inclinado
     const yMount=WHEELR*cp*cr - c.bz*sp + c.bx*sr*cp;
     let target;
     if(grounded){
-      // resíduo entre o terreno real e o plano do chassi = curso da suspensão
       target=clamp((cornerH[i]+WHEELR)-(carY+yMount), -TRAVEL_DOWN, TRAVEL_UP);
     } else {
-      target=-0.24;   // no ar: rodas em extensão (droop)
+      target=-0.24;
     }
     c.off+=(target-c.off)*Math.min(1,22*dt);
     c.g.position.y=WHEELR+c.off;
 
-    // mola: esticada entre o topo da roda e a montagem no chassi
     const bottom=c.g.position.y+0.12;
     const len=clamp(1.18-bottom, 0.14, 0.74);
     c.spring.scale.y=len/0.22;
     c.spring.position.set(c.bx*.75,bottom,c.bz);
-    const comp=clamp((0.44-len)/(0.44-0.16),0,1);   // comprimida → vermelha
+    const comp=clamp((0.44-len)/(0.44-0.16),0,1);
     rampColor(comp,c.spring.material.color);
     if(comp>suspMax)suspMax=comp;
 
-    // braçosuspend: monte fixo no chassi ↔ roda
     const zm=c.bz-Math.sign(c.bz)*0.55;
     setLink(c.arm,[c.bx*.38,.95,zm],[c.bx*.7,c.g.position.y+0.45,c.bz]);
   }
-  // eixo dianteiro acompanha as duas rodas (inclinam juntas ou separadas)
   setLink(frontAxle,[1.22,corners[0].g.position.y,1.6],[-1.22,corners[1].g.position.y,1.6]);
-  // semi-eixos traseiros mergulham conforme a roda sobe/desce
   setLink(hsL,[.24,.62,-1.8],[1.15,corners[2].g.position.y,-1.8]);
   setLink(hsR,[-.24,.62,-1.8],[-1.15,corners[3].g.position.y,-1.8]);
 
@@ -926,7 +965,6 @@ function updateVisual(dt){
   wheelSpins.forEach(s=>s.rotation.x=spinAngle);
   steerGroups.forEach(g=>g.rotation.y=steer);
 
-  // carroceria: só dinâmica (aceleração/canto/squash) — o terreno já está no chassi
   bodyGroup.rotation.x=pitch;
   bodyGroup.rotation.z=roll;
   bodyGroup.position.y=1.4+heaveOff;
@@ -939,7 +977,7 @@ function updateVisual(dt){
       f.t=Math.max(0,f.t-dt*9);
       f.l.intensity=f.t*4;
       f.spr.material.opacity=f.t*.85;
-      f.spr.scale.setScalar(.7+(1-f.t)*1.6);
+      f.spr.scale.setScalar((.7+(1-f.t)*1.6)*f.big);
     } else { f.l.intensity=0; f.spr.material.opacity=0; }
   }
 }
@@ -972,7 +1010,7 @@ function updateSmoke(dt){
   if(rpm>30&&exhaustTip){
     exhaustTip.getWorldPosition(tipV);
     const fx=Math.sin(yaw),fz=Math.cos(yaw);
-    const fireRate=Math.abs(rpm)/60*(mode==='wankel'?1:2);
+    const fireRate=Math.abs(rpm)/60*(mode==='wankel'?1.5:2);
     exAcc+=fireRate*.11*dt;
     while(exAcc>1){
       exAcc-=1;
@@ -1074,7 +1112,7 @@ function makeEngineWave(){
 function schedule(){
   if(!AC)return;
   const now=AC.currentTime;
-  const f=Math.max(Math.abs(rpm)/60*(mode==='wankel'?1:2),.5);
+  const f=Math.max(Math.abs(rpm)/60*(mode==='wankel'?1.5:2),.5);
   const combusting=phase==='run'&&!cutNow&&f>1;
   const compressing=phase==='crank'||(phase==='stop'&&Math.abs(rpm)>60);
   if(combusting||compressing){
