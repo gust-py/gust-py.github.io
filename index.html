@@ -1056,10 +1056,11 @@ const statsIO = new IntersectionObserver((entries) => {
 if (statsSection) statsIO.observe(statsSection);
 
 /* =====================================================
-   BLACK HOLE — Schwarzschild simulation
-   Units: G = M = c = 1  →  rs = 2, photon sphere = 3, ISCO = 6
-   Disk: Keplerian ω(r) = √(GM/r³), Doppler beaming δ³,
-   lensing: far side of disk mapped over the shadow (b_crit arc)
+   BLACK HOLE — volumetric depth render
+   - disk drawn as perspective elliptical orbital rings
+   - additive blending = real light accumulation
+   - lensed far side wraps ABOVE/BEHIND the shadow
+   - slow camera drift for parallax depth
    ===================================================== */
 (() => {
   const canvas = document.getElementById('bhCanvas');
@@ -1074,61 +1075,196 @@ if (statsSection) statsIO.observe(statsSection);
   fit();
   window.addEventListener('resize', fit);
 
-  // --- physical scales (screen units) ---
-  const RS = 42;                              // Schwarzschild radius on screen
-  const R_PH = 1.5 * RS;                      // photon sphere = 1.5 rs
-  const B_CRIT = Math.sqrt(27) / 2 * RS;      // apparent shadow radius ≈ 2.598 rs
-  const ISCO = 3 * RS;                        // innermost stable circular orbit
+  const RS = 30;
+  const B_CRIT = Math.sqrt(27) / 2 * RS;   // ~2.6 rs shadow
+  const R_IN = 2.2 * RS;                    // disk inner edge
+  const R_OUT = 10 * RS;                    // disk outer edge
+  const RINGS = 46;                         // orbital rings = depth layers
+  const TILT = 0.16;                        // edge-on tilt (radians)
 
-  // starfield
-  const stars = Array.from({length: 160}, () => ({
-    x: Math.random(), y: Math.random(), b: Math.random() * .7 + .15
-  }));
+  // RGB bands assigned by radius: inner=X red, mid=Y green, outer=Z blue
+  function bandColor(t, boost = 0) {
+    // t: 0 inner → 1 outer
+    let r, g, b;
+    if (t < 0.33) {            // inner — hot red/white core
+      const u = t / 0.33;
+      r = 255; g = 120 + u * 60; b = 90 + u * 30;
+    } else if (t < 0.66) {     // mid — green
+      const u = (t - 0.33) / 0.33;
+      r = 60 + (1 - u) * 80; g = 220; b = 90 + u * 60;
+    } else {                   // outer — blue
+      const u = (t - 0.66) / 0.34;
+      r = 50; g = 120 - u * 40; b = 255;
+    }
+    return [Math.min(r + boost, 255), Math.min(g + boost, 255), Math.min(b + boost, 255)];
+  }
 
-  // --- accretion disk particles ---
-  const N = 1100;
-  const disk = [];
-  for (let i = 0; i < N; i++) {
-    const u = Math.random();
-    const r = ISCO + (14 * RS - ISCO) * Math.pow(u, 1.7);
-    disk.push({
-      r,
-      ang: Math.random() * Math.PI * 2,
-      // Keplerian angular velocity: ω = √(GM/r³), GM = 1
-      w: Math.sqrt(1 / (r * r * r)),
-      drift: (Math.random() - .5) * .002,
-      z: (Math.random() - .5) * RS * .28 * (1 - (r - ISCO) / (14 * RS - ISCO) + .3),
-      hue: Math.random()
+  // precompute ring segments: each ring is a full orbit with brightness noise
+  const rings = [];
+  for (let i = 0; i < RINGS; i++) {
+    const t = i / (RINGS - 1);
+    const r = R_IN + (R_OUT - R_IN) * Math.pow(t, 1.35);
+    const segs = 90;
+    const noise = [];
+    for (let s = 0; s < segs; s++) {
+      // clumpy brightness — two sine waves = turbulent filaments
+      noise.push(
+        .55 + .45 * Math.sin(s / segs * Math.PI * 8 + i * 1.7) * Math.sin(s / segs * Math.PI * 3 + i * .6)
+      );
+    }
+    rings.push({
+      r, t,
+      segs, noise,
+      // Keplerian: inner rings spin much faster
+      speed: Math.sqrt(1 / (r * r * r)) * 900,
+      phase: i * .35
     });
   }
 
-  const INCL = 1.42; // disk tilt (rad) — near edge-on, like Gargantua
+  // background stars
+  const stars = Array.from({length: 200}, () => ({
+    x: Math.random(), y: Math.random(),
+    b: Math.random() * .7 + .1, tw: Math.random() * 6.28
+  }));
+
   let frame = 0;
 
   function draw() {
     const w = canvas.width, h = canvas.height;
-    const cx = w / 2, cy = h / 2 + h * .04;
-    const S = Math.min(w, h) / 340;
-    const rs = RS * S, rph = R_PH * S, bcrit = B_CRIT * S;
+    // slow camera drift → parallax
+    const camX = Math.sin(frame * .002) * w * .015;
+    const camY = Math.cos(frame * .0015) * h * .01;
+    const cx = w / 2 + camX, cy = h / 2 + camY;
+    const S = Math.min(w, h) / 300;
+    const bcrit = B_CRIT * S;
 
-    // background
+    ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, w, h);
 
-    // stars with crude deflection near the shadow
+    // faint starfield
     for (const st of stars) {
-      let sx = st.x * w, sy = st.y * h;
-      const dx = sx - cx, dy = sy - cy;
-      const d = Math.hypot(dx, dy);
-      if (d < bcrit * 2.2 && d > 0) {
-        const push = (bcrit * 2.2 - d) * .9;
-        sx += dx / d * push; sy += dy / d * push;
-      }
-      if (Math.hypot(sx - cx, sy - cy) > bcrit) {
-        ctx.fillStyle = `rgba(255,255,255,${st.b * .55})`;
-        ctx.fillRect(sx, sy, 1.4 * S, 1.4 * S);
+      const sx = st.x * w, sy = st.y * h;
+      if (Math.hypot(sx - cx, sy - cy) < bcrit * 1.02) continue;
+      const tw = .5 + .5 * Math.sin(frame * .03 + st.tw);
+      ctx.fillStyle = `rgba(255,255,255,${st.b * (.3 + .3 * tw)})`;
+      ctx.fillRect(sx, sy, 1.2 * S, 1.2 * S);
+    }
+
+    // ===== additive light mode from here on =====
+    ctx.globalCompositeOperation = 'lighter';
+
+    // ---- AMBIENT CORE GLOW (volumetric, breathes with RGB cycle) ----
+    const cyc = (frame * .006) % 3;
+    const ci = Math.floor(cyc), cf = cyc - ci;
+    const mix = (a, b) => a + (b - a) * cf;
+    const RGB = [[255,59,59],[74,222,74],[59,130,255]];
+    const c0 = RGB[ci], c1 = RGB[(ci + 1) % 3];
+    const pulse = .5 + .5 * Math.sin(frame * .02);
+
+    let glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R_OUT * S * 1.1);
+    glow.addColorStop(0, `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},${.28 + .1 * pulse})`);
+    glow.addColorStop(.35, `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},.10)`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+
+    // ---- helper: project a disk point (r, angle) to screen with tilt ----
+    function project(r, ang) {
+      const px = Math.cos(ang) * r;
+      const pz = Math.sin(ang) * r;
+      const y3 = pz * Math.sin(TILT);        // vertical squash = perspective depth
+      const z3 = pz * Math.cos(TILT);        // depth toward/away camera
+      const persp = 1 / (1 + z3 / (R_OUT * 6)); // slight perspective falloff
+      return { x: cx + px * S * persp, y: cy + y3 * S * persp, depth: z3 };
+    }
+
+    // ---- LENSED FAR-SIDE HALO: the ring image wrapping over/under shadow ----
+    // drawn first so the disk renders in front of it
+    for (let pass = 0; pass < 2; pass++) {
+      // pass 0 = upper arc (primary image), pass 1 = lower arc (secondary)
+      for (const ring of rings) {
+        const [rr, gg, bb] = bandColor(ring.t);
+        const alpha = (pass === 0 ? .30 : .13) * (1 - ring.t * .55);
+        ctx.strokeStyle = `rgba(${rr},${gg},${bb},${alpha})`;
+        ctx.lineWidth = (1.4 + (1 - ring.t) * 2.2) * S;
+        const haloR = bcrit * (1.03 + ring.t * .30);
+        const squash = pass === 0 ? .42 : .22;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + (pass === 0 ? -bcrit * .30 : bcrit * .16),
+                    haloR, haloR * squash, 0,
+                    pass === 0 ? Math.PI : 0,
+                    pass === 0 ? Math.PI * 2 : Math.PI);
+        ctx.stroke();
       }
     }
+
+    // ---- THE DISK: concentric orbital rings, back-to-front ----
+    // sort rings by average depth: far (top of ellipse) first, near last
+    for (const ring of rings) {
+      const [rr, gg, bb] = bandColor(ring.t);
+      const spin = ring.phase + frame * .001 * ring.speed;
+
+      // draw each ring as a continuous polyline, split at the shadow:
+      // segments behind hole (sin > 0 = far side) would be lensed — here the
+      // far half is hidden behind the horizon, near half passes in front.
+      let prev = null;
+      for (let s = 0; s <= ring.segs; s++) {
+        const a = spin + (s / ring.segs) * Math.PI * 2;
+        const pt = project(ring.r, a);
+        if (prev) {
+          const bright = ring.noise[s % ring.segs];
+          // Doppler: approaching side (left) brighter
+          const dop = 1 + .9 * Math.max(0, -Math.sin(a));
+          const farSide = pt.depth > 0;
+          // far half dims (goes behind / gets lensed away)
+          const depthFade = farSide ? .28 : 1;
+          const alpha = Math.min(.85 * bright * dop * depthFade * (1 - ring.t * .5), .95);
+          ctx.strokeStyle = `rgba(${rr},${gg},${bb},${alpha})`;
+          ctx.lineWidth = (1 + (1 - ring.t) * 2.6) * S * (farSide ? .6 : 1);
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(pt.x, pt.y);
+          ctx.stroke();
+        }
+        prev = pt;
+      }
+    }
+
+    // ---- INNER BLAZE: white-hot ring right at the shadow edge ----
+    const blaze = ctx.createRadialGradient(cx, cy, bcrit * .98, cx, cy, bcrit * 1.5);
+    blaze.addColorStop(0, `rgba(255,235,225,${.5 + .15 * pulse})`);
+    blaze.addColorStop(.4, `rgba(255,150,120,${.22 + .08 * pulse})`);
+    blaze.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = blaze;
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.5, 0, 7); ctx.fill();
+
+    // ---- PHOTON RING: razor thin, RGB cycling, strong bloom ----
+    ctx.save();
+    ctx.shadowBlur = 34 * S;
+    ctx.shadowColor = `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},1)`;
+    ctx.strokeStyle = `rgba(255,250,245,.9)`;
+    ctx.lineWidth = 1.6 * S;
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.005, 0, 7); ctx.stroke();
+    ctx.restore();
+
+    // ---- EVENT HORIZON: pure black, kills all light inside ----
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit, 0, 7); ctx.fill();
+
+    // subtle rim right at horizon edge (light bending around it)
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},.25)`;
+    ctx.lineWidth = .8 * S;
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit + .5, 0, 7); ctx.stroke();
+
+    ctx.globalCompositeOperation = 'source-over';
+    frame++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 
     // ---------- DISK ----------
     const far = [], near = [];
