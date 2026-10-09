@@ -4,15 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>gust-py — Roblox Builder & Scripter</title>
-<meta name="description" content="gust-py — Roblox Builder & Scripter. Realistic car chassis, suspensions, grab systems and immersive experiences. Currently building A Lost Drive.">
+<meta name="description" content="gust-py — Roblox Builder & Scripter. Realistic car chassis, functional suspensions, grab systems, procedural terrain and immersive experiences. Currently building A Lost Drive.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-/* =====================================================
-   TOKENS — pure black canvas, vibrant orange accents
-   ===================================================== */
 :root{
   --bg:#000000;
   --surface:#0A0A0A;
@@ -113,6 +110,7 @@ img,svg{max-width:100%; display:block;}
 }
 .hero-title .sep{color:var(--orange); margin:0 8px;}
 .hero-bio{max-width:540px; font-size:16.5px; line-height:1.75; color:var(--text-dim); opacity:0; animation:fadeUp .9s .5s forwards;}
+.hero-bio strong{color:var(--text); font-weight:600;}
 .hero-actions{display:flex; gap:16px; margin-top:36px; flex-wrap:wrap; opacity:0; animation:fadeUp .9s .65s forwards;}
 @keyframes fadeUp{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
 
@@ -124,7 +122,7 @@ img,svg{max-width:100%; display:block;}
 .btn:hover{transform:translateY(-3px);}
 .btn svg{width:14px; height:14px;}
 
-/* Hero visual — glowing wheel / build core */
+/* Hero visual — wireframe wheel */
 .hero-visual{position:relative; aspect-ratio:1/1.05; opacity:0; animation:fadeUp 1s .4s forwards;}
 .radar-ring{position:absolute; border-radius:50%; border:1px solid var(--border);}
 .radar-ring.r1{inset:0;}
@@ -176,7 +174,6 @@ section{padding:120px 0; position:relative;}
 .about-copy p{font-size:16.5px; line-height:1.85; color:var(--text-dim); margin-bottom:18px;}
 .about-copy strong{color:var(--text); font-weight:600;}
 
-/* AVATAR CARD */
 .portrait-card{position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow-card); background:var(--surface-2); transition:transform .35s, box-shadow .35s;}
 .portrait-card:hover{transform:translateY(-5px); box-shadow:var(--shadow-card-hover);}
 .portrait-card .frame{position:relative; aspect-ratio:3/4; overflow:hidden; display:flex; align-items:center; justify-content:center;}
@@ -281,8 +278,8 @@ section{padding:120px 0; position:relative;}
   aspect-ratio:4/3; border-radius:18px; border:1px solid var(--border); position:relative; overflow:hidden;
   background:linear-gradient(160deg, var(--surface-2), var(--surface)); box-shadow:var(--shadow-card);
 }
-.project-panel .scan{position:absolute; inset:0; opacity:.9;}
-.project-panel .tag-corner{position:absolute; top:16px; left:16px; font-family:var(--font-mono); font-size:10px; color:var(--text-faint); letter-spacing:.06em; background:rgba(0,0,0,.7); padding:5px 10px; border-radius:999px; border:1px solid var(--border);}
+.project-panel .scan{position:absolute; inset:0; opacity:.95;}
+.project-panel .tag-corner{position:absolute; top:16px; left:16px; font-family:var(--font-mono); font-size:10px; color:var(--text-faint); letter-spacing:.06em; background:rgba(0,0,0,.7); padding:5px 10px; border-radius:999px; border:1px solid var(--border); z-index:3;}
 .project-main h3{font-family:var(--font-display); font-size:25px; font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
 .badge{font-family:var(--font-mono); font-size:10px; padding:4px 10px; border-radius:999px; letter-spacing:.04em; background:var(--orange-soft); color:var(--orange); border:1px solid rgba(255,107,0,.4);}
 .project-desc{color:var(--text-dim); font-size:15px; line-height:1.75; margin:14px 0 18px; max-width:520px;}
@@ -338,10 +335,11 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         <h1>From <span class="dim">parts</span><br>to <span class="grad-text">machines</span>.</h1>
         <div class="hero-title">gust-py <span class="sep">/</span> Roblox Builder &nbsp;&amp;&nbsp; Scripter</div>
         <p class="hero-bio">
-          I build and script realistic vehicles and interactive systems on Roblox —
-          functional suspensions, detailed car chassis, physics-driven grab systems
-          with working arms. Currently building <strong>A Lost Drive</strong>, a desert
-          trip game. I'm always pushing for more realism, and always willing to learn more.
+          I build and script realistic systems on Roblox — <strong>functional car
+          chassis and suspensions</strong>, <strong>super-realistic procedural terrain</strong>,
+          and physics-driven <strong>grab systems with working arms</strong>. Currently
+          building <strong>A Lost Drive</strong>, a desert trip game. Always pushing for
+          realism, always willing to learn more.
         </p>
         <div class="hero-actions">
           <a href="#projects" class="btn btn-solid magnetic">View my work</a>
@@ -371,15 +369,15 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
     <span><b>Luau</b> Scripting</span>
     <span><b>Car Chassis</b> Realistic Physics</span>
     <span><b>Suspensions</b> Functional Builds</span>
+    <span><b>Procedural Terrain</b> Super Realistic</span>
     <span><b>Grab Systems</b> Working Arms</span>
     <span><b>Building</b> Detailed Maps</span>
-    <span><b>Game Design</b> Immersion</span>
     <span><b>Luau</b> Scripting</span>
     <span><b>Car Chassis</b> Realistic Physics</span>
     <span><b>Suspensions</b> Functional Builds</span>
+    <span><b>Procedural Terrain</b> Super Realistic</span>
     <span><b>Grab Systems</b> Working Arms</span>
     <span><b>Building</b> Detailed Maps</span>
-    <span><b>Game Design</b> Immersion</span>
   </div>
 </div>
 
@@ -418,8 +416,8 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
           <div class="label">CAR CHASSIS BUILT</div>
         </div>
         <div class="stat-brick">
-          <div class="num" id="statSusp">0<small>+</small></div>
-          <div class="label">FUNCTIONAL SUSPENSIONS</div>
+          <div class="num" id="statTerrain">0</div>
+          <div class="label">PROCEDURAL TERRAIN SYSTEMS</div>
         </div>
         <div class="stat-brick">
           <div class="num" id="statGame">1</div>
@@ -428,18 +426,18 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
       </div>
 
       <div class="about-copy reveal">
-        <p>I'm <strong>gust-py</strong>, a Roblox <strong>Builder &amp; Scripter</strong> focused
-        on realism. My specialty is vehicles: <strong>realistic car chassis</strong> and
-        <strong>functional suspensions</strong> that actually react to terrain, not just
-        static decorations bolted onto a body.</p>
-        <p>I've also shipped a <strong>realistic grab system with fully functional arms</strong> —
-        physics-driven, character-aware, and built to feel natural instead of floaty.
-        On the building side, I care about detail: surfaces that tell a story, maps with
-        atmosphere, environments that make players feel like they're somewhere real.</p>
-        <p>Right now I'm developing <strong>A Lost Drive</strong>, a desert trip game — an
-        atmospheric drive through the dunes where the vehicle, the environment and the
-        mood are the whole experience. And I'm always open to learning more:
-        every system I build teaches me something new.</p>
+        <p>I'm <strong>gust-py</strong>, a Roblox <strong>Builder &amp; Scripter</strong> obsessed
+        with realism. My specialty is vehicles: <strong>realistic car chassis</strong> and
+        <strong>functional suspensions</strong> that actually react to terrain — not static
+        decorations bolted onto a body.</p>
+        <p>I've also developed a <strong>super-realistic procedural terrain system</strong> —
+        endless, naturally generated landscapes with realistic dunes, slopes and surface
+        detail. Combined with a <strong>realistic grab system with fully functional arms</strong>,
+        my systems are built to feel physical and alive.</p>
+        <p>Right now I'm developing <strong>A Lost Drive</strong>, a desert trip game —
+        an atmospheric drive through procedurally generated dunes where the vehicle,
+        the terrain and the mood are the whole experience. And I'm always open to
+        learning more: every system teaches me something new.</p>
       </div>
     </div>
   </div>
@@ -449,7 +447,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 <section id="focus">
   <div class="container">
     <div class="section-tag" style="justify-content:center;">CORE FOCUS</div>
-    <h2 class="section-title reveal" style="margin:0 auto; text-align:center;">The four things I actually build</h2>
+    <h2 class="section-title reveal" style="margin:0 auto; text-align:center;">The things I actually build</h2>
 
     <div class="ring-wrap reveal">
       <div class="ring-glow"></div>
@@ -466,12 +464,12 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         <p>Functional suspension systems that compress, rebound and react to every bump in the terrain.</p>
       </div>
       <div class="ring-node n3">
-        <h4>GRAB SYSTEMS</h4>
-        <p>Realistic grabbing with fully functional arms — physics-driven interaction between characters and the world.</p>
+        <h4>PROCEDURAL TERRAIN</h4>
+        <p>Super-realistic, endless generated landscapes — natural dunes, slopes and surface detail, no hand-sculpting needed.</p>
       </div>
       <div class="ring-node n4">
-        <h4>BUILDING &amp; MAPS</h4>
-        <p>Detailed, atmospheric environments — from desert dunes to full-scale locations with mood and story.</p>
+        <h4>GRAB SYSTEMS</h4>
+        <p>Realistic grabbing with fully functional arms — physics-driven interaction between characters and the world.</p>
       </div>
     </div>
 
@@ -482,19 +480,19 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
       </div>
       <div class="skill-card reveal">
         <h3>VEHICLES</h3>
-        <div class="skill-tags"><span>Car Chassis</span><span>Functional Suspensions</span><span>Vehicle Physics</span><span>ConstraintBased Builds</span><span>Wheel Systems</span></div>
+        <div class="skill-tags"><span>Car Chassis</span><span>Functional Suspensions</span><span>Vehicle Physics</span><span>Constraint-Based Builds</span><span>Wheel Systems</span></div>
+      </div>
+      <div class="skill-card reveal">
+        <h3>PROCEDURAL GENERATION</h3>
+        <div class="skill-tags"><span>Procedural Terrain</span><span>Noise / Perlin</span><span>Mesh Deformation</span><span>Chunk Systems</span><span>LOD</span></div>
       </div>
       <div class="skill-card reveal">
         <h3>INTERACTION SYSTEMS</h3>
         <div class="skill-tags"><span>Grab Systems</span><span>Functional Arms</span><span>Physics Interaction</span><span>Character Mechanics</span></div>
       </div>
       <div class="skill-card reveal">
-        <h3>BUILDING</h3>
-        <div class="skill-tags"><span>Studio Building</span><span>Terrain</span><span>Lighting &amp; Atmosphere</span><span>Level Design</span><span>Detail Work</span></div>
-      </div>
-      <div class="skill-card reveal">
-        <h3>GAME DESIGN</h3>
-        <div class="skill-tags"><span>Immersion</span><span>Game Feel</span><span>Balance</span><span>World Building</span></div>
+        <h3>BUILDING &amp; DESIGN</h3>
+        <div class="skill-tags"><span>Studio Building</span><span>Lighting &amp; Atmosphere</span><span>Level Design</span><span>Immersion</span><span>Game Feel</span></div>
       </div>
       <div class="skill-card reveal">
         <h3>TOOLS</h3>
@@ -519,6 +517,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
           <ul>
             <li>Developed <strong>realistic car chassis</strong> with physics tuned for weight transfer, grip and believable handling.</li>
             <li>Built <strong>visual &amp; functional suspensions</strong> that compress, extend and react to terrain in real time.</li>
+            <li>Created a <strong>super-realistic procedural terrain system</strong> generating natural, endless landscapes.</li>
             <li>Shipped a <strong>realistic grab system with working arms</strong> — full character interaction driven by physics.</li>
             <li>Currently developing <strong>A Lost Drive</strong>, a desert trip game focused on atmosphere and the driving experience.</li>
           </ul>
@@ -536,55 +535,249 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 
     <div class="projects-list">
 
+      <!-- A LOST DRIVE — detailed desert scene with truck -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">IN DEVELOPMENT</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#FF4500" stop-opacity=".6"/>
-                <stop offset="100%" stop-color="#FF6B00" stop-opacity=".25"/>
+              <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#1A0A00"/>
+                <stop offset="55%" stop-color="#3D1400"/>
+                <stop offset="80%" stop-color="#FF4500" stop-opacity=".55"/>
+                <stop offset="100%" stop-color="#FF8C1A" stop-opacity=".8"/>
               </linearGradient>
+              <linearGradient id="duneG1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#7A2E00" stop-opacity=".85"/>
+                <stop offset="100%" stop-color="#2B1000"/>
+              </linearGradient>
+              <linearGradient id="duneG2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#4A1B00" stop-opacity=".9"/>
+                <stop offset="100%" stop-color="#140800"/>
+              </linearGradient>
+              <radialGradient id="sunG" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#FFD9A0"/>
+                <stop offset="45%" stop-color="#FF8C1A"/>
+                <stop offset="100%" stop-color="#FF4500" stop-opacity="0"/>
+              </radialGradient>
             </defs>
-            <rect width="400" height="300" fill="#0A0A0A"/>
-            <circle cx="330" cy="50" r="26" fill="#FF6B00" opacity=".7"/>
-            <path d="M0 240 Q100 200 200 230 T400 210 L400 300 L0 300 Z" fill="url(#g1)" opacity=".8"/>
-            <path d="M60 240 Q90 190 140 210 L120 240 Z" fill="#141414" stroke="#262626"/>
-            <rect x="130" y="196" width="90" height="26" rx="8" fill="#1A1A1A" stroke="#FF6B00" stroke-width="1.2"/>
-            <circle cx="150" cy="228" r="14" fill="#0A0A0A" stroke="#FF6B00" stroke-width="1.5"/>
-            <circle cx="200" cy="228" r="14" fill="#0A0A0A" stroke="#FF6B00" stroke-width="1.5"/>
-            <line x1="20" y1="60" x2="40" y2="60" stroke="#FF6B00" stroke-width="2" opacity=".5"/>
-            <line x1="80" y1="40" x2="105" y2="40" stroke="#FF6B00" stroke-width="2" opacity=".3"/>
+            <rect width="400" height="300" fill="url(#skyG)"/>
+            <!-- stars -->
+            <g fill="#FFD9A0" opacity=".5">
+              <circle cx="40" cy="30" r="1"/><circle cx="90" cy="50" r="1"/><circle cx="150" cy="25" r="1.4"/>
+              <circle cx="220" cy="45" r="1"/><circle cx="300" cy="28" r="1.3"/><circle cx="360" cy="60" r="1"/>
+              <circle cx="120" cy="70" r="1"/><circle cx="260" cy="80" r="1"/>
+            </g>
+            <!-- sun with glow rings -->
+            <circle cx="200" cy="195" r="70" fill="url(#sunG)" opacity=".5"/>
+            <circle cx="200" cy="195" r="34" fill="#FF8C1A"/>
+            <circle cx="200" cy="195" r="34" fill="none" stroke="#FFD9A0" stroke-width="1" opacity=".6"/>
+            <!-- sun stripes (retro) -->
+            <g stroke="#1A0A00" stroke-width="2.5" opacity=".7">
+              <line x1="166" y1="188" x2="234" y2="188"/>
+              <line x1="164" y1="196" x2="236" y2="196"/>
+              <line x1="164" y1="204" x2="236" y2="204"/>
+              <line x1="168" y1="212" x2="232" y2="212"/>
+            </g>
+            <!-- distant dunes -->
+            <path d="M0 205 Q80 180 160 202 T320 195 Q370 190 400 200 L400 300 L0 300 Z" fill="url(#duneG1)"/>
+            <path d="M0 235 Q60 215 130 232 T280 226 Q340 222 400 232 L400 300 L0 300 Z" fill="url(#duneG2)"/>
+            <!-- dune ridge highlights -->
+            <path d="M0 205 Q80 180 160 202" stroke="#FF8C1A" stroke-width="1.4" fill="none" opacity=".7"/>
+            <path d="M0 235 Q60 215 130 232" stroke="#FF6B00" stroke-width="1.2" fill="none" opacity=".5"/>
+            <!-- cactus silhouettes -->
+            <g fill="#140800">
+              <path d="M58 226 v-20 q0 -4 4 -4 q4 0 4 4 v20 z M54 214 q-5 0 -5 -6 q0 -4 3 -4 v10 z M70 212 q5 0 5 -7 q0 -4 -3 -4 v11 z"/>
+              <path d="M330 236 v-14 q0 -3 3 -3 q3 0 3 3 v14 z" opacity=".8"/>
+            </g>
+            <!-- truck body -->
+            <g>
+              <!-- cab -->
+              <path d="M148 232 v-30 q0 -6 6 -6 h34 l14 16 h28 q8 0 8 8 v12 z" fill="#0A0A0A" stroke="#FF6B00" stroke-width="1.6"/>
+              <!-- bed -->
+              <rect x="238" y="216" width="42" height="16" rx="3" fill="#0A0A0A" stroke="#FF6B00" stroke-width="1.4"/>
+              <!-- windows -->
+              <path d="M156 204 h26 l10 12 h-36 z" fill="#FF8C1A" opacity=".35"/>
+              <!-- headlights on -->
+              <circle cx="146" cy="226" r="3.5" fill="#FFD9A0"/>
+              <!-- light beam -->
+              <polygon points="143,226 90,240 90,222" fill="#FFD9A0" opacity=".18"/>
+              <!-- suspension visible -->
+              <path d="M162 232 q3 8 0 14" stroke="#FF8C1A" stroke-width="2" fill="none"/>
+              <path d="M204 232 q-3 8 0 14" stroke="#FF8C1A" stroke-width="2" fill="none"/>
+              <!-- wheels -->
+              <circle cx="164" cy="248" r="13" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
+              <circle cx="164" cy="248" r="5" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
+              <circle cx="214" cy="248" r="13" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
+              <circle cx="214" cy="248" r="5" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
+              <!-- wheel motion dust -->
+              <g fill="#FF6B00" opacity=".3">
+                <circle cx="146" cy="256" r="3"/><circle cx="138" cy="260" r="4"/><circle cx="128" cy="262" r="5"/>
+              </g>
+            </g>
+            <!-- road dashes -->
+            <g stroke="#FF6B00" stroke-width="2" opacity=".35" stroke-dasharray="12 14">
+              <line x1="0" y1="278" x2="400" y2="278"/>
+            </g>
+            <!-- foreground sand texture -->
+            <g stroke="#FF6B00" opacity=".18" stroke-width="1">
+              <path d="M0 262 q40 4 80 0" fill="none"/>
+              <path d="M200 270 q50 5 110 -1" fill="none"/>
+              <path d="M60 284 q60 5 130 0" fill="none"/>
+            </g>
           </svg>
         </div>
         <div class="project-main">
           <h3>A Lost Drive <span class="badge">FLAGSHIP</span></h3>
           <p class="project-desc">
-            A desert trip game — an atmospheric drive across endless dunes, where the
-            vehicle, the environment and the mood are the whole experience. Built on a
-            realistic chassis with functional suspension, immersive lighting, and a
-            world designed to feel lonely, vast and alive at the same time.
+            A desert trip game — an atmospheric drive across endless, procedurally
+            generated dunes, where the vehicle, the terrain and the mood are the whole
+            experience. Built on a realistic chassis with functional suspension, on top
+            of a super-realistic procedural terrain system, with immersive lighting and
+            a world designed to feel lonely, vast and alive at the same time.
           </p>
-          <div class="project-tags"><span>Luau</span><span>Car Chassis</span><span>Suspension</span><span>Building</span><span>Atmosphere</span></div>
+          <div class="project-tags"><span>Luau</span><span>Car Chassis</span><span>Suspension</span><span>Procedural Terrain</span><span>Atmosphere</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">Follow on Roblox ↗</a>
         </div>
       </div>
 
+      <!-- PROCEDURAL TERRAIN — wireframe landscape -->
       <div class="project-row rev reveal">
+        <div class="project-panel">
+          <div class="tag-corner">PROCEDURAL GENERATION</div>
+          <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="terG" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FF8C1A" stop-opacity=".08"/>
+                <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <rect width="400" height="300" fill="url(#terG)"/>
+            <!-- grid horizon lines -->
+            <g stroke="#262626" stroke-width="1">
+              <line x1="0" y1="60" x2="400" y2="60"/>
+              <line x1="0" y1="52" x2="400" y2="52" opacity=".4"/>
+            </g>
+            <!-- wireframe terrain — back rows -->
+            <g stroke="#3D1400" stroke-width="1" fill="none">
+              <polyline points="0,110 40,102 80,112 120,98 160,108 200,92 240,106 280,96 320,110 360,100 400,108"/>
+              <polyline points="0,125 40,118 80,130 120,114 160,126 200,108 240,124 280,112 320,128 360,116 400,124"/>
+              <polyline points="0,142 40,136 80,148 120,132 160,144 200,126 240,142 280,130 320,146 360,134 400,142"/>
+            </g>
+            <!-- wireframe terrain — mid rows, brighter -->
+            <g stroke="#7A2E00" stroke-width="1.2" fill="none">
+              <polyline points="0,162 40,154 80,168 120,150 160,164 200,144 240,160 280,148 320,166 360,152 400,160"/>
+              <polyline points="0,184 40,176 80,190 120,170 160,186 200,164 240,182 280,168 320,188 360,172 400,180"/>
+            </g>
+            <!-- wireframe terrain — front rows, full orange -->
+            <g stroke="#FF6B00" stroke-width="1.5" fill="none">
+              <polyline points="0,210 40,200 80,216 120,194 160,212 200,186 240,206 280,190 320,212 360,194 400,204"/>
+              <polyline points="0,240 40,228 80,248 120,222 160,244 200,214 240,238 280,218 320,244 360,222 400,234"/>
+              <polyline points="0,276 40,262 80,286 120,256 160,280 200,248 240,274 280,252 320,280 360,256 400,270"/>
+            </g>
+            <!-- vertical connector lines on front row -->
+            <g stroke="#FF4500" stroke-width=".8" opacity=".45">
+              <line x1="40" y1="228" x2="40" y2="262"/>
+              <line x1="80" y1="248" x2="80" y2="286"/>
+              <line x1="120" y1="222" x2="120" y2="256"/>
+              <line x1="160" y1="244" x2="160" y2="280"/>
+              <line x1="200" y1="214" x2="200" y2="248"/>
+              <line x1="240" y1="238" x2="240" y2="274"/>
+              <line x1="280" y1="218" x2="280" y2="252"/>
+              <line x1="320" y1="244" x2="320" y2="280"/>
+            </g>
+            <!-- glowing peak nodes -->
+            <g fill="#FF8C1A">
+              <circle cx="200" cy="248" r="3"/>
+              <circle cx="200" cy="186" r="2.4"/>
+              <circle cx="200" cy="126" r="1.8" opacity=".7"/>
+            </g>
+            <circle cx="200" cy="248" r="8" fill="none" stroke="#FF6B00" stroke-width="1" opacity=".5"/>
+            <!-- noise annotation -->
+            <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">
+              <text x="16" y="44">PERLIN NOISE · CHUNKED GENERATION</text>
+              <text x="16" y="78">HEIGHTMAP → MESH</text>
+            </g>
+            <line x1="16" y1="84" x2="120" y2="84" stroke="#262626" stroke-width="1"/>
+            <!-- scanning beam -->
+            <line x1="200" y1="60" x2="200" y2="110" stroke="#FF8C1A" stroke-width="1" opacity=".5" stroke-dasharray="3 4"/>
+          </svg>
+        </div>
+        <div class="project-main">
+          <h3>Procedural Terrain System <span class="badge">TERRAIN</span></h3>
+          <p class="project-desc">
+            A super-realistic procedural terrain generator — endless natural landscapes
+            with smooth dunes, believable slopes and detailed surfaces, built from
+            noise-based heightmaps converted into mesh. Chunked generation keeps
+            performance high while the world stays seamless and infinite.
+          </p>
+          <div class="project-tags"><span>Luau</span><span>Noise / Perlin</span><span>Mesh Deformation</span><span>Chunks</span></div>
+          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
+        </div>
+      </div>
+
+      <!-- CAR CHASSIS — technical blueprint style -->
+      <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">VEHICLE PHYSICS</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
             <rect width="400" height="300" fill="#0A0A0A"/>
-            <rect x="110" y="150" width="180" height="40" rx="10" fill="#141414" stroke="#FF6B00" stroke-width="1.5"/>
-            <rect x="145" y="120" width="100" height="34" rx="8" fill="#1A1A1A" stroke="#FF6B00" stroke-width="1.2"/>
-            <line x1="150" y1="190" x2="150" y2="222" stroke="#FF8C1A" stroke-width="2"/>
-            <line x1="250" y1="190" x2="250" y2="222" stroke="#FF8C1A" stroke-width="2"/>
-            <circle cx="150" cy="228" r="16" fill="#0A0A0A" stroke="#FF6B00" stroke-width="2"/>
-            <circle cx="250" cy="228" r="16" fill="#0A0A0A" stroke="#FF6B00" stroke-width="2"/>
-            <circle cx="150" cy="228" r="5" fill="#FF6B00"/>
-            <circle cx="250" cy="228" r="5" fill="#FF6B00"/>
-            <path d="M0 252 Q100 240 200 252 T400 246" stroke="#262626" fill="none" stroke-width="2"/>
-            <path d="M110 165 q-20 5 -18 30" stroke="#FF4500" stroke-width="1.2" fill="none" opacity=".7"/>
+            <!-- blueprint grid -->
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="50" x2="400" y2="50"/><line x1="0" y1="100" x2="400" y2="100"/>
+              <line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="200" x2="400" y2="200"/><line x1="0" y1="250" x2="400" y2="250"/>
+              <line x1="50" y1="0" x2="50" y2="300"/><line x1="100" y1="0" x2="100" y2="300"/>
+              <line x1="150" y1="0" x2="150" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/>
+              <line x1="250" y1="0" x2="250" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/><line x1="350" y1="0" x2="350" y2="300"/>
+            </g>
+            <!-- side profile car -->
+            <g>
+              <path d="M85 190 v-18 q0 -8 8 -8 h52 q10 -22 34 -22 h50 q24 0 36 22 h30 q10 0 10 10 v16 z" fill="#0F0F0F" stroke="#FF6B00" stroke-width="1.8"/>
+              <!-- windows -->
+              <path d="M152 146 q8 -16 26 -17 h44 q16 0 25 17 l4 6 h-101 z" fill="#FF6B00" opacity=".14" stroke="#FF8C1A" stroke-width="1"/>
+              <!-- wheels with tire tread detail -->
+              <g>
+                <circle cx="130" cy="192" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
+                <circle cx="130" cy="192" r="14" fill="none" stroke="#3D1400" stroke-width="1.2"/>
+                <circle cx="130" cy="192" r="7" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
+                <g stroke="#FF4500" stroke-width="1" opacity=".6">
+                  <line x1="130" y1="180" x2="130" y2="185"/><line x1="130" y1="199" x2="130" y2="204"/>
+                  <line x1="118" y1="192" x2="123" y2="192"/><line x1="137" y1="192" x2="142" y2="192"/>
+                </g>
+                <circle cx="286" cy="192" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
+                <circle cx="286" cy="192" r="14" fill="none" stroke="#3D1400" stroke-width="1.2"/>
+                <circle cx="286" cy="192" r="7" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
+                <g stroke="#FF4500" stroke-width="1" opacity=".6">
+                  <line x1="286" y1="180" x2="286" y2="185"/><line x1="286" y1="199" x2="286" y2="204"/>
+                  <line x1="274" y1="192" x2="279" y2="192"/><line x1="293" y1="192" x2="298" y2="192"/>
+                </g>
+              </g>
+              <!-- suspension arms visible -->
+              <path d="M130 214 q0 6 0 6" stroke="#FF8C1A" stroke-width="2"/>
+              <path d="M124 196 l-10 6" stroke="#FF8C1A" stroke-width="1.5"/>
+              <path d="M136 196 l10 6" stroke="#FF8C1A" stroke-width="1.5"/>
+              <path d="M286 214 q0 6 0 6" stroke="#FF8C1A" stroke-width="2"/>
+              <!-- center of mass marker -->
+              <g>
+                <circle cx="208" cy="178" r="4" fill="none" stroke="#FF8C1A" stroke-width="1.2"/>
+                <line x1="208" y1="170" x2="208" y2="186" stroke="#FF8C1A" stroke-width="1"/>
+                <line x1="200" y1="178" x2="216" y2="178" stroke="#FF8C1A" stroke-width="1"/>
+                <text x="220" y="172" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF8C1A">COM</text>
+              </g>
+              <!-- torque arrow -->
+              <path d="M110 232 h180" stroke="#FF4500" stroke-width="1.2" marker-end="none" opacity=".7"/>
+              <polygon points="290,228 300,232 290,236" fill="#FF4500" opacity=".7"/>
+              <text x="160" y="248" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">DRIVE TORQUE</text>
+              <!-- weight transfer arrows -->
+              <path d="M240 160 l16 14" stroke="#FF6B00" stroke-width="1" opacity=".6"/>
+              <polygon points="258,176 250,172 256,168" fill="#FF6B00" opacity=".6"/>
+              <!-- dimensions -->
+              <line x1="85" y1="266" x2="315" y2="266" stroke="#262626" stroke-width="1"/>
+              <line x1="85" y1="260" x2="85" y2="272" stroke="#262626" stroke-width="1"/>
+              <line x1="315" y1="260" x2="315" y2="272" stroke="#262626" stroke-width="1"/>
+              <text x="176" y="280" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">WHEELBASE</text>
+            </g>
           </svg>
         </div>
         <div class="project-main">
@@ -592,64 +785,155 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
           <p class="project-desc">
             Realistic vehicle chassis built for feel — weight distribution, torque
             curves, grip and handling tuned so cars behave like cars. Pairs with
-            functional suspensions for full terrain reaction on every wheel.
+            functional suspensions for full terrain reaction on every wheel, even on
+            procedurally generated ground.
           </p>
           <div class="project-tags"><span>Luau</span><span>Constraints</span><span>Vehicle Physics</span><span>Tuning</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
 
-      <div class="project-row reveal">
+      <!-- SUSPENSION — cutaway diagram with spring animation -->
+      <div class="project-row rev reveal">
         <div class="project-panel">
           <div class="tag-corner">SUSPENSION SYSTEM</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="strutG" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#3D1400"/>
+                <stop offset="50%" stop-color="#FF6B00"/>
+                <stop offset="100%" stop-color="#3D1400"/>
+              </linearGradient>
+            </defs>
             <rect width="400" height="300" fill="#0A0A0A"/>
-            <line x1="120" y1="70" x2="120" y2="200" stroke="#FF6B00" stroke-width="3"/>
-            <line x1="280" y1="70" x2="280" y2="200" stroke="#FF6B00" stroke-width="3"/>
-            <g stroke="#FF8C1A" stroke-width="2" fill="none">
-              <path d="M120 90 l14 8 l-28 16 l28 16 l-28 16 l28 16 l-14 8"/>
-              <path d="M280 90 l14 8 l-28 16 l28 16 l-28 16 l28 16 l-14 8"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <rect x="90" y="200" width="220" height="18" rx="6" fill="#141414" stroke="#FF6B00" stroke-width="1.5"/>
-            <path d="M60 246 Q160 230 260 246 T400 240" stroke="#262626" fill="none" stroke-width="2"/>
+            <!-- chassis rail -->
+            <rect x="60" y="52" width="280" height="20" rx="5" fill="#0F0F0F" stroke="#FF6B00" stroke-width="1.8"/>
+            <text x="66" y="66" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">CHASSIS</text>
+            <!-- left strut assembly -->
+            <g>
+              <!-- strut body -->
+              <rect x="118" y="72" width="10" height="70" rx="3" fill="url(#strutG)" opacity=".85"/>
+              <!-- coil spring (detailed, animated compression) -->
+              <g>
+                <animateTransform attributeName="transform" type="translate" values="0 0; 0 6; 0 0" dur="2.4s" repeatCount="indefinite"/>
+                <path d="M110 80 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-13 5"
+                      fill="none" stroke="#FF8C1A" stroke-width="3" stroke-linecap="round"/>
+              </g>
+              <!-- damper rod -->
+              <line x1="123" y1="140" x2="123" y2="212" stroke="#FF6B00" stroke-width="4" stroke-linecap="round"/>
+              <!-- lower control arm -->
+              <path d="M123 212 L90 226 M123 212 L170 224" stroke="#7A2E00" stroke-width="5" stroke-linecap="round"/>
+              <!-- wheel hub -->
+              <circle cx="123" cy="236" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2.4"/>
+              <circle cx="123" cy="236" r="9" fill="#141414" stroke="#FF8C1A" stroke-width="1.2"/>
+              <g stroke="#FF4500" stroke-width="1.2" opacity=".7">
+                <line x1="123" y1="220" x2="123" y2="227"/><line x1="123" y1="245" x2="123" y2="252"/>
+                <line x1="107" y1="236" x2="114" y2="236"/><line x1="132" y1="236" x2="139" y2="236"/>
+              </g>
+              <!-- bump label -->
+              <text x="76" y="286" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">COMPRESSION</text>
+            </g>
+            <!-- right strut assembly (mirrored, rebound) -->
+            <g>
+              <rect x="272" y="72" width="10" height="70" rx="3" fill="url(#strutG)" opacity=".85"/>
+              <g>
+                <animateTransform attributeName="transform" type="translate" values="0 0; 0 -5; 0 0" dur="2.4s" repeatCount="indefinite"/>
+                <path d="M264 80 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-13 5"
+                      fill="none" stroke="#FF8C1A" stroke-width="3" stroke-linecap="round"/>
+              </g>
+              <line x1="277" y1="140" x2="277" y2="212" stroke="#FF6B00" stroke-width="4" stroke-linecap="round"/>
+              <path d="M277 212 L244 224 M277 212 L324 226" stroke="#7A2E00" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="277" cy="236" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2.4"/>
+              <circle cx="277" cy="236" r="9" fill="#141414" stroke="#FF8C1A" stroke-width="1.2"/>
+              <text x="240" y="286" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">REBOUND</text>
+            </g>
+            <!-- terrain line reacting -->
+            <path d="M40 262 q40 6 60 -2 q30 -8 46 4" stroke="#262626" stroke-width="2" fill="none"/>
+            <path d="M250 264 q40 4 60 -2 q30 -8 50 2" stroke="#262626" stroke-width="2" fill="none"/>
           </svg>
         </div>
         <div class="project-main">
           <h3>Functional Suspensions <span class="badge">VEHICLES</span></h3>
           <p class="project-desc">
-            Suspension systems that actually work — springs compress and rebound,
-            wheels follow the terrain, and the body rolls and dives like a real
-            vehicle. Built to look right and react right, on every surface.
+            Suspension systems that actually work — coil springs compress and rebound
+            in real time, control arms follow the wheels, and the body rolls and dives
+            like a real vehicle. Built to look right and react right, on every surface.
           </p>
-          <div class="project-tags"><span>Luau</span><span>SpringConstraints</span><span>Physics</span></div>
+          <div class="project-tags"><span>Luau</span><span>SpringConstraints</span><span>Control Arms</span><span>Physics</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
 
-      <div class="project-row rev reveal">
+      <!-- GRAB SYSTEM — character reaching with IK lines -->
+      <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">CHARACTER SYSTEM</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
             <rect width="400" height="300" fill="#0A0A0A"/>
-            <circle cx="170" cy="80" r="16" fill="none" stroke="#FF6B00" stroke-width="2"/>
-            <line x1="170" y1="96" x2="170" y2="170" stroke="#FF6B00" stroke-width="2.5"/>
-            <line x1="170" y1="110" x2="230" y2="140" stroke="#FF8C1A" stroke-width="2.5"/>
-            <line x1="170" y1="110" x2="120" y2="150" stroke="#FF8C1A" stroke-width="2.5"/>
-            <line x1="230" y1="140" x2="250" y2="128" stroke="#FF4500" stroke-width="2.5"/>
-            <circle cx="255" cy="124" r="6" fill="none" stroke="#FF4500" stroke-width="2"/>
-            <line x1="170" y1="170" x2="145" y2="220" stroke="#FF6B00" stroke-width="2.5"/>
-            <line x1="170" y1="170" x2="195" y2="220" stroke="#FF6B00" stroke-width="2.5"/>
-            <rect x="238" y="108" width="34" height="24" rx="4" fill="#141414" stroke="#262626"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
+            </g>
+            <!-- ground -->
+            <line x1="0" y1="258" x2="400" y2="258" stroke="#262626" stroke-width="2"/>
+            <!-- character -->
+            <g stroke-linecap="round">
+              <!-- head -->
+              <circle cx="150" cy="78" r="15" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
+              <!-- face glow -->
+              <circle cx="144" cy="76" r="1.6" fill="#FF8C1A"/>
+              <circle cx="156" cy="76" r="1.6" fill="#FF8C1A"/>
+              <!-- neck + torso -->
+              <line x1="150" y1="93" x2="150" y2="168" stroke="#FF6B00" stroke-width="5"/>
+              <!-- right arm reaching (IK chain shown) -->
+              <path d="M150 108 Q182 116 206 136" fill="none" stroke="#FF8C1A" stroke-width="4.5"/>
+              <!-- IK target lines -->
+              <line x1="150" y1="108" x2="206" y2="136" stroke="#FF4500" stroke-width=".8" stroke-dasharray="3 3" opacity=".6"/>
+              <!-- joint dots -->
+              <circle cx="182" cy="116" r="3" fill="#0A0A0A" stroke="#FF8C1A" stroke-width="1.2"/>
+              <circle cx="206" cy="136" r="3" fill="#0A0A0A" stroke="#FF8C1A" stroke-width="1.2"/>
+              <!-- hand grabbing -->
+              <circle cx="216" cy="140" r="6" fill="none" stroke="#FF8C1A" stroke-width="2.5"/>
+              <!-- left arm down -->
+              <path d="M150 112 Q128 130 122 152" fill="none" stroke="#FF6B00" stroke-width="4.5"/>
+              <!-- legs -->
+              <path d="M150 168 L134 212 L130 254" fill="none" stroke="#FF6B00" stroke-width="4.5"/>
+              <path d="M150 168 L168 210 L174 254" fill="none" stroke="#FF6B00" stroke-width="4.5"/>
+            </g>
+            <!-- grabbed crate -->
+            <g>
+              <rect x="222" y="118" width="44" height="40" rx="4" fill="#141414" stroke="#FF8C1A" stroke-width="1.8"/>
+              <line x1="222" y1="118" x2="266" y2="158" stroke="#3D1400" stroke-width="1.4"/>
+              <line x1="266" y1="118" x2="222" y2="158" stroke="#3D1400" stroke-width="1.4"/>
+              <!-- physics glow when grabbed -->
+              <rect x="218" y="114" width="52" height="48" rx="7" fill="none" stroke="#FF4500" stroke-width="1" opacity=".5" stroke-dasharray="5 5">
+                <animate attributeName="opacity" values=".2;.7;.2" dur="1.6s" repeatCount="indefinite"/>
+              </rect>
+            </g>
+            <!-- force line hand -> crate -->
+            <line x1="222" y1="140" x2="230" y2="140" stroke="#FFD9A0" stroke-width="2" opacity=".8"/>
+            <!-- annotations -->
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">IK CHAIN · PHYSICS GRIP · LIVE ARM TRACKING</text>
+            <line x1="20" y1="48" x2="230" y2="48" stroke="#262626" stroke-width="1"/>
+            <!-- small force vectors on crate -->
+            <g stroke="#FF8C1A" stroke-width="1.2" opacity=".7">
+              <line x1="266" y1="128" x2="280" y2="124"/>
+              <line x1="266" y1="150" x2="280" y2="154"/>
+            </g>
           </svg>
         </div>
         <div class="project-main">
           <h3>Realistic Grab System <span class="badge">INTERACTION</span></h3>
           <p class="project-desc">
-            A physics-driven grab system with fully functional arms — characters
-            reach, grip and hold objects naturally, with the arms following the
-            interaction in real time instead of playing a canned animation.
+            A physics-driven grab system with fully functional arms — characters reach,
+            grip and hold objects naturally, with the arms following the interaction in
+            real time through IK, instead of playing a canned animation.
           </p>
-          <div class="project-tags"><span>Luau</span><span>Physics</span><span>Arms Rigging</span><span>Interaction</span></div>
+          <div class="project-tags"><span>Luau</span><span>IK</span><span>Physics Grip</span><span>Arms Rigging</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
@@ -666,7 +950,8 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
     <h2 class="contact-title reveal">Let's build something<br><span class="grad-text">real</span> together.</h2>
     <p class="lead reveal">
       Open to commissions — vehicle systems, realistic chassis &amp; suspensions,
-      grab systems, building and scripting. Find me on Discord, GitHub or Roblox.
+      procedural terrain, grab systems, building and scripting. Find me on Discord,
+      GitHub or Roblox.
     </p>
     <div class="contact-links reveal">
       <a href="https://github.com/gust-py" target="_blank" class="btn btn-solid magnetic">
@@ -731,7 +1016,7 @@ const statsIO = new IntersectionObserver((entries) => {
       statsPlayed = true;
       animateCounter('statSystems', 10, '+');
       animateCounter('statChassis', 5);
-      animateCounter('statSusp', 8, '+');
+      animateCounter('statTerrain', 2);
       animateCounter('statGame', 1);
     }
   });
