@@ -132,36 +132,34 @@ img,svg{max-width:100%; display:block;}
 .btn:hover{transform:translateY(-3px);}
 .btn svg{width:14px; height:14px;}
 
-/* Hero visual — RGB axis gizmo core */
+/* BLACK HOLE SIM — Schwarzschild, real physics */
 .hero-visual{position:relative; aspect-ratio:1/1.05; opacity:0; animation:fadeUp 1s .4s forwards;}
-.radar-ring{position:absolute; border-radius:50%; border:1px solid var(--border);}
-.radar-ring.r1{inset:0;}
-.radar-ring.r2{inset:12%;}
-.radar-ring.r3{inset:26%;}
-.radar-core{
-  position:absolute; inset:38%; border-radius:50%;
-  background:conic-gradient(from 0deg, var(--r), var(--g), var(--b), var(--r));
-  filter:blur(2px); opacity:.9; animation:spin 18s linear infinite;
-  box-shadow:0 0 60px rgba(59,130,255,.35);
+.hero-visual canvas{width:100%; height:100%; border-radius:20px; border:1px solid var(--border); box-shadow:var(--shadow-card), 0 0 80px rgba(59,130,255,.15); display:block; background:#000;}
+.bh-hud{
+  position:absolute; top:10px; left:10px; right:10px; display:flex; flex-direction:column; gap:4px; pointer-events:none;
 }
-.radar-core::after{content:""; position:absolute; inset:10%; border-radius:50%; background:var(--bg);}
-.radar-dot{position:absolute; width:9px; height:9px; border-radius:50%; background:var(--r); box-shadow:0 0 16px 3px rgba(255,59,59,.8); animation:orbit 6s linear infinite;}
-.radar-dot.d2{background:var(--g); box-shadow:0 0 16px 3px rgba(74,222,74,.8); animation-delay:-3s;}
-.radar-dot.d3{background:var(--b); box-shadow:0 0 16px 3px rgba(59,130,255,.8); animation-delay:-1.5s;}
-.radar-crosshair{position:absolute; inset:0;}
-.radar-crosshair::before{content:""; position:absolute; left:0; right:0; top:50%; height:1px; background:linear-gradient(90deg, transparent, rgba(255,59,59,.4), rgba(59,130,255,.4), transparent);}
-.radar-crosshair::after{content:""; position:absolute; top:0; bottom:0; left:50%; width:1px; background:linear-gradient(180deg, transparent, rgba(74,222,74,.4), transparent);}
+.bh-formula{
+  display:flex; justify-content:space-between; align-items:baseline; gap:8px;
+  font-family:var(--font-mono); font-size:9px; letter-spacing:.03em;
+  background:rgba(0,0,0,.55); border:1px solid var(--border); border-radius:6px; padding:4px 8px;
+  backdrop-filter:blur(4px);
+}
+.bh-formula .fx{color:var(--text-dim); font-style:italic;}
+.bh-formula .fv{color:var(--g);}
+.bh-formula:first-child .fv{color:var(--r);}
+.bh-formula:nth-child(2) .fv{color:var(--b-bright);}
+.bh-formula:last-child .fv{color:var(--b);}
+.hero-visual .radar-label.top{top:auto; bottom:8px;}
+.hero-visual .radar-label.bottom{bottom:-6px;}
 .radar-label{position:absolute; font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.06em;}
 .radar-label.top{top:-6px; left:50%; transform:translateX(-50%);}
 .radar-label.bottom{bottom:-6px; left:50%; transform:translateX(-50%);}
-@keyframes spin{to{transform:rotate(360deg);}}
-@keyframes orbit{from{transform:rotate(0deg) translateX(150px) rotate(0deg);} to{transform:rotate(360deg) translateX(150px) rotate(-360deg);}}
 
 .hero-scroll{position:absolute; bottom:36px; left:28px; font-family:var(--font-mono); font-size:11px; color:var(--text-faint); display:flex; align-items:center; gap:10px;}
 .hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--b), transparent); animation:scrollLine 2s ease-in-out infinite;}
 @keyframes scrollLine{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 51%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
 
-@media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} .hero-visual{max-width:280px; margin:20px auto 0;} }
+@media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} .hero-visual{max-width:320px; margin:20px auto 0;} }
 
 /* MARQUEE */
 .marquee-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:20px 0; background:var(--surface);}
@@ -371,16 +369,16 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
       </div>
 
       <div class="hero-visual">
-        <div class="radar-ring r1"></div>
-        <div class="radar-ring r2"></div>
-        <div class="radar-ring r3"></div>
-        <div class="radar-crosshair"></div>
-        <div class="radar-core"></div>
-        <div class="radar-dot"></div>
-        <div class="radar-dot d2"></div>
-        <div class="radar-dot d3"></div>
-        <div class="radar-label top">X · Y · Z</div>
-        <div class="radar-label bottom">A LOST DRIVE</div>
+        <canvas id="bhCanvas"></canvas>
+        <div class="bh-hud">
+          <div class="bh-formula"><span class="fx">r<sub>s</sub> = 2GM/c²</span><span class="fv" id="bhRs">rs = 2 GM/c²</span></div>
+          <div class="bh-formula"><span class="fx">v(r) = √(GM/r)</span><span class="fv" id="bhV">v(ISCO) = 0.577c</span></div>
+          <div class="bh-formula"><span class="fx">r<sub>ph</sub> = 1.5 r<sub>s</sub></span><span class="fv">ISCO = 3 rs</span></div>
+          <div class="bh-formula"><span class="fx">b<sub>crit</sub> = (√27/2) r<sub>s</sub></span><span class="fv">shadow = 2.6 rs</span></div>
+          <div class="bh-formula"><span class="fx">Doppler δ³ = [1 − β·cosφ]⁻³</span><span class="fv" id="bhFrame">frame 0</span></div>
+        </div>
+        <div class="radar-label top">SCHWARZSCHILD GEODESICS</div>
+        <div class="radar-label bottom">ACCRETION DISK · REAL PHYSICS</div>
       </div>
     </div>
   </div>
@@ -1056,6 +1054,182 @@ const statsIO = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.3 });
 if (statsSection) statsIO.observe(statsSection);
+
+/* =====================================================
+   BLACK HOLE — Schwarzschild simulation
+   Units: G = M = c = 1  →  rs = 2, photon sphere = 3, ISCO = 6
+   Disk: Keplerian ω(r) = √(GM/r³), Doppler beaming δ³,
+   lensing: far side of disk mapped over the shadow (b_crit arc)
+   ===================================================== */
+(() => {
+  const canvas = document.getElementById('bhCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function fit() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * devicePixelRatio;
+    canvas.height = rect.height * devicePixelRatio;
+  }
+  fit();
+  window.addEventListener('resize', fit);
+
+  // --- physical scales (screen units) ---
+  const RS = 42;                              // Schwarzschild radius on screen
+  const R_PH = 1.5 * RS;                      // photon sphere = 1.5 rs
+  const B_CRIT = Math.sqrt(27) / 2 * RS;      // apparent shadow radius ≈ 2.598 rs
+  const ISCO = 3 * RS;                        // innermost stable circular orbit
+
+  // starfield
+  const stars = Array.from({length: 160}, () => ({
+    x: Math.random(), y: Math.random(), b: Math.random() * .7 + .15
+  }));
+
+  // --- accretion disk particles ---
+  const N = 1100;
+  const disk = [];
+  for (let i = 0; i < N; i++) {
+    const u = Math.random();
+    const r = ISCO + (14 * RS - ISCO) * Math.pow(u, 1.7);
+    disk.push({
+      r,
+      ang: Math.random() * Math.PI * 2,
+      // Keplerian angular velocity: ω = √(GM/r³), GM = 1
+      w: Math.sqrt(1 / (r * r * r)),
+      drift: (Math.random() - .5) * .002,
+      z: (Math.random() - .5) * RS * .28 * (1 - (r - ISCO) / (14 * RS - ISCO) + .3),
+      hue: Math.random()
+    });
+  }
+
+  const INCL = 1.42; // disk tilt (rad) — near edge-on, like Gargantua
+  let frame = 0;
+
+  function draw() {
+    const w = canvas.width, h = canvas.height;
+    const cx = w / 2, cy = h / 2 + h * .04;
+    const S = Math.min(w, h) / 340;
+    const rs = RS * S, rph = R_PH * S, bcrit = B_CRIT * S;
+
+    // background
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, w, h);
+
+    // stars with crude deflection near the shadow
+    for (const st of stars) {
+      let sx = st.x * w, sy = st.y * h;
+      const dx = sx - cx, dy = sy - cy;
+      const d = Math.hypot(dx, dy);
+      if (d < bcrit * 2.2 && d > 0) {
+        const push = (bcrit * 2.2 - d) * .9;
+        sx += dx / d * push; sy += dy / d * push;
+      }
+      if (Math.hypot(sx - cx, sy - cy) > bcrit) {
+        ctx.fillStyle = `rgba(255,255,255,${st.b * .55})`;
+        ctx.fillRect(sx, sy, 1.4 * S, 1.4 * S);
+      }
+    }
+
+    // ---------- DISK ----------
+    const far = [], near = [];
+    for (const p of disk) {
+      p.ang += p.w * .016;
+      p.r += p.drift;
+      if (p.r < ISCO) p.r = 14 * RS;
+      if (p.r > 14 * RS) p.r = ISCO;
+
+      const px = Math.cos(p.ang) * p.r;
+      const pz = Math.sin(p.ang) * p.r;
+      const py = p.z * S;
+
+      // tilt by inclination (rotate around x-axis)
+      const y3 = py * Math.cos(INCL) - pz * Math.sin(INCL);
+      const z3 = py * Math.sin(INCL) + pz * Math.cos(INCL);
+
+      // weak perspective, camera at z = -400
+      const persp = 340 / (340 + z3 * S + 140);
+      const sx = cx + px * S * .62 * persp;
+      const sy = cy + y3 * S * .62 * persp;
+
+      // Doppler beaming: v = √(GM/r), I ∝ [1 − β·cosφ]⁻³
+      const beta = Math.min(Math.sqrt(1 / p.r) * RS / 2, .92);
+      const vx = -Math.sin(p.ang), vz = Math.cos(p.ang);
+      const cosPhi = (vx * 0 + vz * (-1)) * (z3 > 0 ? -1 : 1);
+      const doppler = Math.pow(1 / (1 - beta * cosPhi * .8), 3);
+
+      const t = Math.max(0, Math.min(1, (p.r / RS - 3) / 11));
+      const farSide = px < 0;
+
+      const item = {sx, sy, beta, cosPhi, doppler, t, farSide, px};
+      (farSide ? far : near).push(item);
+    }
+
+    function drawDiskPoint(p, sx, sy, S, alpha) {
+      const glow = Math.min(p.doppler, 4);
+      let col;
+      if (p.t < .3)       col = `rgba(255,${Math.floor(150 + 80 * (1 - p.t))},60,`;
+      else if (p.t < .65) col = `rgba(255,${Math.floor(200 + 40 * (1 - p.t))},140,`;
+      else                col = `rgba(230,240,255,`;
+      const size = (p.t < .3 ? 2.6 : 1.9) * S * (p.farSide ? .8 : 1);
+      ctx.fillStyle = col + Math.min(.9 * glow * alpha, 1) + ')';
+      ctx.beginPath();
+      ctx.arc(sx, sy, size, 0, 7);
+      ctx.fill();
+      if (glow > 1.8 && !p.farSide) {
+        ctx.fillStyle = `rgba(120,180,255,${Math.min((glow - 1.8) * .25, .5)})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, size * 2.4, 0, 7);
+        ctx.fill();
+      }
+    }
+
+    // far half → gravitationally lensed over the top of the shadow
+    for (const p of far) {
+      const dx = p.sx - cx, dy = p.sy - cy;
+      const d = Math.hypot(dx, dy) || 1;
+      const ang = Math.atan2(dy, dx);
+      const lensed = bcrit + (d - bcrit) * .22;
+      const lx = cx + Math.cos(ang) * lensed;
+      const ly = cy + Math.sin(ang) * lensed * .45 - bcrit * .18;
+      drawDiskPoint(p, lx, ly, S, .85);
+    }
+    // near half drawn normally
+    for (const p of near) drawDiskPoint(p, p.sx, p.sy, S, 1);
+
+    // ---------- PHOTON RING (r_ph = 1.5 rs → appears at b_crit) ----------
+    ctx.save();
+    ctx.shadowBlur = 18 * S; ctx.shadowColor = 'rgba(255,230,200,.9)';
+    ctx.strokeStyle = 'rgba(255,240,220,.95)';
+    ctx.lineWidth = 1.6 * S;
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.02, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(160,200,255,.35)';
+    ctx.lineWidth = .8 * S;
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.06, 0, 7); ctx.stroke();
+    ctx.restore();
+
+    // ---------- EVENT HORIZON SHADOW (b_crit ≈ 2.6 rs) ----------
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit, 0, 7); ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255,255,255,.10)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, bcrit, 0, 7); ctx.stroke();
+
+    // HUD live values
+    frame++;
+    if (frame % 12 === 0) {
+      const rsEl = document.getElementById('bhRs');
+      const vEl = document.getElementById('bhV');
+      const fEl = document.getElementById('bhFrame');
+      if (rsEl) rsEl.textContent = `rs = ${(2).toFixed(1)} GM/c²`;
+      if (vEl) vEl.textContent = `v(ISCO) = ${Math.sqrt(1/6).toFixed(3)}c`;
+      if (fEl) fEl.textContent = `frame ${frame}`;
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
 </script>
 
 </body>
