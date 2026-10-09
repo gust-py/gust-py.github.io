@@ -82,7 +82,7 @@ img,svg{max-width:100%; display:block;}
 .nav-gh:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -6px rgba(59,130,255,.65); transform:translateY(-1px);}
 .nav-gh svg{width:13px; height:13px;}
 
-/* ============ HERO — fully transparent, black hole visible ============ */
+/* HERO — transparent, black hole visible */
 .hero{
   min-height:100vh; display:flex; align-items:center; position:relative;
   padding:150px 0 80px; background:transparent !important;
@@ -123,7 +123,7 @@ img,svg{max-width:100%; display:block;}
 .hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--b), transparent); animation:scrollLine 2s ease-in-out infinite;}
 @keyframes scrollLine{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 51%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
 
-/* ============ SECTIONS — fully transparent, black hole always visible ============ */
+/* SECTIONS — transparent, black hole always visible */
 .marquee-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:20px 0; background:rgba(5,5,5,.6);}
 .marquee{display:flex; width:max-content; animation:marquee 32s linear infinite;}
 .marquee span{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); padding:0 30px; white-space:nowrap; display:flex; align-items:center; gap:30px;}
@@ -306,7 +306,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:0; display
   </div>
 </nav>
 
-<!-- ================= HERO ================= -->
+<!-- HERO -->
 <section class="hero" id="top">
   <div class="container">
     <div class="hero-inner">
@@ -942,7 +942,7 @@ const statsIO = new IntersectionObserver((entries) => {
 if (statsSection) statsIO.observe(statsSection);
 </script>
 
-<!-- ============ WEBGPU BLACK HOLE BACKGROUND — RGB XYZ ============ -->
+<!-- ============ WEBGPU BLACK HOLE — TRUE ORANGE INTERSTELLAR ============ -->
 <script type="importmap">
 {
   "imports": {
@@ -966,24 +966,24 @@ const config = {
   blackHoleMass: 0.4,
   diskInnerRadius: 4.1,
   diskOuterRadius: 14.5,
-  diskBrightness: 1.3,        // dimmed — RGB colors visible instead of blowing out
+  diskBrightness: 2.2,        // tuned so orange reads as ORANGE (not yellow/white)
   diskRotationSpeed: -8.7,
   turbulenceScale: 1.81,
   turbulenceStretch: 0.75,
-  turbulenceSharpness: 3.2,   // smoother filaments
+  turbulenceSharpness: 5.5,
   turbulenceCycleTime: 5,
   turbulenceLacunarity: 2.5,
   turbulencePersistence: 0.8,
   diskEdgeSoftnessInner: 0.18,
   diskEdgeSoftnessOuter: 0.5,
   gravitationalLensing: 2.4,
-  dopplerStrength: 0.35,      // nearly symmetric — no white-hot side
+  dopplerStrength: 0.6,       // mild asymmetry, no white-hot blowout
   stepSize: 1,
   starsEnabled: true,
   starDensity: 0.1,
   starSize: 1.2,
   starBrightness: 0.14,
-  nebulaEnabled: false,       // OFF — pure black background, stars only
+  nebulaEnabled: false,       // pure black background, stars only
   nebula1Scale: 2,
   nebula1Density: 0,
   nebula1Brightness: 0,
@@ -992,9 +992,9 @@ const config = {
   nebula2Density: 0,
   nebula2Brightness: 0,
   nebula2Color: '#000000',
-  bloomStrength: 0.25,        // light glow only
+  bloomStrength: 0.5,
   bloomRadius: 0,
-  bloomThreshold: 0.75        // only the brightest core blooms
+  bloomThreshold: 0.55
 };
 
 const hash21 = Fn(([p]) => {
@@ -1042,15 +1042,16 @@ const fbm = Fn(([p, lacunarity, persistence]) => {
   return value;
 });
 
-// RGB XYZ band: inner = red (X), mid = green (Y), outer = blue (Z)
-const rgbBandColor = Fn(([normR, time]) => {
-  const shift = sin(time.mul(0.18)).mul(0.08);
+// TRUE ORANGE: light-orange core → strong orange → deep burnt orange edge.
+// NO yellow (green channel kept low) and NO white (blue/red kept low at core).
+const orangeBandColor = Fn(([normR, time]) => {
+  const shift = sin(time.mul(0.18)).mul(0.06);
   const u = clamp(normR.add(shift), float(0.0), float(1.0));
-  const red   = vec3(1.0, 0.23, 0.23);
-  const green = vec3(0.29, 0.87, 0.29);
-  const blue  = vec3(0.23, 0.51, 1.0);
-  const cRG = mix(red, green, smoothstep(float(0.0), float(0.5), u));
-  return mix(cRG, blue, smoothstep(float(0.5), float(1.0), u));
+  const core = vec3(1.0, 0.48, 0.08);   // light orange core (not white, not yellow)
+  const mid  = vec3(0.95, 0.34, 0.04);  // strong orange
+  const edge = vec3(0.62, 0.16, 0.01);  // deep burnt orange
+  const c1 = mix(core, mid, smoothstep(float(0.0), float(0.45), u));
+  return mix(c1, edge, smoothstep(float(0.45), float(1.0), u));
 });
 
 const uniforms = {
@@ -1105,8 +1106,7 @@ const starField = Fn(([rayDir]) => {
   const starCore = smoothstep(finalStarSize, float(0.0), distToStar);
   const starGlow = smoothstep(finalStarSize.mul(3.0), float(0.0), distToStar).mul(0.3);
   const starIntensity = starCore.add(starGlow).mul(starProb);
-  const colorTemp = hash21(cell.add(200.0));
-  const starColor = mix(mix(vec3(1.0, 0.4, 0.4), vec3(0.4, 1.0, 0.4), colorTemp), vec3(0.4, 0.6, 1.0), colorTemp.mul(colorTemp));
+  const starColor = vec3(1.0, 1.0, 1.0);
   return starColor.mul(starIntensity).mul(uniforms.starBrightness);
 });
 
@@ -1127,7 +1127,7 @@ const accretionDiskColor = Fn(([hitR, hitAngle, time, rayDir]) => {
   const outerR = uniforms.diskOuterRadius;
   const normR = clamp(hitR.sub(innerR).div(outerR.sub(innerR)), float(0.0), float(1.0));
 
-  const diskColor = rgbBandColor(normR, time).toVar('diskColor');
+  const diskColor = orangeBandColor(normR, time).toVar('diskColor');
 
   const rotationSign = sign(uniforms.diskRotationSpeed);
   const velocityDir = vec3(
@@ -1140,7 +1140,7 @@ const accretionDiskColor = Fn(([hitR, hitAngle, time, rayDir]) => {
   const cosTheta = dot(velocityDir, rayDir);
   const dopplerFactor = float(1.0).div(float(1.0).sub(beta.mul(cosTheta)));
   const dopplerBoost = pow(dopplerFactor, float(3.0).mul(uniforms.dopplerStrength));
-  diskColor.mulAssign(clamp(dopplerBoost, float(0.1), float(5.0)));
+  diskColor.mulAssign(clamp(dopplerBoost, float(0.1), float(3.0)));
 
   const edgeFalloff = smoothstep(float(0.0), uniforms.diskEdgeSoftnessInner, normR)
     .mul(smoothstep(float(1.0), float(1.0).sub(uniforms.diskEdgeSoftnessOuter), normR));
@@ -1260,9 +1260,7 @@ const blackHoleShader = Fn(() => {
   return vec4(finalColor, 1.0);
 })();
 
-// ============================================================================
-// SCENE — sphere carrying the shader (essential — this is what renders)
-// ============================================================================
+// SCENE — sphere carrying the shader
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
@@ -1283,9 +1281,7 @@ const mesh = new THREE.Mesh(geometry, material);
 mesh.frustumCulled = false;
 scene.add(mesh);
 
-// ============================================================================
 // ANIMATION — cinematic auto-orbit
-// ============================================================================
 let postProcessing = null;
 let lastFrameTime = performance.now();
 let orbitAngle = 0.35;
