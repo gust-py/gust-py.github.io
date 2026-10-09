@@ -10,6 +10,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
+/* =====================================================
+   TOKENS — pure black canvas, Roblox Studio axis theme:
+   X = red, Y = green, Z = blue. No orange.
+   ===================================================== */
 :root{
   --bg:#000000;
   --surface:#0A0A0A;
@@ -20,10 +24,16 @@
   --text-dim:#A3A3A3;
   --text-faint:#5C5C5C;
 
-  --orange:#FF6B00;
-  --orange-bright:#FF8C1A;
-  --orange-hot:#FF4500;
-  --orange-soft:rgba(255,107,0,.15);
+  /* Roblox Studio axis colors — the site theme */
+  --r:#FF3B3B;
+  --r-bright:#FF6B6B;
+  --r-soft:rgba(255,59,59,.14);
+  --g:#4ADE4A;
+  --g-bright:#7CF07C;
+  --g-soft:rgba(74,222,74,.14);
+  --b:#3B82FF;
+  --b-bright:#6BA5FF;
+  --b-soft:rgba(59,130,255,.14);
 
   --font-display:'Space Grotesk', sans-serif;
   --font-body:'Inter', sans-serif;
@@ -31,25 +41,25 @@
 
   --container:1160px;
   --shadow-card:0 1px 0 var(--border-light) inset, 0 1px 2px rgba(0,0,0,.5), 0 18px 40px -16px rgba(0,0,0,.85);
-  --shadow-card-hover:0 1px 0 var(--border-light) inset, 0 4px 10px rgba(0,0,0,.5), 0 28px 60px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(255,107,0,.25);
+  --shadow-card-hover:0 1px 0 var(--border-light) inset, 0 4px 10px rgba(0,0,0,.5), 0 28px 60px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(59,130,255,.25);
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{
   background:
-    radial-gradient(ellipse 70% 45% at 82% -8%, rgba(255,107,0,.14), transparent 60%),
-    radial-gradient(ellipse 60% 45% at 8% 8%, rgba(255,69,0,.08), transparent 60%),
+    radial-gradient(ellipse 70% 45% at 82% -8%, rgba(255,59,59,.12), transparent 60%),
+    radial-gradient(ellipse 60% 45% at 8% 8%, rgba(59,130,255,.12), transparent 60%),
     var(--bg);
   color:var(--text); font-family:var(--font-body); overflow-x:hidden; cursor:default;
 }
-::selection{background:var(--orange); color:#000;}
+::selection{background:var(--b); color:#000;}
 a{color:inherit; text-decoration:none;}
 img,svg{max-width:100%; display:block;}
 .container{max-width:var(--container); margin:0 auto; padding:0 28px;}
 
 .grad-text{
-  background:linear-gradient(100deg, var(--orange-hot), var(--orange), var(--orange-bright));
+  background:linear-gradient(100deg, var(--r), var(--g), var(--b));
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
@@ -59,7 +69,7 @@ img,svg{max-width:100%; display:block;}
 }
 .spotlight{
   position:fixed; width:640px; height:640px; border-radius:50%; pointer-events:none; z-index:1;
-  background:radial-gradient(circle, rgba(255,107,0,.10) 0%, rgba(255,69,0,.06) 45%, transparent 70%);
+  background:radial-gradient(circle, rgba(255,59,59,.08) 0%, rgba(59,130,255,.08) 45%, transparent 70%);
   transform:translate(-50%,-50%); left:50%; top:30%; transition:opacity .3s;
 }
 
@@ -71,17 +81,17 @@ img,svg{max-width:100%; display:block;}
 }
 .nav.scrolled{border-bottom-color:var(--border); background:rgba(0,0,0,.9); box-shadow:0 10px 30px rgba(0,0,0,.6);}
 .nav-mark{font-family:var(--font-display); font-weight:700; font-size:19px; display:flex; align-items:center; gap:10px; letter-spacing:-.01em;}
-.nav-mark .dot{width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg, var(--orange-hot), var(--orange-bright)); box-shadow:0 0 10px rgba(255,107,0,.6);}
+.nav-mark .dot{width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg, var(--r), var(--g), var(--b)); box-shadow:0 0 10px rgba(59,130,255,.6);}
 .nav-links{display:flex; gap:34px; font-family:var(--font-mono); font-size:12.5px; letter-spacing:.03em;}
 .nav-links a{color:var(--text-dim); position:relative; padding-bottom:3px; transition:color .2s;}
 .nav-links a:hover{color:var(--text);}
-.nav-links a::after{content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--orange); transition:width .25s;}
+.nav-links a::after{content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--b); transition:width .25s;}
 .nav-links a:hover::after{width:100%;}
 .nav-actions{display:flex; align-items:center; gap:12px;}
 .nav-cta{font-family:var(--font-mono); font-size:12px; border:1px solid var(--border); border-radius:999px; padding:9px 18px; transition:all .25s; background:var(--surface); box-shadow:var(--shadow-card);}
-.nav-cta:hover{border-color:var(--orange); color:var(--orange); box-shadow:0 8px 20px -6px rgba(255,107,0,.45);}
-.nav-gh{font-family:var(--font-mono); font-size:12px; border-radius:999px; padding:9px 18px; transition:all .25s; background:linear-gradient(100deg, var(--orange-hot), var(--orange-bright)); color:#1A0A00; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 18px -8px rgba(255,107,0,.55); display:flex; align-items:center; gap:7px;}
-.nav-gh:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -6px rgba(255,107,0,.65); transform:translateY(-1px);}
+.nav-cta:hover{border-color:var(--b); color:var(--b-bright); box-shadow:0 8px 20px -6px rgba(59,130,255,.45);}
+.nav-gh{font-family:var(--font-mono); font-size:12px; border-radius:999px; padding:9px 18px; transition:all .25s; background:linear-gradient(100deg, var(--r), var(--b)); color:#FFFFFF; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 18px -8px rgba(59,130,255,.55); display:flex; align-items:center; gap:7px;}
+.nav-gh:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -6px rgba(59,130,255,.65); transform:translateY(-1px);}
 .nav-gh svg{width:13px; height:13px;}
 
 /* HERO */
@@ -94,10 +104,10 @@ img,svg{max-width:100%; display:block;}
   mask-image:radial-gradient(ellipse 65% 55% at 30% 40%, black 30%, transparent 100%);
 }
 .eyebrow{
-  font-family:var(--font-mono); font-size:12.5px; letter-spacing:.08em; color:var(--orange);
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:.08em; color:var(--r);
   display:flex; align-items:center; gap:10px; margin-bottom:24px; opacity:0; animation:fadeUp .8s .1s forwards;
 }
-.eyebrow::before{content:""; width:26px; height:1px; background:var(--orange);}
+.eyebrow::before{content:""; width:26px; height:1px; background:linear-gradient(90deg, var(--r), var(--g), var(--b));}
 .hero h1{
   font-family:var(--font-display); font-weight:700; line-height:.98; letter-spacing:-.03em;
   font-size:clamp(46px, 6.6vw, 92px); text-transform:uppercase;
@@ -108,21 +118,21 @@ img,svg{max-width:100%; display:block;}
   font-family:var(--font-mono); font-size:clamp(13px,1.6vw,15px); color:var(--text-dim); margin:22px 0 26px; letter-spacing:.02em;
   opacity:0; animation:fadeUp .9s .35s forwards;
 }
-.hero-title .sep{color:var(--orange); margin:0 8px;}
+.hero-title .sep{color:var(--r); margin:0 8px;}
 .hero-bio{max-width:540px; font-size:16.5px; line-height:1.75; color:var(--text-dim); opacity:0; animation:fadeUp .9s .5s forwards;}
 .hero-bio strong{color:var(--text); font-weight:600;}
 .hero-actions{display:flex; gap:16px; margin-top:36px; flex-wrap:wrap; opacity:0; animation:fadeUp .9s .65s forwards;}
 @keyframes fadeUp{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
 
 .btn{font-family:var(--font-mono); font-size:13px; padding:14px 26px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; transition:transform .2s, box-shadow .25s;}
-.btn-solid{background:linear-gradient(100deg, var(--orange-hot), var(--orange-bright)); color:#1A0A00; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 20px -6px rgba(255,107,0,.45);}
-.btn-solid:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 14px 30px -6px rgba(255,107,0,.6);}
+.btn-solid{background:linear-gradient(100deg, var(--r), var(--b)); color:#FFFFFF; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 20px -6px rgba(59,130,255,.45);}
+.btn-solid:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 14px 30px -6px rgba(59,130,255,.6);}
 .btn-outline{border:1px solid var(--border); color:var(--text); background:var(--surface); box-shadow:var(--shadow-card);}
-.btn-outline:hover{border-color:var(--orange); box-shadow:var(--shadow-card-hover);}
+.btn-outline:hover{border-color:var(--b); box-shadow:var(--shadow-card-hover);}
 .btn:hover{transform:translateY(-3px);}
 .btn svg{width:14px; height:14px;}
 
-/* Hero visual — wireframe wheel */
+/* Hero visual — RGB axis gizmo core */
 .hero-visual{position:relative; aspect-ratio:1/1.05; opacity:0; animation:fadeUp 1s .4s forwards;}
 .radar-ring{position:absolute; border-radius:50%; border:1px solid var(--border);}
 .radar-ring.r1{inset:0;}
@@ -130,17 +140,17 @@ img,svg{max-width:100%; display:block;}
 .radar-ring.r3{inset:26%;}
 .radar-core{
   position:absolute; inset:38%; border-radius:50%;
-  background:conic-gradient(from 0deg, var(--orange-hot), var(--orange), var(--orange-bright), var(--orange-hot));
+  background:conic-gradient(from 0deg, var(--r), var(--g), var(--b), var(--r));
   filter:blur(2px); opacity:.9; animation:spin 18s linear infinite;
-  box-shadow:0 0 60px rgba(255,107,0,.35);
+  box-shadow:0 0 60px rgba(59,130,255,.35);
 }
 .radar-core::after{content:""; position:absolute; inset:10%; border-radius:50%; background:var(--bg);}
-.radar-dot{position:absolute; width:9px; height:9px; border-radius:50%; background:var(--orange); box-shadow:0 0 16px 3px rgba(255,107,0,.8); animation:orbit 6s linear infinite;}
-.radar-dot.d2{animation-delay:-3s;}
+.radar-dot{position:absolute; width:9px; height:9px; border-radius:50%; background:var(--r); box-shadow:0 0 16px 3px rgba(255,59,59,.8); animation:orbit 6s linear infinite;}
+.radar-dot.d2{background:var(--g); box-shadow:0 0 16px 3px rgba(74,222,74,.8); animation-delay:-3s;}
+.radar-dot.d3{background:var(--b); box-shadow:0 0 16px 3px rgba(59,130,255,.8); animation-delay:-1.5s;}
 .radar-crosshair{position:absolute; inset:0;}
-.radar-crosshair::before, .radar-crosshair::after{content:""; position:absolute; background:linear-gradient(90deg, transparent, var(--border-light), transparent);}
-.radar-crosshair::before{left:0; right:0; top:50%; height:1px;}
-.radar-crosshair::after{top:0; bottom:0; left:50%; width:1px; background:linear-gradient(180deg, transparent, var(--border-light), transparent);}
+.radar-crosshair::before{content:""; position:absolute; left:0; right:0; top:50%; height:1px; background:linear-gradient(90deg, transparent, rgba(255,59,59,.4), rgba(59,130,255,.4), transparent);}
+.radar-crosshair::after{content:""; position:absolute; top:0; bottom:0; left:50%; width:1px; background:linear-gradient(180deg, transparent, rgba(74,222,74,.4), transparent);}
 .radar-label{position:absolute; font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.06em;}
 .radar-label.top{top:-6px; left:50%; transform:translateX(-50%);}
 .radar-label.bottom{bottom:-6px; left:50%; transform:translateX(-50%);}
@@ -148,7 +158,7 @@ img,svg{max-width:100%; display:block;}
 @keyframes orbit{from{transform:rotate(0deg) translateX(150px) rotate(0deg);} to{transform:rotate(360deg) translateX(150px) rotate(-360deg);}}
 
 .hero-scroll{position:absolute; bottom:36px; left:28px; font-family:var(--font-mono); font-size:11px; color:var(--text-faint); display:flex; align-items:center; gap:10px;}
-.hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--orange), transparent); animation:scrollLine 2s ease-in-out infinite;}
+.hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--b), transparent); animation:scrollLine 2s ease-in-out infinite;}
 @keyframes scrollLine{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 51%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
 
 @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} .hero-visual{max-width:280px; margin:20px auto 0;} }
@@ -158,15 +168,15 @@ img,svg{max-width:100%; display:block;}
 .marquee{display:flex; width:max-content; animation:marquee 32s linear infinite;}
 .marquee span{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); padding:0 30px; white-space:nowrap; display:flex; align-items:center; gap:30px;}
 .marquee span b{color:var(--text-dim); font-weight:500;}
-.marquee span::after{content:"◆"; color:var(--orange); font-size:9px; margin-left:30px;}
+.marquee span::after{content:"◆"; color:var(--b); font-size:9px; margin-left:30px;}
 @keyframes marquee{from{transform:translateX(0);} to{transform:translateX(-50%);}}
 
 .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease;}
 .reveal.in{opacity:1; transform:translateY(0);}
 
 section{padding:120px 0; position:relative;}
-.section-tag{font-family:var(--font-mono); font-size:12px; color:var(--orange); letter-spacing:.08em; display:flex; align-items:center; gap:10px; margin-bottom:18px;}
-.section-tag::before{content:""; width:20px; height:1px; background:var(--orange);}
+.section-tag{font-family:var(--font-mono); font-size:12px; color:var(--b); letter-spacing:.08em; display:flex; align-items:center; gap:10px; margin-bottom:18px;}
+.section-tag::before{content:""; width:20px; height:1px; background:linear-gradient(90deg, var(--r), var(--g), var(--b));}
 .section-title{font-family:var(--font-display); font-size:clamp(30px,4vw,50px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:680px;}
 
 /* ABOUT */
@@ -182,15 +192,15 @@ section{padding:120px 0; position:relative;}
   background:linear-gradient(160deg, var(--surface-2), var(--surface));
   display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:14%;
 }
-.avatar .head{width:34%; aspect-ratio:1/1; border-radius:6px; background:linear-gradient(160deg, var(--orange-bright), var(--orange-hot)); box-shadow:0 8px 24px -8px rgba(255,107,0,.6); margin-bottom:8px;}
-.avatar .torso{width:52%; aspect-ratio:1.2/1; border-radius:6px; background:linear-gradient(160deg, #1F1F1F, #000); border:1px solid var(--orange); box-shadow:0 8px 24px -8px rgba(255,107,0,.4);}
-.portrait-card .frame::after{content:""; position:absolute; inset:0; background:linear-gradient(200deg, rgba(255,107,0,.18), transparent 42%, transparent 60%, rgba(255,69,0,.14)); mix-blend-mode:overlay; pointer-events:none;}
+.avatar .head{width:34%; aspect-ratio:1/1; border-radius:6px; background:linear-gradient(160deg, var(--r-bright), var(--r)); box-shadow:0 8px 24px -8px rgba(255,59,59,.6); margin-bottom:8px;}
+.avatar .torso{width:52%; aspect-ratio:1.2/1; border-radius:6px; background:linear-gradient(160deg, #1F1F1F, #000); border:1px solid var(--b); box-shadow:0 8px 24px -8px rgba(59,130,255,.4);}
+.portrait-card .frame::after{content:""; position:absolute; inset:0; background:linear-gradient(200deg, rgba(255,59,59,.16), transparent 42%, transparent 60%, rgba(59,130,255,.16)); mix-blend-mode:overlay; pointer-events:none;}
 .portrait-card .frame::before{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,0) 32%); pointer-events:none; z-index:1;}
 .portrait-corner{position:absolute; width:18px; height:18px; border-color:rgba(250,250,250,.55); z-index:2;}
-.portrait-corner.tl{top:12px; left:12px; border-top:1.5px solid; border-left:1.5px solid;}
-.portrait-corner.tr{top:12px; right:12px; border-top:1.5px solid; border-right:1.5px solid;}
-.portrait-corner.bl{bottom:12px; left:12px; border-bottom:1.5px solid; border-left:1.5px solid;}
-.portrait-corner.br{bottom:12px; right:12px; border-bottom:1.5px solid; border-right:1.5px solid;}
+.portrait-corner.tl{top:12px; left:12px; border-top:1.5px solid; border-left:1.5px solid; border-color:var(--r);}
+.portrait-corner.tr{top:12px; right:12px; border-top:1.5px solid; border-right:1.5px solid; border-color:var(--g);}
+.portrait-corner.bl{bottom:12px; left:12px; border-bottom:1.5px solid; border-left:1.5px solid; border-color:var(--g);}
+.portrait-corner.br{bottom:12px; right:12px; border-bottom:1.5px solid; border-right:1.5px solid; border-color:var(--b);}
 .portrait-tag{position:absolute; top:14px; left:38px; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; color:rgba(250,250,250,.8); z-index:2;}
 .portrait-caption{position:absolute; left:22px; right:22px; bottom:18px; z-index:2;}
 .portrait-caption .name{font-family:var(--font-display); font-weight:700; font-size:19px; text-transform:uppercase; letter-spacing:-.01em; line-height:1.05;}
@@ -215,7 +225,11 @@ section{padding:120px 0; position:relative;}
 .stat-brick:nth-child(2){align-self:center; margin-top:-8px; width:100%;}
 .stat-brick:nth-child(3){align-self:flex-end; margin-top:-8px; width:92%;}
 .stat-brick:nth-child(4){align-self:center; margin-top:-8px; width:96%;}
-.stat-brick .num{font-family:var(--font-display); font-weight:700; font-size:36px; color:var(--orange);}
+.stat-brick .num{font-family:var(--font-display); font-weight:700; font-size:36px;}
+.stat-brick:nth-child(1) .num{color:var(--r);}
+.stat-brick:nth-child(2) .num{color:var(--g);}
+.stat-brick:nth-child(3) .num{color:var(--b);}
+.stat-brick:nth-child(4) .num{color:var(--r);}
 .stat-brick .num small{font-size:19px; color:var(--text-dim);}
 .stat-brick .label{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:6px; letter-spacing:.03em;}
 
@@ -223,7 +237,7 @@ section{padding:120px 0; position:relative;}
 .ring-wrap{position:relative; margin:64px auto 0; width:min(560px, 92vw); aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
 .ring-glow{
   position:absolute; inset:14%; border-radius:50%;
-  background:conic-gradient(from 90deg, var(--orange-hot), var(--orange), var(--orange-bright), var(--orange-hot));
+  background:conic-gradient(from 90deg, var(--r), var(--g), var(--b), var(--r));
   -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
           mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
   animation:spin 24s linear infinite;
@@ -236,7 +250,11 @@ section{padding:120px 0; position:relative;}
   border-radius:14px; padding:18px 20px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;
 }
 .ring-node:hover{transform:translateY(-4px); box-shadow:var(--shadow-card-hover);}
-.ring-node h4{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.05em; margin-bottom:6px; color:var(--orange);}
+.ring-node h4{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.05em; margin-bottom:6px;}
+.ring-node.n1 h4{color:var(--r);}
+.ring-node.n2 h4{color:var(--g);}
+.ring-node.n3 h4{color:var(--b);}
+.ring-node.n4 h4{color:var(--r-bright);}
 .ring-node p{font-size:13px; color:var(--text-dim); line-height:1.55;}
 .ring-node.n1{top:-4%; left:-8%;}
 .ring-node.n2{top:-4%; right:-8%;}
@@ -252,10 +270,13 @@ section{padding:120px 0; position:relative;}
 .skills-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:56px;}
 .skill-card{background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:16px; padding:28px 26px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;}
 .skill-card:hover{transform:translateY(-5px); box-shadow:var(--shadow-card-hover);}
-.skill-card h3{font-family:var(--font-mono); font-size:11.5px; color:var(--orange); letter-spacing:.06em; margin-bottom:16px;}
+.skill-card h3{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; margin-bottom:16px;}
+.skill-card:nth-child(3n+1) h3{color:var(--r);}
+.skill-card:nth-child(3n+2) h3{color:var(--g);}
+.skill-card:nth-child(3n+3) h3{color:var(--b);}
 .skill-tags{display:flex; flex-wrap:wrap; gap:8px;}
 .skill-tags span{font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim); background:var(--bg); border:1px solid var(--border); padding:6px 12px; border-radius:999px; box-shadow:0 1px 0 var(--border-light) inset, 0 3px 8px rgba(0,0,0,.3); transition:border-color .2s, color .2s, transform .2s;}
-.skill-tags span:hover{border-color:var(--orange); color:var(--text); transform:translateY(-2px);}
+.skill-tags span:hover{border-color:var(--b); color:var(--text); transform:translateY(-2px);}
 @media (max-width:860px){ .skills-grid{grid-template-columns:1fr;} }
 
 /* EXPERIENCE */
@@ -263,9 +284,9 @@ section{padding:120px 0; position:relative;}
 .timeline-item{position:relative; padding:28px 30px; margin-bottom:20px; background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;}
 .timeline-item:hover{transform:translateY(-4px); box-shadow:var(--shadow-card-hover);}
 .timeline-item:last-child{margin-bottom:0;}
-.timeline-item::before{content:""; position:absolute; left:-48px; top:32px; width:12px; height:12px; border-radius:50%; background:linear-gradient(135deg, var(--orange-hot), var(--orange-bright)); border:3px solid var(--bg); box-shadow:0 0 0 1px var(--orange), 0 0 14px rgba(255,107,0,.6);}
+.timeline-item::before{content:""; position:absolute; left:-48px; top:32px; width:12px; height:12px; border-radius:50%; background:linear-gradient(135deg, var(--r), var(--b)); border:3px solid var(--bg); box-shadow:0 0 0 1px var(--g), 0 0 14px rgba(74,222,74,.5);}
 .timeline-role{font-family:var(--font-display); font-size:23px; font-weight:700; text-transform:uppercase;}
-.timeline-meta{font-family:var(--font-mono); font-size:12px; color:var(--orange); margin:8px 0 14px;}
+.timeline-meta{font-family:var(--font-mono); font-size:12px; color:var(--g); margin:8px 0 14px;}
 .timeline-desc{color:var(--text-dim); font-size:15px; line-height:1.75; max-width:640px;}
 .timeline-desc li{margin-left:18px; margin-top:6px;}
 
@@ -281,12 +302,14 @@ section{padding:120px 0; position:relative;}
 .project-panel .scan{position:absolute; inset:0; opacity:.95;}
 .project-panel .tag-corner{position:absolute; top:16px; left:16px; font-family:var(--font-mono); font-size:10px; color:var(--text-faint); letter-spacing:.06em; background:rgba(0,0,0,.7); padding:5px 10px; border-radius:999px; border:1px solid var(--border); z-index:3;}
 .project-main h3{font-family:var(--font-display); font-size:25px; font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
-.badge{font-family:var(--font-mono); font-size:10px; padding:4px 10px; border-radius:999px; letter-spacing:.04em; background:var(--orange-soft); color:var(--orange); border:1px solid rgba(255,107,0,.4);}
+.badge{font-family:var(--font-mono); font-size:10px; padding:4px 10px; border-radius:999px; letter-spacing:.04em; background:var(--b-soft); color:var(--b-bright); border:1px solid rgba(59,130,255,.4);}
+.badge-r{background:var(--r-soft); color:var(--r-bright); border-color:rgba(255,59,59,.4);}
+.badge-g{background:var(--g-soft); color:var(--g-bright); border-color:rgba(74,222,74,.4);}
 .project-desc{color:var(--text-dim); font-size:15px; line-height:1.75; margin:14px 0 18px; max-width:520px;}
 .project-tags{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
 .project-tags span{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); background:var(--bg); border:1px solid var(--border); padding:5px 10px; border-radius:6px;}
 .project-link{font-family:var(--font-mono); font-size:12.5px; color:var(--text); display:inline-flex; align-items:center; gap:6px; border-bottom:1px solid var(--border); padding-bottom:3px; transition:color .2s, border-color .2s;}
-.project-link:hover{color:var(--orange); border-color:var(--orange);}
+.project-link:hover{color:var(--b-bright); border-color:var(--b);}
 @media (max-width:820px){ .project-row, .project-row.rev{grid-template-columns:1fr; direction:ltr;} }
 
 /* CONTACT */
@@ -355,7 +378,8 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         <div class="radar-core"></div>
         <div class="radar-dot"></div>
         <div class="radar-dot d2"></div>
-        <div class="radar-label top">BUILDING LIVE</div>
+        <div class="radar-dot d3"></div>
+        <div class="radar-label top">X · Y · Z</div>
         <div class="radar-label bottom">A LOST DRIVE</div>
       </div>
     </div>
@@ -535,7 +559,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 
     <div class="projects-list">
 
-      <!-- A LOST DRIVE — motion / velocity physics diagram -->
+      <!-- A LOST DRIVE — dynamics in world space -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">IN DEVELOPMENT</div>
@@ -545,41 +569,59 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- ground axis -->
-            <line x1="30" y1="240" x2="370" y2="240" stroke="#5C5C5C" stroke-width="1.5"/>
-            <polygon points="370,240 360,236 360,244" fill="#5C5C5C"/>
-            <text x="340" y="256" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">x</text>
-            <!-- body as free circle (point mass) -->
-            <circle cx="150" cy="185" r="24" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
-            <circle cx="150" cy="185" r="4" fill="#FF6B00"/>
-            <!-- velocity vector -->
-            <line x1="150" y1="185" x2="238" y2="185" stroke="#FF8C1A" stroke-width="2.5"/>
-            <polygon points="246,185 234,180 234,190" fill="#FF8C1A"/>
-            <text x="192" y="176" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">v⃗</text>
-            <!-- gravity vector -->
-            <line x1="150" y1="185" x2="150" y2="233" stroke="#FF4500" stroke-width="2"/>
-            <polygon points="150,240 145,229 155,229" fill="#FF4500"/>
-            <text x="158" y="218" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF4500" font-style="italic">g⃗</text>
-            <!-- suspension force -->
-            <line x1="150" y1="185" x2="126" y2="152" stroke="#FFD9A0" stroke-width="2"/>
-            <polygon points="122,146 121,158 131,154" fill="#FFD9A0"/>
-            <text x="96" y="140" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FFD9A0" font-style="italic">F⃗s</text>
+            <!-- X axis (red) -->
+            <line x1="30" y1="240" x2="370" y2="240" stroke="#FF3B3B" stroke-width="1.5"/>
+            <polygon points="378,240 367,235.5 367,244.5" fill="#FF3B3B"/>
+            <text x="348" y="258" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-weight="bold">X</text>
+            <!-- Y axis (green) -->
+            <line x1="30" y1="240" x2="30" y2="58" stroke="#4ADE4A" stroke-width="1.5"/>
+            <polygon points="30,50 25.5,61 34.5,61" fill="#4ADE4A"/>
+            <text x="18" y="64" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
+            <!-- Z axis (blue, diagonal) -->
+            <line x1="30" y1="240" x2="72" y2="272" stroke="#3B82FF" stroke-width="1.5"/>
+            <polygon points="78,276 66,272 72,264" fill="#3B82FF"/>
+            <text x="82" y="282" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-weight="bold">Z</text>
+            <circle cx="30" cy="240" r="3.5" fill="#FAFAFA"/>
+            <!-- body -->
+            <circle cx="170" cy="165" r="24" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <circle cx="170" cy="165" r="4" fill="#FAFAFA"/>
+            <!-- velocity (+X, red) -->
+            <line x1="170" y1="165" x2="256" y2="165" stroke="#FF3B3B" stroke-width="2.5"/>
+            <polygon points="264,165 252,160 252,170" fill="#FF3B3B"/>
+            <text x="208" y="156" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">v⃗ = (v, 0, 0)</text>
+            <!-- gravity (−Y, dim red) -->
+            <line x1="170" y1="165" x2="170" y2="215" stroke="#FF3B3B" stroke-width="2" opacity=".55"/>
+            <polygon points="170,222 165,211 175,211" fill="#FF3B3B" opacity=".55"/>
+            <text x="178" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">g⃗ = (0, −g, 0)</text>
+            <!-- suspension (+Y, green) -->
+            <line x1="170" y1="141" x2="170" y2="112" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="170,105 165,116 175,116" fill="#4ADE4A"/>
+            <text x="178" y="120" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-style="italic">F⃗s = (0, Fs, 0)</text>
+            <!-- lateral friction (Z, blue) -->
+            <line x1="146" y1="165" x2="118" y2="182" stroke="#3B82FF" stroke-width="2"/>
+            <polygon points="112,186 120,175 124,184" fill="#3B82FF"/>
+            <text x="76" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-style="italic">F⃗z</text>
             <!-- angle arc -->
-            <path d="M186 185 A36 36 0 0 0 178 162" stroke="#262626" fill="none" stroke-width="1.2"/>
-            <text x="192" y="172" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ</text>
+            <path d="M206 165 A36 36 0 0 0 198 142" stroke="#262626" fill="none" stroke-width="1.2"/>
+            <text x="212" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ</text>
             <!-- formula box -->
             <g>
-              <rect x="252" y="52" width="130" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
-              <text x="266" y="76" font-family="IBM Plex Mono, monospace" font-size="12" fill="#FF8C1A" font-style="italic">E = ½mv² + mgh</text>
-              <text x="266" y="98" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">d = v₀t + ½at²</text>
+              <rect x="262" y="52" width="122" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="274" y="76" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4ADE4A" font-style="italic">E = ½mv² + mgh</text>
+              <text x="274" y="98" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">d = v₀t + ½at²</text>
             </g>
-            <!-- trajectory curve -->
-            <path d="M60 120 Q120 60 190 100 T320 80" stroke="#FF6B00" stroke-width="1.2" fill="none" opacity=".5" stroke-dasharray="5 5"/>
-            <!-- normal force on ground -->
-            <line x1="150" y1="240" x2="150" y2="216" stroke="#FF8C1A" stroke-width="1.5" opacity=".7"/>
-            <polygon points="150,210 146,219 154,219" fill="#FF8C1A" opacity=".7"/>
-            <text x="128" y="205" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A" opacity=".7">N</text>
-            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">A LOST DRIVE · DESERT DYNAMICS</text>
+            <!-- trajectory -->
+            <path d="M60 110 Q120 52 190 92 T320 72" stroke="#3B82FF" stroke-width="1.2" fill="none" opacity=".5" stroke-dasharray="5 5"/>
+            <!-- normal force -->
+            <line x1="170" y1="240" x2="170" y2="218" stroke="#4ADE4A" stroke-width="1.5" opacity=".7"/>
+            <polygon points="170,212 166,221 174,221" fill="#4ADE4A" opacity=".7"/>
+            <text x="150" y="208" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4ADE4A" opacity=".7">N = (0, N, 0)</text>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">A LOST DRIVE · DYNAMICS IN WORLD SPACE</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="250" cy="36" r="3" fill="#FF3B3B"/><text x="258" y="39" fill="#FF3B3B">X</text>
+              <circle cx="274" cy="36" r="3" fill="#4ADE4A"/><text x="282" y="39" fill="#4ADE4A">Y</text>
+              <circle cx="298" cy="36" r="3" fill="#3B82FF"/><text x="306" y="39" fill="#3B82FF">Z</text>
+            </g>
           </svg>
         </div>
         <div class="project-main">
@@ -596,7 +638,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         </div>
       </div>
 
-      <!-- PROCEDURAL TERRAIN — noise function / waveform math -->
+      <!-- PROCEDURAL TERRAIN -->
       <div class="project-row rev reveal">
         <div class="project-panel">
           <div class="tag-corner">PROCEDURAL GENERATION</div>
@@ -606,46 +648,50 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- axes -->
-            <line x1="40" y1="260" x2="370" y2="260" stroke="#5C5C5C" stroke-width="1.5"/>
-            <line x1="40" y1="260" x2="40" y2="50" stroke="#5C5C5C" stroke-width="1.5"/>
-            <polygon points="370,260 361,256 361,264" fill="#5C5C5C"/>
-            <polygon points="40,50 36,59 44,59" fill="#5C5C5C"/>
-            <text x="356" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">x</text>
-            <text x="26" y="62" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">h</text>
-            <!-- octave 1 — big wave -->
-            <path d="M40 210 Q90 130 140 190 T240 160 T340 200" stroke="#7A2E00" stroke-width="1.5" fill="none"/>
-            <!-- octave 2 — medium wave -->
-            <path d="M40 210 Q70 170 100 200 T160 180 T220 200 T280 175 T340 195" stroke="#FF6B00" stroke-width="1.5" fill="none" opacity=".75"/>
-            <!-- octave 3 — fine noise -->
-            <path d="M40 210 l14 -14 l12 18 l14 -20 l12 16 l14 -22 l12 18 l14 -16 l12 20 l14 -24 l12 18 l14 -14 l12 20 l14 -18 l12 16 l14 -20 l12 18 l14 -12 l12 18 l14 -16" stroke="#FF8C1A" stroke-width="1.5" fill="none"/>
-            <!-- sum curve highlighted -->
-            <path d="M40 210 Q80 150 120 186 Q150 210 180 172 Q210 140 240 176 Q270 205 300 162 Q325 138 350 172" stroke="#FFD9A0" stroke-width="2.5" fill="none">
+            <!-- X axis (red) -->
+            <line x1="40" y1="260" x2="370" y2="260" stroke="#FF3B3B" stroke-width="1.5"/>
+            <polygon points="378,260 367,255.5 367,264.5" fill="#FF3B3B"/>
+            <text x="352" y="278" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-weight="bold">X</text>
+            <!-- Y axis (green — height) -->
+            <line x1="40" y1="260" x2="40" y2="58" stroke="#4ADE4A" stroke-width="1.5"/>
+            <polygon points="40,50 35.5,61 44.5,61" fill="#4ADE4A"/>
+            <text x="24" y="64" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
+            <!-- Z depth (blue, diagonal) -->
+            <line x1="40" y1="260" x2="86" y2="284" stroke="#3B82FF" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <polygon points="92,287 81,284 86,276" fill="#3B82FF"/>
+            <text x="96" y="292" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-weight="bold">Z</text>
+            <!-- octaves -->
+            <path d="M40 210 Q90 130 140 190 T240 160 T340 200" stroke="#1E3A8A" stroke-width="1.5" fill="none"/>
+            <path d="M40 210 Q70 170 100 200 T160 180 T220 200 T280 175 T340 195" stroke="#3B82FF" stroke-width="1.5" fill="none" opacity=".75"/>
+            <path d="M40 210 l14 -14 l12 18 l14 -20 l12 16 l14 -22 l12 18 l14 -16 l12 20 l14 -24 l12 18 l14 -14 l12 20 l14 -18 l12 16 l14 -20 l12 18 l14 -12 l12 18 l14 -16" stroke="#6BA5FF" stroke-width="1.5" fill="none"/>
+            <!-- sum -->
+            <path d="M40 210 Q80 150 120 186 Q150 210 180 172 Q210 140 240 176 Q270 205 300 162 Q325 138 350 172" stroke="#4ADE4A" stroke-width="2.5" fill="none">
               <animate attributeName="opacity" values=".6;1;.6" dur="3s" repeatCount="indefinite"/>
             </path>
             <!-- sample point -->
-            <circle cx="180" cy="172" r="4" fill="#FF6B00"/>
-            <line x1="180" y1="172" x2="180" y2="260" stroke="#FF6B00" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
-            <line x1="40" y1="172" x2="180" y2="172" stroke="#FF6B00" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
-            <text x="150" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF6B00">xₙ</text>
+            <circle cx="180" cy="172" r="4" fill="#FF3B3B"/>
+            <line x1="180" y1="172" x2="180" y2="260" stroke="#FF3B3B" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
+            <line x1="40" y1="172" x2="180" y2="172" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
+            <text x="168" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF3B3B">xₙ</text>
+            <text x="30" y="168" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4ADE4A">h(xₙ)</text>
             <!-- formula box -->
             <g>
               <rect x="230" y="48" width="152" height="76" rx="8" fill="#0F0F0F" stroke="#262626"/>
-              <text x="244" y="72" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">h = Σ Aᵢ · noise(xfⁱ)</text>
-              <text x="244" y="92" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">fⁱ = 2ⁱ (octaves)</text>
-              <text x="244" y="110" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Aᵢ = persistenceⁱ</text>
+              <text x="242" y="72" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6BA5FF" font-style="italic">h = Σ Aᵢ · noise(xfⁱ)</text>
+              <text x="242" y="92" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">fⁱ = 2ⁱ (octaves)</text>
+              <text x="242" y="110" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Aᵢ = persistenceⁱ</text>
             </g>
             <!-- legend -->
             <g font-family="IBM Plex Mono, monospace" font-size="8">
-              <circle cx="60" cy="40" r="3" fill="#7A2E00"/><text x="68" y="43" fill="#5C5C5C">OCTAVE 1</text>
-              <circle cx="130" cy="40" r="3" fill="#FF6B00"/><text x="138" y="43" fill="#5C5C5C">OCTAVE 2</text>
-              <circle cx="200" cy="40" r="3" fill="#FF8C1A"/><text x="208" y="43" fill="#5C5C5C">DETAIL</text>
-              <circle cx="152" cy="28" r="3" fill="#FFD9A0"/><text x="160" y="31" fill="#FFD9A0" opacity=".8">SUM = TERRAIN</text>
+              <circle cx="60" cy="40" r="3" fill="#1E3A8A"/><text x="68" y="43" fill="#5C5C5C">OCTAVE 1</text>
+              <circle cx="130" cy="40" r="3" fill="#3B82FF"/><text x="138" y="43" fill="#5C5C5C">OCTAVE 2</text>
+              <circle cx="204" cy="40" r="3" fill="#6BA5FF"/><text x="212" y="43" fill="#5C5C5C">DETAIL</text>
             </g>
+            <text x="20" y="22" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">HEIGHTFIELD h(x, z) → MESH VERTICES</text>
           </svg>
         </div>
         <div class="project-main">
-          <h3>Procedural Terrain System <span class="badge">TERRAIN</span></h3>
+          <h3>Procedural Terrain System <span class="badge badge-g">TERRAIN</span></h3>
           <p class="project-desc">
             A super-realistic procedural terrain generator — endless natural landscapes
             with smooth dunes, believable slopes and detailed surfaces, built from
@@ -669,73 +715,79 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
             </g>
             <!-- ground -->
             <line x1="40" y1="228" x2="360" y2="228" stroke="#5C5C5C" stroke-width="2"/>
-            <!-- hatching under ground -->
             <g stroke="#262626" stroke-width="1">
               <line x1="60" y1="228" x2="52" y2="238"/><line x1="100" y1="228" x2="92" y2="238"/>
               <line x1="140" y1="228" x2="132" y2="238"/><line x1="180" y1="228" x2="172" y2="238"/>
               <line x1="220" y1="228" x2="212" y2="238"/><line x1="260" y1="228" x2="252" y2="238"/>
               <line x1="300" y1="228" x2="292" y2="238"/><line x1="340" y1="228" x2="332" y2="238"/>
             </g>
-            <!-- rigid body: rectangle -->
-            <rect x="130" y="120" width="140" height="70" rx="6" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
+            <!-- rigid body -->
+            <rect x="130" y="120" width="140" height="70" rx="6" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
             <!-- center of mass -->
-            <circle cx="200" cy="155" r="9" fill="#0A0A0A" stroke="#FF8C1A" stroke-width="1.5"/>
-            <path d="M200 146 A9 9 0 0 1 209 155 Z" fill="#FF8C1A"/>
-            <path d="M200 164 A9 9 0 0 1 191 155 Z" fill="#FF8C1A"/>
-            <text x="214" y="150" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A">CM</text>
-            <!-- weight -->
-            <line x1="200" y1="155" x2="200" y2="222" stroke="#FF4500" stroke-width="2.5"/>
-            <polygon points="200,228 195,217 205,217" fill="#FF4500"/>
-            <text x="208" y="212" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF4500" font-style="italic">mg</text>
-            <!-- normal forces at wheels -->
-            <line x1="160" y1="200" x2="160" y2="226" stroke="#FF8C1A" stroke-width="2"/>
-            <polygon points="160,196 156,204 164,204" fill="#FF8C1A" opacity="0"/>
-            <line x1="160" y1="220" x2="160" y2="196" stroke="#FF8C1A" stroke-width="2"/>
-            <polygon points="160,190 156,198 164,198" fill="#FF8C1A"/>
-            <text x="146" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF8C1A" font-style="italic">N₁</text>
-            <line x1="240" y1="220" x2="240" y2="196" stroke="#FF8C1A" stroke-width="2"/>
-            <polygon points="240,190 236,198 244,198" fill="#FF8C1A"/>
-            <text x="248" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF8C1A" font-style="italic">N₂</text>
-            <!-- drive force -->
-            <line x1="270" y1="155" x2="330" y2="155" stroke="#FFD9A0" stroke-width="2.5"/>
-            <polygon points="338,155 326,150 326,160" fill="#FFD9A0"/>
-            <text x="296" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FFD9A0" font-style="italic">F⃗drive</text>
-            <!-- friction -->
-            <line x1="130" y1="155" x2="86" y2="155" stroke="#7A2E00" stroke-width="2.5"/>
-            <polygon points="78,155 90,150 90,160" fill="#7A2E00"/>
-            <text x="82" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#B8471A" font-style="italic">F⃗fric</text>
+            <circle cx="200" cy="155" r="9" fill="#0A0A0A" stroke="#FAFAFA" stroke-width="1.5"/>
+            <path d="M200 146 A9 9 0 0 1 209 155 Z" fill="#FAFAFA"/>
+            <path d="M200 164 A9 9 0 0 1 191 155 Z" fill="#FAFAFA"/>
+            <text x="214" y="150" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FAFAFA">CM</text>
+            <!-- weight (−Y, red) -->
+            <line x1="200" y1="155" x2="200" y2="222" stroke="#FF3B3B" stroke-width="2.5"/>
+            <polygon points="200,228 195,217 205,217" fill="#FF3B3B"/>
+            <text x="208" y="212" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">mg (0,−mg,0)</text>
+            <!-- normals (+Y, green) -->
+            <line x1="160" y1="220" x2="160" y2="196" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="160,190 156,198 164,198" fill="#4ADE4A"/>
+            <text x="146" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">N₁ (0,N,0)</text>
+            <line x1="240" y1="220" x2="240" y2="196" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="240,190 236,198 244,198" fill="#4ADE4A"/>
+            <text x="248" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">N₂</text>
+            <!-- drive (+X, red) -->
+            <line x1="270" y1="155" x2="330" y2="155" stroke="#FF3B3B" stroke-width="2.5"/>
+            <polygon points="338,155 326,150 326,160" fill="#FF3B3B"/>
+            <text x="288" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">F⃗drive</text>
+            <!-- friction (−X, dim red) -->
+            <line x1="130" y1="155" x2="86" y2="155" stroke="#FF3B3B" stroke-width="2.5" opacity=".55"/>
+            <polygon points="78,155 90,150 90,160" fill="#FF3B3B" opacity=".55"/>
+            <text x="82" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">F⃗fric</text>
+            <!-- lateral grip (Z, blue) -->
+            <line x1="200" y1="190" x2="176" y2="210" stroke="#3B82FF" stroke-width="2"/>
+            <polygon points="171,215 180,204 185,212" fill="#3B82FF"/>
+            <text x="150" y="220" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3B82FF" font-style="italic">grip ẑ</text>
             <!-- torque arc -->
-            <path d="M200 98 A30 30 0 1 1 172 110" stroke="#FF6B00" stroke-width="1.5" fill="none"/>
-            <polygon points="172,110 176,99 182,107" fill="#FF6B00"/>
-            <text x="214" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B00" font-style="italic">τ = Iα</text>
+            <path d="M200 98 A30 30 0 1 1 172 110" stroke="#FAFAFA" stroke-width="1.5" fill="none"/>
+            <polygon points="172,110 176,99 182,107" fill="#FAFAFA"/>
+            <text x="214" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FAFAFA" font-style="italic">τ = Iα</text>
             <!-- formula box -->
             <g>
               <rect x="256" y="236" width="128" height="50" rx="8" fill="#0F0F0F" stroke="#262626"/>
-              <text x="268" y="256" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">ΣF = ma</text>
+              <text x="268" y="256" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">ΣF = ma</text>
               <text x="268" y="274" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Ffric = μN</text>
             </g>
-            <!-- wheelbase dimension -->
-            <line x1="160" y1="250" x2="240" y2="250" stroke="#262626" stroke-width="1"/>
-            <line x1="160" y1="245" x2="160" y2="255" stroke="#262626" stroke-width="1"/>
-            <line x1="240" y1="245" x2="240" y2="255" stroke="#262626" stroke-width="1"/>
-            <text x="170" y="264" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">WHEELBASE</text>
+            <!-- wheelbase (X, red) -->
+            <line x1="160" y1="250" x2="240" y2="250" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
+            <line x1="160" y1="245" x2="160" y2="255" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
+            <line x1="240" y1="245" x2="240" y2="255" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
+            <text x="170" y="264" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF3B3B" opacity=".7">WHEELBASE (X)</text>
             <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">FREE BODY DIAGRAM · RIGID BODY</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="250" cy="36" r="3" fill="#FF3B3B"/><text x="258" y="39" fill="#FF3B3B">X</text>
+              <circle cx="274" cy="36" r="3" fill="#4ADE4A"/><text x="282" y="39" fill="#4ADE4A">Y</text>
+              <circle cx="298" cy="36" r="3" fill="#3B82FF"/><text x="306" y="39" fill="#3B82FF">Z</text>
+            </g>
           </svg>
         </div>
         <div class="project-main">
-          <h3>Realistic Car Chassis <span class="badge">VEHICLES</span></h3>
+          <h3>Realistic Car Chassis <span class="badge badge-r">VEHICLES</span></h3>
           <p class="project-desc">
             Realistic vehicle chassis built from the physics up — free body balance
-            between weight, normal forces, drive torque and friction. Weight
-            distribution, grip and handling tuned so cars behave like cars, on any
-            surface — even procedurally generated terrain.
+            between weight, normal forces, drive torque and friction, all resolved per
+            world axis. Weight distribution, grip and handling tuned so cars behave
+            like cars, on any surface — even procedurally generated terrain.
           </p>
           <div class="project-tags"><span>Luau</span><span>Constraints</span><span>Vehicle Physics</span><span>Tuning</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
 
-      <!-- SUSPENSION — Hooke's law oscillator -->
+      <!-- SUSPENSION — oscillator on Y -->
       <div class="project-row rev reveal">
         <div class="project-panel">
           <div class="tag-corner">SUSPENSION SYSTEM</div>
@@ -752,38 +804,48 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="200" y1="50" x2="192" y2="40"/><line x1="230" y1="50" x2="222" y2="40"/>
               <line x1="260" y1="50" x2="252" y2="40"/>
             </g>
-            <!-- spring (animated) -->
+            <!-- Y travel axis (green) -->
+            <line x1="290" y1="60" x2="290" y2="140" stroke="#4ADE4A" stroke-width="1.2" opacity=".6"/>
+            <polygon points="290,54 286,63 294,63" fill="#4ADE4A" opacity=".6"/>
+            <polygon points="290,146 286,137 294,137" fill="#4ADE4A" opacity=".6"/>
+            <text x="296" y="106" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
+            <text x="296" y="120" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">travel</text>
+            <!-- spring -->
             <g>
               <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
               <path d="M200 50 l0 8 M200 58 l-24 10 l48 12 l-48 12 l48 12 l-48 12 l48 12 l-24 8"
-                    fill="none" stroke="#FF8C1A" stroke-width="3" stroke-linecap="round"/>
+                    fill="none" stroke="#4ADE4A" stroke-width="3" stroke-linecap="round"/>
             </g>
-            <!-- mass block (animated) -->
+            <!-- mass -->
             <g>
               <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
-              <rect x="168" y="158" width="64" height="44" rx="6" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
-              <text x="186" y="185" font-family="IBM Plex Mono, monospace" font-size="13" fill="#FF8C1A" font-style="italic">m</text>
-              <!-- restoring force -->
-              <line x1="230" y1="180" x2="268" y2="180" stroke="#FFD9A0" stroke-width="2"/>
-              <polygon points="276,180 264,175 264,185" fill="#FFD9A0"/>
-              <text x="240" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FFD9A0" font-style="italic">F = −kx</text>
-              <!-- damping -->
-              <line x1="168" y1="180" x2="130" y2="180" stroke="#7A2E00" stroke-width="2"/>
-              <polygon points="122,180 134,175 134,185" fill="#7A2E00"/>
-              <text x="128" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#B8471A" font-style="italic">−cv</text>
+              <rect x="168" y="158" width="64" height="44" rx="6" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+              <text x="186" y="185" font-family="IBM Plex Mono, monospace" font-size="13" fill="#FAFAFA" font-style="italic">m</text>
+              <!-- restoring force (+Y, green) -->
+              <line x1="232" y1="180" x2="264" y2="180" stroke="#4ADE4A" stroke-width="2"/>
+              <polygon points="272,180 260,175 260,185" fill="#4ADE4A"/>
+              <text x="236" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">F = −kx (Y)</text>
+              <!-- damping (−Y, red) -->
+              <line x1="168" y1="180" x2="136" y2="180" stroke="#FF3B3B" stroke-width="2"/>
+              <polygon points="128,180 140,175 140,185" fill="#FF3B3B"/>
+              <text x="128" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">−cv</text>
+              <!-- weight (−Y, red) -->
+              <line x1="200" y1="202" x2="200" y2="216" stroke="#FF3B3B" stroke-width="2" opacity=".7"/>
+              <polygon points="200,222 196,213 204,213" fill="#FF3B3B" opacity=".7"/>
+              <text x="206" y="216" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF3B3B" font-style="italic">mg</text>
             </g>
-            <!-- equilibrium line -->
+            <!-- equilibrium -->
             <line x1="110" y1="150" x2="330" y2="150" stroke="#262626" stroke-width="1" stroke-dasharray="6 6"/>
-            <text x="288" y="144" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">EQUILIBRIUM</text>
-            <!-- displacement arrow -->
+            <text x="338" y="154" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">x₀</text>
+            <!-- displacement (red) -->
             <g>
               <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
-              <line x1="300" y1="158" x2="300" y2="186" stroke="#FF6B00" stroke-width="1.5"/>
-              <polygon points="300,192 296,183 304,183" fill="#FF6B00"/>
+              <line x1="316" y1="158" x2="316" y2="186" stroke="#FF3B3B" stroke-width="1.5"/>
+              <polygon points="316,192 312,183 320,183" fill="#FF3B3B"/>
             </g>
-            <text x="310" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF6B00" font-style="italic">x</text>
-            <!-- damper symbol (cylinder) on the right -->
-            <g stroke="#7A2E00" stroke-width="1.5" fill="none">
+            <text x="324" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">Δy</text>
+            <!-- damper symbol -->
+            <g stroke="#1E3A8A" stroke-width="1.5" fill="none">
               <line x1="344" y1="50" x2="344" y2="120"/>
               <path d="M330 120 h28 v26 h-28 z"/>
               <line x1="344" y1="120" x2="344" y2="160"/>
@@ -793,27 +855,27 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
             <!-- formula box -->
             <g>
               <rect x="30" y="216" width="150" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
-              <text x="42" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">mẍ + cẋ + kx = 0</text>
+              <text x="42" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-style="italic">mẏ + cẏ + ky = 0</text>
               <text x="42" y="258" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C" font-style="italic">ω = √(k/m) · ζ = c/2√(km)</text>
-              <text x="42" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">HOOKE + DAMPING</text>
+              <text x="42" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">HOOKE + DAMPING · Y AXIS</text>
             </g>
             <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">SPRING-MASS-DAMPER · Damped Oscillator</text>
           </svg>
         </div>
         <div class="project-main">
-          <h3>Functional Suspensions <span class="badge">VEHICLES</span></h3>
+          <h3>Functional Suspensions <span class="badge badge-g">VEHICLES</span></h3>
           <p class="project-desc">
             Suspension systems built on real spring-mass-damper behavior — springs
-            compress and rebound with proper stiffness and damping ratios, wheels
-            follow the terrain, and the body rolls and dives like a real vehicle.
-            Tuned with Hooke's law, not guesswork.
+            compress and rebound along the suspension's Y axis with proper stiffness
+            and damping ratios, wheels follow the terrain, and the body rolls and dives
+            like a real vehicle. Tuned with Hooke's law, not guesswork.
           </p>
           <div class="project-tags"><span>Luau</span><span>SpringConstraints</span><span>Damping Ratios</span><span>Physics</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
 
-      <!-- GRAB SYSTEM — vector / constraint diagram -->
+      <!-- GRAB SYSTEM — IK chain -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">CHARACTER SYSTEM</div>
@@ -823,62 +885,87 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- shoulder joint (origin) -->
-            <circle cx="120" cy="110" r="10" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
-            <circle cx="120" cy="110" r="3" fill="#FF6B00"/>
+            <!-- world gizmo (Studio style) -->
+            <g>
+              <circle cx="52" cy="232" r="3" fill="#FAFAFA"/>
+              <line x1="52" y1="232" x2="96" y2="232" stroke="#FF3B3B" stroke-width="2"/>
+              <polygon points="102,232 92,228 92,236" fill="#FF3B3B"/>
+              <text x="104" y="236" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-weight="bold">X</text>
+              <line x1="52" y1="232" x2="52" y2="192" stroke="#4ADE4A" stroke-width="2"/>
+              <polygon points="52,186 48,196 56,196" fill="#4ADE4A"/>
+              <text x="44" y="182" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-weight="bold">Y</text>
+              <line x1="52" y1="232" x2="80" y2="254" stroke="#3B82FF" stroke-width="2"/>
+              <polygon points="85,258 75,255 79,248" fill="#3B82FF"/>
+              <text x="88" y="264" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3B82FF" font-weight="bold">Z</text>
+            </g>
+            <!-- joints -->
+            <circle cx="120" cy="110" r="10" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <circle cx="120" cy="110" r="3" fill="#FAFAFA"/>
             <text x="86" y="100" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₁</text>
-            <!-- elbow joint -->
-            <circle cx="196" cy="82" r="7" fill="#0F0F0F" stroke="#FF8C1A" stroke-width="2"/>
+            <circle cx="196" cy="82" r="7" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
             <text x="188" y="66" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₂</text>
-            <!-- hand / end effector -->
-            <circle cx="272" cy="120" r="7" fill="#0F0F0F" stroke="#FFD9A0" stroke-width="2"/>
+            <circle cx="272" cy="120" r="7" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
             <text x="284" y="112" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">GRIP</text>
-            <!-- arm bones -->
-            <line x1="120" y1="110" x2="196" y2="82" stroke="#FF6B00" stroke-width="3"/>
-            <line x1="196" y1="82" x2="272" y2="120" stroke="#FF8C1A" stroke-width="3"/>
-            <!-- IK target circle around object -->
-            <circle cx="272" cy="120" r="18" fill="none" stroke="#FF4500" stroke-width="1" stroke-dasharray="4 4">
+            <!-- bones -->
+            <line x1="120" y1="110" x2="196" y2="82" stroke="#FF3B3B" stroke-width="3"/>
+            <line x1="196" y1="82" x2="272" y2="120" stroke="#3B82FF" stroke-width="3"/>
+            <!-- bone components: Δx red, Δy green -->
+            <line x1="120" y1="110" x2="196" y2="110" stroke="#FF3B3B" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
+            <line x1="196" y1="110" x2="196" y2="82" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
+            <text x="146" y="120" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF3B3B">Δx</text>
+            <text x="200" y="98" font-family="IBM Plex Mono, monospace" font-size="8" fill="#4ADE4A">Δy</text>
+            <!-- IK target pulse -->
+            <circle cx="272" cy="120" r="18" fill="none" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="4 4">
               <animate attributeName="r" values="16;22;16" dur="2s" repeatCount="indefinite"/>
               <animate attributeName="opacity" values=".8;.3;.8" dur="2s" repeatCount="indefinite"/>
             </circle>
-            <!-- target object (mass) -->
-            <circle cx="272" cy="180" r="16" fill="#141414" stroke="#FF8C1A" stroke-width="1.8"/>
-            <text x="264" y="185" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">m</text>
-            <!-- grab force vectors -->
-            <line x1="272" y1="120" x2="272" y2="158" stroke="#FFD9A0" stroke-width="2"/>
-            <polygon points="272,164 268,155 276,155" fill="#FFD9A0"/>
-            <text x="280" y="146" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FFD9A0" font-style="italic">F⃗grip</text>
-            <!-- gravity on object -->
-            <line x1="272" y1="196" x2="272" y2="222" stroke="#FF4500" stroke-width="2"/>
-            <polygon points="272,228 268,219 276,219" fill="#FF4500"/>
-            <text x="280" y="218" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF4500" font-style="italic">mg</text>
-            <!-- torque arc at joint2 -->
-            <path d="M210 64 A26 26 0 0 1 222 92" stroke="#FF6B00" stroke-width="1.2" fill="none"/>
-            <polygon points="222,92 216,84 226,82" fill="#FF6B00"/>
-            <text x="228" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF6B00" font-style="italic">τ₂</text>
-            <!-- bone length constraints -->
-            <text x="128" y="86" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A" font-style="italic">L₁</text>
-            <text x="228" y="96" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A" font-style="italic">L₂</text>
-            <!-- angle arcs at shoulder -->
+            <!-- object -->
+            <circle cx="272" cy="180" r="16" fill="#141414" stroke="#FAFAFA" stroke-width="1.8"/>
+            <text x="264" y="185" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FAFAFA" font-style="italic">m</text>
+            <!-- grip force (+Y, green) -->
+            <line x1="272" y1="120" x2="272" y2="158" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="272,164 268,155 276,155" fill="#4ADE4A"/>
+            <text x="280" y="146" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">F⃗grip (0,F,0)</text>
+            <!-- gravity (−Y, red) -->
+            <line x1="272" y1="196" x2="272" y2="222" stroke="#FF3B3B" stroke-width="2"/>
+            <polygon points="272,228 268,219 276,219" fill="#FF3B3B"/>
+            <text x="280" y="218" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">mg</text>
+            <!-- approach (Z, blue) -->
+            <path d="M256 128 Q252 148 260 164" stroke="#3B82FF" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
+            <polygon points="262,170 254,162 263,158" fill="#3B82FF"/>
+            <text x="236" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#3B82FF" font-style="italic">approach ẑ</text>
+            <!-- torque arc -->
+            <path d="M210 64 A26 26 0 0 1 222 92" stroke="#FAFAFA" stroke-width="1.2" fill="none"/>
+            <polygon points="222,92 216,84 226,82" fill="#FAFAFA"/>
+            <text x="228" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FAFAFA" font-style="italic">τ₂</text>
+            <!-- bone lengths -->
+            <text x="128" y="86" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF6B6B" font-style="italic">L₁</text>
+            <text x="228" y="96" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6BA5FF" font-style="italic">L₂</text>
+            <!-- angle -->
             <path d="M150 110 A30 30 0 0 0 146 97" stroke="#262626" fill="none" stroke-width="1"/>
             <text x="152" y="102" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ₁</text>
             <!-- formula box -->
             <g>
-              <rect x="40" y="216" width="180" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
-              <text x="52" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">‖p−j‖ = L  (constraint)</text>
-              <text x="52" y="258" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">τ = F × r · sinθ</text>
-              <text x="52" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK · PHYSICS GRIP</text>
+              <rect x="130" y="216" width="190" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="142" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6BA5FF" font-style="italic">‖p−j‖ = L  (constraint)</text>
+              <text x="142" y="258" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">τ = F × r · sinθ</text>
+              <text x="142" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK · PHYSICS GRIP</text>
             </g>
             <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK CHAIN · END EFFECTOR</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="290" cy="36" r="3" fill="#FF3B3B"/><text x="298" y="39" fill="#FF3B3B">X</text>
+              <circle cx="314" cy="36" r="3" fill="#4ADE4A"/><text x="322" y="39" fill="#4ADE4A">Y</text>
+              <circle cx="338" cy="36" r="3" fill="#3B82FF"/><text x="346" y="39" fill="#3B82FF">Z</text>
+            </g>
           </svg>
         </div>
         <div class="project-main">
-          <h3>Realistic Grab System <span class="badge">INTERACTION</span></h3>
+          <h3>Realistic Grab System <span class="badge badge-r">INTERACTION</span></h3>
           <p class="project-desc">
             A physics-driven grab system with fully functional arms — built on 2-bone
             IK with bone-length constraints, so characters reach, grip and hold objects
-            naturally. The grip applies real forces to the object instead of playing a
-            canned animation.
+            naturally in 3D space. The grip applies real forces to the object instead
+            of playing a canned animation.
           </p>
           <div class="project-tags"><span>Luau</span><span>IK</span><span>Physics Grip</span><span>Constraints</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
