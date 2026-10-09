@@ -535,96 +535,51 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 
     <div class="projects-list">
 
-      <!-- A LOST DRIVE — detailed desert scene with truck -->
+      <!-- A LOST DRIVE — motion / velocity physics diagram -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">IN DEVELOPMENT</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#1A0A00"/>
-                <stop offset="55%" stop-color="#3D1400"/>
-                <stop offset="80%" stop-color="#FF4500" stop-opacity=".55"/>
-                <stop offset="100%" stop-color="#FF8C1A" stop-opacity=".8"/>
-              </linearGradient>
-              <linearGradient id="duneG1" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#7A2E00" stop-opacity=".85"/>
-                <stop offset="100%" stop-color="#2B1000"/>
-              </linearGradient>
-              <linearGradient id="duneG2" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#4A1B00" stop-opacity=".9"/>
-                <stop offset="100%" stop-color="#140800"/>
-              </linearGradient>
-              <radialGradient id="sunG" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#FFD9A0"/>
-                <stop offset="45%" stop-color="#FF8C1A"/>
-                <stop offset="100%" stop-color="#FF4500" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            <rect width="400" height="300" fill="url(#skyG)"/>
-            <!-- stars -->
-            <g fill="#FFD9A0" opacity=".5">
-              <circle cx="40" cy="30" r="1"/><circle cx="90" cy="50" r="1"/><circle cx="150" cy="25" r="1.4"/>
-              <circle cx="220" cy="45" r="1"/><circle cx="300" cy="28" r="1.3"/><circle cx="360" cy="60" r="1"/>
-              <circle cx="120" cy="70" r="1"/><circle cx="260" cy="80" r="1"/>
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- sun with glow rings -->
-            <circle cx="200" cy="195" r="70" fill="url(#sunG)" opacity=".5"/>
-            <circle cx="200" cy="195" r="34" fill="#FF8C1A"/>
-            <circle cx="200" cy="195" r="34" fill="none" stroke="#FFD9A0" stroke-width="1" opacity=".6"/>
-            <!-- sun stripes (retro) -->
-            <g stroke="#1A0A00" stroke-width="2.5" opacity=".7">
-              <line x1="166" y1="188" x2="234" y2="188"/>
-              <line x1="164" y1="196" x2="236" y2="196"/>
-              <line x1="164" y1="204" x2="236" y2="204"/>
-              <line x1="168" y1="212" x2="232" y2="212"/>
-            </g>
-            <!-- distant dunes -->
-            <path d="M0 205 Q80 180 160 202 T320 195 Q370 190 400 200 L400 300 L0 300 Z" fill="url(#duneG1)"/>
-            <path d="M0 235 Q60 215 130 232 T280 226 Q340 222 400 232 L400 300 L0 300 Z" fill="url(#duneG2)"/>
-            <!-- dune ridge highlights -->
-            <path d="M0 205 Q80 180 160 202" stroke="#FF8C1A" stroke-width="1.4" fill="none" opacity=".7"/>
-            <path d="M0 235 Q60 215 130 232" stroke="#FF6B00" stroke-width="1.2" fill="none" opacity=".5"/>
-            <!-- cactus silhouettes -->
-            <g fill="#140800">
-              <path d="M58 226 v-20 q0 -4 4 -4 q4 0 4 4 v20 z M54 214 q-5 0 -5 -6 q0 -4 3 -4 v10 z M70 212 q5 0 5 -7 q0 -4 -3 -4 v11 z"/>
-              <path d="M330 236 v-14 q0 -3 3 -3 q3 0 3 3 v14 z" opacity=".8"/>
-            </g>
-            <!-- truck body -->
+            <!-- ground axis -->
+            <line x1="30" y1="240" x2="370" y2="240" stroke="#5C5C5C" stroke-width="1.5"/>
+            <polygon points="370,240 360,236 360,244" fill="#5C5C5C"/>
+            <text x="340" y="256" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">x</text>
+            <!-- body as free circle (point mass) -->
+            <circle cx="150" cy="185" r="24" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
+            <circle cx="150" cy="185" r="4" fill="#FF6B00"/>
+            <!-- velocity vector -->
+            <line x1="150" y1="185" x2="238" y2="185" stroke="#FF8C1A" stroke-width="2.5"/>
+            <polygon points="246,185 234,180 234,190" fill="#FF8C1A"/>
+            <text x="192" y="176" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">v⃗</text>
+            <!-- gravity vector -->
+            <line x1="150" y1="185" x2="150" y2="233" stroke="#FF4500" stroke-width="2"/>
+            <polygon points="150,240 145,229 155,229" fill="#FF4500"/>
+            <text x="158" y="218" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF4500" font-style="italic">g⃗</text>
+            <!-- suspension force -->
+            <line x1="150" y1="185" x2="126" y2="152" stroke="#FFD9A0" stroke-width="2"/>
+            <polygon points="122,146 121,158 131,154" fill="#FFD9A0"/>
+            <text x="96" y="140" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FFD9A0" font-style="italic">F⃗s</text>
+            <!-- angle arc -->
+            <path d="M186 185 A36 36 0 0 0 178 162" stroke="#262626" fill="none" stroke-width="1.2"/>
+            <text x="192" y="172" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ</text>
+            <!-- formula box -->
             <g>
-              <!-- cab -->
-              <path d="M148 232 v-30 q0 -6 6 -6 h34 l14 16 h28 q8 0 8 8 v12 z" fill="#0A0A0A" stroke="#FF6B00" stroke-width="1.6"/>
-              <!-- bed -->
-              <rect x="238" y="216" width="42" height="16" rx="3" fill="#0A0A0A" stroke="#FF6B00" stroke-width="1.4"/>
-              <!-- windows -->
-              <path d="M156 204 h26 l10 12 h-36 z" fill="#FF8C1A" opacity=".35"/>
-              <!-- headlights on -->
-              <circle cx="146" cy="226" r="3.5" fill="#FFD9A0"/>
-              <!-- light beam -->
-              <polygon points="143,226 90,240 90,222" fill="#FFD9A0" opacity=".18"/>
-              <!-- suspension visible -->
-              <path d="M162 232 q3 8 0 14" stroke="#FF8C1A" stroke-width="2" fill="none"/>
-              <path d="M204 232 q-3 8 0 14" stroke="#FF8C1A" stroke-width="2" fill="none"/>
-              <!-- wheels -->
-              <circle cx="164" cy="248" r="13" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
-              <circle cx="164" cy="248" r="5" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
-              <circle cx="214" cy="248" r="13" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
-              <circle cx="214" cy="248" r="5" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
-              <!-- wheel motion dust -->
-              <g fill="#FF6B00" opacity=".3">
-                <circle cx="146" cy="256" r="3"/><circle cx="138" cy="260" r="4"/><circle cx="128" cy="262" r="5"/>
-              </g>
+              <rect x="252" y="52" width="130" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="266" y="76" font-family="IBM Plex Mono, monospace" font-size="12" fill="#FF8C1A" font-style="italic">E = ½mv² + mgh</text>
+              <text x="266" y="98" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">d = v₀t + ½at²</text>
             </g>
-            <!-- road dashes -->
-            <g stroke="#FF6B00" stroke-width="2" opacity=".35" stroke-dasharray="12 14">
-              <line x1="0" y1="278" x2="400" y2="278"/>
-            </g>
-            <!-- foreground sand texture -->
-            <g stroke="#FF6B00" opacity=".18" stroke-width="1">
-              <path d="M0 262 q40 4 80 0" fill="none"/>
-              <path d="M200 270 q50 5 110 -1" fill="none"/>
-              <path d="M60 284 q60 5 130 0" fill="none"/>
-            </g>
+            <!-- trajectory curve -->
+            <path d="M60 120 Q120 60 190 100 T320 80" stroke="#FF6B00" stroke-width="1.2" fill="none" opacity=".5" stroke-dasharray="5 5"/>
+            <!-- normal force on ground -->
+            <line x1="150" y1="240" x2="150" y2="216" stroke="#FF8C1A" stroke-width="1.5" opacity=".7"/>
+            <polygon points="150,210 146,219 154,219" fill="#FF8C1A" opacity=".7"/>
+            <text x="128" y="205" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A" opacity=".7">N</text>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">A LOST DRIVE · DESERT DYNAMICS</text>
           </svg>
         </div>
         <div class="project-main">
@@ -641,67 +596,52 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         </div>
       </div>
 
-      <!-- PROCEDURAL TERRAIN — wireframe landscape -->
+      <!-- PROCEDURAL TERRAIN — noise function / waveform math -->
       <div class="project-row rev reveal">
         <div class="project-panel">
           <div class="tag-corner">PROCEDURAL GENERATION</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="terG" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#FF8C1A" stop-opacity=".08"/>
-                <stop offset="100%" stop-color="#000" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
             <rect width="400" height="300" fill="#0A0A0A"/>
-            <rect width="400" height="300" fill="url(#terG)"/>
-            <!-- grid horizon lines -->
-            <g stroke="#262626" stroke-width="1">
-              <line x1="0" y1="60" x2="400" y2="60"/>
-              <line x1="0" y1="52" x2="400" y2="52" opacity=".4"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- wireframe terrain — back rows -->
-            <g stroke="#3D1400" stroke-width="1" fill="none">
-              <polyline points="0,110 40,102 80,112 120,98 160,108 200,92 240,106 280,96 320,110 360,100 400,108"/>
-              <polyline points="0,125 40,118 80,130 120,114 160,126 200,108 240,124 280,112 320,128 360,116 400,124"/>
-              <polyline points="0,142 40,136 80,148 120,132 160,144 200,126 240,142 280,130 320,146 360,134 400,142"/>
+            <!-- axes -->
+            <line x1="40" y1="260" x2="370" y2="260" stroke="#5C5C5C" stroke-width="1.5"/>
+            <line x1="40" y1="260" x2="40" y2="50" stroke="#5C5C5C" stroke-width="1.5"/>
+            <polygon points="370,260 361,256 361,264" fill="#5C5C5C"/>
+            <polygon points="40,50 36,59 44,59" fill="#5C5C5C"/>
+            <text x="356" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">x</text>
+            <text x="26" y="62" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">h</text>
+            <!-- octave 1 — big wave -->
+            <path d="M40 210 Q90 130 140 190 T240 160 T340 200" stroke="#7A2E00" stroke-width="1.5" fill="none"/>
+            <!-- octave 2 — medium wave -->
+            <path d="M40 210 Q70 170 100 200 T160 180 T220 200 T280 175 T340 195" stroke="#FF6B00" stroke-width="1.5" fill="none" opacity=".75"/>
+            <!-- octave 3 — fine noise -->
+            <path d="M40 210 l14 -14 l12 18 l14 -20 l12 16 l14 -22 l12 18 l14 -16 l12 20 l14 -24 l12 18 l14 -14 l12 20 l14 -18 l12 16 l14 -20 l12 18 l14 -12 l12 18 l14 -16" stroke="#FF8C1A" stroke-width="1.5" fill="none"/>
+            <!-- sum curve highlighted -->
+            <path d="M40 210 Q80 150 120 186 Q150 210 180 172 Q210 140 240 176 Q270 205 300 162 Q325 138 350 172" stroke="#FFD9A0" stroke-width="2.5" fill="none">
+              <animate attributeName="opacity" values=".6;1;.6" dur="3s" repeatCount="indefinite"/>
+            </path>
+            <!-- sample point -->
+            <circle cx="180" cy="172" r="4" fill="#FF6B00"/>
+            <line x1="180" y1="172" x2="180" y2="260" stroke="#FF6B00" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
+            <line x1="40" y1="172" x2="180" y2="172" stroke="#FF6B00" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
+            <text x="150" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF6B00">xₙ</text>
+            <!-- formula box -->
+            <g>
+              <rect x="230" y="48" width="152" height="76" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="244" y="72" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">h = Σ Aᵢ · noise(xfⁱ)</text>
+              <text x="244" y="92" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">fⁱ = 2ⁱ (octaves)</text>
+              <text x="244" y="110" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Aᵢ = persistenceⁱ</text>
             </g>
-            <!-- wireframe terrain — mid rows, brighter -->
-            <g stroke="#7A2E00" stroke-width="1.2" fill="none">
-              <polyline points="0,162 40,154 80,168 120,150 160,164 200,144 240,160 280,148 320,166 360,152 400,160"/>
-              <polyline points="0,184 40,176 80,190 120,170 160,186 200,164 240,182 280,168 320,188 360,172 400,180"/>
+            <!-- legend -->
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="60" cy="40" r="3" fill="#7A2E00"/><text x="68" y="43" fill="#5C5C5C">OCTAVE 1</text>
+              <circle cx="130" cy="40" r="3" fill="#FF6B00"/><text x="138" y="43" fill="#5C5C5C">OCTAVE 2</text>
+              <circle cx="200" cy="40" r="3" fill="#FF8C1A"/><text x="208" y="43" fill="#5C5C5C">DETAIL</text>
+              <circle cx="152" cy="28" r="3" fill="#FFD9A0"/><text x="160" y="31" fill="#FFD9A0" opacity=".8">SUM = TERRAIN</text>
             </g>
-            <!-- wireframe terrain — front rows, full orange -->
-            <g stroke="#FF6B00" stroke-width="1.5" fill="none">
-              <polyline points="0,210 40,200 80,216 120,194 160,212 200,186 240,206 280,190 320,212 360,194 400,204"/>
-              <polyline points="0,240 40,228 80,248 120,222 160,244 200,214 240,238 280,218 320,244 360,222 400,234"/>
-              <polyline points="0,276 40,262 80,286 120,256 160,280 200,248 240,274 280,252 320,280 360,256 400,270"/>
-            </g>
-            <!-- vertical connector lines on front row -->
-            <g stroke="#FF4500" stroke-width=".8" opacity=".45">
-              <line x1="40" y1="228" x2="40" y2="262"/>
-              <line x1="80" y1="248" x2="80" y2="286"/>
-              <line x1="120" y1="222" x2="120" y2="256"/>
-              <line x1="160" y1="244" x2="160" y2="280"/>
-              <line x1="200" y1="214" x2="200" y2="248"/>
-              <line x1="240" y1="238" x2="240" y2="274"/>
-              <line x1="280" y1="218" x2="280" y2="252"/>
-              <line x1="320" y1="244" x2="320" y2="280"/>
-            </g>
-            <!-- glowing peak nodes -->
-            <g fill="#FF8C1A">
-              <circle cx="200" cy="248" r="3"/>
-              <circle cx="200" cy="186" r="2.4"/>
-              <circle cx="200" cy="126" r="1.8" opacity=".7"/>
-            </g>
-            <circle cx="200" cy="248" r="8" fill="none" stroke="#FF6B00" stroke-width="1" opacity=".5"/>
-            <!-- noise annotation -->
-            <g font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">
-              <text x="16" y="44">PERLIN NOISE · CHUNKED GENERATION</text>
-              <text x="16" y="78">HEIGHTMAP → MESH</text>
-            </g>
-            <line x1="16" y1="84" x2="120" y2="84" stroke="#262626" stroke-width="1"/>
-            <!-- scanning beam -->
-            <line x1="200" y1="60" x2="200" y2="110" stroke="#FF8C1A" stroke-width="1" opacity=".5" stroke-dasharray="3 4"/>
           </svg>
         </div>
         <div class="project-main">
@@ -709,7 +649,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
           <p class="project-desc">
             A super-realistic procedural terrain generator — endless natural landscapes
             with smooth dunes, believable slopes and detailed surfaces, built from
-            noise-based heightmaps converted into mesh. Chunked generation keeps
+            multi-octave noise heightmaps converted into mesh. Chunked generation keeps
             performance high while the world stays seamless and infinite.
           </p>
           <div class="project-tags"><span>Luau</span><span>Noise / Perlin</span><span>Mesh Deformation</span><span>Chunks</span></div>
@@ -717,158 +657,163 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         </div>
       </div>
 
-      <!-- CAR CHASSIS — technical blueprint style -->
+      <!-- CAR CHASSIS — free body diagram -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">VEHICLE PHYSICS</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
             <rect width="400" height="300" fill="#0A0A0A"/>
-            <!-- blueprint grid -->
             <g stroke="#141414" stroke-width="1">
-              <line x1="0" y1="50" x2="400" y2="50"/><line x1="0" y1="100" x2="400" y2="100"/>
-              <line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="200" x2="400" y2="200"/><line x1="0" y1="250" x2="400" y2="250"/>
-              <line x1="50" y1="0" x2="50" y2="300"/><line x1="100" y1="0" x2="100" y2="300"/>
-              <line x1="150" y1="0" x2="150" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/>
-              <line x1="250" y1="0" x2="250" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/><line x1="350" y1="0" x2="350" y2="300"/>
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- side profile car -->
+            <!-- ground -->
+            <line x1="40" y1="228" x2="360" y2="228" stroke="#5C5C5C" stroke-width="2"/>
+            <!-- hatching under ground -->
+            <g stroke="#262626" stroke-width="1">
+              <line x1="60" y1="228" x2="52" y2="238"/><line x1="100" y1="228" x2="92" y2="238"/>
+              <line x1="140" y1="228" x2="132" y2="238"/><line x1="180" y1="228" x2="172" y2="238"/>
+              <line x1="220" y1="228" x2="212" y2="238"/><line x1="260" y1="228" x2="252" y2="238"/>
+              <line x1="300" y1="228" x2="292" y2="238"/><line x1="340" y1="228" x2="332" y2="238"/>
+            </g>
+            <!-- rigid body: rectangle -->
+            <rect x="130" y="120" width="140" height="70" rx="6" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
+            <!-- center of mass -->
+            <circle cx="200" cy="155" r="9" fill="#0A0A0A" stroke="#FF8C1A" stroke-width="1.5"/>
+            <path d="M200 146 A9 9 0 0 1 209 155 Z" fill="#FF8C1A"/>
+            <path d="M200 164 A9 9 0 0 1 191 155 Z" fill="#FF8C1A"/>
+            <text x="214" y="150" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A">CM</text>
+            <!-- weight -->
+            <line x1="200" y1="155" x2="200" y2="222" stroke="#FF4500" stroke-width="2.5"/>
+            <polygon points="200,228 195,217 205,217" fill="#FF4500"/>
+            <text x="208" y="212" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF4500" font-style="italic">mg</text>
+            <!-- normal forces at wheels -->
+            <line x1="160" y1="200" x2="160" y2="226" stroke="#FF8C1A" stroke-width="2"/>
+            <polygon points="160,196 156,204 164,204" fill="#FF8C1A" opacity="0"/>
+            <line x1="160" y1="220" x2="160" y2="196" stroke="#FF8C1A" stroke-width="2"/>
+            <polygon points="160,190 156,198 164,198" fill="#FF8C1A"/>
+            <text x="146" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF8C1A" font-style="italic">N₁</text>
+            <line x1="240" y1="220" x2="240" y2="196" stroke="#FF8C1A" stroke-width="2"/>
+            <polygon points="240,190 236,198 244,198" fill="#FF8C1A"/>
+            <text x="248" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF8C1A" font-style="italic">N₂</text>
+            <!-- drive force -->
+            <line x1="270" y1="155" x2="330" y2="155" stroke="#FFD9A0" stroke-width="2.5"/>
+            <polygon points="338,155 326,150 326,160" fill="#FFD9A0"/>
+            <text x="296" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FFD9A0" font-style="italic">F⃗drive</text>
+            <!-- friction -->
+            <line x1="130" y1="155" x2="86" y2="155" stroke="#7A2E00" stroke-width="2.5"/>
+            <polygon points="78,155 90,150 90,160" fill="#7A2E00"/>
+            <text x="82" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#B8471A" font-style="italic">F⃗fric</text>
+            <!-- torque arc -->
+            <path d="M200 98 A30 30 0 1 1 172 110" stroke="#FF6B00" stroke-width="1.5" fill="none"/>
+            <polygon points="172,110 176,99 182,107" fill="#FF6B00"/>
+            <text x="214" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B00" font-style="italic">τ = Iα</text>
+            <!-- formula box -->
             <g>
-              <path d="M85 190 v-18 q0 -8 8 -8 h52 q10 -22 34 -22 h50 q24 0 36 22 h30 q10 0 10 10 v16 z" fill="#0F0F0F" stroke="#FF6B00" stroke-width="1.8"/>
-              <!-- windows -->
-              <path d="M152 146 q8 -16 26 -17 h44 q16 0 25 17 l4 6 h-101 z" fill="#FF6B00" opacity=".14" stroke="#FF8C1A" stroke-width="1"/>
-              <!-- wheels with tire tread detail -->
-              <g>
-                <circle cx="130" cy="192" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
-                <circle cx="130" cy="192" r="14" fill="none" stroke="#3D1400" stroke-width="1.2"/>
-                <circle cx="130" cy="192" r="7" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
-                <g stroke="#FF4500" stroke-width="1" opacity=".6">
-                  <line x1="130" y1="180" x2="130" y2="185"/><line x1="130" y1="199" x2="130" y2="204"/>
-                  <line x1="118" y1="192" x2="123" y2="192"/><line x1="137" y1="192" x2="142" y2="192"/>
-                </g>
-                <circle cx="286" cy="192" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2"/>
-                <circle cx="286" cy="192" r="14" fill="none" stroke="#3D1400" stroke-width="1.2"/>
-                <circle cx="286" cy="192" r="7" fill="#141414" stroke="#FF8C1A" stroke-width="1"/>
-                <g stroke="#FF4500" stroke-width="1" opacity=".6">
-                  <line x1="286" y1="180" x2="286" y2="185"/><line x1="286" y1="199" x2="286" y2="204"/>
-                  <line x1="274" y1="192" x2="279" y2="192"/><line x1="293" y1="192" x2="298" y2="192"/>
-                </g>
-              </g>
-              <!-- suspension arms visible -->
-              <path d="M130 214 q0 6 0 6" stroke="#FF8C1A" stroke-width="2"/>
-              <path d="M124 196 l-10 6" stroke="#FF8C1A" stroke-width="1.5"/>
-              <path d="M136 196 l10 6" stroke="#FF8C1A" stroke-width="1.5"/>
-              <path d="M286 214 q0 6 0 6" stroke="#FF8C1A" stroke-width="2"/>
-              <!-- center of mass marker -->
-              <g>
-                <circle cx="208" cy="178" r="4" fill="none" stroke="#FF8C1A" stroke-width="1.2"/>
-                <line x1="208" y1="170" x2="208" y2="186" stroke="#FF8C1A" stroke-width="1"/>
-                <line x1="200" y1="178" x2="216" y2="178" stroke="#FF8C1A" stroke-width="1"/>
-                <text x="220" y="172" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF8C1A">COM</text>
-              </g>
-              <!-- torque arrow -->
-              <path d="M110 232 h180" stroke="#FF4500" stroke-width="1.2" marker-end="none" opacity=".7"/>
-              <polygon points="290,228 300,232 290,236" fill="#FF4500" opacity=".7"/>
-              <text x="160" y="248" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">DRIVE TORQUE</text>
-              <!-- weight transfer arrows -->
-              <path d="M240 160 l16 14" stroke="#FF6B00" stroke-width="1" opacity=".6"/>
-              <polygon points="258,176 250,172 256,168" fill="#FF6B00" opacity=".6"/>
-              <!-- dimensions -->
-              <line x1="85" y1="266" x2="315" y2="266" stroke="#262626" stroke-width="1"/>
-              <line x1="85" y1="260" x2="85" y2="272" stroke="#262626" stroke-width="1"/>
-              <line x1="315" y1="260" x2="315" y2="272" stroke="#262626" stroke-width="1"/>
-              <text x="176" y="280" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">WHEELBASE</text>
+              <rect x="256" y="236" width="128" height="50" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="268" y="256" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">ΣF = ma</text>
+              <text x="268" y="274" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Ffric = μN</text>
             </g>
+            <!-- wheelbase dimension -->
+            <line x1="160" y1="250" x2="240" y2="250" stroke="#262626" stroke-width="1"/>
+            <line x1="160" y1="245" x2="160" y2="255" stroke="#262626" stroke-width="1"/>
+            <line x1="240" y1="245" x2="240" y2="255" stroke="#262626" stroke-width="1"/>
+            <text x="170" y="264" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">WHEELBASE</text>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">FREE BODY DIAGRAM · RIGID BODY</text>
           </svg>
         </div>
         <div class="project-main">
           <h3>Realistic Car Chassis <span class="badge">VEHICLES</span></h3>
           <p class="project-desc">
-            Realistic vehicle chassis built for feel — weight distribution, torque
-            curves, grip and handling tuned so cars behave like cars. Pairs with
-            functional suspensions for full terrain reaction on every wheel, even on
-            procedurally generated ground.
+            Realistic vehicle chassis built from the physics up — free body balance
+            between weight, normal forces, drive torque and friction. Weight
+            distribution, grip and handling tuned so cars behave like cars, on any
+            surface — even procedurally generated terrain.
           </p>
           <div class="project-tags"><span>Luau</span><span>Constraints</span><span>Vehicle Physics</span><span>Tuning</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
 
-      <!-- SUSPENSION — cutaway diagram with spring animation -->
+      <!-- SUSPENSION — Hooke's law oscillator -->
       <div class="project-row rev reveal">
         <div class="project-panel">
           <div class="tag-corner">SUSPENSION SYSTEM</div>
           <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="strutG" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#3D1400"/>
-                <stop offset="50%" stop-color="#FF6B00"/>
-                <stop offset="100%" stop-color="#3D1400"/>
-              </linearGradient>
-            </defs>
             <rect width="400" height="300" fill="#0A0A0A"/>
             <g stroke="#141414" stroke-width="1">
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- chassis rail -->
-            <rect x="60" y="52" width="280" height="20" rx="5" fill="#0F0F0F" stroke="#FF6B00" stroke-width="1.8"/>
-            <text x="66" y="66" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">CHASSIS</text>
-            <!-- left strut assembly -->
-            <g>
-              <!-- strut body -->
-              <rect x="118" y="72" width="10" height="70" rx="3" fill="url(#strutG)" opacity=".85"/>
-              <!-- coil spring (detailed, animated compression) -->
-              <g>
-                <animateTransform attributeName="transform" type="translate" values="0 0; 0 6; 0 0" dur="2.4s" repeatCount="indefinite"/>
-                <path d="M110 80 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-13 5"
-                      fill="none" stroke="#FF8C1A" stroke-width="3" stroke-linecap="round"/>
-              </g>
-              <!-- damper rod -->
-              <line x1="123" y1="140" x2="123" y2="212" stroke="#FF6B00" stroke-width="4" stroke-linecap="round"/>
-              <!-- lower control arm -->
-              <path d="M123 212 L90 226 M123 212 L170 224" stroke="#7A2E00" stroke-width="5" stroke-linecap="round"/>
-              <!-- wheel hub -->
-              <circle cx="123" cy="236" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2.4"/>
-              <circle cx="123" cy="236" r="9" fill="#141414" stroke="#FF8C1A" stroke-width="1.2"/>
-              <g stroke="#FF4500" stroke-width="1.2" opacity=".7">
-                <line x1="123" y1="220" x2="123" y2="227"/><line x1="123" y1="245" x2="123" y2="252"/>
-                <line x1="107" y1="236" x2="114" y2="236"/><line x1="132" y1="236" x2="139" y2="236"/>
-              </g>
-              <!-- bump label -->
-              <text x="76" y="286" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">COMPRESSION</text>
+            <!-- ceiling -->
+            <line x1="120" y1="50" x2="280" y2="50" stroke="#5C5C5C" stroke-width="2"/>
+            <g stroke="#262626" stroke-width="1">
+              <line x1="140" y1="50" x2="132" y2="40"/><line x1="170" y1="50" x2="162" y2="40"/>
+              <line x1="200" y1="50" x2="192" y2="40"/><line x1="230" y1="50" x2="222" y2="40"/>
+              <line x1="260" y1="50" x2="252" y2="40"/>
             </g>
-            <!-- right strut assembly (mirrored, rebound) -->
+            <!-- spring (animated) -->
             <g>
-              <rect x="272" y="72" width="10" height="70" rx="3" fill="url(#strutG)" opacity=".85"/>
-              <g>
-                <animateTransform attributeName="transform" type="translate" values="0 0; 0 -5; 0 0" dur="2.4s" repeatCount="indefinite"/>
-                <path d="M264 80 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-26 10 l26 10 l-13 5"
-                      fill="none" stroke="#FF8C1A" stroke-width="3" stroke-linecap="round"/>
-              </g>
-              <line x1="277" y1="140" x2="277" y2="212" stroke="#FF6B00" stroke-width="4" stroke-linecap="round"/>
-              <path d="M277 212 L244 224 M277 212 L324 226" stroke="#7A2E00" stroke-width="5" stroke-linecap="round"/>
-              <circle cx="277" cy="236" r="22" fill="#050505" stroke="#FF6B00" stroke-width="2.4"/>
-              <circle cx="277" cy="236" r="9" fill="#141414" stroke="#FF8C1A" stroke-width="1.2"/>
-              <text x="240" y="286" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">REBOUND</text>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
+              <path d="M200 50 l0 8 M200 58 l-24 10 l48 12 l-48 12 l48 12 l-48 12 l48 12 l-24 8"
+                    fill="none" stroke="#FF8C1A" stroke-width="3" stroke-linecap="round"/>
             </g>
-            <!-- terrain line reacting -->
-            <path d="M40 262 q40 6 60 -2 q30 -8 46 4" stroke="#262626" stroke-width="2" fill="none"/>
-            <path d="M250 264 q40 4 60 -2 q30 -8 50 2" stroke="#262626" stroke-width="2" fill="none"/>
+            <!-- mass block (animated) -->
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
+              <rect x="168" y="158" width="64" height="44" rx="6" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
+              <text x="186" y="185" font-family="IBM Plex Mono, monospace" font-size="13" fill="#FF8C1A" font-style="italic">m</text>
+              <!-- restoring force -->
+              <line x1="230" y1="180" x2="268" y2="180" stroke="#FFD9A0" stroke-width="2"/>
+              <polygon points="276,180 264,175 264,185" fill="#FFD9A0"/>
+              <text x="240" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FFD9A0" font-style="italic">F = −kx</text>
+              <!-- damping -->
+              <line x1="168" y1="180" x2="130" y2="180" stroke="#7A2E00" stroke-width="2"/>
+              <polygon points="122,180 134,175 134,185" fill="#7A2E00"/>
+              <text x="128" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#B8471A" font-style="italic">−cv</text>
+            </g>
+            <!-- equilibrium line -->
+            <line x1="110" y1="150" x2="330" y2="150" stroke="#262626" stroke-width="1" stroke-dasharray="6 6"/>
+            <text x="288" y="144" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">EQUILIBRIUM</text>
+            <!-- displacement arrow -->
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
+              <line x1="300" y1="158" x2="300" y2="186" stroke="#FF6B00" stroke-width="1.5"/>
+              <polygon points="300,192 296,183 304,183" fill="#FF6B00"/>
+            </g>
+            <text x="310" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF6B00" font-style="italic">x</text>
+            <!-- damper symbol (cylinder) on the right -->
+            <g stroke="#7A2E00" stroke-width="1.5" fill="none">
+              <line x1="344" y1="50" x2="344" y2="120"/>
+              <path d="M330 120 h28 v26 h-28 z"/>
+              <line x1="344" y1="120" x2="344" y2="160"/>
+              <line x1="334" y1="132" x2="354" y2="132"/>
+            </g>
+            <text x="330" y="176" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">DAMPER</text>
+            <!-- formula box -->
+            <g>
+              <rect x="30" y="216" width="150" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="42" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">mẍ + cẋ + kx = 0</text>
+              <text x="42" y="258" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C" font-style="italic">ω = √(k/m) · ζ = c/2√(km)</text>
+              <text x="42" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">HOOKE + DAMPING</text>
+            </g>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">SPRING-MASS-DAMPER · Damped Oscillator</text>
           </svg>
         </div>
         <div class="project-main">
           <h3>Functional Suspensions <span class="badge">VEHICLES</span></h3>
           <p class="project-desc">
-            Suspension systems that actually work — coil springs compress and rebound
-            in real time, control arms follow the wheels, and the body rolls and dives
-            like a real vehicle. Built to look right and react right, on every surface.
+            Suspension systems built on real spring-mass-damper behavior — springs
+            compress and rebound with proper stiffness and damping ratios, wheels
+            follow the terrain, and the body rolls and dives like a real vehicle.
+            Tuned with Hooke's law, not guesswork.
           </p>
-          <div class="project-tags"><span>Luau</span><span>SpringConstraints</span><span>Control Arms</span><span>Physics</span></div>
+          <div class="project-tags"><span>Luau</span><span>SpringConstraints</span><span>Damping Ratios</span><span>Physics</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
 
-      <!-- GRAB SYSTEM — character reaching with IK lines -->
+      <!-- GRAB SYSTEM — vector / constraint diagram -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">CHARACTER SYSTEM</div>
@@ -878,62 +823,64 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- ground -->
-            <line x1="0" y1="258" x2="400" y2="258" stroke="#262626" stroke-width="2"/>
-            <!-- character -->
-            <g stroke-linecap="round">
-              <!-- head -->
-              <circle cx="150" cy="78" r="15" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
-              <!-- face glow -->
-              <circle cx="144" cy="76" r="1.6" fill="#FF8C1A"/>
-              <circle cx="156" cy="76" r="1.6" fill="#FF8C1A"/>
-              <!-- neck + torso -->
-              <line x1="150" y1="93" x2="150" y2="168" stroke="#FF6B00" stroke-width="5"/>
-              <!-- right arm reaching (IK chain shown) -->
-              <path d="M150 108 Q182 116 206 136" fill="none" stroke="#FF8C1A" stroke-width="4.5"/>
-              <!-- IK target lines -->
-              <line x1="150" y1="108" x2="206" y2="136" stroke="#FF4500" stroke-width=".8" stroke-dasharray="3 3" opacity=".6"/>
-              <!-- joint dots -->
-              <circle cx="182" cy="116" r="3" fill="#0A0A0A" stroke="#FF8C1A" stroke-width="1.2"/>
-              <circle cx="206" cy="136" r="3" fill="#0A0A0A" stroke="#FF8C1A" stroke-width="1.2"/>
-              <!-- hand grabbing -->
-              <circle cx="216" cy="140" r="6" fill="none" stroke="#FF8C1A" stroke-width="2.5"/>
-              <!-- left arm down -->
-              <path d="M150 112 Q128 130 122 152" fill="none" stroke="#FF6B00" stroke-width="4.5"/>
-              <!-- legs -->
-              <path d="M150 168 L134 212 L130 254" fill="none" stroke="#FF6B00" stroke-width="4.5"/>
-              <path d="M150 168 L168 210 L174 254" fill="none" stroke="#FF6B00" stroke-width="4.5"/>
-            </g>
-            <!-- grabbed crate -->
+            <!-- shoulder joint (origin) -->
+            <circle cx="120" cy="110" r="10" fill="#0F0F0F" stroke="#FF6B00" stroke-width="2"/>
+            <circle cx="120" cy="110" r="3" fill="#FF6B00"/>
+            <text x="86" y="100" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₁</text>
+            <!-- elbow joint -->
+            <circle cx="196" cy="82" r="7" fill="#0F0F0F" stroke="#FF8C1A" stroke-width="2"/>
+            <text x="188" y="66" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₂</text>
+            <!-- hand / end effector -->
+            <circle cx="272" cy="120" r="7" fill="#0F0F0F" stroke="#FFD9A0" stroke-width="2"/>
+            <text x="284" y="112" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">GRIP</text>
+            <!-- arm bones -->
+            <line x1="120" y1="110" x2="196" y2="82" stroke="#FF6B00" stroke-width="3"/>
+            <line x1="196" y1="82" x2="272" y2="120" stroke="#FF8C1A" stroke-width="3"/>
+            <!-- IK target circle around object -->
+            <circle cx="272" cy="120" r="18" fill="none" stroke="#FF4500" stroke-width="1" stroke-dasharray="4 4">
+              <animate attributeName="r" values="16;22;16" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".8;.3;.8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <!-- target object (mass) -->
+            <circle cx="272" cy="180" r="16" fill="#141414" stroke="#FF8C1A" stroke-width="1.8"/>
+            <text x="264" y="185" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">m</text>
+            <!-- grab force vectors -->
+            <line x1="272" y1="120" x2="272" y2="158" stroke="#FFD9A0" stroke-width="2"/>
+            <polygon points="272,164 268,155 276,155" fill="#FFD9A0"/>
+            <text x="280" y="146" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FFD9A0" font-style="italic">F⃗grip</text>
+            <!-- gravity on object -->
+            <line x1="272" y1="196" x2="272" y2="222" stroke="#FF4500" stroke-width="2"/>
+            <polygon points="272,228 268,219 276,219" fill="#FF4500"/>
+            <text x="280" y="218" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF4500" font-style="italic">mg</text>
+            <!-- torque arc at joint2 -->
+            <path d="M210 64 A26 26 0 0 1 222 92" stroke="#FF6B00" stroke-width="1.2" fill="none"/>
+            <polygon points="222,92 216,84 226,82" fill="#FF6B00"/>
+            <text x="228" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF6B00" font-style="italic">τ₂</text>
+            <!-- bone length constraints -->
+            <text x="128" y="86" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A" font-style="italic">L₁</text>
+            <text x="228" y="96" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF8C1A" font-style="italic">L₂</text>
+            <!-- angle arcs at shoulder -->
+            <path d="M150 110 A30 30 0 0 0 146 97" stroke="#262626" fill="none" stroke-width="1"/>
+            <text x="152" y="102" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ₁</text>
+            <!-- formula box -->
             <g>
-              <rect x="222" y="118" width="44" height="40" rx="4" fill="#141414" stroke="#FF8C1A" stroke-width="1.8"/>
-              <line x1="222" y1="118" x2="266" y2="158" stroke="#3D1400" stroke-width="1.4"/>
-              <line x1="266" y1="118" x2="222" y2="158" stroke="#3D1400" stroke-width="1.4"/>
-              <!-- physics glow when grabbed -->
-              <rect x="218" y="114" width="52" height="48" rx="7" fill="none" stroke="#FF4500" stroke-width="1" opacity=".5" stroke-dasharray="5 5">
-                <animate attributeName="opacity" values=".2;.7;.2" dur="1.6s" repeatCount="indefinite"/>
-              </rect>
+              <rect x="40" y="216" width="180" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="52" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF8C1A" font-style="italic">‖p−j‖ = L  (constraint)</text>
+              <text x="52" y="258" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">τ = F × r · sinθ</text>
+              <text x="52" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK · PHYSICS GRIP</text>
             </g>
-            <!-- force line hand -> crate -->
-            <line x1="222" y1="140" x2="230" y2="140" stroke="#FFD9A0" stroke-width="2" opacity=".8"/>
-            <!-- annotations -->
-            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">IK CHAIN · PHYSICS GRIP · LIVE ARM TRACKING</text>
-            <line x1="20" y1="48" x2="230" y2="48" stroke="#262626" stroke-width="1"/>
-            <!-- small force vectors on crate -->
-            <g stroke="#FF8C1A" stroke-width="1.2" opacity=".7">
-              <line x1="266" y1="128" x2="280" y2="124"/>
-              <line x1="266" y1="150" x2="280" y2="154"/>
-            </g>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK CHAIN · END EFFECTOR</text>
           </svg>
         </div>
         <div class="project-main">
           <h3>Realistic Grab System <span class="badge">INTERACTION</span></h3>
           <p class="project-desc">
-            A physics-driven grab system with fully functional arms — characters reach,
-            grip and hold objects naturally, with the arms following the interaction in
-            real time through IK, instead of playing a canned animation.
+            A physics-driven grab system with fully functional arms — built on 2-bone
+            IK with bone-length constraints, so characters reach, grip and hold objects
+            naturally. The grip applies real forces to the object instead of playing a
+            canned animation.
           </p>
-          <div class="project-tags"><span>Luau</span><span>IK</span><span>Physics Grip</span><span>Arms Rigging</span></div>
+          <div class="project-tags"><span>Luau</span><span>IK</span><span>Physics Grip</span><span>Constraints</span></div>
           <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
         </div>
       </div>
