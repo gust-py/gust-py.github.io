@@ -11,8 +11,7 @@
 
 <style>
 /* =====================================================
-   TOKENS — pure black canvas, Roblox Studio axis theme:
-   X = red, Y = green, Z = blue. No orange.
+   TOKENS — Roblox Studio axis theme: X red, Y green, Z blue
    ===================================================== */
 :root{
   --bg:#000000;
@@ -24,7 +23,6 @@
   --text-dim:#A3A3A3;
   --text-faint:#5C5C5C;
 
-  /* Roblox Studio axis colors — the site theme */
   --r:#FF3B3B;
   --r-bright:#FF6B6B;
   --r-soft:rgba(255,59,59,.14);
@@ -47,10 +45,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{
-  background:
-    radial-gradient(ellipse 70% 45% at 82% -8%, rgba(255,59,59,.12), transparent 60%),
-    radial-gradient(ellipse 60% 45% at 8% 8%, rgba(59,130,255,.12), transparent 60%),
-    var(--bg);
+  background:var(--bg);
   color:var(--text); font-family:var(--font-body); overflow-x:hidden; cursor:default;
 }
 ::selection{background:var(--b); color:#000;}
@@ -58,20 +53,29 @@ a{color:inherit; text-decoration:none;}
 img,svg{max-width:100%; display:block;}
 .container{max-width:var(--container); margin:0 auto; padding:0 28px;}
 
+/* BLACK HOLE BACKGROUND (WebGPU canvas injected by script) */
+#bh-bg{
+  position:fixed; inset:0; width:100vw; height:100vh;
+  z-index:0; pointer-events:none; display:block;
+}
+
 .grad-text{
   background:linear-gradient(100deg, var(--r), var(--g), var(--b));
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
 .grain{
-  position:fixed; inset:0; pointer-events:none; z-index:2; opacity:.04; mix-blend-mode:overlay;
+  position:fixed; inset:0; pointer-events:none; z-index:3; opacity:.04; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .spotlight{
-  position:fixed; width:640px; height:640px; border-radius:50%; pointer-events:none; z-index:1;
+  position:fixed; width:640px; height:640px; border-radius:50%; pointer-events:none; z-index:2;
   background:radial-gradient(circle, rgba(255,59,59,.08) 0%, rgba(59,130,255,.08) 45%, transparent 70%);
   transform:translate(-50%,-50%); left:50%; top:30%; transition:opacity .3s;
 }
+
+/* content sits above the black hole */
+.page{position:relative; z-index:1;}
 
 /* NAV */
 .nav{
@@ -88,17 +92,17 @@ img,svg{max-width:100%; display:block;}
 .nav-links a::after{content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--b); transition:width .25s;}
 .nav-links a:hover::after{width:100%;}
 .nav-actions{display:flex; align-items:center; gap:12px;}
-.nav-cta{font-family:var(--font-mono); font-size:12px; border:1px solid var(--border); border-radius:999px; padding:9px 18px; transition:all .25s; background:var(--surface); box-shadow:var(--shadow-card);}
+.nav-cta{font-family:var(--font-mono); font-size:12px; border:1px solid var(--border); border-radius:999px; padding:9px 18px; transition:all .25s; background:rgba(10,10,10,.8); box-shadow:var(--shadow-card);}
 .nav-cta:hover{border-color:var(--b); color:var(--b-bright); box-shadow:0 8px 20px -6px rgba(59,130,255,.45);}
 .nav-gh{font-family:var(--font-mono); font-size:12px; border-radius:999px; padding:9px 18px; transition:all .25s; background:linear-gradient(100deg, var(--r), var(--b)); color:#FFFFFF; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 18px -8px rgba(59,130,255,.55); display:flex; align-items:center; gap:7px;}
 .nav-gh:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -6px rgba(59,130,255,.65); transform:translateY(-1px);}
 .nav-gh svg{width:13px; height:13px;}
 
-/* HERO */
+/* HERO — transparent so the black hole shows through */
 .hero{min-height:100vh; display:flex; align-items:center; position:relative; padding:150px 0 80px;}
-.hero-grid{display:grid; grid-template-columns:1.15fr .85fr; gap:40px; align-items:center; width:100%;}
+.hero-inner{max-width:680px;}
 .hero-bg-lines{
-  position:absolute; inset:0; z-index:0; opacity:.5;
+  position:absolute; inset:0; z-index:-1; opacity:.5;
   background-image:linear-gradient(to right, rgba(255,255,255,.035) 1px, transparent 1px);
   background-size:56px 100%;
   mask-image:radial-gradient(ellipse 65% 55% at 30% 40%, black 30%, transparent 100%);
@@ -112,6 +116,7 @@ img,svg{max-width:100%; display:block;}
   font-family:var(--font-display); font-weight:700; line-height:.98; letter-spacing:-.03em;
   font-size:clamp(46px, 6.6vw, 92px); text-transform:uppercase;
   opacity:0; animation:fadeUp .9s .2s forwards;
+  text-shadow:0 4px 40px rgba(0,0,0,.8);
 }
 .hero h1 .dim{color:var(--text-faint);}
 .hero-title{
@@ -127,42 +132,17 @@ img,svg{max-width:100%; display:block;}
 .btn{font-family:var(--font-mono); font-size:13px; padding:14px 26px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; transition:transform .2s, box-shadow .25s;}
 .btn-solid{background:linear-gradient(100deg, var(--r), var(--b)); color:#FFFFFF; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 20px -6px rgba(59,130,255,.45);}
 .btn-solid:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 14px 30px -6px rgba(59,130,255,.6);}
-.btn-outline{border:1px solid var(--border); color:var(--text); background:var(--surface); box-shadow:var(--shadow-card);}
+.btn-outline{border:1px solid var(--border); color:var(--text); background:rgba(10,10,10,.85); box-shadow:var(--shadow-card);}
 .btn-outline:hover{border-color:var(--b); box-shadow:var(--shadow-card-hover);}
 .btn:hover{transform:translateY(-3px);}
 .btn svg{width:14px; height:14px;}
-
-/* BLACK HOLE SIM — Schwarzschild, real physics */
-.hero-visual{position:relative; aspect-ratio:1/1.05; opacity:0; animation:fadeUp 1s .4s forwards;}
-.hero-visual canvas{width:100%; height:100%; border-radius:20px; border:1px solid var(--border); box-shadow:var(--shadow-card), 0 0 80px rgba(59,130,255,.15); display:block; background:#000;}
-.bh-hud{
-  position:absolute; top:10px; left:10px; right:10px; display:flex; flex-direction:column; gap:4px; pointer-events:none;
-}
-.bh-formula{
-  display:flex; justify-content:space-between; align-items:baseline; gap:8px;
-  font-family:var(--font-mono); font-size:9px; letter-spacing:.03em;
-  background:rgba(0,0,0,.55); border:1px solid var(--border); border-radius:6px; padding:4px 8px;
-  backdrop-filter:blur(4px);
-}
-.bh-formula .fx{color:var(--text-dim); font-style:italic;}
-.bh-formula .fv{color:var(--g);}
-.bh-formula:first-child .fv{color:var(--r);}
-.bh-formula:nth-child(2) .fv{color:var(--b-bright);}
-.bh-formula:last-child .fv{color:var(--b);}
-.hero-visual .radar-label.top{top:auto; bottom:8px;}
-.hero-visual .radar-label.bottom{bottom:-6px;}
-.radar-label{position:absolute; font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); letter-spacing:.06em;}
-.radar-label.top{top:-6px; left:50%; transform:translateX(-50%);}
-.radar-label.bottom{bottom:-6px; left:50%; transform:translateX(-50%);}
 
 .hero-scroll{position:absolute; bottom:36px; left:28px; font-family:var(--font-mono); font-size:11px; color:var(--text-faint); display:flex; align-items:center; gap:10px;}
 .hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--b), transparent); animation:scrollLine 2s ease-in-out infinite;}
 @keyframes scrollLine{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 51%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
 
-@media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} .hero-visual{max-width:320px; margin:20px auto 0;} }
-
 /* MARQUEE */
-.marquee-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:20px 0; background:var(--surface);}
+.marquee-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:20px 0; background:rgba(10,10,10,.92);}
 .marquee{display:flex; width:max-content; animation:marquee 32s linear infinite;}
 .marquee span{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); padding:0 30px; white-space:nowrap; display:flex; align-items:center; gap:30px;}
 .marquee span b{color:var(--text-dim); font-weight:500;}
@@ -172,7 +152,8 @@ img,svg{max-width:100%; display:block;}
 .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease;}
 .reveal.in{opacity:1; transform:translateY(0);}
 
-section{padding:120px 0; position:relative;}
+/* solid-ish panels over the black hole so text stays readable */
+section{padding:120px 0; position:relative; background:linear-gradient(180deg, rgba(0,0,0,.94), rgba(0,0,0,.97));}
 .section-tag{font-family:var(--font-mono); font-size:12px; color:var(--b); letter-spacing:.08em; display:flex; align-items:center; gap:10px; margin-bottom:18px;}
 .section-tag::before{content:""; width:20px; height:1px; background:linear-gradient(90deg, var(--r), var(--g), var(--b));}
 .section-title{font-family:var(--font-display); font-size:clamp(30px,4vw,50px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:680px;}
@@ -194,7 +175,7 @@ section{padding:120px 0; position:relative;}
 .avatar .torso{width:52%; aspect-ratio:1.2/1; border-radius:6px; background:linear-gradient(160deg, #1F1F1F, #000); border:1px solid var(--b); box-shadow:0 8px 24px -8px rgba(59,130,255,.4);}
 .portrait-card .frame::after{content:""; position:absolute; inset:0; background:linear-gradient(200deg, rgba(255,59,59,.16), transparent 42%, transparent 60%, rgba(59,130,255,.16)); mix-blend-mode:overlay; pointer-events:none;}
 .portrait-card .frame::before{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,0) 32%); pointer-events:none; z-index:1;}
-.portrait-corner{position:absolute; width:18px; height:18px; border-color:rgba(250,250,250,.55); z-index:2;}
+.portrait-corner{position:absolute; width:18px; height:18px; z-index:2;}
 .portrait-corner.tl{top:12px; left:12px; border-top:1.5px solid; border-left:1.5px solid; border-color:var(--r);}
 .portrait-corner.tr{top:12px; right:12px; border-top:1.5px solid; border-right:1.5px solid; border-color:var(--g);}
 .portrait-corner.bl{bottom:12px; left:12px; border-bottom:1.5px solid; border-left:1.5px solid; border-color:var(--g);}
@@ -240,7 +221,8 @@ section{padding:120px 0; position:relative;}
           mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
   animation:spin 24s linear infinite;
 }
-.ring-center{position:absolute; inset:26%; border-radius:50%; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ring-center{position:absolute; inset:26%; border-radius:50%; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:14px;}
 .ring-center h3{font-family:var(--font-display); font-size:19px; text-transform:uppercase; letter-spacing:-.01em;}
 .ring-center p{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:8px; line-height:1.5;}
 .ring-node{
@@ -311,13 +293,15 @@ section{padding:120px 0; position:relative;}
 @media (max-width:820px){ .project-row, .project-row.rev{grid-template-columns:1fr; direction:ltr;} }
 
 /* CONTACT */
-.contact{text-align:center; position:relative; overflow:hidden;}
+.contact{text-align:center; position:relative; overflow:hidden; background:transparent;}
+.contact::before{content:""; position:absolute; inset:0; background:rgba(0,0,0,.55); z-index:0;}
+.contact > *{position:relative; z-index:1;}
 .contact-bg-text{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-weight:700; font-size:min(18vw,220px); color:var(--surface-2); white-space:nowrap; letter-spacing:-.02em; z-index:0; pointer-events:none; opacity:.5;}
-.contact-title{font-family:var(--font-display); font-size:clamp(36px,5.6vw,72px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:820px; margin:0 auto 28px; position:relative; z-index:1;}
-.contact p.lead{color:var(--text-dim); font-size:17px; max-width:560px; margin:0 auto 40px; position:relative; z-index:1;}
-.contact-links{display:flex; justify-content:center; gap:16px; flex-wrap:wrap; position:relative; z-index:1;}
+.contact-title{font-family:var(--font-display); font-size:clamp(36px,5.6vw,72px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:820px; margin:0 auto 28px;}
+.contact p.lead{color:var(--text-dim); font-size:17px; max-width:560px; margin:0 auto 40px;}
+.contact-links{display:flex; justify-content:center; gap:16px; flex-wrap:wrap;}
 
-footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-family:var(--font-mono); font-size:12px; color:var(--text-faint);}
+footer{border-top:1px solid var(--border); padding:30px 0; margin-top:0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-family:var(--font-mono); font-size:12px; color:var(--text-faint); background:rgba(0,0,0,.94);}
 
 .magnetic{transition:transform .15s ease-out;}
 
@@ -328,6 +312,8 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 
 <div class="grain"></div>
 <div class="spotlight" id="spotlight"></div>
+
+<!-- WebGPU black hole canvas gets injected here as #bh-bg (z-index 0, fixed) -->
 
 <nav class="nav" id="nav">
   <a href="#top" class="nav-mark"><span class="dot"></span> gust-py</a>
@@ -346,39 +332,26 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
   </div>
 </nav>
 
-<!-- HERO -->
+<div class="page">
+
+<!-- HERO — black hole shines behind -->
 <section class="hero" id="top">
   <div class="hero-bg-lines"></div>
   <div class="container">
-    <div class="hero-grid">
-      <div>
-        <div class="eyebrow">BUILDER &amp; SCRIPTER — AVAILABLE FOR COMMISSIONS</div>
-        <h1>From <span class="dim">parts</span><br>to <span class="grad-text">machines</span>.</h1>
-        <div class="hero-title">gust-py <span class="sep">/</span> Roblox Builder &nbsp;&amp;&nbsp; Scripter</div>
-        <p class="hero-bio">
-          I build and script realistic systems on Roblox — <strong>functional car
-          chassis and suspensions</strong>, <strong>super-realistic procedural terrain</strong>,
-          and physics-driven <strong>grab systems with working arms</strong>. Currently
-          building <strong>A Lost Drive</strong>, a desert trip game. Always pushing for
-          realism, always willing to learn more.
-        </p>
-        <div class="hero-actions">
-          <a href="#projects" class="btn btn-solid magnetic">View my work</a>
-          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="btn btn-outline magnetic">Roblox Profile ↗</a>
-        </div>
-      </div>
-
-      <div class="hero-visual">
-        <canvas id="bhCanvas"></canvas>
-        <div class="bh-hud">
-          <div class="bh-formula"><span class="fx">r<sub>s</sub> = 2GM/c²</span><span class="fv" id="bhRs">rs = 2 GM/c²</span></div>
-          <div class="bh-formula"><span class="fx">v(r) = √(GM/r)</span><span class="fv" id="bhV">v(ISCO) = 0.577c</span></div>
-          <div class="bh-formula"><span class="fx">r<sub>ph</sub> = 1.5 r<sub>s</sub></span><span class="fv">ISCO = 3 rs</span></div>
-          <div class="bh-formula"><span class="fx">b<sub>crit</sub> = (√27/2) r<sub>s</sub></span><span class="fv">shadow = 2.6 rs</span></div>
-          <div class="bh-formula"><span class="fx">Doppler δ³ = [1 − β·cosφ]⁻³</span><span class="fv" id="bhFrame">frame 0</span></div>
-        </div>
-        <div class="radar-label top">SCHWARZSCHILD GEODESICS</div>
-        <div class="radar-label bottom">ACCRETION DISK · REAL PHYSICS</div>
+    <div class="hero-inner">
+      <div class="eyebrow">BUILDER &amp; SCRIPTER — AVAILABLE FOR COMMISSIONS</div>
+      <h1>From <span class="dim">parts</span><br>to <span class="grad-text">machines</span>.</h1>
+      <div class="hero-title">gust-py <span class="sep">/</span> Roblox Builder &nbsp;&amp;&nbsp; Scripter</div>
+      <p class="hero-bio">
+        I build and script realistic systems on Roblox — <strong>functional car
+        chassis and suspensions</strong>, <strong>super-realistic procedural terrain</strong>,
+        and physics-driven <strong>grab systems with working arms</strong>. Currently
+        building <strong>A Lost Drive</strong>, a desert trip game. Always pushing for
+        realism, always willing to learn more.
+      </p>
+      <div class="hero-actions">
+        <a href="#projects" class="btn btn-solid magnetic">View my work</a>
+        <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="btn btn-outline magnetic">Roblox Profile ↗</a>
       </div>
     </div>
   </div>
@@ -557,7 +530,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 
     <div class="projects-list">
 
-      <!-- A LOST DRIVE — dynamics in world space -->
+      <!-- A LOST DRIVE -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">IN DEVELOPMENT</div>
@@ -567,50 +540,38 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- X axis (red) -->
             <line x1="30" y1="240" x2="370" y2="240" stroke="#FF3B3B" stroke-width="1.5"/>
             <polygon points="378,240 367,235.5 367,244.5" fill="#FF3B3B"/>
             <text x="348" y="258" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-weight="bold">X</text>
-            <!-- Y axis (green) -->
             <line x1="30" y1="240" x2="30" y2="58" stroke="#4ADE4A" stroke-width="1.5"/>
             <polygon points="30,50 25.5,61 34.5,61" fill="#4ADE4A"/>
             <text x="18" y="64" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
-            <!-- Z axis (blue, diagonal) -->
             <line x1="30" y1="240" x2="72" y2="272" stroke="#3B82FF" stroke-width="1.5"/>
             <polygon points="78,276 66,272 72,264" fill="#3B82FF"/>
             <text x="82" y="282" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-weight="bold">Z</text>
             <circle cx="30" cy="240" r="3.5" fill="#FAFAFA"/>
-            <!-- body -->
             <circle cx="170" cy="165" r="24" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
             <circle cx="170" cy="165" r="4" fill="#FAFAFA"/>
-            <!-- velocity (+X, red) -->
             <line x1="170" y1="165" x2="256" y2="165" stroke="#FF3B3B" stroke-width="2.5"/>
             <polygon points="264,165 252,160 252,170" fill="#FF3B3B"/>
             <text x="208" y="156" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">v⃗ = (v, 0, 0)</text>
-            <!-- gravity (−Y, dim red) -->
             <line x1="170" y1="165" x2="170" y2="215" stroke="#FF3B3B" stroke-width="2" opacity=".55"/>
             <polygon points="170,222 165,211 175,211" fill="#FF3B3B" opacity=".55"/>
             <text x="178" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">g⃗ = (0, −g, 0)</text>
-            <!-- suspension (+Y, green) -->
             <line x1="170" y1="141" x2="170" y2="112" stroke="#4ADE4A" stroke-width="2"/>
             <polygon points="170,105 165,116 175,116" fill="#4ADE4A"/>
             <text x="178" y="120" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-style="italic">F⃗s = (0, Fs, 0)</text>
-            <!-- lateral friction (Z, blue) -->
             <line x1="146" y1="165" x2="118" y2="182" stroke="#3B82FF" stroke-width="2"/>
             <polygon points="112,186 120,175 124,184" fill="#3B82FF"/>
             <text x="76" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-style="italic">F⃗z</text>
-            <!-- angle arc -->
             <path d="M206 165 A36 36 0 0 0 198 142" stroke="#262626" fill="none" stroke-width="1.2"/>
             <text x="212" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ</text>
-            <!-- formula box -->
             <g>
               <rect x="262" y="52" width="122" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
               <text x="274" y="76" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4ADE4A" font-style="italic">E = ½mv² + mgh</text>
               <text x="274" y="98" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">d = v₀t + ½at²</text>
             </g>
-            <!-- trajectory -->
             <path d="M60 110 Q120 52 190 92 T320 72" stroke="#3B82FF" stroke-width="1.2" fill="none" opacity=".5" stroke-dasharray="5 5"/>
-            <!-- normal force -->
             <line x1="170" y1="240" x2="170" y2="218" stroke="#4ADE4A" stroke-width="1.5" opacity=".7"/>
             <polygon points="170,212 166,221 174,221" fill="#4ADE4A" opacity=".7"/>
             <text x="150" y="208" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4ADE4A" opacity=".7">N = (0, N, 0)</text>
@@ -646,40 +607,32 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- X axis (red) -->
             <line x1="40" y1="260" x2="370" y2="260" stroke="#FF3B3B" stroke-width="1.5"/>
             <polygon points="378,260 367,255.5 367,264.5" fill="#FF3B3B"/>
             <text x="352" y="278" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-weight="bold">X</text>
-            <!-- Y axis (green — height) -->
             <line x1="40" y1="260" x2="40" y2="58" stroke="#4ADE4A" stroke-width="1.5"/>
             <polygon points="40,50 35.5,61 44.5,61" fill="#4ADE4A"/>
             <text x="24" y="64" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
-            <!-- Z depth (blue, diagonal) -->
             <line x1="40" y1="260" x2="86" y2="284" stroke="#3B82FF" stroke-width="1.5" stroke-dasharray="4 4"/>
             <polygon points="92,287 81,284 86,276" fill="#3B82FF"/>
             <text x="96" y="292" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-weight="bold">Z</text>
-            <!-- octaves -->
             <path d="M40 210 Q90 130 140 190 T240 160 T340 200" stroke="#1E3A8A" stroke-width="1.5" fill="none"/>
             <path d="M40 210 Q70 170 100 200 T160 180 T220 200 T280 175 T340 195" stroke="#3B82FF" stroke-width="1.5" fill="none" opacity=".75"/>
             <path d="M40 210 l14 -14 l12 18 l14 -20 l12 16 l14 -22 l12 18 l14 -16 l12 20 l14 -24 l12 18 l14 -14 l12 20 l14 -18 l12 16 l14 -20 l12 18 l14 -12 l12 18 l14 -16" stroke="#6BA5FF" stroke-width="1.5" fill="none"/>
-            <!-- sum -->
             <path d="M40 210 Q80 150 120 186 Q150 210 180 172 Q210 140 240 176 Q270 205 300 162 Q325 138 350 172" stroke="#4ADE4A" stroke-width="2.5" fill="none">
               <animate attributeName="opacity" values=".6;1;.6" dur="3s" repeatCount="indefinite"/>
             </path>
-            <!-- sample point -->
             <circle cx="180" cy="172" r="4" fill="#FF3B3B"/>
             <line x1="180" y1="172" x2="180" y2="260" stroke="#FF3B3B" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
             <line x1="40" y1="172" x2="180" y2="172" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
             <text x="168" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF3B3B">xₙ</text>
             <text x="30" y="168" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4ADE4A">h(xₙ)</text>
-            <!-- formula box -->
             <g>
               <rect x="230" y="48" width="152" height="76" rx="8" fill="#0F0F0F" stroke="#262626"/>
               <text x="242" y="72" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6BA5FF" font-style="italic">h = Σ Aᵢ · noise(xfⁱ)</text>
               <text x="242" y="92" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">fⁱ = 2ⁱ (octaves)</text>
               <text x="242" y="110" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Aᵢ = persistenceⁱ</text>
             </g>
-            <!-- legend -->
             <g font-family="IBM Plex Mono, monospace" font-size="8">
               <circle cx="60" cy="40" r="3" fill="#1E3A8A"/><text x="68" y="43" fill="#5C5C5C">OCTAVE 1</text>
               <circle cx="130" cy="40" r="3" fill="#3B82FF"/><text x="138" y="43" fill="#5C5C5C">OCTAVE 2</text>
@@ -701,7 +654,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         </div>
       </div>
 
-      <!-- CAR CHASSIS — free body diagram -->
+      <!-- CAR CHASSIS -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">VEHICLE PHYSICS</div>
@@ -711,7 +664,6 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- ground -->
             <line x1="40" y1="228" x2="360" y2="228" stroke="#5C5C5C" stroke-width="2"/>
             <g stroke="#262626" stroke-width="1">
               <line x1="60" y1="228" x2="52" y2="238"/><line x1="100" y1="228" x2="92" y2="238"/>
@@ -719,47 +671,37 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="220" y1="228" x2="212" y2="238"/><line x1="260" y1="228" x2="252" y2="238"/>
               <line x1="300" y1="228" x2="292" y2="238"/><line x1="340" y1="228" x2="332" y2="238"/>
             </g>
-            <!-- rigid body -->
             <rect x="130" y="120" width="140" height="70" rx="6" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
-            <!-- center of mass -->
             <circle cx="200" cy="155" r="9" fill="#0A0A0A" stroke="#FAFAFA" stroke-width="1.5"/>
             <path d="M200 146 A9 9 0 0 1 209 155 Z" fill="#FAFAFA"/>
             <path d="M200 164 A9 9 0 0 1 191 155 Z" fill="#FAFAFA"/>
             <text x="214" y="150" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FAFAFA">CM</text>
-            <!-- weight (−Y, red) -->
             <line x1="200" y1="155" x2="200" y2="222" stroke="#FF3B3B" stroke-width="2.5"/>
             <polygon points="200,228 195,217 205,217" fill="#FF3B3B"/>
             <text x="208" y="212" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">mg (0,−mg,0)</text>
-            <!-- normals (+Y, green) -->
             <line x1="160" y1="220" x2="160" y2="196" stroke="#4ADE4A" stroke-width="2"/>
             <polygon points="160,190 156,198 164,198" fill="#4ADE4A"/>
             <text x="146" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">N₁ (0,N,0)</text>
             <line x1="240" y1="220" x2="240" y2="196" stroke="#4ADE4A" stroke-width="2"/>
             <polygon points="240,190 236,198 244,198" fill="#4ADE4A"/>
             <text x="248" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">N₂</text>
-            <!-- drive (+X, red) -->
             <line x1="270" y1="155" x2="330" y2="155" stroke="#FF3B3B" stroke-width="2.5"/>
             <polygon points="338,155 326,150 326,160" fill="#FF3B3B"/>
             <text x="288" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">F⃗drive</text>
-            <!-- friction (−X, dim red) -->
             <line x1="130" y1="155" x2="86" y2="155" stroke="#FF3B3B" stroke-width="2.5" opacity=".55"/>
             <polygon points="78,155 90,150 90,160" fill="#FF3B3B" opacity=".55"/>
             <text x="82" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">F⃗fric</text>
-            <!-- lateral grip (Z, blue) -->
             <line x1="200" y1="190" x2="176" y2="210" stroke="#3B82FF" stroke-width="2"/>
             <polygon points="171,215 180,204 185,212" fill="#3B82FF"/>
             <text x="150" y="220" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3B82FF" font-style="italic">grip ẑ</text>
-            <!-- torque arc -->
             <path d="M200 98 A30 30 0 1 1 172 110" stroke="#FAFAFA" stroke-width="1.5" fill="none"/>
             <polygon points="172,110 176,99 182,107" fill="#FAFAFA"/>
             <text x="214" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FAFAFA" font-style="italic">τ = Iα</text>
-            <!-- formula box -->
             <g>
               <rect x="256" y="236" width="128" height="50" rx="8" fill="#0F0F0F" stroke="#262626"/>
               <text x="268" y="256" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">ΣF = ma</text>
               <text x="268" y="274" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Ffric = μN</text>
             </g>
-            <!-- wheelbase (X, red) -->
             <line x1="160" y1="250" x2="240" y2="250" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
             <line x1="160" y1="245" x2="160" y2="255" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
             <line x1="240" y1="245" x2="240" y2="255" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
@@ -785,7 +727,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         </div>
       </div>
 
-      <!-- SUSPENSION — oscillator on Y -->
+      <!-- SUSPENSION -->
       <div class="project-row rev reveal">
         <div class="project-panel">
           <div class="tag-corner">SUSPENSION SYSTEM</div>
@@ -795,54 +737,44 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- ceiling -->
             <line x1="120" y1="50" x2="280" y2="50" stroke="#5C5C5C" stroke-width="2"/>
             <g stroke="#262626" stroke-width="1">
               <line x1="140" y1="50" x2="132" y2="40"/><line x1="170" y1="50" x2="162" y2="40"/>
               <line x1="200" y1="50" x2="192" y2="40"/><line x1="230" y1="50" x2="222" y2="40"/>
               <line x1="260" y1="50" x2="252" y2="40"/>
             </g>
-            <!-- Y travel axis (green) -->
             <line x1="290" y1="60" x2="290" y2="140" stroke="#4ADE4A" stroke-width="1.2" opacity=".6"/>
             <polygon points="290,54 286,63 294,63" fill="#4ADE4A" opacity=".6"/>
             <polygon points="290,146 286,137 294,137" fill="#4ADE4A" opacity=".6"/>
             <text x="296" y="106" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
             <text x="296" y="120" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">travel</text>
-            <!-- spring -->
             <g>
               <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
               <path d="M200 50 l0 8 M200 58 l-24 10 l48 12 l-48 12 l48 12 l-48 12 l48 12 l-24 8"
                     fill="none" stroke="#4ADE4A" stroke-width="3" stroke-linecap="round"/>
             </g>
-            <!-- mass -->
             <g>
               <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
               <rect x="168" y="158" width="64" height="44" rx="6" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
               <text x="186" y="185" font-family="IBM Plex Mono, monospace" font-size="13" fill="#FAFAFA" font-style="italic">m</text>
-              <!-- restoring force (+Y, green) -->
               <line x1="232" y1="180" x2="264" y2="180" stroke="#4ADE4A" stroke-width="2"/>
               <polygon points="272,180 260,175 260,185" fill="#4ADE4A"/>
               <text x="236" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">F = −kx (Y)</text>
-              <!-- damping (−Y, red) -->
               <line x1="168" y1="180" x2="136" y2="180" stroke="#FF3B3B" stroke-width="2"/>
               <polygon points="128,180 140,175 140,185" fill="#FF3B3B"/>
               <text x="128" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">−cv</text>
-              <!-- weight (−Y, red) -->
               <line x1="200" y1="202" x2="200" y2="216" stroke="#FF3B3B" stroke-width="2" opacity=".7"/>
               <polygon points="200,222 196,213 204,213" fill="#FF3B3B" opacity=".7"/>
               <text x="206" y="216" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF3B3B" font-style="italic">mg</text>
             </g>
-            <!-- equilibrium -->
             <line x1="110" y1="150" x2="330" y2="150" stroke="#262626" stroke-width="1" stroke-dasharray="6 6"/>
             <text x="338" y="154" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">x₀</text>
-            <!-- displacement (red) -->
             <g>
               <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
               <line x1="316" y1="158" x2="316" y2="186" stroke="#FF3B3B" stroke-width="1.5"/>
               <polygon points="316,192 312,183 320,183" fill="#FF3B3B"/>
             </g>
             <text x="324" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">Δy</text>
-            <!-- damper symbol -->
             <g stroke="#1E3A8A" stroke-width="1.5" fill="none">
               <line x1="344" y1="50" x2="344" y2="120"/>
               <path d="M330 120 h28 v26 h-28 z"/>
@@ -850,7 +782,6 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="334" y1="132" x2="354" y2="132"/>
             </g>
             <text x="330" y="176" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">DAMPER</text>
-            <!-- formula box -->
             <g>
               <rect x="30" y="216" width="150" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
               <text x="42" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-style="italic">mẏ + cẏ + ky = 0</text>
@@ -873,7 +804,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
         </div>
       </div>
 
-      <!-- GRAB SYSTEM — IK chain -->
+      <!-- GRAB SYSTEM -->
       <div class="project-row reveal">
         <div class="project-panel">
           <div class="tag-corner">CHARACTER SYSTEM</div>
@@ -883,7 +814,6 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
               <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
             </g>
-            <!-- world gizmo (Studio style) -->
             <g>
               <circle cx="52" cy="232" r="3" fill="#FAFAFA"/>
               <line x1="52" y1="232" x2="96" y2="232" stroke="#FF3B3B" stroke-width="2"/>
@@ -896,7 +826,6 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
               <polygon points="85,258 75,255 79,248" fill="#3B82FF"/>
               <text x="88" y="264" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3B82FF" font-weight="bold">Z</text>
             </g>
-            <!-- joints -->
             <circle cx="120" cy="110" r="10" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
             <circle cx="120" cy="110" r="3" fill="#FAFAFA"/>
             <text x="86" y="100" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₁</text>
@@ -904,45 +833,34 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
             <text x="188" y="66" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₂</text>
             <circle cx="272" cy="120" r="7" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
             <text x="284" y="112" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">GRIP</text>
-            <!-- bones -->
             <line x1="120" y1="110" x2="196" y2="82" stroke="#FF3B3B" stroke-width="3"/>
             <line x1="196" y1="82" x2="272" y2="120" stroke="#3B82FF" stroke-width="3"/>
-            <!-- bone components: Δx red, Δy green -->
             <line x1="120" y1="110" x2="196" y2="110" stroke="#FF3B3B" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
             <line x1="196" y1="110" x2="196" y2="82" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
             <text x="146" y="120" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF3B3B">Δx</text>
             <text x="200" y="98" font-family="IBM Plex Mono, monospace" font-size="8" fill="#4ADE4A">Δy</text>
-            <!-- IK target pulse -->
             <circle cx="272" cy="120" r="18" fill="none" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="4 4">
               <animate attributeName="r" values="16;22;16" dur="2s" repeatCount="indefinite"/>
               <animate attributeName="opacity" values=".8;.3;.8" dur="2s" repeatCount="indefinite"/>
             </circle>
-            <!-- object -->
             <circle cx="272" cy="180" r="16" fill="#141414" stroke="#FAFAFA" stroke-width="1.8"/>
             <text x="264" y="185" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FAFAFA" font-style="italic">m</text>
-            <!-- grip force (+Y, green) -->
             <line x1="272" y1="120" x2="272" y2="158" stroke="#4ADE4A" stroke-width="2"/>
             <polygon points="272,164 268,155 276,155" fill="#4ADE4A"/>
             <text x="280" y="146" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">F⃗grip (0,F,0)</text>
-            <!-- gravity (−Y, red) -->
             <line x1="272" y1="196" x2="272" y2="222" stroke="#FF3B3B" stroke-width="2"/>
             <polygon points="272,228 268,219 276,219" fill="#FF3B3B"/>
             <text x="280" y="218" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">mg</text>
-            <!-- approach (Z, blue) -->
             <path d="M256 128 Q252 148 260 164" stroke="#3B82FF" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
             <polygon points="262,170 254,162 263,158" fill="#3B82FF"/>
             <text x="236" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#3B82FF" font-style="italic">approach ẑ</text>
-            <!-- torque arc -->
             <path d="M210 64 A26 26 0 0 1 222 92" stroke="#FAFAFA" stroke-width="1.2" fill="none"/>
             <polygon points="222,92 216,84 226,82" fill="#FAFAFA"/>
             <text x="228" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FAFAFA" font-style="italic">τ₂</text>
-            <!-- bone lengths -->
             <text x="128" y="86" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF6B6B" font-style="italic">L₁</text>
             <text x="228" y="96" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6BA5FF" font-style="italic">L₂</text>
-            <!-- angle -->
             <path d="M150 110 A30 30 0 0 0 146 97" stroke="#262626" fill="none" stroke-width="1"/>
             <text x="152" y="102" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ₁</text>
-            <!-- formula box -->
             <g>
               <rect x="130" y="216" width="190" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
               <text x="142" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6BA5FF" font-style="italic">‖p−j‖ = L  (constraint)</text>
@@ -978,7 +896,7 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
 <section id="contact">
   <div class="container contact">
     <div class="contact-bg-text">GUST-PY</div>
-    <div class="section-tag" style="justify-content:center; position:relative; z-index:1;">GET IN TOUCH</div>
+    <div class="section-tag" style="justify-content:center;">GET IN TOUCH</div>
     <h2 class="contact-title reveal">Let's build something<br><span class="grad-text">real</span> together.</h2>
     <p class="lead reveal">
       Open to commissions — vehicle systems, realistic chassis &amp; suspensions,
@@ -1002,6 +920,8 @@ footer{border-top:1px solid var(--border); padding:30px 0; margin-top:20px; disp
     <span>Discord: gus.py · github.com/gust-py</span>
   </div>
 </footer>
+
+</div><!-- /.page -->
 
 <script>
 const nav = document.getElementById('nav');
@@ -1054,318 +974,427 @@ const statsIO = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.3 });
 if (statsSection) statsIO.observe(statsSection);
+</script>
 
-/* =====================================================
-   BLACK HOLE — volumetric depth render
-   - disk drawn as perspective elliptical orbital rings
-   - additive blending = real light accumulation
-   - lensed far side wraps ABOVE/BEHIND the shadow
-   - slow camera drift for parallax depth
-   ===================================================== */
-(() => {
-  const canvas = document.getElementById('bhCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  function fit() {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * devicePixelRatio;
-    canvas.height = rect.height * devicePixelRatio;
+<!-- ============ WEBGPU BLACK HOLE — RGB XYZ EDITION ============ -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.webgpu.min.js",
+    "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.webgpu.min.js",
+    "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.tsl.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/"
   }
-  fit();
-  window.addEventListener('resize', fit);
+}
+</script>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { pass, uniform, Fn, Loop, Break, If, screenUV,
+  vec2, vec3, vec4, float,
+  length, normalize, cross, dot, sin, cos, atan, asin, sqrt, pow,
+  fract, clamp, smoothstep, mix, floor, step, sign
+} from 'three/tsl';
+import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 
-  const RS = 30;
-  const B_CRIT = Math.sqrt(27) / 2 * RS;   // ~2.6 rs shadow
-  const R_IN = 2.2 * RS;                    // disk inner edge
-  const R_OUT = 10 * RS;                    // disk outer edge
-  const RINGS = 46;                         // orbital rings = depth layers
-  const TILT = 0.16;                        // edge-on tilt (radians)
+// ============================================================================
+// CONFIG — RGB XYZ Roblox Studio colors
+// ============================================================================
+const config = {
+  blackHoleMass: 0.4,
+  diskInnerRadius: 4.1,
+  diskOuterRadius: 14.5,
+  diskBrightness: 5,
+  diskRotationSpeed: -8.7,
+  turbulenceScale: 1.81,
+  turbulenceStretch: 0.75,
+  turbulenceSharpness: 7.4,
+  turbulenceCycleTime: 5,
+  turbulenceLacunarity: 2.5,
+  turbulencePersistence: 0.8,
+  diskEdgeSoftnessInner: 0.18,
+  diskEdgeSoftnessOuter: 0.5,
+  gravitationalLensing: 2.4,
+  dopplerStrength: 1.0,
+  stepSize: 1,
+  starsEnabled: true,
+  starDensity: 0.1,
+  starSize: 1.2,
+  starBrightness: 0.14,
+  nebulaEnabled: true,
+  nebula1Scale: 2,
+  nebula1Density: 0.5,
+  nebula1Brightness: 0.05,
+  nebula1Color: '#330000',   // deep red (X)
+  nebula2Scale: 5.5,
+  nebula2Density: 0.05,
+  nebula2Brightness: 0.18,
+  nebula2Color: '#001133',   // deep blue (Z)
+  bloomStrength: 0.85,
+  bloomRadius: 0,
+  bloomThreshold: 0.4
+};
 
-  // RGB bands assigned by radius: inner=X red, mid=Y green, outer=Z blue
-  function bandColor(t, boost = 0) {
-    // t: 0 inner → 1 outer
-    let r, g, b;
-    if (t < 0.33) {            // inner — hot red/white core
-      const u = t / 0.33;
-      r = 255; g = 120 + u * 60; b = 90 + u * 30;
-    } else if (t < 0.66) {     // mid — green
-      const u = (t - 0.33) / 0.33;
-      r = 60 + (1 - u) * 80; g = 220; b = 90 + u * 60;
-    } else {                   // outer — blue
-      const u = (t - 0.66) / 0.34;
-      r = 50; g = 120 - u * 40; b = 255;
-    }
-    return [Math.min(r + boost, 255), Math.min(g + boost, 255), Math.min(b + boost, 255)];
-  }
+// ============================================================================
+// SHADER UTILITIES
+// ============================================================================
+const hash21 = Fn(([p]) => {
+  const n = sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453);
+  return fract(n);
+});
+const hash31 = Fn(([p]) => {
+  const n = sin(dot(p, vec3(127.1, 311.7, 74.7))).mul(43758.5453);
+  return fract(n);
+});
+const hash22 = Fn(([p]) => {
+  const px = fract(sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453));
+  const py = fract(sin(dot(p, vec2(269.5, 183.3))).mul(43758.5453));
+  return vec2(px, py);
+});
+const noise3D = Fn(([p]) => {
+  const i = floor(p);
+  const f = fract(p);
+  const u = f.mul(f).mul(float(3.0).sub(f.mul(2.0)));
+  const a = hash31(i);
+  const b = hash31(i.add(vec3(1, 0, 0)));
+  const c = hash31(i.add(vec3(0, 1, 0)));
+  const d = hash31(i.add(vec3(1, 1, 0)));
+  const e = hash31(i.add(vec3(0, 0, 1)));
+  const f2 = hash31(i.add(vec3(1, 0, 1)));
+  const g = hash31(i.add(vec3(0, 1, 1)));
+  const h = hash31(i.add(vec3(1, 1, 1)));
+  return mix(
+    mix(mix(a, b, u.x), mix(c, d, u.x), u.y),
+    mix(mix(e, f2, u.x), mix(g, h, u.x), u.y),
+    u.z
+  );
+});
+const fbm = Fn(([p, lacunarity, persistence]) => {
+  const value = float(0.0).toVar();
+  const amplitude = float(0.5).toVar();
+  const pos = p.toVar();
+  value.addAssign(noise3D(pos).mul(amplitude));
+  pos.mulAssign(lacunarity); amplitude.mulAssign(persistence);
+  value.addAssign(noise3D(pos).mul(amplitude));
+  pos.mulAssign(lacunarity); amplitude.mulAssign(persistence);
+  value.addAssign(noise3D(pos).mul(amplitude));
+  pos.mulAssign(lacunarity); amplitude.mulAssign(persistence);
+  value.addAssign(noise3D(pos).mul(amplitude));
+  return value;
+});
 
-  // precompute ring segments: each ring is a full orbit with brightness noise
-  const rings = [];
-  for (let i = 0; i < RINGS; i++) {
-    const t = i / (RINGS - 1);
-    const r = R_IN + (R_OUT - R_IN) * Math.pow(t, 1.35);
-    const segs = 90;
-    const noise = [];
-    for (let s = 0; s < segs; s++) {
-      // clumpy brightness — two sine waves = turbulent filaments
-      noise.push(
-        .55 + .45 * Math.sin(s / segs * Math.PI * 8 + i * 1.7) * Math.sin(s / segs * Math.PI * 3 + i * .6)
-      );
-    }
-    rings.push({
-      r, t,
-      segs, noise,
-      // Keplerian: inner rings spin much faster
-      speed: Math.sqrt(1 / (r * r * r)) * 900,
-      phase: i * .35
+// RGB XYZ band color: inner = red (X), mid = green (Y), outer = blue (Z)
+// with a slow breathing shift driven by time
+const rgbBandColor = Fn(([normR, time]) => {
+  const shift = sin(time.mul(0.18)).mul(0.08);
+  const u = clamp(normR.add(shift), float(0.0), float(1.0));
+  const red   = vec3(1.0, 0.23, 0.23);   // X — #FF3B3B
+  const green = vec3(0.29, 0.87, 0.29);  // Y — #4ADE4A
+  const blue  = vec3(0.23, 0.51, 1.0);   // Z — #3B82FF
+  const cRG = mix(red, green, smoothstep(float(0.0), float(0.5), u));
+  return mix(cRG, blue, smoothstep(float(0.5), float(1.0), u));
+});
+
+// ============================================================================
+// UNIFORMS
+// ============================================================================
+const uniforms = {
+  blackHoleMass: uniform(config.blackHoleMass),
+  diskInnerRadius: uniform(config.diskInnerRadius),
+  diskOuterRadius: uniform(config.diskOuterRadius),
+  diskBrightness: uniform(config.diskBrightness),
+  diskRotationSpeed: uniform(config.diskRotationSpeed),
+  turbulenceScale: uniform(config.turbulenceScale),
+  turbulenceStretch: uniform(config.turbulenceStretch),
+  turbulenceSharpness: uniform(config.turbulenceSharpness),
+  turbulenceCycleTime: uniform(config.turbulenceCycleTime),
+  turbulenceLacunarity: uniform(config.turbulenceLacunarity),
+  turbulencePersistence: uniform(config.turbulencePersistence),
+  diskEdgeSoftnessInner: uniform(config.diskEdgeSoftnessInner),
+  diskEdgeSoftnessOuter: uniform(config.diskEdgeSoftnessOuter),
+  gravitationalLensing: uniform(config.gravitationalLensing),
+  dopplerStrength: uniform(config.dopplerStrength),
+  stepSize: uniform(config.stepSize),
+  starsEnabled: uniform(config.starsEnabled ? 1.0 : 0.0),
+  starDensity: uniform(config.starDensity),
+  starSize: uniform(config.starSize),
+  starBrightness: uniform(config.starBrightness),
+  nebulaEnabled: uniform(config.nebulaEnabled ? 1.0 : 0.0),
+  nebula1Scale: uniform(config.nebula1Scale),
+  nebula1Density: uniform(config.nebula1Density),
+  nebula1Brightness: uniform(config.nebula1Brightness),
+  nebula1Color: uniform(new THREE.Color(config.nebula1Color)),
+  nebula2Scale: uniform(config.nebula2Scale),
+  nebula2Density: uniform(config.nebula2Density),
+  nebula2Brightness: uniform(config.nebula2Brightness),
+  nebula2Color: uniform(new THREE.Color(config.nebula2Color)),
+  time: uniform(0),
+  resolution: uniform(new THREE.Vector2(window.innerWidth, window.innerHeight)),
+  cameraPosition: uniform(new THREE.Vector3(0, 5, 20)),
+  cameraTarget: uniform(new THREE.Vector3(0, 0, 0))
+};
+
+// ============================================================================
+// STAR FIELD
+// ============================================================================
+const starField = Fn(([rayDir]) => {
+  const theta = atan(rayDir.z, rayDir.x);
+  const phi = asin(clamp(rayDir.y, float(-1.0), float(1.0)));
+  const gridScale = float(60.0).div(uniforms.starSize);
+  const scaledCoord = vec2(theta, phi).mul(gridScale);
+  const cell = floor(scaledCoord);
+  const cellUV = fract(scaledCoord);
+  const cellHash = hash21(cell);
+  const starProb = step(float(1.0).sub(uniforms.starDensity), cellHash);
+  const starPos = hash22(cell.add(42.0)).mul(0.8).add(0.1);
+  const distToStar = length(cellUV.sub(starPos));
+  const baseSizeVar = hash21(cell.add(100.0)).mul(0.03).add(0.01);
+  const finalStarSize = baseSizeVar.mul(uniforms.starSize);
+  const starCore = smoothstep(finalStarSize, float(0.0), distToStar);
+  const starGlow = smoothstep(finalStarSize.mul(3.0), float(0.0), distToStar).mul(0.3);
+  const starIntensity = starCore.add(starGlow).mul(starProb);
+  const colorTemp = hash21(cell.add(200.0));
+  // stars tinted across the RGB spectrum
+  const starColor = mix(mix(vec3(1.0, 0.4, 0.4), vec3(0.4, 1.0, 0.4), colorTemp), vec3(0.4, 0.6, 1.0), colorTemp.mul(colorTemp));
+  return starColor.mul(starIntensity).mul(uniforms.starBrightness);
+});
+
+// ============================================================================
+// NEBULA
+// ============================================================================
+const nebulaField = Fn(([rayDir]) => {
+  const noisePos1 = rayDir.mul(uniforms.nebula1Scale);
+  const n1 = fbm(noisePos1, float(2.0), float(0.5)).mul(2.0).sub(1.0);
+  const layer1 = clamp(n1.add(uniforms.nebula1Density), float(0.0), float(1.0));
+  const color1 = uniforms.nebula1Color.mul(layer1).mul(uniforms.nebula1Brightness);
+  const noisePos2 = rayDir.mul(uniforms.nebula2Scale);
+  const n2 = fbm(noisePos2, float(2.0), float(0.5)).mul(2.0).sub(1.0);
+  const layer2 = clamp(n2.add(uniforms.nebula2Density), float(0.0), float(1.0));
+  const color2 = uniforms.nebula2Color.mul(layer2).mul(uniforms.nebula2Brightness);
+  return color1.add(color2);
+});
+
+// ============================================================================
+// ACCRETION DISK — RGB XYZ
+// ============================================================================
+const accretionDiskColor = Fn(([hitR, hitAngle, time, rayDir]) => {
+  const innerR = uniforms.diskInnerRadius;
+  const outerR = uniforms.diskOuterRadius;
+  const normR = clamp(hitR.sub(innerR).div(outerR.sub(innerR)), float(0.0), float(1.0));
+
+  // RGB XYZ band color instead of blackbody
+  const diskColor = rgbBandColor(normR, time).toVar('diskColor');
+
+  // Doppler beaming
+  const rotationSign = sign(uniforms.diskRotationSpeed);
+  const velocityDir = vec3(
+    sin(hitAngle).negate().mul(rotationSign),
+    float(0.0),
+    cos(hitAngle).mul(rotationSign)
+  );
+  const velocityMagnitude = float(1.0).div(sqrt(hitR.div(innerR)));
+  const beta = velocityMagnitude.mul(0.3);
+  const cosTheta = dot(velocityDir, rayDir);
+  const dopplerFactor = float(1.0).div(float(1.0).sub(beta.mul(cosTheta)));
+  const dopplerBoost = pow(dopplerFactor, float(3.0).mul(uniforms.dopplerStrength));
+  diskColor.mulAssign(clamp(dopplerBoost, float(0.1), float(5.0)));
+
+  // Edge falloff
+  const edgeFalloff = smoothstep(float(0.0), uniforms.diskEdgeSoftnessInner, normR)
+    .mul(smoothstep(float(1.0), float(1.0).sub(uniforms.diskEdgeSoftnessOuter), normR));
+
+  // Turbulence
+  const ringOpacity = float(1.0).toVar('ringOpacity');
+  const cycleLength = uniforms.turbulenceCycleTime;
+  const cyclicTime = time.mod(cycleLength);
+  const blendFactor = cyclicTime.div(cycleLength);
+  const keplerianPhase1 = cyclicTime.mul(uniforms.diskRotationSpeed).div(pow(hitR, float(1.5)));
+  const keplerianPhase2 = cyclicTime.add(cycleLength).mul(uniforms.diskRotationSpeed).div(pow(hitR, float(1.5)));
+  const rotatedAngle1 = hitAngle.add(keplerianPhase1);
+  const rotatedAngle2 = hitAngle.add(keplerianPhase2);
+  const noiseCoord1 = vec3(
+    hitR.mul(uniforms.turbulenceScale),
+    cos(rotatedAngle1).div(uniforms.turbulenceStretch.max(0.1)),
+    sin(rotatedAngle1).div(uniforms.turbulenceStretch.max(0.1))
+  );
+  const noiseCoord2 = vec3(
+    hitR.mul(uniforms.turbulenceScale),
+    cos(rotatedAngle2).div(uniforms.turbulenceStretch.max(0.1)),
+    sin(rotatedAngle2).div(uniforms.turbulenceStretch.max(0.1))
+  );
+  const turbulence1 = fbm(noiseCoord1, uniforms.turbulenceLacunarity, uniforms.turbulencePersistence);
+  const turbulence2 = fbm(noiseCoord2, uniforms.turbulenceLacunarity, uniforms.turbulencePersistence);
+  const turbulence = mix(turbulence2, turbulence1, blendFactor);
+  ringOpacity.assign(pow(clamp(turbulence, float(0.0), float(1.0)), uniforms.turbulenceSharpness));
+
+  const finalOpacity = ringOpacity.mul(edgeFalloff);
+  const finalColor = diskColor.mul(uniforms.diskBrightness);
+  return vec4(finalColor, finalOpacity);
+});
+
+// ============================================================================
+// MAIN RAYMARCHING SHADER — gravitational lensing + event horizon
+// ============================================================================
+const blackHoleShader = Fn(() => {
+  const rs = uniforms.blackHoleMass.mul(2.0);
+  const uv = screenUV.sub(0.5).mul(2.0);
+  const aspect = uniforms.resolution.x.div(uniforms.resolution.y);
+  const screenPos = vec2(uv.x.mul(aspect), uv.y);
+
+  const camPos = uniforms.cameraPosition;
+  const camTarget = uniforms.cameraTarget;
+  const camForward = normalize(camTarget.sub(camPos));
+  const worldUp = vec3(0.0, 1.0, 0.0);
+  const camRight = normalize(cross(worldUp, camForward));
+  const camUp = cross(camForward, camRight);
+
+  const fov = float(1.0);
+  const rayDir = normalize(
+    camForward.mul(fov).add(camRight.mul(screenPos.x)).add(camUp.mul(screenPos.y))
+  ).toVar('rayDir');
+
+  const rayPos = camPos.toVar('rayPos');
+  const prevPos = camPos.toVar('prevPos');
+  const color = vec3(0.0, 0.0, 0.0).toVar('color');
+  const alpha = float(0.0).toVar('alpha');
+  const escaped = float(0.0).toVar('escaped');
+  const captured = float(0.0).toVar('captured');
+  const innerR = uniforms.diskInnerRadius;
+  const outerR = uniforms.diskOuterRadius;
+
+  Loop(32, () => {
+    If(escaped.greaterThan(0.5).or(captured.greaterThan(0.5)).or(alpha.greaterThan(0.99)), () => {
+      Break();
     });
-  }
 
-  // background stars
-  const stars = Array.from({length: 200}, () => ({
-    x: Math.random(), y: Math.random(),
-    b: Math.random() * .7 + .1, tw: Math.random() * 6.28
-  }));
+    const r = length(rayPos);
 
-  let frame = 0;
+    If(r.lessThan(rs.mul(1.01)), () => {
+      captured.assign(1.0);
+      Break();
+    });
 
-  function draw() {
-    const w = canvas.width, h = canvas.height;
-    // slow camera drift → parallax
-    const camX = Math.sin(frame * .002) * w * .015;
-    const camY = Math.cos(frame * .0015) * h * .01;
-    const cx = w / 2 + camX, cy = h / 2 + camY;
-    const S = Math.min(w, h) / 300;
-    const bcrit = B_CRIT * S;
+    If(r.greaterThan(100.0), () => {
+      escaped.assign(1.0);
+      Break();
+    });
 
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, w, h);
+    const toCenter = rayPos.negate().div(r);
+    const bendStrength = rs.div(r.mul(r)).mul(uniforms.stepSize).mul(uniforms.gravitationalLensing);
+    rayDir.addAssign(toCenter.mul(bendStrength));
+    rayDir.assign(normalize(rayDir));
 
-    // faint starfield
-    for (const st of stars) {
-      const sx = st.x * w, sy = st.y * h;
-      if (Math.hypot(sx - cx, sy - cy) < bcrit * 1.02) continue;
-      const tw = .5 + .5 * Math.sin(frame * .03 + st.tw);
-      ctx.fillStyle = `rgba(255,255,255,${st.b * (.3 + .3 * tw)})`;
-      ctx.fillRect(sx, sy, 1.2 * S, 1.2 * S);
-    }
+    prevPos.assign(rayPos);
+    rayPos.addAssign(rayDir.mul(uniforms.stepSize));
 
-    // ===== additive light mode from here on =====
-    ctx.globalCompositeOperation = 'lighter';
+    const crossedPlane = prevPos.y.mul(rayPos.y).lessThan(0.0);
+    If(crossedPlane.and(alpha.lessThan(0.99)), () => {
+      const t = prevPos.y.negate().div(rayPos.y.sub(prevPos.y));
+      const hitPos = mix(prevPos, rayPos, t);
+      const hitR = sqrt(hitPos.x.mul(hitPos.x).add(hitPos.z.mul(hitPos.z)));
+      const inDisk = hitR.greaterThan(innerR).and(hitR.lessThan(outerR));
+      If(inDisk, () => {
+        const hitAngle = atan(hitPos.z, hitPos.x);
+        const diskResult = accretionDiskColor(hitR, hitAngle, uniforms.time, rayDir);
+        const remainingAlpha = float(1.0).sub(alpha);
+        color.addAssign(diskResult.xyz.mul(diskResult.w).mul(remainingAlpha));
+        alpha.addAssign(remainingAlpha.mul(diskResult.w));
+      });
+    });
+  });
 
-    // ---- AMBIENT CORE GLOW (volumetric, breathes with RGB cycle) ----
-    const cyc = (frame * .006) % 3;
-    const ci = Math.floor(cyc), cf = cyc - ci;
-    const mix = (a, b) => a + (b - a) * cf;
-    const RGB = [[255,59,59],[74,222,74],[59,130,255]];
-    const c0 = RGB[ci], c1 = RGB[(ci + 1) % 3];
-    const pulse = .5 + .5 * Math.sin(frame * .02);
+  If(captured.lessThan(0.5), () => {
+    escaped.assign(1.0);
+  });
 
-    let glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R_OUT * S * 1.1);
-    glow.addColorStop(0, `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},${.28 + .1 * pulse})`);
-    glow.addColorStop(.35, `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},.10)`);
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
-    ctx.fillRect(0, 0, w, h);
+  If(escaped.greaterThan(0.5).and(alpha.lessThan(0.99)), () => {
+    const bgColor = vec3(0.0, 0.0, 0.0).toVar('bgColor');
+    If(uniforms.starsEnabled.greaterThan(0.5), () => {
+      bgColor.addAssign(starField(rayDir));
+    });
+    If(uniforms.nebulaEnabled.greaterThan(0.5), () => {
+      bgColor.addAssign(nebulaField(rayDir));
+    });
+    color.addAssign(bgColor.mul(float(1.0).sub(alpha)));
+  });
 
-    // ---- helper: project a disk point (r, angle) to screen with tilt ----
-    function project(r, ang) {
-      const px = Math.cos(ang) * r;
-      const pz = Math.sin(ang) * r;
-      const y3 = pz * Math.sin(TILT);        // vertical squash = perspective depth
-      const z3 = pz * Math.cos(TILT);        // depth toward/away camera
-      const persp = 1 / (1 + z3 / (R_OUT * 6)); // slight perspective falloff
-      return { x: cx + px * S * persp, y: cy + y3 * S * persp, depth: z3 };
-    }
-
-    // ---- LENSED FAR-SIDE HALO: the ring image wrapping over/under shadow ----
-    // drawn first so the disk renders in front of it
-    for (let pass = 0; pass < 2; pass++) {
-      // pass 0 = upper arc (primary image), pass 1 = lower arc (secondary)
-      for (const ring of rings) {
-        const [rr, gg, bb] = bandColor(ring.t);
-        const alpha = (pass === 0 ? .30 : .13) * (1 - ring.t * .55);
-        ctx.strokeStyle = `rgba(${rr},${gg},${bb},${alpha})`;
-        ctx.lineWidth = (1.4 + (1 - ring.t) * 2.2) * S;
-        const haloR = bcrit * (1.03 + ring.t * .30);
-        const squash = pass === 0 ? .42 : .22;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy + (pass === 0 ? -bcrit * .30 : bcrit * .16),
-                    haloR, haloR * squash, 0,
-                    pass === 0 ? Math.PI : 0,
-                    pass === 0 ? Math.PI * 2 : Math.PI);
-        ctx.stroke();
-      }
-    }
-
-    // ---- THE DISK: concentric orbital rings, back-to-front ----
-    // sort rings by average depth: far (top of ellipse) first, near last
-    for (const ring of rings) {
-      const [rr, gg, bb] = bandColor(ring.t);
-      const spin = ring.phase + frame * .001 * ring.speed;
-
-      // draw each ring as a continuous polyline, split at the shadow:
-      // segments behind hole (sin > 0 = far side) would be lensed — here the
-      // far half is hidden behind the horizon, near half passes in front.
-      let prev = null;
-      for (let s = 0; s <= ring.segs; s++) {
-        const a = spin + (s / ring.segs) * Math.PI * 2;
-        const pt = project(ring.r, a);
-        if (prev) {
-          const bright = ring.noise[s % ring.segs];
-          // Doppler: approaching side (left) brighter
-          const dop = 1 + .9 * Math.max(0, -Math.sin(a));
-          const farSide = pt.depth > 0;
-          // far half dims (goes behind / gets lensed away)
-          const depthFade = farSide ? .28 : 1;
-          const alpha = Math.min(.85 * bright * dop * depthFade * (1 - ring.t * .5), .95);
-          ctx.strokeStyle = `rgba(${rr},${gg},${bb},${alpha})`;
-          ctx.lineWidth = (1 + (1 - ring.t) * 2.6) * S * (farSide ? .6 : 1);
-          ctx.beginPath();
-          ctx.moveTo(prev.x, prev.y);
-          ctx.lineTo(pt.x, pt.y);
-          ctx.stroke();
-        }
-        prev = pt;
-      }
-    }
-
-    // ---- INNER BLAZE: white-hot ring right at the shadow edge ----
-    const blaze = ctx.createRadialGradient(cx, cy, bcrit * .98, cx, cy, bcrit * 1.5);
-    blaze.addColorStop(0, `rgba(255,235,225,${.5 + .15 * pulse})`);
-    blaze.addColorStop(.4, `rgba(255,150,120,${.22 + .08 * pulse})`);
-    blaze.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = blaze;
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.5, 0, 7); ctx.fill();
-
-    // ---- PHOTON RING: razor thin, RGB cycling, strong bloom ----
-    ctx.save();
-    ctx.shadowBlur = 34 * S;
-    ctx.shadowColor = `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},1)`;
-    ctx.strokeStyle = `rgba(255,250,245,.9)`;
-    ctx.lineWidth = 1.6 * S;
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.005, 0, 7); ctx.stroke();
-    ctx.restore();
-
-    // ---- EVENT HORIZON: pure black, kills all light inside ----
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit, 0, 7); ctx.fill();
-
-    // subtle rim right at horizon edge (light bending around it)
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = `rgba(${mix(c0[0],c1[0])},${mix(c0[1],c1[1])},${mix(c0[2],c1[2])},.25)`;
-    ctx.lineWidth = .8 * S;
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit + .5, 0, 7); ctx.stroke();
-
-    ctx.globalCompositeOperation = 'source-over';
-    frame++;
-    requestAnimationFrame(draw);
-  }
-  draw();
+  const finalColor = pow(color, vec3(1.0 / 2.2));
+  return vec4(finalColor, 1.0);
 })();
 
-    // ---------- DISK ----------
-    const far = [], near = [];
-    for (const p of disk) {
-      p.ang += p.w * .016;
-      p.r += p.drift;
-      if (p.r < ISCO) p.r = 14 * RS;
-      if (p.r > 14 * RS) p.r = ISCO;
+// ============================================================================
+// SCENE SETUP — fixed background canvas, auto-orbit camera (no controls)
+// ============================================================================
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-      const px = Math.cos(p.ang) * p.r;
-      const pz = Math.sin(p.ang) * p.r;
-      const py = p.z * S;
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-      // tilt by inclination (rotate around x-axis)
-      const y3 = py * Math.cos(INCL) - pz * Math.sin(INCL);
-      const z3 = py * Math.sin(INCL) + pz * Math.cos(INCL);
+const renderer = new THREE.WebGPURenderer({ antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.domElement.id = 'bh-bg';
+document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
-      // weak perspective, camera at z = -400
-      const persp = 340 / (340 + z3 * S + 140);
-      const sx = cx + px * S * .62 * persp;
-      const sy = cy + y3 * S * .62 * persp;
+// ============================================================================
+// ANIMATION — slow cinematic auto-orbit
+// ============================================================================
+let postProcessing = null;
+let lastFrameTime = performance.now();
+let orbitAngle = 0.35;
 
-      // Doppler beaming: v = √(GM/r), I ∝ [1 − β·cosφ]⁻³
-      const beta = Math.min(Math.sqrt(1 / p.r) * RS / 2, .92);
-      const vx = -Math.sin(p.ang), vz = Math.cos(p.ang);
-      const cosPhi = (vx * 0 + vz * (-1)) * (z3 > 0 ? -1 : 1);
-      const doppler = Math.pow(1 / (1 - beta * cosPhi * .8), 3);
+function updateCamera() {
+  const radius = 20;
+  const camY = -2 + Math.sin(orbitAngle * 0.4) * 1.5;
+  camera.position.set(Math.sin(orbitAngle) * radius, camY, Math.cos(orbitAngle) * radius);
+  camera.lookAt(0, 0, 0);
+  uniforms.cameraPosition.value.copy(camera.position);
+  const direction = new THREE.Vector3(0, 0, -1);
+  direction.applyQuaternion(camera.quaternion);
+  const target = camera.position.clone().add(direction.multiplyScalar(10));
+  uniforms.cameraTarget.value.copy(target);
+}
 
-      const t = Math.max(0, Math.min(1, (p.r / RS - 3) / 11));
-      const farSide = px < 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const currentTime = performance.now();
+  const deltaTime = Math.min((currentTime - lastFrameTime) / 1000, 0.033);
+  lastFrameTime = currentTime;
 
-      const item = {sx, sy, beta, cosPhi, doppler, t, farSide, px};
-      (farSide ? far : near).push(item);
-    }
+  orbitAngle += deltaTime * 0.06;   // slow cinematic drift
+  uniforms.time.value += deltaTime;
+  updateCamera();
 
-    function drawDiskPoint(p, sx, sy, S, alpha) {
-      const glow = Math.min(p.doppler, 4);
-      let col;
-      if (p.t < .3)       col = `rgba(255,${Math.floor(150 + 80 * (1 - p.t))},60,`;
-      else if (p.t < .65) col = `rgba(255,${Math.floor(200 + 40 * (1 - p.t))},140,`;
-      else                col = `rgba(230,240,255,`;
-      const size = (p.t < .3 ? 2.6 : 1.9) * S * (p.farSide ? .8 : 1);
-      ctx.fillStyle = col + Math.min(.9 * glow * alpha, 1) + ')';
-      ctx.beginPath();
-      ctx.arc(sx, sy, size, 0, 7);
-      ctx.fill();
-      if (glow > 1.8 && !p.farSide) {
-        ctx.fillStyle = `rgba(120,180,255,${Math.min((glow - 1.8) * .25, .5)})`;
-        ctx.beginPath();
-        ctx.arc(sx, sy, size * 2.4, 0, 7);
-        ctx.fill();
-      }
-    }
-
-    // far half → gravitationally lensed over the top of the shadow
-    for (const p of far) {
-      const dx = p.sx - cx, dy = p.sy - cy;
-      const d = Math.hypot(dx, dy) || 1;
-      const ang = Math.atan2(dy, dx);
-      const lensed = bcrit + (d - bcrit) * .22;
-      const lx = cx + Math.cos(ang) * lensed;
-      const ly = cy + Math.sin(ang) * lensed * .45 - bcrit * .18;
-      drawDiskPoint(p, lx, ly, S, .85);
-    }
-    // near half drawn normally
-    for (const p of near) drawDiskPoint(p, p.sx, p.sy, S, 1);
-
-    // ---------- PHOTON RING (r_ph = 1.5 rs → appears at b_crit) ----------
-    ctx.save();
-    ctx.shadowBlur = 18 * S; ctx.shadowColor = 'rgba(255,230,200,.9)';
-    ctx.strokeStyle = 'rgba(255,240,220,.95)';
-    ctx.lineWidth = 1.6 * S;
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.02, 0, 7); ctx.stroke();
-    ctx.strokeStyle = 'rgba(160,200,255,.35)';
-    ctx.lineWidth = .8 * S;
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit * 1.06, 0, 7); ctx.stroke();
-    ctx.restore();
-
-    // ---------- EVENT HORIZON SHADOW (b_crit ≈ 2.6 rs) ----------
-    ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit, 0, 7); ctx.fill();
-
-    ctx.strokeStyle = 'rgba(255,255,255,.10)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(cx, cy, bcrit, 0, 7); ctx.stroke();
-
-    // HUD live values
-    frame++;
-    if (frame % 12 === 0) {
-      const rsEl = document.getElementById('bhRs');
-      const vEl = document.getElementById('bhV');
-      const fEl = document.getElementById('bhFrame');
-      if (rsEl) rsEl.textContent = `rs = ${(2).toFixed(1)} GM/c²`;
-      if (vEl) vEl.textContent = `v(ISCO) = ${Math.sqrt(1/6).toFixed(3)}c`;
-      if (fEl) fEl.textContent = `frame ${frame}`;
-    }
-
-    requestAnimationFrame(draw);
+  if (postProcessing) {
+    postProcessing.render();
+  } else {
+    renderer.render(scene, camera);
   }
-  draw();
-})();
+}
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+});
+
+// Initialize — silent fallback if WebGPU is unavailable
+renderer.init().then(() => {
+  postProcessing = new THREE.PostProcessing(renderer);
+  const scenePass = pass(scene, camera);
+  const scenePassColor = scenePass.getTextureNode();
+  const bloomPass = bloom(scenePassColor);
+  bloomPass.threshold.value = config.bloomThreshold;
+  bloomPass.strength.value = config.bloomStrength;
+  bloomPass.radius.value = config.bloomRadius;
+  postProcessing.outputNode = scenePassColor.add(bloomPass);
+  animate();
+}).catch(() => {
+  // WebGPU not supported — the site just keeps its plain black background
+  const c = document.getElementById('bh-bg');
+  if (c) c.remove();
+});
 </script>
 
 </body>
