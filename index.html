@@ -10,9 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
-/* =====================================================
-   TOKENS — Roblox Studio axis theme: X red, Y green, Z blue
-   ===================================================== */
 :root{
   --bg:#000000;
   --surface:#0A0A0A;
@@ -50,7 +47,6 @@ a{color:inherit; text-decoration:none;}
 img,svg{max-width:100%; display:block;}
 .container{max-width:var(--container); margin:0 auto; padding:0 28px;}
 
-/* BLACK HOLE BACKGROUND — fixed, behind everything */
 #bh-bg{
   position:fixed !important; inset:0; width:100vw !important; height:100vh !important;
   z-index:0; pointer-events:none; display:block;
@@ -61,7 +57,6 @@ img,svg{max-width:100%; display:block;}
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 
-/* NAV */
 .nav{
   position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
   padding:22px 28px; backdrop-filter:blur(10px); background:rgba(0,0,0,.55);
@@ -82,7 +77,6 @@ img,svg{max-width:100%; display:block;}
 .nav-gh:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -6px rgba(59,130,255,.65); transform:translateY(-1px);}
 .nav-gh svg{width:13px; height:13px;}
 
-/* HERO — transparent, black hole visible */
 .hero{
   min-height:100vh; display:flex; align-items:center; position:relative;
   padding:150px 0 80px; background:transparent !important;
@@ -123,7 +117,6 @@ img,svg{max-width:100%; display:block;}
 .hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--b), transparent); animation:scrollLine 2s ease-in-out infinite;}
 @keyframes scrollLine{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 51%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
 
-/* SECTIONS — transparent, black hole always visible */
 .marquee-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:20px 0; background:rgba(5,5,5,.6);}
 .marquee{display:flex; width:max-content; animation:marquee 32s linear infinite;}
 .marquee span{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); padding:0 30px; white-space:nowrap; display:flex; align-items:center; gap:30px;}
@@ -139,7 +132,6 @@ section{padding:120px 0; position:relative; background:transparent !important;}
 .section-tag::before{content:""; width:20px; height:1px; background:linear-gradient(90deg, var(--r), var(--g), var(--b));}
 .section-title{font-family:var(--font-display); font-size:clamp(30px,4vw,50px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:680px; text-shadow:0 2px 20px rgba(0,0,0,.9);}
 
-/* ABOUT */
 .about-grid{display:grid; grid-template-columns:.62fr .78fr 1.15fr; gap:36px; margin-top:56px; align-items:start;}
 .about-copy p{font-size:16.5px; line-height:1.85; color:var(--text-dim); margin-bottom:18px; text-shadow:0 1px 12px rgba(0,0,0,.9);}
 .about-copy strong{color:var(--text); font-weight:600;}
@@ -193,7 +185,6 @@ section{padding:120px 0; position:relative; background:transparent !important;}
 .stat-brick .num small{font-size:19px; color:var(--text-dim);}
 .stat-brick .label{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:6px; letter-spacing:.03em;}
 
-/* CORE FOCUS RING */
 .ring-wrap{position:relative; margin:64px auto 0; width:min(560px, 92vw); aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
 .ring-glow{
   position:absolute; inset:14%; border-radius:50%;
@@ -227,7 +218,6 @@ section{padding:120px 0; position:relative; background:transparent !important;}
   .ring-glow, .ring-center{display:none;}
 }
 
-/* SKILLS */
 .skills-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:56px;}
 .skill-card{background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:16px; padding:28px 26px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;}
 .skill-card:hover{transform:translateY(-5px); box-shadow:var(--shadow-card-hover);}
@@ -240,7 +230,6 @@ section{padding:120px 0; position:relative; background:transparent !important;}
 .skill-tags span:hover{border-color:var(--b); color:var(--text); transform:translateY(-2px);}
 @media (max-width:860px){ .skills-grid{grid-template-columns:1fr;} }
 
-/* EXPERIENCE */
 .timeline{margin-top:56px; border-left:1px solid var(--border); padding-left:36px; position:relative;}
 .timeline-item{position:relative; padding:28px 30px; margin-bottom:20px; background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;}
 .timeline-item:hover{transform:translateY(-4px); box-shadow:var(--shadow-card-hover);}
@@ -251,7 +240,6 @@ section{padding:120px 0; position:relative; background:transparent !important;}
 .timeline-desc{color:var(--text-dim); font-size:15px; line-height:1.75; max-width:640px;}
 .timeline-desc li{margin-left:18px; margin-top:6px;}
 
-/* PROJECTS */
 .projects-list{margin-top:56px; display:flex; flex-direction:column; gap:64px;}
 .project-row{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;}
 .project-row.rev{direction:rtl;}
@@ -273,7 +261,6 @@ section{padding:120px 0; position:relative; background:transparent !important;}
 .project-link:hover{color:var(--b-bright); border-color:var(--b);}
 @media (max-width:820px){ .project-row, .project-row.rev{grid-template-columns:1fr; direction:ltr;} }
 
-/* CONTACT */
 .contact{text-align:center; position:relative; overflow:hidden;}
 .contact-bg-text{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-weight:700; font-size:min(18vw,220px); color:var(--surface-2); white-space:nowrap; letter-spacing:-.02em; z-index:0; pointer-events:none; opacity:.5;}
 .contact-title{font-family:var(--font-display); font-size:clamp(36px,5.6vw,72px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:820px; margin:0 auto 28px; position:relative; z-index:1;}
@@ -942,7 +929,7 @@ const statsIO = new IntersectionObserver((entries) => {
 if (statsSection) statsIO.observe(statsSection);
 </script>
 
-<!-- ============ WEBGPU BLACK HOLE — TRUE ORANGE INTERSTELLAR ============ -->
+<!-- ============ WEBGPU BLACK HOLE — ORIGINAL BLACKBODY ORANGE ============ -->
 <script type="importmap">
 {
   "imports": {
@@ -962,39 +949,43 @@ import { pass, uniform, Fn, Loop, Break, If, screenUV,
 } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 
+// CONFIG — exact original demo values (same color pipeline)
 const config = {
   blackHoleMass: 0.4,
   diskInnerRadius: 4.1,
   diskOuterRadius: 14.5,
-  diskBrightness: 2.2,        // tuned so orange reads as ORANGE (not yellow/white)
+  diskTemperature: 49.78,
+  temperatureFalloff: 5.22,
+  diskBrightness: 5,
   diskRotationSpeed: -8.7,
   turbulenceScale: 1.81,
   turbulenceStretch: 0.75,
-  turbulenceSharpness: 5.5,
+  turbulenceSharpness: 7.4,
   turbulenceCycleTime: 5,
   turbulenceLacunarity: 2.5,
   turbulencePersistence: 0.8,
   diskEdgeSoftnessInner: 0.18,
   diskEdgeSoftnessOuter: 0.5,
   gravitationalLensing: 2.4,
-  dopplerStrength: 0.6,       // mild asymmetry, no white-hot blowout
+  dopplerStrength: 1.0,
   stepSize: 1,
   starsEnabled: true,
+  starBackgroundColor: '#000000',
   starDensity: 0.1,
   starSize: 1.2,
-  starBrightness: 0.14,
-  nebulaEnabled: false,       // pure black background, stars only
+  starBrightness: 0.1,
+  nebulaEnabled: true,
   nebula1Scale: 2,
-  nebula1Density: 0,
-  nebula1Brightness: 0,
-  nebula1Color: '#000000',
+  nebula1Density: 0.5,
+  nebula1Brightness: 0.01,
+  nebula1Color: '#071f44',
   nebula2Scale: 5.5,
-  nebula2Density: 0,
-  nebula2Brightness: 0,
-  nebula2Color: '#000000',
-  bloomStrength: 0.5,
+  nebula2Density: 0.05,
+  nebula2Brightness: 0.21,
+  nebula2Color: '#010615',
+  bloomStrength: 0.68,
   bloomRadius: 0,
-  bloomThreshold: 0.55
+  bloomThreshold: 0.45
 };
 
 const hash21 = Fn(([p]) => {
@@ -1042,22 +1033,22 @@ const fbm = Fn(([p, lacunarity, persistence]) => {
   return value;
 });
 
-// TRUE ORANGE: light-orange core → strong orange → deep burnt orange edge.
-// NO yellow (green channel kept low) and NO white (blue/red kept low at core).
-const orangeBandColor = Fn(([normR, time]) => {
-  const shift = sin(time.mul(0.18)).mul(0.06);
-  const u = clamp(normR.add(shift), float(0.0), float(1.0));
-  const core = vec3(1.0, 0.48, 0.08);   // light orange core (not white, not yellow)
-  const mid  = vec3(0.95, 0.34, 0.04);  // strong orange
-  const edge = vec3(0.62, 0.16, 0.01);  // deep burnt orange
-  const c1 = mix(core, mid, smoothstep(float(0.0), float(0.45), u));
-  return mix(c1, edge, smoothstep(float(0.45), float(1.0), u));
+// THE ORIGINAL BLACKBODY COLOR — the orange from the demo
+const blackbodyColor = Fn(([tempK]) => {
+  const t = clamp(tempK.sub(1000.0).div(9000.0), float(0.0), float(1.0));
+  const red = clamp(float(1.0).sub(t.sub(0.8).mul(2.0)), float(0.5), float(1.0));
+  const green = smoothstep(float(0.0), float(0.5), t)
+    .mul(float(1.0).sub(t.sub(0.7).mul(0.3).max(0.0)));
+  const blue = smoothstep(float(0.3), float(1.0), t).mul(t);
+  return vec3(red, green, blue);
 });
 
 const uniforms = {
   blackHoleMass: uniform(config.blackHoleMass),
   diskInnerRadius: uniform(config.diskInnerRadius),
   diskOuterRadius: uniform(config.diskOuterRadius),
+  diskTemperature: uniform(config.diskTemperature),
+  temperatureFalloff: uniform(config.temperatureFalloff),
   diskBrightness: uniform(config.diskBrightness),
   diskRotationSpeed: uniform(config.diskRotationSpeed),
   turbulenceScale: uniform(config.turbulenceScale),
@@ -1072,6 +1063,7 @@ const uniforms = {
   dopplerStrength: uniform(config.dopplerStrength),
   stepSize: uniform(config.stepSize),
   starsEnabled: uniform(config.starsEnabled ? 1.0 : 0.0),
+  starBackgroundColor: uniform(new THREE.Color(config.starBackgroundColor)),
   starDensity: uniform(config.starDensity),
   starSize: uniform(config.starSize),
   starBrightness: uniform(config.starBrightness),
@@ -1085,7 +1077,10 @@ const uniforms = {
   nebula2Brightness: uniform(config.nebula2Brightness),
   nebula2Color: uniform(new THREE.Color(config.nebula2Color)),
   time: uniform(0),
-  resolution: uniform(new THREE.Vector2(window.innerWidth, window.innerHeight)),
+  resolution: uniform(new THREE.Vector2(
+    window.innerWidth * devicePixelRatio,
+    window.innerHeight * devicePixelRatio
+  )),
   cameraPosition: uniform(new THREE.Vector3(0, 5, 20)),
   cameraTarget: uniform(new THREE.Vector3(0, 0, 0))
 };
@@ -1106,7 +1101,8 @@ const starField = Fn(([rayDir]) => {
   const starCore = smoothstep(finalStarSize, float(0.0), distToStar);
   const starGlow = smoothstep(finalStarSize.mul(3.0), float(0.0), distToStar).mul(0.3);
   const starIntensity = starCore.add(starGlow).mul(starProb);
-  const starColor = vec3(1.0, 1.0, 1.0);
+  const colorTemp = hash21(cell.add(200.0));
+  const starColor = mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.95, 0.8), colorTemp);
   return starColor.mul(starIntensity).mul(uniforms.starBrightness);
 });
 
@@ -1127,7 +1123,12 @@ const accretionDiskColor = Fn(([hitR, hitAngle, time, rayDir]) => {
   const outerR = uniforms.diskOuterRadius;
   const normR = clamp(hitR.sub(innerR).div(outerR.sub(innerR)), float(0.0), float(1.0));
 
-  const diskColor = orangeBandColor(normR, time).toVar('diskColor');
+  // Original blackbody temperature → color pipeline
+  const peakTempK = uniforms.diskTemperature.mul(1000.0);
+  const outerTempK = float(1500.0);
+  const tempFalloff = pow(innerR.div(hitR), uniforms.temperatureFalloff);
+  const tempK = mix(outerTempK, peakTempK, tempFalloff);
+  const diskColor = blackbodyColor(tempK).toVar('diskColor');
 
   const rotationSign = sign(uniforms.diskRotationSpeed);
   const velocityDir = vec3(
@@ -1140,7 +1141,7 @@ const accretionDiskColor = Fn(([hitR, hitAngle, time, rayDir]) => {
   const cosTheta = dot(velocityDir, rayDir);
   const dopplerFactor = float(1.0).div(float(1.0).sub(beta.mul(cosTheta)));
   const dopplerBoost = pow(dopplerFactor, float(3.0).mul(uniforms.dopplerStrength));
-  diskColor.mulAssign(clamp(dopplerBoost, float(0.1), float(3.0)));
+  diskColor.mulAssign(clamp(dopplerBoost, float(0.1), float(5.0)));
 
   const edgeFalloff = smoothstep(float(0.0), uniforms.diskEdgeSoftnessInner, normR)
     .mul(smoothstep(float(1.0), float(1.0).sub(uniforms.diskEdgeSoftnessOuter), normR));
@@ -1246,7 +1247,7 @@ const blackHoleShader = Fn(() => {
   });
 
   If(escaped.greaterThan(0.5).and(alpha.lessThan(0.99)), () => {
-    const bgColor = vec3(0.0, 0.0, 0.0).toVar('bgColor');
+    const bgColor = uniforms.starBackgroundColor.toVar('bgColor');
     If(uniforms.starsEnabled.greaterThan(0.5), () => {
       bgColor.addAssign(starField(rayDir));
     });
@@ -1260,7 +1261,7 @@ const blackHoleShader = Fn(() => {
   return vec4(finalColor, 1.0);
 })();
 
-// SCENE — sphere carrying the shader
+// SCENE — shader sphere (essential renderer)
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
@@ -1268,7 +1269,7 @@ const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerH
 
 const renderer = new THREE.WebGPURenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.domElement.id = 'bh-bg';
 document.body.insertBefore(renderer.domElement, document.body.firstChild);
@@ -1281,7 +1282,7 @@ const mesh = new THREE.Mesh(geometry, material);
 mesh.frustumCulled = false;
 scene.add(mesh);
 
-// ANIMATION — cinematic auto-orbit
+// ANIMATION — cinematic auto-orbit (background mode, no controls)
 let postProcessing = null;
 let lastFrameTime = performance.now();
 let orbitAngle = 0.35;
@@ -1319,7 +1320,10 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
-  uniforms.resolution.value.set(window.innerWidth, window.innerHeight);
+  uniforms.resolution.value.set(
+    window.innerWidth * devicePixelRatio,
+    window.innerHeight * devicePixelRatio
+  );
 });
 
 renderer.init().then(() => {
