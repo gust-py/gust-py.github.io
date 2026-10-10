@@ -1,384 +1,1345 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Procedural Planets</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gust-py — Roblox Builder & Scripter</title>
+<meta name="description" content="gust-py — Roblox Builder & Scripter. Realistic car chassis, functional suspensions, grab systems, procedural terrain and immersive experiences. Currently building A Lost Drive.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#000000;
+  --surface:#0A0A0A;
+  --surface-2:#141414;
+  --border:#262626;
+  --border-light:rgba(255,255,255,.06);
+  --text:#FAFAFA;
+  --text-dim:#A3A3A3;
+  --text-faint:#5C5C5C;
+
+  --r:#FF3B3B;
+  --r-bright:#FF6B6B;
+  --r-soft:rgba(255,59,59,.14);
+  --g:#4ADE4A;
+  --g-bright:#7CF07C;
+  --g-soft:rgba(74,222,74,.14);
+  --b:#3B82FF;
+  --b-bright:#6BA5FF;
+  --b-soft:rgba(59,130,255,.14);
+
+  --font-display:'Space Grotesk', sans-serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+
+  --container:1160px;
+  --shadow-card:0 1px 0 var(--border-light) inset, 0 1px 2px rgba(0,0,0,.5), 0 18px 40px -16px rgba(0,0,0,.85);
+  --shadow-card-hover:0 1px 0 var(--border-light) inset, 0 4px 10px rgba(0,0,0,.5), 0 28px 60px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(59,130,255,.25);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:#000; color:var(--text); font-family:var(--font-body); overflow-x:hidden; cursor:default;}
+::selection{background:var(--b); color:#000;}
+a{color:inherit; text-decoration:none;}
+img,svg{max-width:100%; display:block;}
+.container{max-width:var(--container); margin:0 auto; padding:0 28px;}
+
+#bh-bg{
+  position:fixed !important; inset:0; width:100vw !important; height:100vh !important;
+  z-index:0; pointer-events:none; display:block;
+}
+
+.grad-text{
+  background:linear-gradient(100deg, var(--r), var(--g), var(--b));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+
+.nav{
+  position:fixed; top:0; left:0; right:0; z-index:50; display:flex; align-items:center; justify-content:space-between;
+  padding:22px 28px; backdrop-filter:blur(10px); background:rgba(0,0,0,.55);
+  border-bottom:1px solid transparent; transition:border-color .3s, background .3s;
+}
+.nav.scrolled{border-bottom-color:var(--border); background:rgba(0,0,0,.9); box-shadow:0 10px 30px rgba(0,0,0,.6);}
+.nav-mark{font-family:var(--font-display); font-weight:700; font-size:19px; display:flex; align-items:center; gap:10px; letter-spacing:-.01em;}
+.nav-mark .dot{width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg, var(--r), var(--g), var(--b)); box-shadow:0 0 10px rgba(59,130,255,.6);}
+.nav-links{display:flex; gap:34px; font-family:var(--font-mono); font-size:12.5px; letter-spacing:.03em;}
+.nav-links a{color:var(--text-dim); position:relative; padding-bottom:3px; transition:color .2s;}
+.nav-links a:hover{color:var(--text);}
+.nav-links a::after{content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--b); transition:width .25s;}
+.nav-links a:hover::after{width:100%;}
+.nav-actions{display:flex; align-items:center; gap:12px;}
+.nav-cta{font-family:var(--font-mono); font-size:12px; border:1px solid var(--border); border-radius:999px; padding:9px 18px; transition:all .25s; background:rgba(10,10,10,.8); box-shadow:var(--shadow-card);}
+.nav-cta:hover{border-color:var(--b); color:var(--b-bright); box-shadow:0 8px 20px -6px rgba(59,130,255,.45);}
+.nav-gh{font-family:var(--font-mono); font-size:12px; border-radius:999px; padding:9px 18px; transition:all .25s; background:linear-gradient(100deg, var(--r), var(--b)); color:#FFFFFF; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 18px -8px rgba(59,130,255,.55); display:flex; align-items:center; gap:7px;}
+.nav-gh:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 12px 24px -6px rgba(59,130,255,.65); transform:translateY(-1px);}
+.nav-gh svg{width:13px; height:13px;}
+
+.hero{
+  min-height:100vh; display:flex; align-items:center; position:relative;
+  padding:150px 0 80px; background:transparent !important;
+}
+.hero .container{position:relative; z-index:1;}
+.hero-inner{max-width:680px;}
+.eyebrow{
+  font-family:var(--font-mono); font-size:12.5px; letter-spacing:.08em; color:var(--r);
+  display:flex; align-items:center; gap:10px; margin-bottom:24px; opacity:0; animation:fadeUp .8s .1s forwards;
+}
+.eyebrow::before{content:""; width:26px; height:1px; background:linear-gradient(90deg, var(--r), var(--g), var(--b));}
+.hero h1{
+  font-family:var(--font-display); font-weight:700; line-height:.98; letter-spacing:-.03em;
+  font-size:clamp(46px, 6.6vw, 92px); text-transform:uppercase;
+  opacity:0; animation:fadeUp .9s .2s forwards;
+  text-shadow:0 4px 40px rgba(0,0,0,.9);
+}
+.hero h1 .dim{color:var(--text-faint);}
+.hero-title{
+  font-family:var(--font-mono); font-size:clamp(13px,1.6vw,15px); color:var(--text-dim); margin:22px 0 26px; letter-spacing:.02em;
+  opacity:0; animation:fadeUp .9s .35s forwards; text-shadow:0 2px 20px rgba(0,0,0,.9);
+}
+.hero-title .sep{color:var(--r); margin:0 8px;}
+.hero-bio{max-width:540px; font-size:16.5px; line-height:1.75; color:#C9CBD6; opacity:0; animation:fadeUp .9s .5s forwards; text-shadow:0 2px 16px rgba(0,0,0,.95);}
+.hero-bio strong{color:var(--text); font-weight:600;}
+.hero-actions{display:flex; gap:16px; margin-top:36px; flex-wrap:wrap; opacity:0; animation:fadeUp .9s .65s forwards;}
+@keyframes fadeUp{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
+
+.btn{font-family:var(--font-mono); font-size:13px; padding:14px 26px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; transition:transform .2s, box-shadow .25s;}
+.btn-solid{background:linear-gradient(100deg, var(--r), var(--b)); color:#FFFFFF; font-weight:600; box-shadow:0 1px 0 rgba(255,255,255,.15) inset, 0 8px 20px -6px rgba(59,130,255,.45);}
+.btn-solid:hover{box-shadow:0 1px 0 rgba(255,255,255,.2) inset, 0 14px 30px -6px rgba(59,130,255,.6);}
+.btn-outline{border:1px solid rgba(255,255,255,.2); color:var(--text); background:rgba(10,10,10,.85); box-shadow:var(--shadow-card);}
+.btn-outline:hover{border-color:var(--b); box-shadow:var(--shadow-card-hover);}
+.btn:hover{transform:translateY(-3px);}
+.btn svg{width:14px; height:14px;}
+
+.hero-scroll{position:absolute; bottom:36px; left:28px; font-family:var(--font-mono); font-size:11px; color:var(--text-faint); display:flex; align-items:center; gap:10px; z-index:1;}
+.hero-scroll .line{width:1px; height:34px; background:linear-gradient(var(--b), transparent); animation:scrollLine 2s ease-in-out infinite;}
+@keyframes scrollLine{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 51%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
+
+.marquee-wrap{border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:20px 0; background:rgba(5,5,5,.6);}
+.marquee{display:flex; width:max-content; animation:marquee 32s linear infinite;}
+.marquee span{font-family:var(--font-mono); font-size:14px; color:var(--text-faint); padding:0 30px; white-space:nowrap; display:flex; align-items:center; gap:30px;}
+.marquee span b{color:var(--text-dim); font-weight:500;}
+.marquee span::after{content:"◆"; color:var(--b); font-size:9px; margin-left:30px;}
+@keyframes marquee{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+
+.reveal{opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.in{opacity:1; transform:translateY(0);}
+
+section{padding:120px 0; position:relative; background:transparent !important;}
+.section-tag{font-family:var(--font-mono); font-size:12px; color:var(--b); letter-spacing:.08em; display:flex; align-items:center; gap:10px; margin-bottom:18px;}
+.section-tag::before{content:""; width:20px; height:1px; background:linear-gradient(90deg, var(--r), var(--g), var(--b));}
+.section-title{font-family:var(--font-display); font-size:clamp(30px,4vw,50px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:680px; text-shadow:0 2px 20px rgba(0,0,0,.9);}
+
+.about-grid{display:grid; grid-template-columns:.62fr .78fr 1.15fr; gap:36px; margin-top:56px; align-items:start;}
+.about-copy p{font-size:16.5px; line-height:1.85; color:var(--text-dim); margin-bottom:18px; text-shadow:0 1px 12px rgba(0,0,0,.9);}
+.about-copy strong{color:var(--text); font-weight:600;}
+
+.portrait-card{position:relative; border-radius:18px; overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow-card); background:var(--surface-2); transition:transform .35s, box-shadow .35s;}
+.portrait-card:hover{transform:translateY(-5px); box-shadow:var(--shadow-card-hover);}
+.portrait-card .frame{position:relative; aspect-ratio:3/4; overflow:hidden; display:flex; align-items:center; justify-content:center;}
+.avatar{
+  width:72%; aspect-ratio:1/1; border-radius:16px; position:relative;
+  background:linear-gradient(160deg, var(--surface-2), var(--surface));
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end; padding-bottom:14%;
+}
+.avatar .head{width:34%; aspect-ratio:1/1; border-radius:6px; background:linear-gradient(160deg, var(--r-bright), var(--r)); box-shadow:0 8px 24px -8px rgba(255,59,59,.6); margin-bottom:8px;}
+.avatar .torso{width:52%; aspect-ratio:1.2/1; border-radius:6px; background:linear-gradient(160deg, #1F1F1F, #000); border:1px solid var(--b); box-shadow:0 8px 24px -8px rgba(59,130,255,.4);}
+.portrait-card .frame::after{content:""; position:absolute; inset:0; background:linear-gradient(200deg, rgba(255,59,59,.16), transparent 42%, transparent 60%, rgba(59,130,255,.16)); mix-blend-mode:overlay; pointer-events:none;}
+.portrait-card .frame::before{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,.9) 0%, rgba(0,0,0,0) 32%); pointer-events:none; z-index:1;}
+.portrait-corner{position:absolute; width:18px; height:18px; z-index:2;}
+.portrait-corner.tl{top:12px; left:12px; border-top:1.5px solid; border-left:1.5px solid; border-color:var(--r);}
+.portrait-corner.tr{top:12px; right:12px; border-top:1.5px solid; border-right:1.5px solid; border-color:var(--g);}
+.portrait-corner.bl{bottom:12px; left:12px; border-bottom:1.5px solid; border-left:1.5px solid; border-color:var(--g);}
+.portrait-corner.br{bottom:12px; right:12px; border-bottom:1.5px solid; border-right:1.5px solid; border-color:var(--b);}
+.portrait-tag{position:absolute; top:14px; left:38px; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em; color:rgba(250,250,250,.8); z-index:2;}
+.portrait-caption{position:absolute; left:22px; right:22px; bottom:18px; z-index:2;}
+.portrait-caption .name{font-family:var(--font-display); font-weight:700; font-size:19px; text-transform:uppercase; letter-spacing:-.01em; line-height:1.05;}
+.portrait-caption .role{font-family:var(--font-mono); font-size:10.5px; color:var(--text-dim); margin-top:5px; letter-spacing:.03em;}
+@media (max-width:1100px){
+  .about-grid{grid-template-columns:.9fr 1.1fr;}
+  .portrait-card{grid-column:1/-1; max-width:280px; margin:0 auto 8px;}
+}
+@media (max-width:860px){
+  .about-grid{grid-template-columns:1fr;}
+  .portrait-card{max-width:260px; margin:0 auto;}
+  .stat-brick{width:100% !important; margin-top:14px !important; align-self:stretch !important;}
+}
+
+.stat-stairs{display:flex; flex-direction:column;}
+.stat-brick{
+  background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:14px;
+  padding:20px 22px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s; width:92%;
+}
+.stat-brick:hover{transform:translateY(-4px); box-shadow:var(--shadow-card-hover);}
+.stat-brick:nth-child(1){align-self:flex-start;}
+.stat-brick:nth-child(2){align-self:center; margin-top:-8px; width:100%;}
+.stat-brick:nth-child(3){align-self:flex-end; margin-top:-8px; width:92%;}
+.stat-brick:nth-child(4){align-self:center; margin-top:-8px; width:96%;}
+.stat-brick .num{font-family:var(--font-display); font-weight:700; font-size:36px;}
+.stat-brick:nth-child(1) .num{color:var(--r);}
+.stat-brick:nth-child(2) .num{color:var(--g);}
+.stat-brick:nth-child(3) .num{color:var(--b);}
+.stat-brick:nth-child(4) .num{color:var(--r);}
+.stat-brick .num small{font-size:19px; color:var(--text-dim);}
+.stat-brick .label{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:6px; letter-spacing:.03em;}
+
+.ring-wrap{position:relative; margin:64px auto 0; width:min(560px, 92vw); aspect-ratio:1/1; display:flex; align-items:center; justify-content:center;}
+.ring-glow{
+  position:absolute; inset:14%; border-radius:50%;
+  background:conic-gradient(from 90deg, var(--r), var(--g), var(--b), var(--r));
+  -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+          mask:radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  animation:spin 24s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ring-center{position:absolute; inset:26%; border-radius:50%; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:14px;}
+.ring-center h3{font-family:var(--font-display); font-size:19px; text-transform:uppercase; letter-spacing:-.01em;}
+.ring-center p{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); margin-top:8px; line-height:1.5;}
+.ring-node{
+  position:absolute; width:220px; background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border);
+  border-radius:14px; padding:18px 20px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;
+}
+.ring-node:hover{transform:translateY(-4px); box-shadow:var(--shadow-card-hover);}
+.ring-node h4{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.05em; margin-bottom:6px;}
+.ring-node.n1 h4{color:var(--r);}
+.ring-node.n2 h4{color:var(--g);}
+.ring-node.n3 h4{color:var(--b);}
+.ring-node.n4 h4{color:var(--r-bright);}
+.ring-node p{font-size:13px; color:var(--text-dim); line-height:1.55;}
+.ring-node.n1{top:-4%; left:-8%;}
+.ring-node.n2{top:-4%; right:-8%;}
+.ring-node.n3{bottom:-4%; left:-8%;}
+.ring-node.n4{bottom:-4%; right:-8%;}
+@media (max-width:760px){
+  .ring-wrap{width:100%;}
+  .ring-node{position:static; width:100%; margin-bottom:14px;}
+  .ring-glow, .ring-center{display:none;}
+}
+
+.skills-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:56px;}
+.skill-card{background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:16px; padding:28px 26px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;}
+.skill-card:hover{transform:translateY(-5px); box-shadow:var(--shadow-card-hover);}
+.skill-card h3{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.06em; margin-bottom:16px;}
+.skill-card:nth-child(3n+1) h3{color:var(--r);}
+.skill-card:nth-child(3n+2) h3{color:var(--g);}
+.skill-card:nth-child(3n+3) h3{color:var(--b);}
+.skill-tags{display:flex; flex-wrap:wrap; gap:8px;}
+.skill-tags span{font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim); background:var(--bg); border:1px solid var(--border); padding:6px 12px; border-radius:999px; box-shadow:0 1px 0 var(--border-light) inset, 0 3px 8px rgba(0,0,0,.3); transition:border-color .2s, color .2s, transform .2s;}
+.skill-tags span:hover{border-color:var(--b); color:var(--text); transform:translateY(-2px);}
+@media (max-width:860px){ .skills-grid{grid-template-columns:1fr;} }
+
+.timeline{margin-top:56px; border-left:1px solid var(--border); padding-left:36px; position:relative;}
+.timeline-item{position:relative; padding:28px 30px; margin-bottom:20px; background:linear-gradient(160deg, var(--surface-2), var(--surface)); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-card); transition:transform .3s, box-shadow .3s;}
+.timeline-item:hover{transform:translateY(-4px); box-shadow:var(--shadow-card-hover);}
+.timeline-item:last-child{margin-bottom:0;}
+.timeline-item::before{content:""; position:absolute; left:-48px; top:32px; width:12px; height:12px; border-radius:50%; background:linear-gradient(135deg, var(--r), var(--b)); border:3px solid var(--bg); box-shadow:0 0 0 1px var(--g), 0 0 14px rgba(74,222,74,.5);}
+.timeline-role{font-family:var(--font-display); font-size:23px; font-weight:700; text-transform:uppercase;}
+.timeline-meta{font-family:var(--font-mono); font-size:12px; color:var(--g); margin:8px 0 14px;}
+.timeline-desc{color:var(--text-dim); font-size:15px; line-height:1.75; max-width:640px;}
+.timeline-desc li{margin-left:18px; margin-top:6px;}
+
+.projects-list{margin-top:56px; display:flex; flex-direction:column; gap:64px;}
+.project-row{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;}
+.project-row.rev{direction:rtl;}
+.project-row.rev > *{direction:ltr;}
+.project-panel{
+  aspect-ratio:4/3; border-radius:18px; border:1px solid var(--border); position:relative; overflow:hidden;
+  background:linear-gradient(160deg, var(--surface-2), var(--surface)); box-shadow:var(--shadow-card);
+}
+.project-panel .scan{position:absolute; inset:0; opacity:.95;}
+.project-panel .tag-corner{position:absolute; top:16px; left:16px; font-family:var(--font-mono); font-size:10px; color:var(--text-faint); letter-spacing:.06em; background:rgba(0,0,0,.7); padding:5px 10px; border-radius:999px; border:1px solid var(--border); z-index:3;}
+.project-main h3{font-family:var(--font-display); font-size:25px; font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.badge{font-family:var(--font-mono); font-size:10px; padding:4px 10px; border-radius:999px; letter-spacing:.04em; background:var(--b-soft); color:var(--b-bright); border:1px solid rgba(59,130,255,.4);}
+.badge-r{background:var(--r-soft); color:var(--r-bright); border-color:rgba(255,59,59,.4);}
+.badge-g{background:var(--g-soft); color:var(--g-bright); border-color:rgba(74,222,74,.4);}
+.project-desc{color:var(--text-dim); font-size:15px; line-height:1.75; margin:14px 0 18px; max-width:520px; text-shadow:0 1px 12px rgba(0,0,0,.9);}
+.project-tags{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
+.project-tags span{font-family:var(--font-mono); font-size:11px; color:var(--text-faint); background:var(--bg); border:1px solid var(--border); padding:5px 10px; border-radius:6px;}
+.project-link{font-family:var(--font-mono); font-size:12.5px; color:var(--text); display:inline-flex; align-items:center; gap:6px; border-bottom:1px solid var(--border); padding-bottom:3px; transition:color .2s, border-color .2s;}
+.project-link:hover{color:var(--b-bright); border-color:var(--b);}
+@media (max-width:820px){ .project-row, .project-row.rev{grid-template-columns:1fr; direction:ltr;} }
+
+.contact{text-align:center; position:relative; overflow:hidden;}
+.contact-bg-text{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-weight:700; font-size:min(18vw,220px); color:var(--surface-2); white-space:nowrap; letter-spacing:-.02em; z-index:0; pointer-events:none; opacity:.5;}
+.contact-title{font-family:var(--font-display); font-size:clamp(36px,5.6vw,72px); font-weight:700; letter-spacing:-.02em; text-transform:uppercase; max-width:820px; margin:0 auto 28px; position:relative; z-index:1;}
+.contact p.lead{color:var(--text-dim); font-size:17px; max-width:560px; margin:0 auto 40px; position:relative; z-index:1; text-shadow:0 1px 12px rgba(0,0,0,.9);}
+.contact-links{display:flex; justify-content:center; gap:16px; flex-wrap:wrap; position:relative; z-index:1;}
+
+footer{border-top:1px solid var(--border); padding:30px 0; margin-top:0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-family:var(--font-mono); font-size:12px; color:var(--text-faint); background:transparent !important;}
+
+.magnetic{transition:transform .15s ease-out;}
+
+@media (max-width:700px){ .nav-links{display:none;} .nav-cta{display:none;} }
+</style>
 </head>
-
 <body>
-  <div id="app"></div>
 
-  <!-- SHADERS -->
-  <script type="x-shader/x-vertex" id="noise-functions">
-    const float PI = 3.14159265;
+<nav class="nav" id="nav">
+  <a href="#top" class="nav-mark"><span class="dot"></span> gust-py</a>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#focus">Focus</a>
+    <a href="#experience">Experience</a>
+    <a href="#projects">Projects</a>
+  </div>
+  <div class="nav-actions">
+    <a href="https://github.com/gust-py" target="_blank" class="nav-gh magnetic">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 5 18.3 5.3 18.3 5.3c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+      GitHub
+    </a>
+    <a href="#contact" class="nav-cta magnetic">Contact →</a>
+  </div>
+</nav>
 
-    //	Simplex 3D Noise 
-    //	by Ian McEwan, Ashima Arts
-    //
-    vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-    vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="eyebrow">BUILDER &amp; SCRIPTER — AVAILABLE FOR COMMISSIONS</div>
+      <h1>From <span class="dim">parts</span><br>to <span class="grad-text">machines</span>.</h1>
+      <div class="hero-title">gust-py <span class="sep">/</span> Roblox Builder &nbsp;&amp;&nbsp; Scripter</div>
+      <p class="hero-bio">
+        I build and script realistic systems on Roblox — <strong>functional car
+        chassis and suspensions</strong>, <strong>super-realistic procedural terrain</strong>,
+        and physics-driven <strong>grab systems with working arms</strong>. Currently
+        building <strong>A Lost Drive</strong>, a desert trip game. Always pushing for
+        realism, always willing to learn more.
+      </p>
+      <div class="hero-actions">
+        <a href="#projects" class="btn btn-solid magnetic">View my work</a>
+        <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="btn btn-outline magnetic">Roblox Profile ↗</a>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll"><div class="line"></div> SCROLL</div>
+</section>
 
-    // 
-    float simplex3(vec3 v) { 
-      const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
-      const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee" id="marquee">
+    <span><b>Luau</b> Scripting</span>
+    <span><b>Car Chassis</b> Realistic Physics</span>
+    <span><b>Suspensions</b> Functional Builds</span>
+    <span><b>Procedural Terrain</b> Super Realistic</span>
+    <span><b>Grab Systems</b> Working Arms</span>
+    <span><b>Building</b> Detailed Maps</span>
+    <span><b>Luau</b> Scripting</span>
+    <span><b>Car Chassis</b> Realistic Physics</span>
+    <span><b>Suspensions</b> Functional Builds</span>
+    <span><b>Procedural Terrain</b> Super Realistic</span>
+    <span><b>Grab Systems</b> Working Arms</span>
+    <span><b>Building</b> Detailed Maps</span>
+  </div>
+</div>
 
-      // First corner
-      vec3 i  = floor(v + dot(v, C.yyy) );
-      vec3 x0 =   v - i + dot(i, C.xxx) ;
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="section-tag">ABOUT</div>
+    <h2 class="section-title reveal">A little about how I work</h2>
 
-      // Other corners
-      vec3 g = step(x0.yzx, x0.xyz);
-      vec3 l = 1.0 - g;
-      vec3 i1 = min( g.xyz, l.zxy );
-      vec3 i2 = max( g.xyz, l.zxy );
+    <div class="about-grid">
+      <div class="portrait-card reveal">
+        <div class="frame">
+          <div class="avatar">
+            <div class="head"></div>
+            <div class="torso"></div>
+          </div>
+          <div class="portrait-corner tl"></div>
+          <div class="portrait-corner tr"></div>
+          <div class="portrait-corner bl"></div>
+          <div class="portrait-corner br"></div>
+          <div class="portrait-tag">AVATAR · 2025</div>
+          <div class="portrait-caption">
+            <div class="name">gust-py</div>
+            <div class="role">Builder &amp; Scripter</div>
+          </div>
+        </div>
+      </div>
 
-      //  x0 = x0 - 0. + 0.0 * C 
-      vec3 x1 = x0 - i1 + 1.0 * C.xxx;
-      vec3 x2 = x0 - i2 + 2.0 * C.xxx;
-      vec3 x3 = x0 - 1. + 3.0 * C.xxx;
+      <div class="stat-stairs reveal">
+        <div class="stat-brick">
+          <div class="num" id="statSystems">0<small>+</small></div>
+          <div class="label">REALISTIC SYSTEMS SHIPPED</div>
+        </div>
+        <div class="stat-brick">
+          <div class="num" id="statChassis">0</div>
+          <div class="label">CAR CHASSIS BUILT</div>
+        </div>
+        <div class="stat-brick">
+          <div class="num" id="statTerrain">0</div>
+          <div class="label">PROCEDURAL TERRAIN SYSTEMS</div>
+        </div>
+        <div class="stat-brick">
+          <div class="num" id="statGame">1</div>
+          <div class="label">GAME IN DEVELOPMENT — A LOST DRIVE</div>
+        </div>
+      </div>
 
-      // Permutations
-      i = mod(i, 289.0 ); 
-      vec4 p = permute( permute( permute( 
-                i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
-              + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) 
-              + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+      <div class="about-copy reveal">
+        <p>I'm <strong>gust-py</strong>, a Roblox <strong>Builder &amp; Scripter</strong> obsessed
+        with realism. My specialty is vehicles: <strong>realistic car chassis</strong> and
+        <strong>functional suspensions</strong> that actually react to terrain — not static
+        decorations bolted onto a body.</p>
+        <p>I've also developed a <strong>super-realistic procedural terrain system</strong> —
+        endless, naturally generated landscapes with realistic dunes, slopes and surface
+        detail. Combined with a <strong>realistic grab system with fully functional arms</strong>,
+        my systems are built to feel physical and alive.</p>
+        <p>Right now I'm developing <strong>A Lost Drive</strong>, a desert trip game —
+        an atmospheric drive through procedurally generated dunes where the vehicle,
+        the terrain and the mood are the whole experience. And I'm always open to
+        learning more: every system teaches me something new.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-      // Gradients
-      // ( N*N points uniformly over a square, mapped onto an octahedron.)
-      float n_ = 1.0/7.0; // N=7
-      vec3  ns = n_ * D.wyz - D.xzx;
+<!-- CORE FOCUS -->
+<section id="focus">
+  <div class="container">
+    <div class="section-tag" style="justify-content:center;">CORE FOCUS</div>
+    <h2 class="section-title reveal" style="margin:0 auto; text-align:center;">The things I actually build</h2>
 
-      vec4 j = p - 49.0 * floor(p * ns.z *ns.z);  //  mod(p,N*N)
+    <div class="ring-wrap reveal">
+      <div class="ring-glow"></div>
+      <div class="ring-center">
+        <h3>Core Focus</h3>
+        <p>Where I spend most<br>of my build time</p>
+      </div>
+      <div class="ring-node n1">
+        <h4>CAR CHASSIS</h4>
+        <p>Realistic vehicle physics — weight, grip, torque and handling that feel like driving, not sliding.</p>
+      </div>
+      <div class="ring-node n2">
+        <h4>SUSPENSIONS</h4>
+        <p>Functional suspension systems that compress, rebound and react to every bump in the terrain.</p>
+      </div>
+      <div class="ring-node n3">
+        <h4>PROCEDURAL TERRAIN</h4>
+        <p>Super-realistic, endless generated landscapes — natural dunes, slopes and surface detail, no hand-sculpting needed.</p>
+      </div>
+      <div class="ring-node n4">
+        <h4>GRAB SYSTEMS</h4>
+        <p>Realistic grabbing with fully functional arms — physics-driven interaction between characters and the world.</p>
+      </div>
+    </div>
 
-      vec4 x_ = floor(j * ns.z);
-      vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)
+    <div class="skills-grid" style="margin-top:110px;">
+      <div class="skill-card reveal">
+        <h3>PROGRAMMING</h3>
+        <div class="skill-tags"><span>Luau</span><span>Client-Server</span><span>RemoteEvents</span><span>Modular Code</span></div>
+      </div>
+      <div class="skill-card reveal">
+        <h3>VEHICLES</h3>
+        <div class="skill-tags"><span>Car Chassis</span><span>Functional Suspensions</span><span>Vehicle Physics</span><span>Constraint-Based Builds</span><span>Wheel Systems</span></div>
+      </div>
+      <div class="skill-card reveal">
+        <h3>PROCEDURAL GENERATION</h3>
+        <div class="skill-tags"><span>Procedural Terrain</span><span>Noise / Perlin</span><span>Mesh Deformation</span><span>Chunk Systems</span><span>LOD</span></div>
+      </div>
+      <div class="skill-card reveal">
+        <h3>INTERACTION SYSTEMS</h3>
+        <div class="skill-tags"><span>Grab Systems</span><span>Functional Arms</span><span>Physics Interaction</span><span>Character Mechanics</span></div>
+      </div>
+      <div class="skill-card reveal">
+        <h3>BUILDING &amp; DESIGN</h3>
+        <div class="skill-tags"><span>Studio Building</span><span>Lighting &amp; Atmosphere</span><span>Level Design</span><span>Immersion</span><span>Game Feel</span></div>
+      </div>
+      <div class="skill-card reveal">
+        <h3>TOOLS</h3>
+        <div class="skill-tags"><span>Roblox Studio</span><span>VS Code</span><span>Git / GitHub</span></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-      vec4 x = x_ *ns.x + ns.yyyy;
-      vec4 y = y_ *ns.x + ns.yyyy;
-      vec4 h = 1.0 - abs(x) - abs(y);
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="container">
+    <div class="section-tag">EXPERIENCE</div>
+    <h2 class="section-title reveal">What I've built so far</h2>
 
-      vec4 b0 = vec4( x.xy, y.xy );
-      vec4 b1 = vec4( x.zw, y.zw );
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-role">Roblox Builder &amp; Scripter — Independent</div>
+        <div class="timeline-meta">Roblox Platform &nbsp;·&nbsp; Current</div>
+        <div class="timeline-desc">
+          Building realistic systems and detailed environments, including:
+          <ul>
+            <li>Developed <strong>realistic car chassis</strong> with physics tuned for weight transfer, grip and believable handling.</li>
+            <li>Built <strong>visual &amp; functional suspensions</strong> that compress, extend and react to terrain in real time.</li>
+            <li>Created a <strong>super-realistic procedural terrain system</strong> generating natural, endless landscapes.</li>
+            <li>Shipped a <strong>realistic grab system with working arms</strong> — full character interaction driven by physics.</li>
+            <li>Currently developing <strong>A Lost Drive</strong>, a desert trip game focused on atmosphere and the driving experience.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-      vec4 s0 = floor(b0)*2.0 + 1.0;
-      vec4 s1 = floor(b1)*2.0 + 1.0;
-      vec4 sh = -step(h, vec4(0.0));
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="container">
+    <div class="section-tag">SELECTED WORK</div>
+    <h2 class="section-title reveal">Projects</h2>
 
-      vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
-      vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+    <div class="projects-list">
 
-      vec3 p0 = vec3(a0.xy,h.x);
-      vec3 p1 = vec3(a0.zw,h.y);
-      vec3 p2 = vec3(a1.xy,h.z);
-      vec3 p3 = vec3(a1.zw,h.w);
+      <!-- A LOST DRIVE -->
+      <div class="project-row reveal">
+        <div class="project-panel">
+          <div class="tag-corner">IN DEVELOPMENT</div>
+          <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
+            </g>
+            <line x1="30" y1="240" x2="370" y2="240" stroke="#FF3B3B" stroke-width="1.5"/>
+            <polygon points="378,240 367,235.5 367,244.5" fill="#FF3B3B"/>
+            <text x="348" y="258" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-weight="bold">X</text>
+            <line x1="30" y1="240" x2="30" y2="58" stroke="#4ADE4A" stroke-width="1.5"/>
+            <polygon points="30,50 25.5,61 34.5,61" fill="#4ADE4A"/>
+            <text x="18" y="64" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
+            <line x1="30" y1="240" x2="72" y2="272" stroke="#3B82FF" stroke-width="1.5"/>
+            <polygon points="78,276 66,272 72,264" fill="#3B82FF"/>
+            <text x="82" y="282" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-weight="bold">Z</text>
+            <circle cx="30" cy="240" r="3.5" fill="#FAFAFA"/>
+            <circle cx="170" cy="165" r="24" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <circle cx="170" cy="165" r="4" fill="#FAFAFA"/>
+            <line x1="170" y1="165" x2="256" y2="165" stroke="#FF3B3B" stroke-width="2.5"/>
+            <polygon points="264,165 252,160 252,170" fill="#FF3B3B"/>
+            <text x="208" y="156" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">v⃗ = (v, 0, 0)</text>
+            <line x1="170" y1="165" x2="170" y2="215" stroke="#FF3B3B" stroke-width="2" opacity=".55"/>
+            <polygon points="170,222 165,211 175,211" fill="#FF3B3B" opacity=".55"/>
+            <text x="178" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">g⃗ = (0, −g, 0)</text>
+            <line x1="170" y1="141" x2="170" y2="112" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="170,105 165,116 175,116" fill="#4ADE4A"/>
+            <text x="178" y="120" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-style="italic">F⃗s = (0, Fs, 0)</text>
+            <line x1="146" y1="165" x2="118" y2="182" stroke="#3B82FF" stroke-width="2"/>
+            <polygon points="112,186 120,175 124,184" fill="#3B82FF"/>
+            <text x="76" y="200" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-style="italic">F⃗z</text>
+            <path d="M206 165 A36 36 0 0 0 198 142" stroke="#262626" fill="none" stroke-width="1.2"/>
+            <text x="212" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ</text>
+            <g>
+              <rect x="262" y="52" width="122" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="274" y="76" font-family="IBM Plex Mono, monospace" font-size="12" fill="#4ADE4A" font-style="italic">E = ½mv² + mgh</text>
+              <text x="274" y="98" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">d = v₀t + ½at²</text>
+            </g>
+            <path d="M60 110 Q120 52 190 92 T320 72" stroke="#3B82FF" stroke-width="1.2" fill="none" opacity=".5" stroke-dasharray="5 5"/>
+            <line x1="170" y1="240" x2="170" y2="218" stroke="#4ADE4A" stroke-width="1.5" opacity=".7"/>
+            <polygon points="170,212 166,221 174,221" fill="#4ADE4A" opacity=".7"/>
+            <text x="150" y="208" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4ADE4A" opacity=".7">N = (0, N, 0)</text>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">A LOST DRIVE · DYNAMICS IN WORLD SPACE</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="250" cy="36" r="3" fill="#FF3B3B"/><text x="258" y="39" fill="#FF3B3B">X</text>
+              <circle cx="274" cy="36" r="3" fill="#4ADE4A"/><text x="282" y="39" fill="#4ADE4A">Y</text>
+              <circle cx="298" cy="36" r="3" fill="#3B82FF"/><text x="306" y="39" fill="#3B82FF">Z</text>
+            </g>
+          </svg>
+        </div>
+        <div class="project-main">
+          <h3>A Lost Drive <span class="badge">FLAGSHIP</span></h3>
+          <p class="project-desc">
+            A desert trip game — an atmospheric drive across endless, procedurally
+            generated dunes, where the vehicle, the terrain and the mood are the whole
+            experience. Built on a realistic chassis with functional suspension, on top
+            of a super-realistic procedural terrain system, with immersive lighting and
+            a world designed to feel lonely, vast and alive at the same time.
+          </p>
+          <div class="project-tags"><span>Luau</span><span>Car Chassis</span><span>Suspension</span><span>Procedural Terrain</span><span>Atmosphere</span></div>
+          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">Follow on Roblox ↗</a>
+        </div>
+      </div>
 
-      //Normalise gradients
-      vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-      p0 *= norm.x;
-      p1 *= norm.y;
-      p2 *= norm.z;
-      p3 *= norm.w;
+      <!-- PROCEDURAL TERRAIN -->
+      <div class="project-row rev reveal">
+        <div class="project-panel">
+          <div class="tag-corner">PROCEDURAL GENERATION</div>
+          <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
+            </g>
+            <line x1="40" y1="260" x2="370" y2="260" stroke="#FF3B3B" stroke-width="1.5"/>
+            <polygon points="378,260 367,255.5 367,264.5" fill="#FF3B3B"/>
+            <text x="352" y="278" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-weight="bold">X</text>
+            <line x1="40" y1="260" x2="40" y2="58" stroke="#4ADE4A" stroke-width="1.5"/>
+            <polygon points="40,50 35.5,61 44.5,61" fill="#4ADE4A"/>
+            <text x="24" y="64" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
+            <line x1="40" y1="260" x2="86" y2="284" stroke="#3B82FF" stroke-width="1.5" stroke-dasharray="4 4"/>
+            <polygon points="92,287 81,284 86,276" fill="#3B82FF"/>
+            <text x="96" y="292" font-family="IBM Plex Mono, monospace" font-size="11" fill="#3B82FF" font-weight="bold">Z</text>
+            <path d="M40 210 Q90 130 140 190 T240 160 T340 200" stroke="#1E3A8A" stroke-width="1.5" fill="none"/>
+            <path d="M40 210 Q70 170 100 200 T160 180 T220 200 T280 175 T340 195" stroke="#3B82FF" stroke-width="1.5" fill="none" opacity=".75"/>
+            <path d="M40 210 l14 -14 l12 18 l14 -20 l12 16 l14 -22 l12 18 l14 -16 l12 20 l14 -24 l12 18 l14 -14 l12 20 l14 -18 l12 16 l14 -20 l12 18 l14 -12 l12 18 l14 -16" stroke="#6BA5FF" stroke-width="1.5" fill="none"/>
+            <path d="M40 210 Q80 150 120 186 Q150 210 180 172 Q210 140 240 176 Q270 205 300 162 Q325 138 350 172" stroke="#4ADE4A" stroke-width="2.5" fill="none">
+              <animate attributeName="opacity" values=".6;1;.6" dur="3s" repeatCount="indefinite"/>
+            </path>
+            <circle cx="180" cy="172" r="4" fill="#FF3B3B"/>
+            <line x1="180" y1="172" x2="180" y2="260" stroke="#FF3B3B" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
+            <line x1="40" y1="172" x2="180" y2="172" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>
+            <text x="168" y="276" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF3B3B">xₙ</text>
+            <text x="30" y="168" font-family="IBM Plex Mono, monospace" font-size="9" fill="#4ADE4A">h(xₙ)</text>
+            <g>
+              <rect x="230" y="48" width="152" height="76" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="242" y="72" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6BA5FF" font-style="italic">h = Σ Aᵢ · noise(xfⁱ)</text>
+              <text x="242" y="92" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">fⁱ = 2ⁱ (octaves)</text>
+              <text x="242" y="110" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Aᵢ = persistenceⁱ</text>
+            </g>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="60" cy="40" r="3" fill="#1E3A8A"/><text x="68" y="43" fill="#5C5C5C">OCTAVE 1</text>
+              <circle cx="130" cy="40" r="3" fill="#3B82FF"/><text x="138" y="43" fill="#5C5C5C">OCTAVE 2</text>
+              <circle cx="204" cy="40" r="3" fill="#6BA5FF"/><text x="212" y="43" fill="#5C5C5C">DETAIL</text>
+            </g>
+            <text x="20" y="22" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">HEIGHTFIELD h(x, z) → MESH VERTICES</text>
+          </svg>
+        </div>
+        <div class="project-main">
+          <h3>Procedural Terrain System <span class="badge badge-g">TERRAIN</span></h3>
+          <p class="project-desc">
+            A super-realistic procedural terrain generator — endless natural landscapes
+            with smooth dunes, believable slopes and detailed surfaces, built from
+            multi-octave noise heightmaps converted into mesh. Chunked generation keeps
+            performance high while the world stays seamless and infinite.
+          </p>
+          <div class="project-tags"><span>Luau</span><span>Noise / Perlin</span><span>Mesh Deformation</span><span>Chunks</span></div>
+          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
+        </div>
+      </div>
 
-      // Mix final noise value
-      vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-      m = m * m;
-      return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), 
-                                    dot(p2,x2), dot(p3,x3) ) );
+      <!-- CAR CHASSIS -->
+      <div class="project-row reveal">
+        <div class="project-panel">
+          <div class="tag-corner">VEHICLE PHYSICS</div>
+          <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
+            </g>
+            <line x1="40" y1="228" x2="360" y2="228" stroke="#5C5C5C" stroke-width="2"/>
+            <g stroke="#262626" stroke-width="1">
+              <line x1="60" y1="228" x2="52" y2="238"/><line x1="100" y1="228" x2="92" y2="238"/>
+              <line x1="140" y1="228" x2="132" y2="238"/><line x1="180" y1="228" x2="172" y2="238"/>
+              <line x1="220" y1="228" x2="212" y2="238"/><line x1="260" y1="228" x2="252" y2="238"/>
+              <line x1="300" y1="228" x2="292" y2="238"/><line x1="340" y1="228" x2="332" y2="238"/>
+            </g>
+            <rect x="130" y="120" width="140" height="70" rx="6" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <circle cx="200" cy="155" r="9" fill="#0A0A0A" stroke="#FAFAFA" stroke-width="1.5"/>
+            <path d="M200 146 A9 9 0 0 1 209 155 Z" fill="#FAFAFA"/>
+            <path d="M200 164 A9 9 0 0 1 191 155 Z" fill="#FAFAFA"/>
+            <text x="214" y="150" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FAFAFA">CM</text>
+            <line x1="200" y1="155" x2="200" y2="222" stroke="#FF3B3B" stroke-width="2.5"/>
+            <polygon points="200,228 195,217 205,217" fill="#FF3B3B"/>
+            <text x="208" y="212" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">mg (0,−mg,0)</text>
+            <line x1="160" y1="220" x2="160" y2="196" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="160,190 156,198 164,198" fill="#4ADE4A"/>
+            <text x="146" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">N₁ (0,N,0)</text>
+            <line x1="240" y1="220" x2="240" y2="196" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="240,190 236,198 244,198" fill="#4ADE4A"/>
+            <text x="248" y="186" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">N₂</text>
+            <line x1="270" y1="155" x2="330" y2="155" stroke="#FF3B3B" stroke-width="2.5"/>
+            <polygon points="338,155 326,150 326,160" fill="#FF3B3B"/>
+            <text x="288" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">F⃗drive</text>
+            <line x1="130" y1="155" x2="86" y2="155" stroke="#FF3B3B" stroke-width="2.5" opacity=".55"/>
+            <polygon points="78,155 90,150 90,160" fill="#FF3B3B" opacity=".55"/>
+            <text x="82" y="146" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF6B6B" font-style="italic">F⃗fric</text>
+            <line x1="200" y1="190" x2="176" y2="210" stroke="#3B82FF" stroke-width="2"/>
+            <polygon points="171,215 180,204 185,212" fill="#3B82FF"/>
+            <text x="150" y="220" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3B82FF" font-style="italic">grip ẑ</text>
+            <path d="M200 98 A30 30 0 1 1 172 110" stroke="#FAFAFA" stroke-width="1.5" fill="none"/>
+            <polygon points="172,110 176,99 182,107" fill="#FAFAFA"/>
+            <text x="214" y="92" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FAFAFA" font-style="italic">τ = Iα</text>
+            <g>
+              <rect x="256" y="236" width="128" height="50" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="268" y="256" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FF3B3B" font-style="italic">ΣF = ma</text>
+              <text x="268" y="274" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">Ffric = μN</text>
+            </g>
+            <line x1="160" y1="250" x2="240" y2="250" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
+            <line x1="160" y1="245" x2="160" y2="255" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
+            <line x1="240" y1="245" x2="240" y2="255" stroke="#FF3B3B" stroke-width="1" opacity=".5"/>
+            <text x="170" y="264" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF3B3B" opacity=".7">WHEELBASE (X)</text>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">FREE BODY DIAGRAM · RIGID BODY</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="250" cy="36" r="3" fill="#FF3B3B"/><text x="258" y="39" fill="#FF3B3B">X</text>
+              <circle cx="274" cy="36" r="3" fill="#4ADE4A"/><text x="282" y="39" fill="#4ADE4A">Y</text>
+              <circle cx="298" cy="36" r="3" fill="#3B82FF"/><text x="306" y="39" fill="#3B82FF">Z</text>
+            </g>
+          </svg>
+        </div>
+        <div class="project-main">
+          <h3>Realistic Car Chassis <span class="badge badge-r">VEHICLES</span></h3>
+          <p class="project-desc">
+            Realistic vehicle chassis built from the physics up — free body balance
+            between weight, normal forces, drive torque and friction, all resolved per
+            world axis. Weight distribution, grip and handling tuned so cars behave
+            like cars, on any surface — even procedurally generated terrain.
+          </p>
+          <div class="project-tags"><span>Luau</span><span>Constraints</span><span>Vehicle Physics</span><span>Tuning</span></div>
+          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
+        </div>
+      </div>
+
+      <!-- SUSPENSION -->
+      <div class="project-row rev reveal">
+        <div class="project-panel">
+          <div class="tag-corner">SUSPENSION SYSTEM</div>
+          <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
+            </g>
+            <line x1="120" y1="50" x2="280" y2="50" stroke="#5C5C5C" stroke-width="2"/>
+            <g stroke="#262626" stroke-width="1">
+              <line x1="140" y1="50" x2="132" y2="40"/><line x1="170" y1="50" x2="162" y2="40"/>
+              <line x1="200" y1="50" x2="192" y2="40"/><line x1="230" y1="50" x2="222" y2="40"/>
+              <line x1="260" y1="50" x2="252" y2="40"/>
+            </g>
+            <line x1="290" y1="60" x2="290" y2="140" stroke="#4ADE4A" stroke-width="1.2" opacity=".6"/>
+            <polygon points="290,54 286,63 294,63" fill="#4ADE4A" opacity=".6"/>
+            <polygon points="290,146 286,137 294,137" fill="#4ADE4A" opacity=".6"/>
+            <text x="296" y="106" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-weight="bold">Y</text>
+            <text x="296" y="120" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">travel</text>
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
+              <path d="M200 50 l0 8 M200 58 l-24 10 l48 12 l-48 12 l48 12 l-48 12 l48 12 l-24 8"
+                    fill="none" stroke="#4ADE4A" stroke-width="3" stroke-linecap="round"/>
+            </g>
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
+              <rect x="168" y="158" width="64" height="44" rx="6" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+              <text x="186" y="185" font-family="IBM Plex Mono, monospace" font-size="13" fill="#FAFAFA" font-style="italic">m</text>
+              <line x1="232" y1="180" x2="264" y2="180" stroke="#4ADE4A" stroke-width="2"/>
+              <polygon points="272,180 260,175 260,185" fill="#4ADE4A"/>
+              <text x="236" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">F = −kx (Y)</text>
+              <line x1="168" y1="180" x2="136" y2="180" stroke="#FF3B3B" stroke-width="2"/>
+              <polygon points="128,180 140,175 140,185" fill="#FF3B3B"/>
+              <text x="128" y="172" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">−cv</text>
+              <line x1="200" y1="202" x2="200" y2="216" stroke="#FF3B3B" stroke-width="2" opacity=".7"/>
+              <polygon points="200,222 196,213 204,213" fill="#FF3B3B" opacity=".7"/>
+              <text x="206" y="216" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF3B3B" font-style="italic">mg</text>
+            </g>
+            <line x1="110" y1="150" x2="330" y2="150" stroke="#262626" stroke-width="1" stroke-dasharray="6 6"/>
+            <text x="338" y="154" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">x₀</text>
+            <g>
+              <animateTransform attributeName="transform" type="translate" values="0 0; 0 14; 0 0" dur="2.6s" repeatCount="indefinite"/>
+              <line x1="316" y1="158" x2="316" y2="186" stroke="#FF3B3B" stroke-width="1.5"/>
+              <polygon points="316,192 312,183 320,183" fill="#FF3B3B"/>
+            </g>
+            <text x="324" y="180" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">Δy</text>
+            <g stroke="#1E3A8A" stroke-width="1.5" fill="none">
+              <line x1="344" y1="50" x2="344" y2="120"/>
+              <path d="M330 120 h28 v26 h-28 z"/>
+              <line x1="344" y1="120" x2="344" y2="160"/>
+              <line x1="334" y1="132" x2="354" y2="132"/>
+            </g>
+            <text x="330" y="176" font-family="IBM Plex Mono, monospace" font-size="8" fill="#5C5C5C">DAMPER</text>
+            <g>
+              <rect x="30" y="216" width="150" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="42" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4ADE4A" font-style="italic">mẏ + cẏ + ky = 0</text>
+              <text x="42" y="258" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C" font-style="italic">ω = √(k/m) · ζ = c/2√(km)</text>
+              <text x="42" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">HOOKE + DAMPING · Y AXIS</text>
+            </g>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">SPRING-MASS-DAMPER · Damped Oscillator</text>
+          </svg>
+        </div>
+        <div class="project-main">
+          <h3>Functional Suspensions <span class="badge badge-g">VEHICLES</span></h3>
+          <p class="project-desc">
+            Suspension systems built on real spring-mass-damper behavior — springs
+            compress and rebound along the suspension's Y axis with proper stiffness
+            and damping ratios, wheels follow the terrain, and the body rolls and dives
+            like a real vehicle. Tuned with Hooke's law, not guesswork.
+          </p>
+          <div class="project-tags"><span>Luau</span><span>SpringConstraints</span><span>Damping Ratios</span><span>Physics</span></div>
+          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
+        </div>
+      </div>
+
+      <!-- GRAB SYSTEM -->
+      <div class="project-row reveal">
+        <div class="project-panel">
+          <div class="tag-corner">CHARACTER SYSTEM</div>
+          <svg class="scan" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="400" height="300" fill="#0A0A0A"/>
+            <g stroke="#141414" stroke-width="1">
+              <line x1="0" y1="75" x2="400" y2="75"/><line x1="0" y1="150" x2="400" y2="150"/><line x1="0" y1="225" x2="400" y2="225"/>
+              <line x1="100" y1="0" x2="100" y2="300"/><line x1="200" y1="0" x2="200" y2="300"/><line x1="300" y1="0" x2="300" y2="300"/>
+            </g>
+            <g>
+              <circle cx="52" cy="232" r="3" fill="#FAFAFA"/>
+              <line x1="52" y1="232" x2="96" y2="232" stroke="#FF3B3B" stroke-width="2"/>
+              <polygon points="102,232 92,228 92,236" fill="#FF3B3B"/>
+              <text x="104" y="236" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-weight="bold">X</text>
+              <line x1="52" y1="232" x2="52" y2="192" stroke="#4ADE4A" stroke-width="2"/>
+              <polygon points="52,186 48,196 56,196" fill="#4ADE4A"/>
+              <text x="44" y="182" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-weight="bold">Y</text>
+              <line x1="52" y1="232" x2="80" y2="254" stroke="#3B82FF" stroke-width="2"/>
+              <polygon points="85,258 75,255 79,248" fill="#3B82FF"/>
+              <text x="88" y="264" font-family="IBM Plex Mono, monospace" font-size="10" fill="#3B82FF" font-weight="bold">Z</text>
+            </g>
+            <circle cx="120" cy="110" r="10" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <circle cx="120" cy="110" r="3" fill="#FAFAFA"/>
+            <text x="86" y="100" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₁</text>
+            <circle cx="196" cy="82" r="7" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <text x="188" y="66" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">JOINT₂</text>
+            <circle cx="272" cy="120" r="7" fill="#0F0F0F" stroke="#FAFAFA" stroke-width="2"/>
+            <text x="284" y="112" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">GRIP</text>
+            <line x1="120" y1="110" x2="196" y2="82" stroke="#FF3B3B" stroke-width="3"/>
+            <line x1="196" y1="82" x2="272" y2="120" stroke="#3B82FF" stroke-width="3"/>
+            <line x1="120" y1="110" x2="196" y2="110" stroke="#FF3B3B" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
+            <line x1="196" y1="110" x2="196" y2="82" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>
+            <text x="146" y="120" font-family="IBM Plex Mono, monospace" font-size="8" fill="#FF3B3B">Δx</text>
+            <text x="200" y="98" font-family="IBM Plex Mono, monospace" font-size="8" fill="#4ADE4A">Δy</text>
+            <circle cx="272" cy="120" r="18" fill="none" stroke="#4ADE4A" stroke-width="1" stroke-dasharray="4 4">
+              <animate attributeName="r" values="16;22;16" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".8;.3;.8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="272" cy="180" r="16" fill="#141414" stroke="#FAFAFA" stroke-width="1.8"/>
+            <text x="264" y="185" font-family="IBM Plex Mono, monospace" font-size="11" fill="#FAFAFA" font-style="italic">m</text>
+            <line x1="272" y1="120" x2="272" y2="158" stroke="#4ADE4A" stroke-width="2"/>
+            <polygon points="272,164 268,155 276,155" fill="#4ADE4A"/>
+            <text x="280" y="146" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4ADE4A" font-style="italic">F⃗grip (0,F,0)</text>
+            <line x1="272" y1="196" x2="272" y2="222" stroke="#FF3B3B" stroke-width="2"/>
+            <polygon points="272,228 268,219 276,219" fill="#FF3B3B"/>
+            <text x="280" y="218" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FF3B3B" font-style="italic">mg</text>
+            <path d="M256 128 Q252 148 260 164" stroke="#3B82FF" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
+            <polygon points="262,170 254,162 263,158" fill="#3B82FF"/>
+            <text x="236" y="152" font-family="IBM Plex Mono, monospace" font-size="9" fill="#3B82FF" font-style="italic">approach ẑ</text>
+            <path d="M210 64 A26 26 0 0 1 222 92" stroke="#FAFAFA" stroke-width="1.2" fill="none"/>
+            <polygon points="222,92 216,84 226,82" fill="#FAFAFA"/>
+            <text x="228" y="70" font-family="IBM Plex Mono, monospace" font-size="10" fill="#FAFAFA" font-style="italic">τ₂</text>
+            <text x="128" y="86" font-family="IBM Plex Mono, monospace" font-size="9" fill="#FF6B6B" font-style="italic">L₁</text>
+            <text x="228" y="96" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6BA5FF" font-style="italic">L₂</text>
+            <path d="M150 110 A30 30 0 0 0 146 97" stroke="#262626" fill="none" stroke-width="1"/>
+            <text x="152" y="102" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">θ₁</text>
+            <g>
+              <rect x="130" y="216" width="190" height="66" rx="8" fill="#0F0F0F" stroke="#262626"/>
+              <text x="142" y="240" font-family="IBM Plex Mono, monospace" font-size="11" fill="#6BA5FF" font-style="italic">‖p−j‖ = L  (constraint)</text>
+              <text x="142" y="258" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5C5C5C" font-style="italic">τ = F × r · sinθ</text>
+              <text x="142" y="274" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK · PHYSICS GRIP</text>
+            </g>
+            <text x="20" y="40" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5C5C5C">2-BONE IK CHAIN · END EFFECTOR</text>
+            <g font-family="IBM Plex Mono, monospace" font-size="8">
+              <circle cx="290" cy="36" r="3" fill="#FF3B3B"/><text x="298" y="39" fill="#FF3B3B">X</text>
+              <circle cx="314" cy="36" r="3" fill="#4ADE4A"/><text x="322" y="39" fill="#4ADE4A">Y</text>
+              <circle cx="338" cy="36" r="3" fill="#3B82FF"/><text x="346" y="39" fill="#3B82FF">Z</text>
+            </g>
+          </svg>
+        </div>
+        <div class="project-main">
+          <h3>Realistic Grab System <span class="badge badge-r">INTERACTION</span></h3>
+          <p class="project-desc">
+            A physics-driven grab system with fully functional arms — built on 2-bone
+            IK with bone-length constraints, so characters reach, grip and hold objects
+            naturally in 3D space. The grip applies real forces to the object instead
+            of playing a canned animation.
+          </p>
+          <div class="project-tags"><span>Luau</span><span>IK</span><span>Physics Grip</span><span>Constraints</span></div>
+          <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="project-link">See it on Roblox ↗</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container contact">
+    <div class="contact-bg-text">GUST-PY</div>
+    <div class="section-tag" style="justify-content:center;">GET IN TOUCH</div>
+    <h2 class="contact-title reveal">Let's build something<br><span class="grad-text">real</span> together.</h2>
+    <p class="lead reveal">
+      Open to commissions — vehicle systems, realistic chassis &amp; suspensions,
+      procedural terrain, grab systems, building and scripting. Find me on Discord,
+      GitHub or Roblox.
+    </p>
+    <div class="contact-links reveal">
+      <a href="https://github.com/gust-py" target="_blank" class="btn btn-solid magnetic">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 5 18.3 5.3 18.3 5.3c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+        GitHub ↗
+      </a>
+      <a href="https://www.roblox.com/pt/users/975300388/profile" target="_blank" class="btn btn-outline magnetic">Roblox Profile ↗</a>
+      <a href="#" onclick="navigator.clipboard.writeText('gus.py'); alert('Discord: gus.py — copied to clipboard!'); return false;" class="btn btn-outline magnetic">Discord: gus.py (click to copy)</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container" style="display:flex; justify-content:space-between; width:100%; flex-wrap:wrap; gap:14px;">
+    <span>© 2025 gust-py. Built with intent.</span>
+    <span>Discord: gus.py · github.com/gust-py</span>
+  </div>
+</footer>
+
+<script>
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 40); });
+
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('in'); io.unobserve(entry.target); } });
+}, { threshold: 0.15 });
+revealEls.forEach(el => io.observe(el));
+
+document.querySelectorAll('.magnetic').forEach(el => {
+  el.addEventListener('mousemove', (e) => {
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    el.style.transform = `translate(${x * 0.25}px, ${y * 0.4}px)`;
+  });
+  el.addEventListener('mouseleave', () => { el.style.transform = 'translate(0,0)'; });
+});
+
+function animateCounter(id, target, suffix = '', duration = 1400) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const start = performance.now();
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const value = Math.floor(eased * target);
+    el.innerHTML = value + (suffix ? `<small>${suffix}</small>` : '');
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+const statsSection = document.querySelector('.stat-stairs');
+let statsPlayed = false;
+const statsIO = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !statsPlayed) {
+      statsPlayed = true;
+      animateCounter('statSystems', 10, '+');
+      animateCounter('statChassis', 5);
+      animateCounter('statTerrain', 2);
+      animateCounter('statGame', 1);
     }
+  });
+}, { threshold: 0.3 });
+if (statsSection) statsIO.observe(statsSection);
+</script>
 
-    float fractal3(      
-      vec3 v,
-      float sharpness,
-      float period,
-      float persistence,
-      float lacunarity,
-      int octaves
-    ) {
-      float n = 0.0;
-      float a = 1.0; // Amplitude for current octave
-      float max_amp = 0.0; // Accumulate max amplitude so we can normalize after
-      float P = period;  // Period for current octave
+<!-- ============ WEBGPU BLACK HOLE — ORIGINAL BLACKBODY ORANGE ============ -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.webgpu.min.js",
+    "three/webgpu": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.webgpu.min.js",
+    "three/tsl": "https://cdn.jsdelivr.net/npm/three@0.181.0/build/three.tsl.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.181.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three/webgpu';
+import { pass, uniform, Fn, Loop, Break, If, screenUV,
+  vec2, vec3, vec4, float,
+  length, normalize, cross, dot, sin, cos, atan, asin, sqrt, pow,
+  fract, clamp, smoothstep, mix, floor, step, sign
+} from 'three/tsl';
+import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 
-      for(int i = 0; i < octaves; i++) {
-          n += a * simplex3(v / P);
-          a *= persistence;
-          max_amp += a;
-          P /= lacunarity;
-      }
+// CONFIG — exact original demo values (same color pipeline)
+const config = {
+  blackHoleMass: 0.4,
+  diskInnerRadius: 4.1,
+  diskOuterRadius: 14.5,
+  diskTemperature: 49.78,
+  temperatureFalloff: 5.22,
+  diskBrightness: 5,
+  diskRotationSpeed: -8.7,
+  turbulenceScale: 1.81,
+  turbulenceStretch: 0.75,
+  turbulenceSharpness: 7.4,
+  turbulenceCycleTime: 5,
+  turbulenceLacunarity: 2.5,
+  turbulencePersistence: 0.8,
+  diskEdgeSoftnessInner: 0.18,
+  diskEdgeSoftnessOuter: 0.5,
+  gravitationalLensing: 2.4,
+  dopplerStrength: 1.0,
+  stepSize: 1,
+  starsEnabled: true,
+  starBackgroundColor: '#000000',
+  starDensity: 0.1,
+  starSize: 1.2,
+  starBrightness: 0.1,
+  nebulaEnabled: true,
+  nebula1Scale: 2,
+  nebula1Density: 0.5,
+  nebula1Brightness: 0.01,
+  nebula1Color: '#071f44',
+  nebula2Scale: 5.5,
+  nebula2Density: 0.05,
+  nebula2Brightness: 0.21,
+  nebula2Color: '#010615',
+  bloomStrength: 0.68,
+  bloomRadius: 0,
+  bloomThreshold: 0.45
+};
 
-      // Normalize noise between [0.0, amplitude]
-      return n / max_amp;
-    }
+const hash21 = Fn(([p]) => {
+  const n = sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453);
+  return fract(n);
+});
+const hash31 = Fn(([p]) => {
+  const n = sin(dot(p, vec3(127.1, 311.7, 74.7))).mul(43758.5453);
+  return fract(n);
+});
+const hash22 = Fn(([p]) => {
+  const px = fract(sin(dot(p, vec2(127.1, 311.7))).mul(43758.5453));
+  const py = fract(sin(dot(p, vec2(269.5, 183.3))).mul(43758.5453));
+  return vec2(px, py);
+});
+const noise3D = Fn(([p]) => {
+  const i = floor(p);
+  const f = fract(p);
+  const u = f.mul(f).mul(float(3.0).sub(f.mul(2.0)));
+  const a = hash31(i);
+  const b = hash31(i.add(vec3(1, 0, 0)));
+  const c = hash31(i.add(vec3(0, 1, 0)));
+  const d = hash31(i.add(vec3(1, 1, 0)));
+  const e = hash31(i.add(vec3(0, 0, 1)));
+  const f2 = hash31(i.add(vec3(1, 0, 1)));
+  const g = hash31(i.add(vec3(0, 1, 1)));
+  const h = hash31(i.add(vec3(1, 1, 1)));
+  return mix(
+    mix(mix(a, b, u.x), mix(c, d, u.x), u.y),
+    mix(mix(e, f2, u.x), mix(g, h, u.x), u.y),
+    u.z
+  );
+});
+const fbm = Fn(([p, lacunarity, persistence]) => {
+  const value = float(0.0).toVar();
+  const amplitude = float(0.5).toVar();
+  const pos = p.toVar();
+  value.addAssign(noise3D(pos).mul(amplitude));
+  pos.mulAssign(lacunarity); amplitude.mulAssign(persistence);
+  value.addAssign(noise3D(pos).mul(amplitude));
+  pos.mulAssign(lacunarity); amplitude.mulAssign(persistence);
+  value.addAssign(noise3D(pos).mul(amplitude));
+  pos.mulAssign(lacunarity); amplitude.mulAssign(persistence);
+  value.addAssign(noise3D(pos).mul(amplitude));
+  return value;
+});
 
-    float terrainHeight(
-      int type,
-      vec3 v,
-      float amplitude,
-      float sharpness,
-      float offset,
-      float period,
-      float persistence,
-      float lacunarity,
-      int octaves
-    ) {
-      float h = 0.0;
+// THE ORIGINAL BLACKBODY COLOR — the orange from the demo
+const blackbodyColor = Fn(([tempK]) => {
+  const t = clamp(tempK.sub(1000.0).div(9000.0), float(0.0), float(1.0));
+  const red = clamp(float(1.0).sub(t.sub(0.8).mul(2.0)), float(0.5), float(1.0));
+  const green = smoothstep(float(0.0), float(0.5), t)
+    .mul(float(1.0).sub(t.sub(0.7).mul(0.3).max(0.0)));
+  const blue = smoothstep(float(0.3), float(1.0), t).mul(t);
+  return vec3(red, green, blue);
+});
 
-      if (type == 1) {
-        h = amplitude * simplex3(v / period);
-      } else if (type == 2) {
-        h = amplitude * fractal3(
-          v,
-          sharpness,
-          period, 
-          persistence, 
-          lacunarity, 
-          octaves);
-        h = amplitude * pow(max(0.0, (h + 1.0) / 2.0), sharpness);
-      } else if (type == 3) {
-        h = fractal3(
-          v,
-          sharpness,
-          period, 
-          persistence, 
-          lacunarity, 
-          octaves);
-        h = amplitude * pow(max(0.0, 1.0 - abs(h)), sharpness);
-      }
+const uniforms = {
+  blackHoleMass: uniform(config.blackHoleMass),
+  diskInnerRadius: uniform(config.diskInnerRadius),
+  diskOuterRadius: uniform(config.diskOuterRadius),
+  diskTemperature: uniform(config.diskTemperature),
+  temperatureFalloff: uniform(config.temperatureFalloff),
+  diskBrightness: uniform(config.diskBrightness),
+  diskRotationSpeed: uniform(config.diskRotationSpeed),
+  turbulenceScale: uniform(config.turbulenceScale),
+  turbulenceStretch: uniform(config.turbulenceStretch),
+  turbulenceSharpness: uniform(config.turbulenceSharpness),
+  turbulenceCycleTime: uniform(config.turbulenceCycleTime),
+  turbulenceLacunarity: uniform(config.turbulenceLacunarity),
+  turbulencePersistence: uniform(config.turbulencePersistence),
+  diskEdgeSoftnessInner: uniform(config.diskEdgeSoftnessInner),
+  diskEdgeSoftnessOuter: uniform(config.diskEdgeSoftnessOuter),
+  gravitationalLensing: uniform(config.gravitationalLensing),
+  dopplerStrength: uniform(config.dopplerStrength),
+  stepSize: uniform(config.stepSize),
+  starsEnabled: uniform(config.starsEnabled ? 1.0 : 0.0),
+  starBackgroundColor: uniform(new THREE.Color(config.starBackgroundColor)),
+  starDensity: uniform(config.starDensity),
+  starSize: uniform(config.starSize),
+  starBrightness: uniform(config.starBrightness),
+  nebulaEnabled: uniform(config.nebulaEnabled ? 1.0 : 0.0),
+  nebula1Scale: uniform(config.nebula1Scale),
+  nebula1Density: uniform(config.nebula1Density),
+  nebula1Brightness: uniform(config.nebula1Brightness),
+  nebula1Color: uniform(new THREE.Color(config.nebula1Color)),
+  nebula2Scale: uniform(config.nebula2Scale),
+  nebula2Density: uniform(config.nebula2Density),
+  nebula2Brightness: uniform(config.nebula2Brightness),
+  nebula2Color: uniform(new THREE.Color(config.nebula2Color)),
+  time: uniform(0),
+  resolution: uniform(new THREE.Vector2(
+    window.innerWidth * devicePixelRatio,
+    window.innerHeight * devicePixelRatio
+  )),
+  cameraPosition: uniform(new THREE.Vector3(0, 5, 20)),
+  cameraTarget: uniform(new THREE.Vector3(0, 0, 0))
+};
 
-      // Multiply by amplitude and adjust offset
-      return max(0.0, h + offset);
-    }
-  </script>
-  <script type="x-shader/x-vertex" id="planet-vert-shader">
-    attribute vec3 tangent;
+const starField = Fn(([rayDir]) => {
+  const theta = atan(rayDir.z, rayDir.x);
+  const phi = asin(clamp(rayDir.y, float(-1.0), float(1.0)));
+  const gridScale = float(60.0).div(uniforms.starSize);
+  const scaledCoord = vec2(theta, phi).mul(gridScale);
+  const cell = floor(scaledCoord);
+  const cellUV = fract(scaledCoord);
+  const cellHash = hash21(cell);
+  const starProb = step(float(1.0).sub(uniforms.starDensity), cellHash);
+  const starPos = hash22(cell.add(42.0)).mul(0.8).add(0.1);
+  const distToStar = length(cellUV.sub(starPos));
+  const baseSizeVar = hash21(cell.add(100.0)).mul(0.03).add(0.01);
+  const finalStarSize = baseSizeVar.mul(uniforms.starSize);
+  const starCore = smoothstep(finalStarSize, float(0.0), distToStar);
+  const starGlow = smoothstep(finalStarSize.mul(3.0), float(0.0), distToStar).mul(0.3);
+  const starIntensity = starCore.add(starGlow).mul(starProb);
+  const colorTemp = hash21(cell.add(200.0));
+  const starColor = mix(vec3(0.8, 0.9, 1.0), vec3(1.0, 0.95, 0.8), colorTemp);
+  return starColor.mul(starIntensity).mul(uniforms.starBrightness);
+});
 
-    // Terrain generation parameters
-    uniform int type;
-    uniform float radius;
-    uniform float amplitude;
-    uniform float sharpness;
-    uniform float offset;
-    uniform float period;
-    uniform float persistence;
-    uniform float lacunarity;
-    uniform int octaves;
+const nebulaField = Fn(([rayDir]) => {
+  const noisePos1 = rayDir.mul(uniforms.nebula1Scale);
+  const n1 = fbm(noisePos1, float(2.0), float(0.5)).mul(2.0).sub(1.0);
+  const layer1 = clamp(n1.add(uniforms.nebula1Density), float(0.0), float(1.0));
+  const color1 = uniforms.nebula1Color.mul(layer1).mul(uniforms.nebula1Brightness);
+  const noisePos2 = rayDir.mul(uniforms.nebula2Scale);
+  const n2 = fbm(noisePos2, float(2.0), float(0.5)).mul(2.0).sub(1.0);
+  const layer2 = clamp(n2.add(uniforms.nebula2Density), float(0.0), float(1.0));
+  const color2 = uniforms.nebula2Color.mul(layer2).mul(uniforms.nebula2Brightness);
+  return color1.add(color2);
+});
 
-    // Bump mapping
-    uniform float bumpStrength;
-    uniform float bumpOffset;
+const accretionDiskColor = Fn(([hitR, hitAngle, time, rayDir]) => {
+  const innerR = uniforms.diskInnerRadius;
+  const outerR = uniforms.diskOuterRadius;
+  const normR = clamp(hitR.sub(innerR).div(outerR.sub(innerR)), float(0.0), float(1.0));
 
-    varying vec3 fragPosition;
-    varying vec3 fragNormal;
-    varying vec3 fragTangent;
-    varying vec3 fragBitangent;
+  // Original blackbody temperature → color pipeline
+  const peakTempK = uniforms.diskTemperature.mul(1000.0);
+  const outerTempK = float(1500.0);
+  const tempFalloff = pow(innerR.div(hitR), uniforms.temperatureFalloff);
+  const tempK = mix(outerTempK, peakTempK, tempFalloff);
+  const diskColor = blackbodyColor(tempK).toVar('diskColor');
 
-    void main() {
-      // Calculate terrain height
-      float h = terrainHeight(
-        type,
-        position,
-        amplitude, 
-        sharpness,
-        offset,
-        period, 
-        persistence, 
-        lacunarity, 
-        octaves);
+  const rotationSign = sign(uniforms.diskRotationSpeed);
+  const velocityDir = vec3(
+    sin(hitAngle).negate().mul(rotationSign),
+    float(0.0),
+    cos(hitAngle).mul(rotationSign)
+  );
+  const velocityMagnitude = float(1.0).div(sqrt(hitR.div(innerR)));
+  const beta = velocityMagnitude.mul(0.3);
+  const cosTheta = dot(velocityDir, rayDir);
+  const dopplerFactor = float(1.0).div(float(1.0).sub(beta.mul(cosTheta)));
+  const dopplerBoost = pow(dopplerFactor, float(3.0).mul(uniforms.dopplerStrength));
+  diskColor.mulAssign(clamp(dopplerBoost, float(0.1), float(5.0)));
 
-      vec3 pos = position * (radius + h);
+  const edgeFalloff = smoothstep(float(0.0), uniforms.diskEdgeSoftnessInner, normR)
+    .mul(smoothstep(float(1.0), float(1.0).sub(uniforms.diskEdgeSoftnessOuter), normR));
 
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-      fragPosition = position;
-      fragNormal = normal;
-      fragTangent = tangent;
-      fragBitangent = cross(normal, tangent);
-    }
-  </script>
-  <script type="x-shader/x-fragment" id="planet-frag-shader">
-    // Terrain generation parameters
-    uniform int type;
-    uniform float radius;
-    uniform float amplitude;
-    uniform float sharpness;
-    uniform float offset;
-    uniform float period;
-    uniform float persistence;
-    uniform float lacunarity;
-    uniform int octaves;
+  const ringOpacity = float(1.0).toVar('ringOpacity');
+  const cycleLength = uniforms.turbulenceCycleTime;
+  const cyclicTime = time.mod(cycleLength);
+  const blendFactor = cyclicTime.div(cycleLength);
+  const keplerianPhase1 = cyclicTime.mul(uniforms.diskRotationSpeed).div(pow(hitR, float(1.5)));
+  const keplerianPhase2 = cyclicTime.add(cycleLength).mul(uniforms.diskRotationSpeed).div(pow(hitR, float(1.5)));
+  const rotatedAngle1 = hitAngle.add(keplerianPhase1);
+  const rotatedAngle2 = hitAngle.add(keplerianPhase2);
+  const noiseCoord1 = vec3(
+    hitR.mul(uniforms.turbulenceScale),
+    cos(rotatedAngle1).div(uniforms.turbulenceStretch.max(0.1)),
+    sin(rotatedAngle1).div(uniforms.turbulenceStretch.max(0.1))
+  );
+  const noiseCoord2 = vec3(
+    hitR.mul(uniforms.turbulenceScale),
+    cos(rotatedAngle2).div(uniforms.turbulenceStretch.max(0.1)),
+    sin(rotatedAngle2).div(uniforms.turbulenceStretch.max(0.1))
+  );
+  const turbulence1 = fbm(noiseCoord1, uniforms.turbulenceLacunarity, uniforms.turbulencePersistence);
+  const turbulence2 = fbm(noiseCoord2, uniforms.turbulenceLacunarity, uniforms.turbulencePersistence);
+  const turbulence = mix(turbulence2, turbulence1, blendFactor);
+  ringOpacity.assign(pow(clamp(turbulence, float(0.0), float(1.0)), uniforms.turbulenceSharpness));
 
-    // Layer colors
-    uniform vec3 color1;
-    uniform vec3 color2;
-    uniform vec3 color3;
-    uniform vec3 color4;
-    uniform vec3 color5;
-    
-    // Transition points for each layer
-    uniform float transition2;
-    uniform float transition3;
-    uniform float transition4;
-    uniform float transition5;
+  const finalOpacity = ringOpacity.mul(edgeFalloff);
+  const finalColor = diskColor.mul(uniforms.diskBrightness);
+  return vec4(finalColor, finalOpacity);
+});
 
-    // Amount of blending between each layer
-    uniform float blend12;
-    uniform float blend23;
-    uniform float blend34;
-    uniform float blend45;
+const blackHoleShader = Fn(() => {
+  const rs = uniforms.blackHoleMass.mul(2.0);
+  const uv = screenUV.sub(0.5).mul(2.0);
+  const aspect = uniforms.resolution.x.div(uniforms.resolution.y);
+  const screenPos = vec2(uv.x.mul(aspect), uv.y);
 
-    // Bump mapping parameters
-    uniform float bumpStrength;
-    uniform float bumpOffset;
+  const camPos = uniforms.cameraPosition;
+  const camTarget = uniforms.cameraTarget;
+  const camForward = normalize(camTarget.sub(camPos));
+  const worldUp = vec3(0.0, 1.0, 0.0);
+  const camRight = normalize(cross(worldUp, camForward));
+  const camUp = cross(camForward, camRight);
 
-    // Lighting parameters
-    uniform float ambientIntensity;
-    uniform float diffuseIntensity;
-    uniform float specularIntensity;
-    uniform float shininess;
-    uniform vec3 lightDirection;
-    uniform vec3 lightColor;
+  const fov = float(1.0);
+  const rayDir = normalize(
+    camForward.mul(fov).add(camRight.mul(screenPos.x)).add(camUp.mul(screenPos.y))
+  ).toVar('rayDir');
 
-    varying vec3 fragPosition;
-    varying vec3 fragNormal;
-    varying vec3 fragTangent;
-    varying vec3 fragBitangent;
+  const rayPos = camPos.toVar('rayPos');
+  const prevPos = camPos.toVar('prevPos');
+  const color = vec3(0.0, 0.0, 0.0).toVar('color');
+  const alpha = float(0.0).toVar('alpha');
+  const escaped = float(0.0).toVar('escaped');
+  const captured = float(0.0).toVar('captured');
+  const innerR = uniforms.diskInnerRadius;
+  const outerR = uniforms.diskOuterRadius;
 
-    void main() {
-      // Calculate terrain height
-      float h = terrainHeight(
-        type,
-        fragPosition,
-        amplitude, 
-        sharpness,
-        offset,
-        period, 
-        persistence, 
-        lacunarity, 
-        octaves);
+  Loop(32, () => {
+    If(escaped.greaterThan(0.5).or(captured.greaterThan(0.5)).or(alpha.greaterThan(0.99)), () => {
+      Break();
+    });
 
-      vec3 dx = bumpOffset * fragTangent;
-      float h_dx = terrainHeight(
-        type,
-        fragPosition + dx,
-        amplitude, 
-        sharpness,
-        offset,
-        period, 
-        persistence, 
-        lacunarity, 
-        octaves);
+    const r = length(rayPos);
 
-      vec3 dy = bumpOffset * fragBitangent;
-      float h_dy = terrainHeight(
-        type,
-        fragPosition + dy,
-        amplitude, 
-        sharpness,
-        offset,
-        period, 
-        persistence, 
-        lacunarity, 
-        octaves);
+    If(r.lessThan(rs.mul(1.01)), () => {
+      captured.assign(1.0);
+      Break();
+    });
 
-      vec3 pos = fragPosition * (radius + h);
-      vec3 pos_dx = (fragPosition + dx) * (radius + h_dx);
-      vec3 pos_dy = (fragPosition + dy) * (radius + h_dy);
+    If(r.greaterThan(100.0), () => {
+      escaped.assign(1.0);
+      Break();
+    });
 
-      // Recalculate surface normal post-bump mapping
-      vec3 bumpNormal = normalize(cross(pos_dx - pos, pos_dy - pos));
-      // Mix original normal and bumped normal to control bump strength
-      vec3 N = normalize(mix(fragNormal, bumpNormal, bumpStrength));
-    
-      // Normalized light direction (points in direction that light travels)
-      vec3 L = normalize(-lightDirection);
-      // View vector from camera to fragment
-      vec3 V = normalize(cameraPosition - pos);
-      // Reflected light vector
-      vec3 R = normalize(reflect(L, N));
+    const toCenter = rayPos.negate().div(r);
+    const bendStrength = rs.div(r.mul(r)).mul(uniforms.stepSize).mul(uniforms.gravitationalLensing);
+    rayDir.addAssign(toCenter.mul(bendStrength));
+    rayDir.assign(normalize(rayDir));
 
-      float diffuse = diffuseIntensity * max(0.0, dot(N, -L));
+    prevPos.assign(rayPos);
+    rayPos.addAssign(rayDir.mul(uniforms.stepSize));
 
-      // https://ogldev.org/www/tutorial19/tutorial19.html
-      float specularFalloff = clamp((transition3 - h) / transition3, 0.0, 1.0);
-      float specular = max(0.0, specularFalloff * specularIntensity * pow(dot(V, R), shininess));
+    const crossedPlane = prevPos.y.mul(rayPos.y).lessThan(0.0);
+    If(crossedPlane.and(alpha.lessThan(0.99)), () => {
+      const t = prevPos.y.negate().div(rayPos.y.sub(prevPos.y));
+      const hitPos = mix(prevPos, rayPos, t);
+      const hitR = sqrt(hitPos.x.mul(hitPos.x).add(hitPos.z.mul(hitPos.z)));
+      const inDisk = hitR.greaterThan(innerR).and(hitR.lessThan(outerR));
+      If(inDisk, () => {
+        const hitAngle = atan(hitPos.z, hitPos.x);
+        const diskResult = accretionDiskColor(hitR, hitAngle, uniforms.time, rayDir);
+        const remainingAlpha = float(1.0).sub(alpha);
+        color.addAssign(diskResult.xyz.mul(diskResult.w).mul(remainingAlpha));
+        alpha.addAssign(remainingAlpha.mul(diskResult.w));
+      });
+    });
+  });
 
-      float light = ambientIntensity + diffuse + specular;
+  If(captured.lessThan(0.5), () => {
+    escaped.assign(1.0);
+  });
 
-      // Blender colors layer by layer
-      vec3 color12 = mix(
-        color1, 
-        color2, 
-        smoothstep(transition2 - blend12, transition2 + blend12, h));
+  If(escaped.greaterThan(0.5).and(alpha.lessThan(0.99)), () => {
+    const bgColor = uniforms.starBackgroundColor.toVar('bgColor');
+    If(uniforms.starsEnabled.greaterThan(0.5), () => {
+      bgColor.addAssign(starField(rayDir));
+    });
+    If(uniforms.nebulaEnabled.greaterThan(0.5), () => {
+      bgColor.addAssign(nebulaField(rayDir));
+    });
+    color.addAssign(bgColor.mul(float(1.0).sub(alpha)));
+  });
 
-      vec3 color123 = mix(
-        color12, 
-        color3, 
-        smoothstep(transition3 - blend23, transition3 + blend23, h));
+  const finalColor = pow(color, vec3(1.0 / 2.2));
+  return vec4(finalColor, 1.0);
+})();
 
-      vec3 color1234 = mix(
-        color123, 
-        color4, 
-        smoothstep(transition4 - blend34, transition4 + blend34, h));
+// SCENE — shader sphere (essential renderer)
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
 
-      vec3 finalColor = mix(
-        color1234, 
-        color5, 
-        smoothstep(transition5 - blend45, transition5 + blend45, h));
-      
-      gl_FragColor = vec4(light * finalColor * lightColor, 1.0);
-    }
-  </script>
-  <script type="x-shader/x-vertex" id="atmosphere-vert-shader">
-    attribute float size;
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-    varying vec3 fragPosition;
+const renderer = new THREE.WebGPURenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.domElement.id = 'bh-bg';
+document.body.insertBefore(renderer.domElement, document.body.firstChild);
 
-    void main() {
-      gl_PointSize = size;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      fragPosition = (modelMatrix * vec4(position, 1.0)).xyz;
-    }
-  </script>
-  <script type="x-shader/x-fragment" id="atmosphere-frag-shader">
-    uniform float time;
-    uniform float speed;
-    uniform float opacity;
-    uniform float density;
-    uniform float scale;
+const geometry = new THREE.SphereGeometry(100, 32, 32);
+geometry.scale(-1, 1, 1);
+const material = new THREE.MeshBasicNodeMaterial();
+material.colorNode = blackHoleShader;
+const mesh = new THREE.Mesh(geometry, material);
+mesh.frustumCulled = false;
+scene.add(mesh);
 
-    uniform vec3 lightDirection;
-    
-    uniform vec3 color;
-    uniform sampler2D pointTexture;
+// ANIMATION — cinematic auto-orbit (background mode, no controls)
+let postProcessing = null;
+let lastFrameTime = performance.now();
+let orbitAngle = 0.35;
 
-    varying vec3 fragPosition;
+function updateCamera() {
+  const radius = 20;
+  const camY = -2 + Math.sin(orbitAngle * 0.4) * 1.5;
+  camera.position.set(Math.sin(orbitAngle) * radius, camY, Math.cos(orbitAngle) * radius);
+  camera.lookAt(0, 0, 0);
+  uniforms.cameraPosition.value.copy(camera.position);
+  const direction = new THREE.Vector3(0, 0, -1);
+  direction.applyQuaternion(camera.quaternion);
+  const target = camera.position.clone().add(direction.multiplyScalar(10));
+  uniforms.cameraTarget.value.copy(target);
+}
 
-    vec2 rotateUV(vec2 uv, float rotation) {
-        float mid = 0.5;
-        return vec2(
-            cos(rotation) * (uv.x - mid) + sin(rotation) * (uv.y - mid) + mid,
-            cos(rotation) * (uv.y - mid) - sin(rotation) * (uv.x - mid) + mid
-        );
-    }
+function animate() {
+  requestAnimationFrame(animate);
+  const currentTime = performance.now();
+  const deltaTime = Math.min((currentTime - lastFrameTime) / 1000, 0.033);
+  lastFrameTime = currentTime;
 
-    void main() {
-      vec3 R = normalize(fragPosition);
-      vec3 L = normalize(lightDirection);
-      float light = max(0.05, dot(R, L));
+  orbitAngle += deltaTime * 0.06;
+  uniforms.time.value += deltaTime;
+  updateCamera();
 
-      float n = simplex3((time * speed) + fragPosition / scale);
-      float alpha = opacity * clamp(n + density, 0.0, 1.0);
+  if (postProcessing) {
+    postProcessing.render();
+  } else {
+    renderer.render(scene, camera);
+  }
+}
 
-      vec2 rotCoords = rotateUV(gl_PointCoord, n);
-      gl_FragColor = vec4(light * color, alpha) * texture2D(pointTexture, gl_PointCoord);
-    }
-  </script>
-  <script type="module" src="/scripts/main.js"></script>
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  uniforms.resolution.value.set(
+    window.innerWidth * devicePixelRatio,
+    window.innerHeight * devicePixelRatio
+  );
+});
+
+renderer.init().then(() => {
+  postProcessing = new THREE.PostProcessing(renderer);
+  const scenePass = pass(scene, camera);
+  const scenePassColor = scenePass.getTextureNode();
+  const bloomPass = bloom(scenePassColor);
+  bloomPass.threshold.value = config.bloomThreshold;
+  bloomPass.strength.value = config.bloomStrength;
+  bloomPass.radius.value = config.bloomRadius;
+  postProcessing.outputNode = scenePassColor.add(bloomPass);
+  animate();
+}).catch(err => {
+  console.error('Black hole failed to start:', err);
+});
+</script>
+
 </body>
-
 </html>
