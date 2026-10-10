@@ -1,2 +1,0 @@
-- [ ] Change atmosphere to use 3D noise in shader to determine particle visbility
-- [ ] Update atmosphere over time
