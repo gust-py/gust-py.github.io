@@ -1,795 +1,1199 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drosophila Neural Connectome & Motor Dynamics Engine</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #080b11;
-            color: #f1f5f9;
-            overflow: hidden;
-            margin: 0;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CONECTOMA·01 — cérebro artificial de Drosophila</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060809; --panel:#0a0d0f; --panel2:#0d1113;
+  --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.16);
+  --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52;
+  --amber:#f0a63c; --teal:#46c8bc; --rose:#ef6a8b; --lime:#a5d64a;
+  --coral:#f07b52; --sand:#e8d06a; --bone:#d9d7cf; --red:#ff6a5e; --grn:#9bd646;
+  --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font-family:var(--mono);font-size:12px;
+  display:grid;grid-template-rows:46px 1fr 28px;overflow:hidden}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#22262a;border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
 
-        .code-font {
-            font-family: 'JetBrains Mono', monospace;
-        }
+/* ---------- header ---------- */
+header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  border-bottom:1px solid var(--line);background:var(--panel)}
+.brand{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:.06em;display:flex;align-items:center;gap:9px}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px rgba(240,166,60,.7)}
+.brand em{font-style:normal;font-weight:400;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.04em;margin-left:4px}
+.stats{display:flex;gap:16px;align-items:center;font-size:10px;color:var(--dim);letter-spacing:.08em}
+.stats b{color:var(--tx);font-weight:500;margin-left:5px}
+.chip{font:500 10px var(--mono);letter-spacing:.1em;color:var(--amber);background:transparent;
+  border:1px solid rgba(240,166,60,.4);border-radius:2px;padding:3px 8px;cursor:pointer}
+.chip:hover{background:rgba(240,166,60,.12)}
 
-        /* Glassmorphism styling */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
+/* ---------- layout ---------- */
+#app{display:grid;grid-template-columns:288px 1fr 314px;gap:10px;padding:10px;min-height:0}
+aside{background:var(--panel);border:1px solid var(--line);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:16px}
+section h3{font:500 9.5px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
+  display:flex;align-items:center;gap:8px;margin-bottom:8px}
+section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.5);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 2px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
+/* ---------- botões ---------- */
+.btn{display:block;width:100%;text-align:left;font:500 10.5px var(--mono);letter-spacing:.07em;
+  text-transform:uppercase;color:var(--tx);background:transparent;border:1px solid var(--line);
+  border-radius:2px;padding:7px 9px;cursor:pointer;margin-bottom:5px;transition:border-color .12s,background .12s}
+.btn:hover{border-color:rgba(240,166,60,.55);background:rgba(240,166,60,.07)}
+.btn:active{background:rgba(240,166,60,.16)}
+.btn em{display:block;font-style:normal;font-weight:400;text-transform:none;letter-spacing:.02em;
+  font-size:9.5px;color:var(--dim2);margin-top:2px}
+.btn .sw{display:inline-block;width:8px;height:8px;border-radius:1px;background:var(--c,#888);margin-right:7px;vertical-align:0}
+.btn.ghost{color:var(--dim)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.grid2 .btn{margin-bottom:0;padding:6px 7px;font-size:9.5px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.row3 .btn{text-align:center;margin:0;padding:8px 4px}
+.hint{font-size:9.5px;color:var(--dim2);margin-bottom:6px;letter-spacing:.03em}
+.rbtn .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);margin-right:6px;vertical-align:0}
 
-        /* Custom Canvas Positioning */
-        #canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-        }
+/* ---------- palco 3D ---------- */
+#stage{position:relative;border:1px solid var(--line);background:#05070a;min-height:0;overflow:hidden}
+#stage canvas{display:block;position:absolute;inset:0}
+#vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.5) 100%)}
+#camBtns{position:absolute;top:10px;right:10px;display:flex;gap:4px;z-index:5}
+#camBtns button{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+  background:rgba(10,13,15,.75);border:1px solid var(--line);border-radius:2px;padding:4px 8px;cursor:pointer}
+#camBtns button:hover{color:var(--tx);border-color:var(--line2)}
+#camBtns button.on{color:var(--amber);border-color:rgba(240,166,60,.5)}
+#legend{position:absolute;left:10px;bottom:10px;z-index:5;display:flex;flex-direction:column;gap:2px;
+  background:rgba(8,10,12,.62);border:1px solid var(--line);padding:7px 10px;border-radius:2px}
+#legend .li{font-size:9px;letter-spacing:.06em;color:var(--dim);display:flex;align-items:center;gap:6px}
+#legend .li i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+#legend .li b{color:var(--tx);font-weight:400;margin-left:auto;padding-left:10px}
+#tip{position:absolute;z-index:9;display:none;pointer-events:none;max-width:210px;
+  background:rgba(10,13,15,.94);border:1px solid var(--line2);border-radius:2px;padding:8px 10px}
+#tip b{font-family:var(--sans);font-size:12px;letter-spacing:.03em;display:block}
+#tip span{font-size:9px;color:var(--dim);display:block;margin:2px 0}
+#tip em{font-style:normal;font-size:9.5px;color:var(--amber)}
 
-        /* UI Layering */
-        .ui-layer {
-            position: relative;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .interactive {
-            pointer-events: auto;
-        }
+/* ---------- telemetria ---------- */
+#arena{width:100%;display:block;border:1px solid var(--line);border-radius:2px;background:#07090b}
+.arow{display:flex;justify-content:space-between;margin-top:5px}
+.mrow{display:grid;grid-template-columns:52px 1fr 34px;align-items:center;gap:8px;margin-bottom:6px;font-size:9.5px;color:var(--dim)}
+.meter{height:5px;background:rgba(232,227,213,.07);border-radius:1px;overflow:hidden}
+.meter i{display:block;height:100%;width:0%;background:var(--bone);transition:width .06s linear}
+.meter.amber i{background:var(--amber)}
+.meter.big{height:7px}
+.mrow b{color:var(--tx);font-weight:400;text-align:right}
+#state{font-family:var(--sans);font-weight:600;font-size:19px;letter-spacing:.02em;line-height:1.1}
+#state.c-rfx{color:var(--coral)} #state.c-mem{color:var(--rose)} #state.c-rwd{color:var(--grn)} #state.c-mic{color:var(--teal)}
+#stateSub{font-size:9.5px;color:var(--dim);margin-top:3px}
+#subNeural{font-size:9.5px;color:var(--dim2);margin-top:6px;letter-spacing:.02em}
+.lbl{font-size:9px;color:var(--dim2);letter-spacing:.14em;text-transform:uppercase;margin:8px 0 4px}
+#sparks .srow{display:grid;grid-template-columns:10px 1fr 44px;gap:7px;align-items:center;margin-bottom:3px}
+#sparks canvas{width:100%;height:20px;display:block}
+#sparks .dot{width:6px;height:6px;border-radius:50%;background:var(--c)}
+#sparks .hz{font-size:9px;color:var(--dim);text-align:right;font-weight:400}
+#engra .erow{display:grid;grid-template-columns:76px 1fr 40px;gap:8px;align-items:center;margin-bottom:5px;font-size:9.5px}
+#engra .ename{color:var(--dim)}
+.etrack{position:relative;height:5px;background:rgba(232,227,213,.07);border-radius:1px}
+.etrack::before{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(232,227,213,.25)}
+.etrack i{position:absolute;top:0;bottom:0}
+.etrack i.neg{right:50%;background:var(--red)}
+.etrack i.pos{left:50%;background:var(--grn)}
+#engra b{color:var(--tx);font-weight:400;text-align:right}
+#log{font-size:9.5px;line-height:1.55;color:var(--dim);max-height:190px;overflow-y:auto;
+  border-left:2px solid var(--line);padding-left:9px}
+#log .lt{color:var(--dim2);margin-right:6px}
+#log .lk{display:inline-block;width:30px;font-size:8px;letter-spacing:.1em;margin-right:5px}
+.lk-SEN{color:var(--amber)} .lk-RFX{color:var(--coral)} .lk-MEM{color:var(--rose)}
+.lk-RWD{color:var(--grn)} .lk-SYS{color:var(--dim)} .lk-MIC{color:var(--teal)} .lk-MOT{color:var(--bone)}
+#log .ln{margin-bottom:2px}
 
-        /* Range Slider Styling */
-        input[type=range] {
-            -webkit-appearance: none;
-            background: rgba(51, 65, 85, 0.5);
-            height: 4px;
-            border-radius: 2px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 14px;
-            width: 14px;
-            border-radius: 50%;
-            background: #38bdf8;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
-        }
-    </style>
+footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
+  border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.06em}
+footer b{color:var(--dim);font-weight:400}
+
+@media (max-width:1120px){
+  body{overflow:auto}
+  #app{grid-template-columns:1fr;grid-auto-rows:auto}
+  #stage{height:58vh;order:-1}
+  aside{max-height:44vh}
+}
+</style>
 </head>
-<body class="w-screen h-screen relative select-none">
+<body>
 
-    <!-- 3D Canvas Container -->
-    <div id="canvas-container"></div>
+<header>
+  <div class="brand"><span class="dot"></span>CONECTOMA·01<em>cérebro artificial de <i>Drosophila</i> · simulação neural autônoma</em></div>
+  <div class="stats">
+    <span>NEURÔNIOS<b id="stN">—</b></span>
+    <span>SINAPSES<b id="stS">—</b></span>
+    <span>DISPAROS·s⁻¹<b id="stSp">0</b></span>
+    <span>T+<b id="stT">00:00</b></span>
+    <button class="chip" id="btnSpeed">VEL ×1</button>
+  </div>
+</header>
 
-    <!-- Interface Overlay -->
-    <div class="ui-layer w-full h-full p-4 flex flex-col justify-between">
-        
-        <!-- Top Header Navigation -->
-        <header class="flex justify-between items-center w-full">
-            <div class="glass-panel rounded-xl px-5 py-3 flex items-center space-x-3 interactive">
-                <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
-                <div>
-                    <h1 class="text-sm font-bold tracking-wider text-slate-100 uppercase">Drosophila Neural Architecture</h1>
-                    <p class="text-xs text-slate-400">Biological Brain Dynamics & Autonomous Actuator Simulation</p>
-                </div>
-            </div>
+<div id="app">
 
-            <!-- Top Diagnostics Bar -->
-            <div class="glass-panel rounded-xl px-6 py-2.5 flex items-center space-x-6 text-xs code-font interactive">
-                <div class="flex flex-col">
-                    <span class="text-slate-400 text-[10px]">TOTAL NEURONS</span>
-                    <span id="stat-neuron-count" class="text-sky-400 font-semibold">0</span>
-                </div>
-                <div class="h-6 w-px bg-slate-700"></div>
-                <div class="flex flex-col">
-                    <span class="text-slate-400 text-[10px]">SYNAPSE COUNT</span>
-                    <span id="stat-synapse-count" class="text-sky-400 font-semibold">0</span>
-                </div>
-                <div class="h-6 w-px bg-slate-700"></div>
-                <div class="flex flex-col">
-                    <span class="text-slate-400 text-[10px]">MEAN FIRING RATE</span>
-                    <span id="stat-firing-rate" class="text-emerald-400 font-semibold">0.0 Hz</span>
-                </div>
-                <div class="h-6 w-px bg-slate-700"></div>
-                <div class="flex flex-col">
-                    <span class="text-slate-400 text-[10px]">CURRENT BEHAVIOR</span>
-                    <span id="stat-current-state" class="text-amber-400 font-semibold">IDLE / SEARCHING</span>
-                </div>
-            </div>
-        </header>
+  <aside id="ctl">
+    <section>
+      <h3>Estímulos químicos</h3>
+      <button class="btn" data-act="spray" data-o="VINEGAR"><span class="sw" style="--c:#e8c35a"></span>pulverizar vinagre<em>atraente · fonte de comida</em></button>
+      <button class="btn" data-act="spray" data-o="APPLE"><span class="sw" style="--c:#d0705c"></span>pulverizar maçã<em>atraente · fonte de comida</em></button>
+      <button class="btn" data-act="spray" data-o="BENZ"><span class="sw" style="--c:#9fb8c8"></span>pulverizar benzaldeído<em>neutro · condicionável</em></button>
+      <button class="btn" data-act="spray" data-o="CO2"><span class="sw" style="--c:#aab2ba"></span>liberar CO₂<em>aversivo inato · glomérulo V</em></button>
+    </section>
 
-        <!-- Main Body: Split Control Panels -->
-        <div class="flex-grow flex justify-between items-stretch my-4 space-x-4 overflow-hidden">
-            
-            <!-- Left Side Control Panel (Sensory Stimuli & Triggers) -->
-            <aside class="w-80 glass-panel rounded-2xl p-4 flex flex-col space-y-4 overflow-y-auto interactive">
-                <div class="border-b border-slate-700/60 pb-2">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center">
-                        <svg class="w-4 h-4 mr-2 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Sensory Input Controls
-                    </h2>
-                </div>
+    <section>
+      <h3>Reflexos &amp; aversivos</h3>
+      <button class="btn" data-act="shadow">sombra latejante<em>looming · via das fibras gigantes</em></button>
+      <button class="btn" data-act="puff">sopro de ar<em>estímulo mecânico das antenas</em></button>
+      <button class="btn" data-act="shock">choque elétrico<em>punição · sinal dopaminérgico</em></button>
+      <button class="btn" data-act="bar">barra em movimento<em>resposta optomotora</em></button>
+    </section>
 
-                <!-- Light Stimulus (Phototaxis) -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Light Intensity (Phototaxis)</span>
-                        <span id="val-light" class="text-sky-400 code-font">0%</span>
-                    </div>
-                    <input id="slider-light" type="range" min="0" max="100" value="10" class="w-full">
-                </div>
+    <section>
+      <h3>Treino &amp; memória</h3>
+      <button class="btn" data-act="trainAv">treino aversivo<em>3 pares benzaldeído + choque</em></button>
+      <button class="btn" data-act="trainAp">treino apetitivo<em>3 pares benzaldeído + açúcar</em></button>
+      <button class="btn" data-act="sugar"><span class="sw" style="--c:#f5e08a"></span>açúcar<em>recompensa · octopamina</em></button>
+      <button class="btn" data-act="testMem">teste de memória<em>índice de performance (PI)</em></button>
+      <button class="btn ghost" data-act="wipe">zerar engrama<em>apaga todas as memórias</em></button>
+    </section>
 
-                <!-- Odor Vector (Olfaction) -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Attractant Odor (Sugar)</span>
-                        <span id="val-sugar" class="text-sky-400 code-font">0%</span>
-                    </div>
-                    <input id="slider-sugar" type="range" min="0" max="100" value="0" class="w-full">
-                </div>
+    <section>
+      <h3>Microeletrodo</h3>
+      <p class="hint">burst de 350 ms na região · clique no cérebro também funciona</p>
+      <div class="grid2">
+        <button class="btn rbtn" data-rg="OL" style="--c:#46c8bc"><span class="dot"></span>lob. óptico</button>
+        <button class="btn rbtn" data-rg="AL" style="--c:#f0a63c"><span class="dot"></span>lob. antenal</button>
+        <button class="btn rbtn" data-rg="MB" style="--c:#ef6a8b"><span class="dot"></span>corpo fung.</button>
+        <button class="btn rbtn" data-rg="LH" style="--c:#a5d64a"><span class="dot"></span>c. lateral</button>
+        <button class="btn rbtn" data-rg="CX" style="--c:#f07b52"><span class="dot"></span>c. complexo</button>
+        <button class="btn rbtn" data-rg="SEZ" style="--c:#e8d06a"><span class="dot"></span>g. subesof.</button>
+        <button class="btn rbtn" data-rg="VNC" style="--c:#d9d7cf"><span class="dot"></span>VNC/motor</button>
+      </div>
+    </section>
 
-                <!-- Toxic Smoke Odor -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Repellent Odor (Toxic Smoke)</span>
-                        <span id="val-repellent" class="text-sky-400 code-font">0%</span>
-                    </div>
-                    <input id="slider-repellent" type="range" min="0" max="100" value="0" class="w-full">
-                </div>
+    <section>
+      <h3>Motor direto · VNC</h3>
+      <p class="hint">segure para injetar corrente no grupo motor</p>
+      <div class="row3">
+        <button class="btn" data-m="tl">asa esq.</button>
+        <button class="btn" data-m="tr">asa dir.</button>
+        <button class="btn" data-m="fw">impulso</button>
+      </div>
+    </section>
 
-                <!-- Air Current (Mechanosensory Wind) -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Air Current / Wind Speed</span>
-                        <span id="val-wind" class="text-sky-400 code-font">15%</span>
-                    </div>
-                    <input id="slider-wind" type="range" min="0" max="100" value="15" class="w-full">
-                </div>
+    <section>
+      <h3>Controle</h3>
+      <button class="btn" id="btnAut">busca autônoma · ativa<em>fome, exploração e aprendizado espontâneo</em></button>
+      <button class="btn ghost" id="btnClear">limpar arena<em>remove odores, reseta posição e energia</em></button>
+    </section>
+  </aside>
 
-                <div class="border-b border-slate-700/60 pt-2 pb-1">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Experimental Reflex Triggers</h2>
-                </div>
-
-                <div class="grid grid-cols-1 gap-2 text-xs">
-                    <button id="btn-trigger-escape" class="bg-rose-600/30 hover:bg-rose-600/50 border border-rose-500/40 text-rose-200 py-2 px-3 rounded-lg font-medium transition-all flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        <span>Trigger Escape Reflex</span>
-                    </button>
-                    
-                    <button id="btn-food-pulse" class="bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-200 py-2 px-3 rounded-lg font-medium transition-all">
-                        Inject Food Odor Pulse
-                    </button>
-
-                    <button id="btn-toxic-pulse" class="bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-amber-200 py-2 px-3 rounded-lg font-medium transition-all">
-                        Inject Repellent Smoke Pulse
-                    </button>
-                </div>
-
-                <div class="border-b border-slate-700/60 pt-2 pb-1">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Simulation Execution</h2>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <button id="btn-toggle-sim" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 py-2 px-2 rounded-lg transition-all">
-                        Pause Sim
-                    </button>
-                    <button id="btn-reset-brain" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 py-2 px-2 rounded-lg transition-all">
-                        Reset Neurons
-                    </button>
-                </div>
-            </aside>
-
-            <!-- Center Space (Transparent for 3D viewing) -->
-            <div class="flex-grow"></div>
-
-            <!-- Right Side Panel (Actuator Metrics & Behavioral Log) -->
-            <aside class="w-80 glass-panel rounded-2xl p-4 flex flex-col space-y-4 overflow-y-auto interactive">
-                <div class="border-b border-slate-700/60 pb-2">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center">
-                        <svg class="w-4 h-4 mr-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        Motor Actuators Output
-                    </h2>
-                </div>
-
-                <!-- Wing Beat Frequency (Hz) -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Wing Beat Frequency</span>
-                        <span id="actuator-wing-freq" class="text-emerald-400 code-font">0 Hz</span>
-                    </div>
-                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                        <div id="bar-wing-freq" class="bg-emerald-400 h-full w-0 transition-all duration-100"></div>
-                    </div>
-                </div>
-
-                <!-- Flight Torque Vector (Yaw) -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Flight Torque / Steering</span>
-                        <span id="actuator-torque" class="text-sky-400 code-font">0.00 Nm</span>
-                    </div>
-                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex justify-center">
-                        <div id="bar-torque-left" class="bg-sky-400 h-full w-0 transition-all duration-100"></div>
-                        <div class="w-0.5 h-full bg-slate-600"></div>
-                        <div id="bar-torque-right" class="bg-sky-400 h-full w-0 transition-all duration-100"></div>
-                    </div>
-                </div>
-
-                <!-- Leg Walking Frequency -->
-                <div class="space-y-1">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-300">Locomotion / Leg Gait</span>
-                        <span id="actuator-leg-speed" class="text-indigo-400 code-font">0.0 cm/s</span>
-                    </div>
-                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                        <div id="bar-leg-speed" class="bg-indigo-400 h-full w-0 transition-all duration-100"></div>
-                    </div>
-                </div>
-
-                <!-- Decision Log Panel -->
-                <div class="border-b border-slate-700/60 pt-2 pb-1">
-                    <h2 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Autonomous Decision Log</h2>
-                </div>
-
-                <div id="decision-log" class="flex-grow bg-slate-950/80 rounded-lg p-2 code-font text-[11px] text-slate-300 h-40 overflow-y-auto space-y-1 border border-slate-800">
-                    <div class="text-slate-500">[00:00:00] Neural network initialized.</div>
-                    <div class="text-slate-500">[00:00:01] Basal motor tone established.</div>
-                </div>
-            </aside>
-        </div>
-
-        <!-- Footer / Region Color Map -->
-        <footer class="glass-panel rounded-xl px-4 py-2 flex items-center justify-between text-xs text-slate-300 interactive">
-            <span class="font-semibold text-slate-400 uppercase tracking-wide text-[10px]">Anatomical Regions:</span>
-            <div class="flex space-x-4 text-[11px]">
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                    <span>Antennal Lobe (Smell)</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-                    <span>Optic Lobe (Vision)</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-fuchsia-400"></span>
-                    <span>Mushroom Body (Memory/Learning)</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-                    <span>Central Complex (Navigation)</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
-                    <span>Motor Output Centers</span>
-                </div>
-            </div>
-        </footer>
+  <div id="stage">
+    <div id="vignette"></div>
+    <div id="camBtns">
+      <button data-cam="front">frente</button>
+      <button data-cam="top">topo</button>
+      <button data-cam="side">lateral</button>
+      <button id="btnRot" class="on">rotação</button>
     </div>
-
-    <!-- JavaScript Biological Simulation & 3D Render Script -->
-    <script>
-        // --- 1. NEURAL ARCHITECTURE REGION DEFINITIONS ---
-        const NEURON_REGIONS = {
-            ANTENNAL_LEFT: { name: "Antennal Lobe Left", color: 0xf59e0b, center: [-1.8, -0.6, 1.2], count: 28, type: 'sensory' },
-            ANTENNAL_RIGHT: { name: "Antennal Lobe Right", color: 0xf59e0b, center: [1.8, -0.6, 1.2], count: 28, type: 'sensory' },
-            OPTIC_LEFT: { name: "Optic Lobe Left", color: 0x06b6d4, center: [-3.8, 0.4, 0.0], count: 55, type: 'sensory' },
-            OPTIC_RIGHT: { name: "Optic Lobe Right", color: 0x06b6d4, center: [3.8, 0.4, 0.0], count: 55, type: 'sensory' },
-            MUSHROOM_BODY: { name: "Mushroom Body", color: 0xd946ef, center: [0.0, 1.2, 0.2], count: 60, type: 'inter' },
-            CENTRAL_COMPLEX: { name: "Central Complex", color: 0x10b981, center: [0.0, -0.2, -0.4], count: 45, type: 'inter' },
-            MOTOR_LEFT: { name: "Motor Center Left", color: 0xf43f5e, center: [-1.2, -1.8, -1.2], count: 24, type: 'motor' },
-            MOTOR_RIGHT: { name: "Motor Center Right", color: 0xf43f5e, center: [1.2, -1.8, -1.2], count: 24, type: 'motor' }
-        };
-
-        // Network Data Structures
-        const neurons = [];
-        const synapses = [];
-        const pulses = [];
-
-        // Dynamic State Variables
-        let simRunning = true;
-        let lastTime = performance.now();
-        let totalSpikesLastSecond = 0;
-        let calculatedFiringRate = 0;
-        let logContainer = null;
-
-        // Sensory Input Values (0.0 to 1.0)
-        const sensoryInputs = {
-            light: 0.1,
-            sugarOdor: 0.0,
-            toxicOdor: 0.0,
-            windSpeed: 0.15,
-            escapeTrigger: 0.0
-        };
-
-        // Motor Outputs Dynamics
-        const motorStates = {
-            wingFrequencyHz: 0,
-            flightTorque: 0.0, // negative = left, positive = right
-            legSpeed: 0.0,
-            currentAction: "IDLE"
-        };
-
-        // --- 2. THREE.JS SCENE SETUP ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x080b11, 0.05);
-
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 2, 8.5);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(scene.fog.color);
-        container.appendChild(renderer.domElement);
-
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxDistance = 20;
-        controls.minDistance = 3;
-
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
-        const pointLight = new THREE.PointLight(0x38bdf8, 1.5, 20);
-        pointLight.position.set(0, 5, 5);
-        scene.add(pointLight);
-
-        // --- 3. BUILD FLY BRAIN NEURAL GRAPH ---
-        const neuronGroup = new THREE.Group();
-        scene.add(neuronGroup);
-
-        // Instantiate Neurons across Anatomical Structures
-        let idCounter = 0;
-        Object.keys(NEURON_REGIONS).forEach(regionKey => {
-            const reg = NEURON_REGIONS[regionKey];
-            for (let i = 0; i < reg.count; i++) {
-                // Scatter within spherical clusters around center point
-                const radius = 0.85;
-                const u = Math.random();
-                const v = Math.random();
-                const theta = u * 2.0 * Math.PI;
-                const phi = Math.acos(2.0 * v - 1.0);
-                const r = Math.cbrt(Math.random()) * radius;
-
-                const x = reg.center[0] + r * Math.sin(phi) * Math.cos(theta);
-                const y = reg.center[1] + r * Math.sin(phi) * Math.sin(theta);
-                const z = reg.center[2] + r * Math.cos(phi);
-
-                // Create Neuron Visual Shell
-                const sphereGeo = new THREE.SphereGeometry(0.08, 12, 12);
-                const mat = new THREE.MeshBasicMaterial({
-                    color: reg.color,
-                    wireframe: true,
-                    transparent: true,
-                    opacity: 0.7
-                });
-                const mesh = new THREE.Mesh(sphereGeo, mat);
-                mesh.position.set(x, y, z);
-                neuronGroup.add(mesh);
-
-                // Biological Neuron Dynamics Model (Leaky Integrate-and-Fire)
-                neurons.push({
-                    id: idCounter++,
-                    regionKey: regionKey,
-                    region: reg,
-                    mesh: mesh,
-                    position: new THREE.Vector3(x, y, z),
-                    potential: -70.0, // mV
-                    restingPotential: -70.0,
-                    threshold: -55.0, // mV
-                    refractoryTimer: 0,
-                    isFiring: false
-                });
-            }
-        });
-
-        // Generate Synaptic Connections (Biological Wiring Logic)
-        const linesGeometry = new THREE.BufferGeometry();
-        const linePositions = [];
-        const lineColors = [];
-
-        neurons.forEach((n1) => {
-            neurons.forEach((n2) => {
-                if (n1.id === n2.id) return;
-
-                const dist = n1.position.distanceTo(n2.position);
-                let connectProbability = 0;
-
-                // Higher local connectivity within regions, structured cross-region pathways
-                if (n1.regionKey === n2.regionKey && dist < 1.1) {
-                    connectProbability = 0.25;
-                } else if (
-                    (n1.region.type === 'sensory' && n2.region.type === 'inter' && dist < 3.2) ||
-                    (n1.region.type === 'inter' && n2.region.type === 'motor' && dist < 3.5)
-                ) {
-                    connectProbability = 0.08;
-                }
-
-                if (Math.random() < connectProbability) {
-                    synapses.push({
-                        source: n1,
-                        target: n2,
-                        weight: 1.5 + Math.random() * 2.5
-                    });
-
-                    linePositions.push(n1.position.x, n1.position.y, n1.position.z);
-                    linePositions.push(n2.position.x, n2.position.y, n2.position.z);
-
-                    const c1 = new THREE.Color(n1.region.color);
-                    lineColors.push(c1.r, c1.g, c1.b);
-                    lineColors.push(c1.r, c1.g, c1.b);
-                }
-            });
-        });
-
-        linesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-        linesGeometry.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
-
-        const linesMaterial = new THREE.LineBasicMaterial({
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.12,
-            blending: THREE.AdditiveBlending
-        });
-
-        const synapseLines = new THREE.LineSegments(linesGeometry, linesMaterial);
-        scene.add(synapseLines);
-
-        // Signal Pulse Visual Instances
-        const pulseGeo = new THREE.SphereGeometry(0.04, 8, 8);
-        const pulseMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 });
-        const pulseInstancedMesh = new THREE.InstancedMesh(pulseGeo, pulseMat, 300);
-        pulseInstancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-        scene.add(pulseInstancedMesh);
-
-        // --- 4. VIRTUAL 3D ACTUATORS (WINGS, TORQUE VECTOR, LEGS) ---
-        const actuatorGroup = new THREE.Group();
-        actuatorGroup.position.set(0, -3.2, 0);
-        scene.add(actuatorGroup);
-
-        // Central Body Frame
-        const bodyGeo = new THREE.CylinderGeometry(0.3, 0.15, 1.2, 16);
-        const bodyMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4 });
-        const flyBody = new THREE.Mesh(bodyGeo, bodyMat);
-        flyBody.rotation.x = Math.PI / 2;
-        actuatorGroup.add(flyBody);
-
-        // Wings (Left & Right)
-        const wingGeo = new THREE.BoxGeometry(1.6, 0.02, 0.6);
-        wingGeo.translate(0.8, 0, 0);
-        const wingMat = new THREE.MeshStandardMaterial({
-            color: 0x38bdf8,
-            transparent: true,
-            opacity: 0.6,
-            roughness: 0.1
-        });
-
-        const leftWing = new THREE.Mesh(wingGeo, wingMat);
-        leftWing.position.set(-0.3, 0.2, 0);
-        leftWing.rotation.y = Math.PI;
-        actuatorGroup.add(leftWing);
-
-        const rightWing = new THREE.Mesh(wingGeo, wingMat);
-        rightWing.position.set(0.3, 0.2, 0);
-        actuatorGroup.add(rightWing);
-
-        // Steering Vector Visualizer Arrow
-        const torqueDir = new THREE.Vector3(0, 0, 1);
-        const torqueArrow = new THREE.ArrowHelper(torqueDir, new THREE.Vector3(0, 0.6, 0), 1.2, 0x10b981, 0.3, 0.2);
-        actuatorGroup.add(torqueArrow);
-
-        // Document Reference Init
-        logContainer = document.getElementById('decision-log');
-
-        // --- 5. LOGIC & SIMULATION UPDATES ---
-        function updateNeuralDynamics(dt) {
-            if (!simRunning) return;
-
-            let spikeCount = 0;
-
-            // Step 1: Inject External Sensory Current into Peripheral Lobes
-            neurons.forEach(n => {
-                if (n.refractoryTimer > 0) {
-                    n.refractoryTimer -= dt;
-                    return;
-                }
-
-                // Membrane Potential Decay (Leaky Integrate Dynamics)
-                n.potential += (n.restingPotential - n.potential) * 4.0 * dt;
-
-                // Sensory Input Injections
-                if (n.regionKey === 'ANTENNAL_LEFT' || n.regionKey === 'ANTENNAL_RIGHT') {
-                    n.potential += (sensoryInputs.sugarOdor * 25.0 + sensoryInputs.toxicOdor * 30.0) * dt * (Math.random() * 2);
-                }
-                if (n.regionKey === 'OPTIC_LEFT' || n.regionKey === 'OPTIC_RIGHT') {
-                    n.potential += (sensoryInputs.light * 22.0) * dt * (Math.random() * 2);
-                }
-                if (n.regionKey === 'CENTRAL_COMPLEX') {
-                    n.potential += (sensoryInputs.windSpeed * 12.0) * dt;
-                }
-                if (sensoryInputs.escapeTrigger > 0) {
-                    n.potential += sensoryInputs.escapeTrigger * 40.0;
-                }
-
-                // Check Action Potential Threshold
-                if (n.potential >= n.threshold) {
-                    // Neuron Fires Action Potential!
-                    n.potential = 20.0; // Spike overshoot
-                    n.refractoryTimer = 0.015; // 15ms refractory period
-                    n.isFiring = true;
-                    spikeCount++;
-
-                    // Trigger propagation pulses down outgoing synapses
-                    synapses.forEach(syn => {
-                        if (syn.source.id === n.id) {
-                            pulses.push({
-                                source: n,
-                                target: syn.target,
-                                progress: 0.0,
-                                speed: 3.5 + Math.random() * 2.0,
-                                weight: syn.weight
-                            });
-                        }
-                    });
-                } else {
-                    n.isFiring = false;
-                }
-
-                // Visual Glow Indication based on Voltage
-                const normPot = Math.min(1.0, Math.max(0.0, (n.potential - n.restingPotential) / (n.threshold - n.restingPotential)));
-                n.mesh.scale.setScalar(1.0 + normPot * 0.6);
-                n.mesh.material.opacity = 0.4 + normPot * 0.6;
-            });
-
-            // Decay Trigger Impulse
-            if (sensoryInputs.escapeTrigger > 0) {
-                sensoryInputs.escapeTrigger = Math.max(0, sensoryInputs.escapeTrigger - dt * 2.0);
-            }
-
-            // Step 2: Propagate Synaptic Pulses
-            const dummy = new THREE.Object3D();
-            let pulseIdx = 0;
-
-            for (let i = pulses.length - 1; i >= 0; i--) {
-                const p = pulses[i];
-                p.progress += p.speed * dt;
-
-                if (p.progress >= 1.0) {
-                    // Pulse reached postsynaptic target neuron
-                    p.target.potential += p.weight * 2.2;
-                    pulses.splice(i, 1);
-                } else {
-                    // Update 3D Instance matrix for visual signal
-                    if (pulseIdx < 300) {
-                        const curPos = new THREE.Vector3().lerpVectors(p.source.position, p.target.position, p.progress);
-                        dummy.position.copy(curPos);
-                        dummy.scale.setScalar(0.8);
-                        dummy.updateMatrix();
-                        pulseInstancedMesh.setMatrixAt(pulseIdx++, dummy.matrix);
-                    }
-                }
-            }
-            pulseInstancedMesh.count = pulseIdx;
-            pulseInstancedMesh.instanceMatrix.needsUpdate = true;
-
-            totalSpikesLastSecond += spikeCount;
-
-            // Step 3: Compute Motor Outputs based on Firing in Motor Centers
-            computeMotorOutputs(dt);
-        }
-
-        // --- 6. MOTOR ACTUATOR COMPUTER & BEHAVIORAL ENGINE ---
-        function computeMotorOutputs(dt) {
-            let leftMotorActivity = 0;
-            let rightMotorActivity = 0;
-
-            neurons.forEach(n => {
-                if (n.regionKey === 'MOTOR_LEFT' && n.isFiring) leftMotorActivity += 1;
-                if (n.regionKey === 'MOTOR_RIGHT' && n.isFiring) rightMotorActivity += 1;
-            });
-
-            // Calculate Wing Beat Hz
-            const totalMotorDrive = leftMotorActivity + rightMotorActivity;
-            const targetWingHz = totalMotorDrive > 0 ? Math.min(220, 110 + totalMotorDrive * 12) : (sensoryInputs.light > 0.3 ? 120 : 0);
-            motorStates.wingFrequencyHz += (targetWingHz - motorStates.wingFrequencyHz) * 10.0 * dt;
-
-            // Calculate Steering Torque Vector (Difference between left & right motor pools)
-            const targetTorque = (rightMotorActivity - leftMotorActivity) * 0.15 + (sensoryInputs.sugarOdor * 0.2);
-            motorStates.flightTorque += (targetTorque - motorStates.flightTorque) * 8.0 * dt;
-
-            // Leg Gait Walking Speed
-            const targetLegSpeed = (totalMotorDrive === 0 && sensoryInputs.sugarOdor > 0.1) ? sensoryInputs.sugarOdor * 3.5 : 0.0;
-            motorStates.legSpeed += (targetLegSpeed - motorStates.legSpeed) * 5.0 * dt;
-
-            // Update 3D Wing Animations
-            if (motorStates.wingFrequencyHz > 10) {
-                const flapAngle = Math.sin(performance.now() * 0.001 * motorStates.wingFrequencyHz * Math.PI) * 0.6;
-                leftWing.rotation.z = flapAngle;
-                rightWing.rotation.z = -flapAngle;
-            } else {
-                leftWing.rotation.z = 0;
-                rightWing.rotation.z = 0;
-            }
-
-            // Update Steering Indicator Arrow
-            const arrowLength = Math.abs(motorStates.flightTorque) * 2.0 + 0.5;
-            const arrowDir = motorStates.flightTorque >= 0 ? 1 : -1;
-            torqueArrow.setDirection(new THREE.Vector3(arrowDir, 0, 0.5).normalize());
-            torqueArrow.setLength(arrowLength, 0.2, 0.15);
-
-            // Behavioral Classification Logic
-            let newAction = "IDLE / SEARCHING";
-            if (sensoryInputs.escapeTrigger > 0.1 || totalMotorDrive > 8) {
-                newAction = "FAST ESCAPE FLIGHT";
-            } else if (sensoryInputs.toxicOdor > 0.4) {
-                newAction = "REPELLENT EVASION TURN";
-            } else if (sensoryInputs.sugarOdor > 0.3) {
-                newAction = sensoryInputs.sugarOdor > 0.7 ? "PROBOSCIS EXTENSION / FEEDING" : "CHEMOTAXIS APPROACH";
-            } else if (motorStates.wingFrequencyHz > 50) {
-                newAction = "CRUISING FLIGHT";
-            }
-
-            if (newAction !== motorStates.currentAction) {
-                motorStates.currentAction = newAction;
-                addLogEntry(`Behavior transition: ${newAction}`);
-            }
-
-            // UI Diagnostics Update
-            document.getElementById('actuator-wing-freq').textContent = `${Math.round(motorStates.wingFrequencyHz)} Hz`;
-            document.getElementById('bar-wing-freq').style.width = `${(motorStates.wingFrequencyHz / 220) * 100}%`;
-
-            document.getElementById('actuator-torque').textContent = `${motorStates.flightTorque.toFixed(2)} Nm`;
-            const torquePercent = Math.min(100, Math.abs(motorStates.flightTorque) * 100);
-            if (motorStates.flightTorque >= 0) {
-                document.getElementById('bar-torque-right').style.width = `${torquePercent}%`;
-                document.getElementById('bar-torque-left').style.width = `0%`;
-            } else {
-                document.getElementById('bar-torque-left').style.width = `${torquePercent}%`;
-                document.getElementById('bar-torque-right').style.width = `0%`;
-            }
-
-            document.getElementById('actuator-leg-speed').textContent = `${motorStates.legSpeed.toFixed(1)} cm/s`;
-            document.getElementById('bar-leg-speed').style.width = `${(motorStates.legSpeed / 4.0) * 100}%`;
-
-            document.getElementById('stat-current-state').textContent = motorStates.currentAction;
-        }
-
-        // --- 7. UI EVENT LISTENERS & LOGGING ---
-        function addLogEntry(msg) {
-            if (!logContainer) return;
-            const timeStr = new Date().toISOString().substr(11, 8);
-            const entry = document.createElement('div');
-            entry.className = "text-slate-300 border-l-2 border-sky-500 pl-1.5 py-0.5";
-            entry.innerHTML = `<span class="text-slate-500">[${timeStr}]</span> ${msg}`;
-            logContainer.appendChild(entry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-
-        // Sliders Binding
-        document.getElementById('slider-light').addEventListener('input', (e) => {
-            sensoryInputs.light = parseFloat(e.target.value) / 100;
-            document.getElementById('val-light').textContent = `${e.target.value}%`;
-        });
-        document.getElementById('slider-sugar').addEventListener('input', (e) => {
-            sensoryInputs.sugarOdor = parseFloat(e.target.value) / 100;
-            document.getElementById('val-sugar').textContent = `${e.target.value}%`;
-        });
-        document.getElementById('slider-repellent').addEventListener('input', (e) => {
-            sensoryInputs.toxicOdor = parseFloat(e.target.value) / 100;
-            document.getElementById('val-repellent').textContent = `${e.target.value}%`;
-        });
-        document.getElementById('slider-wind').addEventListener('input', (e) => {
-            sensoryInputs.windSpeed = parseFloat(e.target.value) / 100;
-            document.getElementById('val-wind').textContent = `${e.target.value}%`;
-        });
-
-        // Trigger Buttons
-        document.getElementById('btn-trigger-escape').addEventListener('click', () => {
-            sensoryInputs.escapeTrigger = 1.0;
-            addLogEntry("PREDATOR THREAT DETECTED: Giant Fiber Reflex Triggered!");
-        });
-
-        document.getElementById('btn-food-pulse').addEventListener('click', () => {
-            sensoryInputs.sugarOdor = 0.9;
-            document.getElementById('slider-sugar').value = 90;
-            document.getElementById('val-sugar').textContent = "90%";
-            addLogEntry("Chemosensory Pulse: Concentration 0.9 Sugar Attractant injected.");
-        });
-
-        document.getElementById('btn-toxic-pulse').addEventListener('click', () => {
-            sensoryInputs.toxicOdor = 0.85;
-            document.getElementById('slider-repellent').value = 85;
-            document.getElementById('val-repellent').textContent = "85%";
-            addLogEntry("Chemosensory Alert: High concentration toxic smoke plume detected!");
-        });
-
-        document.getElementById('btn-toggle-sim').addEventListener('click', (e) => {
-            simRunning = !simRunning;
-            e.target.textContent = simRunning ? "Pause Sim" : "Resume Sim";
-            addLogEntry(simRunning ? "Simulation execution resumed." : "Simulation execution paused.");
-        });
-
-        document.getElementById('btn-reset-brain').addEventListener('click', () => {
-            neurons.forEach(n => {
-                n.potential = n.restingPotential;
-                n.refractoryTimer = 0;
-            });
-            pulses.length = 0;
-            addLogEntry("Neural membrane potentials reset to resting state (-70mV).");
-        });
-
-        // Diagnostics Counter Update Timer (Every 1 Sec)
-        setInterval(() => {
-            calculatedFiringRate = (totalSpikesLastSecond / neurons.length).toFixed(1);
-            document.getElementById('stat-firing-rate').textContent = `${calculatedFiringRate} Hz`;
-            totalSpikesLastSecond = 0;
-        }, 1000);
-
-        // Populate Static Counts
-        document.getElementById('stat-neuron-count').textContent = neurons.length;
-        document.getElementById('stat-synapse-count').textContent = synapses.length;
-
-        // --- 8. MAIN ANIMATION LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const now = performance.now();
-            const dt = Math.min(0.05, (now - lastTime) / 1000.0);
-            lastTime = now;
-
-            // Step Biological Neural Network Simulation
-            updateNeuralDynamics(dt);
-
-            // Slow Brain Scene Rotation
-            neuronGroup.rotation.y += 0.0012;
-
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        // Window Resizing Handler
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Initialize Loop on Window Load
-        window.onload = function() {
-            animate();
-            addLogEntry("Central Complex & Optic Glomeruli mapped successfully.");
-        };
-    </script>
+    <div id="legend"></div>
+    <div id="tip"></div>
+  </div>
+
+  <aside id="tel">
+    <section>
+      <h3>Câmara comportamental</h3>
+      <canvas id="arena"></canvas>
+      <div class="arow"><span class="hint" id="arenaInfo">placa · 92 mm · vista dorsal</span></div>
+    </section>
+
+    <section>
+      <h3>Atuadores</h3>
+      <div class="mrow"><span>asa esq.</span><div class="meter"><i id="mWl"></i></div><b id="vWl">0.00</b></div>
+      <div class="mrow"><span>asa dir.</span><div class="meter"><i id="mWr"></i></div><b id="vWr">0.00</b></div>
+      <div class="mrow"><span>impulso</span><div class="meter amber"><i id="mFw"></i></div><b id="vFw">0.00</b></div>
+      <div class="mrow" style="grid-template-columns:1fr"><span id="vW">ω 0°/s · v 0 mm/s</span></div>
+    </section>
+
+    <section>
+      <h3>Estado</h3>
+      <div id="state">INICIALIZANDO</div>
+      <div id="stateSub">bootstrap do conectoma</div>
+      <div id="subNeural">—</div>
+      <div class="lbl">energia</div>
+      <div class="meter big"><i id="mEn" style="background:var(--amber)"></i></div>
+    </section>
+
+    <section>
+      <h3>Atividade regional</h3>
+      <div id="sparks"></div>
+    </section>
+
+    <section>
+      <h3>Engrama · valência aprendida</h3>
+      <div id="engra"></div>
+    </section>
+
+    <section>
+      <h3>Registro</h3>
+      <div id="log"></div>
+    </section>
+  </aside>
+</div>
+
+<footer>
+  <span><b>arraste</b> orbitar · <b>rolagem</b> zoom · <b>clique numa região</b> microestimular</span>
+  <span>modelo: unidades LIF + plasticidade dopaminérgica · inspirado no conectoma real da <i>D. melanogaster</i> (~140.000 neurônios)</span>
+</footer>
+
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   0 · utilidades
+============================================================ */
+const RNG=Math.random;
+const rand=(a,b)=>a+RNG()*(b-a);
+const randn=()=>{let u=0,v=0;while(!u)u=RNG();while(!v)v=RNG();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+const clamp=(x,a,b)=>x<a?a:x>b?b:x;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const wrapA=a=>{a=(a+Math.PI)%(2*Math.PI);if(a<0)a+=2*Math.PI;return a-Math.PI;};
+const wrap64=x=>{x%=64;return x<0?x+64:x;};
+const qbez=(a,b,c,t)=>{const u=1-t;return{x:u*u*a.x+2*u*t*b.x+t*t*c.x,y:u*u*a.y+2*u*t*b.y+t*t*c.y,z:u*u*a.z+2*u*t*b.z+t*t*c.z};};
+const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
+
+/* ============================================================
+   1 · catálogos — regiões, odores, glomérulos
+============================================================ */
+const RGORDER=['OL','AL','MB','LH','CX','SEZ','VNC'];
+const RGIDX={OL:0,AL:1,MB:2,LH:3,CX:4,SEZ:5,VNC:6};
+const REG={
+  OL:{name:'Lobo Óptico',        col:'#46c8bc', fn:'visão · deteção de movimento e sombras'},
+  AL:{name:'Lobo Antenal',       col:'#f0a63c', fn:'olfato · 6 glomérulos por antena'},
+  MB:{name:'Corpo Fungiforme',   col:'#ef6a8b', fn:'memória olfativa associativa (células de Kenyon)'},
+  LH:{name:'Corno Lateral',      col:'#a5d64a', fn:'valência inata · atração e aversão'},
+  CX:{name:'Complexo Central',   col:'#f07b52', fn:'bússola interna · navegação e comando motor'},
+  SEZ:{name:'Gânglio Subesofágico',col:'#e8d06a', fn:'gustação · açúcar e recompensa'},
+  VNC:{name:'VNC · Atuadores',   col:'#d9d7cf', fn:'motores das asas e empuxo'}
+};
+const ODORS={
+  VINEGAR:{label:'vinagre',    col:'#e8c35a', gl:{0:1.0,2:0.55,4:0.22}, food:true},
+  APPLE:  {label:'maçã',       col:'#d0705c', gl:{1:1.0,3:0.5,0:0.18},  food:true},
+  BENZ:   {label:'benzaldeído',col:'#9fb8c8', gl:{4:0.95,2:0.3},        food:false},
+  CO2:    {label:'CO₂',        col:'#aab2ba', gl:{5:1.0},               food:false}
+};
+const GLOMNAMES=['DM2','VA1l','DC3','VM5d','gl-X','V'];
+
+/* ============================================================
+   2 · estado global
+============================================================ */
+const S={
+  t:0, speed:1, aut:true, bootT:2.3,
+  energy:72, hunger:0.28, starved:false,
+  bumpIdx:32,
+  sources:[], drops:[], shadow:null, bar:null, gust:null,
+  escapeT:0, escDir:1, gfT:0, shockT:0,
+  burstR:null, burstT:0, burstBase:0, burstRGi:0,
+  held:{tl:0,tr:0,fw:0},
+  train:null, test:null,
+  eating:false, castOn:false, lastReward:-9,
+  acc:0, accT:0, sps:0
+};
+const fly={x:0,y:30,h:rand(0,6.28)};
+const DRV={ap:0,av:0,turn:0,thrust:0.15,speed:0,angVel:0,wl:0.2,wr:0.2,fw:0.2,cL:0,cR:0,
+  cOd:{VINEGAR:{l:0,r:0},APPLE:{l:0,r:0},BENZ:{l:0,r:0},CO2:{l:0,r:0}}};
+const WT={dir:0,t:0}, CAST={s:1,t:0}, TR={pts:[],last:0};
+const RM={};                                   // taxas funcionais (drives)
+const RGC=new Float32Array(7), RGC2=new Float32Array(7), RGe=new Float32Array(7);
+const SPKD={}; RGORDER.forEach(r=>SPKD[r]=[]); // sparklines
+const TIMERS=[];
+const after=(d,fn)=>TIMERS.push({t:S.t+d,fn});
+
+/* ============================================================
+   3 · construção da rede — anatomia do cérebro
+============================================================ */
+const neurons=[]; let SYN=0; const kcAll=[], ALLPN=[];
+const P={OL0:[[],[]],OL1:[[],[]],OL2:[[],[]],ALg:[[],[],[],[],[],[]].map(()=>[[],[],[],[],[],[]]),
+  MB:[],LH:[],EB:[],FB:[],NOtl:[],NOtr:[],NOfw:[],SEZ:[],VNC:{tl:[],tr:[],fw:[],gf:[]}};
+const LINESEG=[]; // amostra do conectoma (visual)
+
+function addN(rg,x,y,z,o={}){
+  const n={id:neurons.length,rg,x,y,z,v:0,cool:0,ext:0,out:[],act:0,ema:0,
+    thr:o.thr??1, bias:o.bias??rand(0.05,0.18), size:o.size??0.02, az:o.az??0};
+  neurons.push(n); return n;
+}
+function syn(a,b,w,keepLine){
+  a.out.push({i:b.id,w}); SYN++;
+  const d=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);
+  if(keepLine&&d<0.75&&RNG()<0.55&&LINESEG.length<2800)
+    LINESEG.push(a.x,a.y,a.z,b.x,b.y,b.z,REG[a.rg].col);
+}
+
+function buildNet(){
+  /* ---- lobo óptico: 2×3 camadas em cascas elipsoidais (1.000 neurônios) ---- */
+  for(let hi=0;hi<2;hi++){
+    const s=hi===0?-1:1, c={x:s*2.25,y:0.12,z:0.35}, semi={x:0.85,y:0.72,z:1.05};
+    const rad=[0.5,0.72,0.93], sz=[0.016,0.02,0.024], lays=[[],[],[]];
+    [170,165,165].forEach((cnt,li)=>{
+      for(let i=0;i<cnt;i++){
+        let dx=randn(),dy=randn(),dz=randn(); const L=Math.hypot(dx,dy,dz)||1; dx/=L;dy/=L;dz/=L;
+        const f=rad[li]*(0.92+RNG()*0.16);
+        lays[li].push(addN('OL',c.x+dx*semi.x*f,c.y+dy*semi.y*f,c.z+dz*semi.z*f,
+          {thr:1,bias:rand(0.04,0.12),size:sz[li]}));
+      }
+    });
+    for(const n of lays[0]) n.az=Math.atan2(n.x-c.x,n.z-c.z);
+    P.OL0[hi]=lays[0]; P.OL1[hi]=lays[1]; P.OL2[hi]=lays[2];
+  }
+  /* conexões locais assimétricas → sensibilidade a direção (Hassenstein–Reichardt) */
+  for(let hi=0;hi<2;hi++){
+    const s=hi===0?-1:1, sorted=[...P.OL0[hi]].sort((a,b)=>a.az-b.az);
+    for(const n1 of P.OL1[hi]){
+      const a1=rand(-Math.PI,Math.PI); n1.az=a1;
+      const near=sorted.map(n0=>({n0,d:Math.abs(wrapA(n0.az-a1))})).sort((u,v)=>u.d-v.d).slice(0,10);
+      near.forEach((o,k)=>syn(o.n0,n1,0.13*(1+0.7*s*Math.tanh((4-k)*0.5)),true));
+    }
+    for(const n2 of P.OL2[hi]) for(let k=0;k<8;k++) syn(P.OL1[hi][(RNG()*165)|0],n2,0.11,true);
+  }
+
+  /* ---- lobo antenal: 6 glomérulos × 15 PN por antena (180) ---- */
+  const glOff=[];
+  for(let g=0;g<6;g++){const y=1-2*(g+0.5)/6,r=Math.sqrt(1-y*y),th=g*2.399963;
+    glOff.push({x:Math.cos(th)*r,y,z:Math.sin(th)*r});}
+  for(let hi=0;hi<2;hi++){const s=hi===0?-1:1;
+    for(let g=0;g<6;g++){
+      const cx=s*1.05+glOff[g].x*0.24, cy=-0.12+glOff[g].y*0.24, cz=2.1+glOff[g].z*0.24;
+      for(let i=0;i<15;i++){
+        const pn=addN('AL',cx+randn()*0.09,cy+randn()*0.09,cz+randn()*0.09,{thr:0.85,bias:rand(0.05,0.14),size:0.022});
+        P.ALg[hi][g].push(pn); ALLPN.push(pn);
+      }
+    }
+  }
+
+  /* ---- corno lateral: valência inata (120) ---- */
+  for(let hi=0;hi<2;hi++){const s=hi===0?-1:1, ap=[],av=[];
+    for(let i=0;i<30;i++){
+      let dx=randn(),dy=randn(),dz=randn();const L=Math.hypot(dx,dy,dz)||1;
+      const r=1*(0.7+RNG()*0.3);
+      ap.push(addN('LH',s*1.45+dx/L*0.3*r,0.05+dy/L*0.26*r,0.65+dz/L*0.38*r,{thr:0.9,bias:0.06,size:0.02}));
+      av.push(addN('LH',s*1.45+dx/L*0.3*r+0.04,0.05+dy/L*0.26*r-0.05,0.65+dz/L*0.38*r-0.05,{thr:0.9,bias:0.04,size:0.02}));
+    }
+    P.LH.push({ap,av});
+  }
+
+  /* ---- complexo central: anel EB (bússola) + corpo em leque + saídas (144) ---- */
+  for(let i=0;i<64;i++){const a=i/64*Math.PI*2;
+    P.EB.push(addN('CX',Math.cos(a)*0.42,0.28+Math.sin(a)*0.07,-0.75+Math.sin(a)*0.42,{thr:0.9,bias:0.02,size:0.026}));}
+  for(let i=0;i<64;i++){
+    const r=i<8?0.05:(i<36?0.19:0.32), a=rand(0,6.28);
+    P.FB.push(addN('CX',Math.cos(a)*r,0.05-r*0.15,-0.62+Math.sin(a)*r,{thr:0.95,bias:0.03,size:0.02}));}
+  for(let i=0;i<4;i++){P.NOtl.push(addN('CX',-0.16+randn()*0.03,-0.08+randn()*0.03,-0.8+randn()*0.04,{thr:0.85,bias:0.03,size:0.03}));
+    P.NOtr.push(addN('CX', 0.16+randn()*0.03,-0.08+randn()*0.03,-0.8+randn()*0.04,{thr:0.85,bias:0.03,size:0.03}));}
+  for(let i=0;i<8;i++) P.NOfw.push(addN('CX',randn()*0.06,-0.16+randn()*0.03,-0.85+randn()*0.04,{thr:0.85,bias:0.03,size:0.03}));
+
+  /* ---- gânglio subesofágico: gustação (80) ---- */
+  for(let i=0;i<80;i++){
+    let dx=randn(),dy=randn(),dz=randn();const L=Math.hypot(dx,dy,dz)||1;
+    const r=Math.cbrt(RNG());
+    P.SEZ.push(addN('SEZ',dx/L*0.42*r,-0.62+dy/L*0.3*r,1.35+dz/L*0.34*r,{thr:0.9,bias:rand(0.05,0.12),size:0.02}));
+  }
+
+  /* ---- VNC: grupos motores + fibras gigantes (136) ---- */
+  const mkCol=(arr,xoff,n)=>{for(let i=0;i<n;i++){const t=i/(n-1);
+    arr.push(addN('VNC',xoff+randn()*0.028,-1.05-t*1.0,-0.32-t*0.18+randn()*0.028,{thr:0.9,bias:0.075,size:0.02}));}};
+  mkCol(P.VNC.tl,-0.1,40); mkCol(P.VNC.tr,0.1,40); mkCol(P.VNC.fw,0,48);
+  for(let i=0;i<8;i++) P.VNC.gf.push(addN('VNC',(i%2?0.06:-0.06)+randn()*0.02,-0.95-i*0.015,-0.3+randn()*0.04,{thr:0.8,bias:0.02,size:0.042}));
+
+  /* ---- corpo fungiforme: cálice, pedúnculo, lobos α/β + MBONs (312) ---- */
+  for(let hi=0;hi<2;hi++){const s=hi===0?-1:1, kc=[];
+    const cal={x:s*0.62,y:0.44,z:0.55};
+    for(let i=0;i<70;i++){let dx=randn(),dy=randn(),dz=randn();const L=Math.hypot(dx,dy,dz)||1;
+      const r=0.27*(0.85+RNG()*0.2);
+      kc.push(addN('MB',cal.x+dx/L*r,cal.y+dy/L*r,cal.z+dz/L*r,{thr:1,bias:0.012,size:0.014}));}
+    const p0={x:cal.x,y:cal.y-0.02,z:cal.z},p1={x:s*0.56,y:-0.08,z:0.05},p2={x:s*0.4,y:-0.18,z:-0.4};
+    for(let i=0;i<48;i++){const t=0.12+0.86*i/47,pt=qbez(p0,p1,p2,t);
+      kc.push(addN('MB',pt.x+randn()*0.035,pt.y+randn()*0.035,pt.z+randn()*0.035,{thr:1,bias:0.012,size:0.014}));}
+    const pd={x:p2.x,y:p2.y,z:p2.z};
+    for(let i=0;i<16;i++){const t=i/15; // lobo α (dorsal)
+      kc.push(addN('MB',lerp(pd.x,s*0.3,t)+randn()*0.03,lerp(pd.y,0.16,t)+randn()*0.03,lerp(pd.z,-0.55,t)+randn()*0.03,{thr:1,bias:0.012,size:0.014}));}
+    for(let i=0;i<16;i++){const t=i/15; // lobo β (medial)
+      kc.push(addN('MB',lerp(pd.x,s*0.1,t)+randn()*0.03,lerp(pd.y,-0.26,t)+randn()*0.03,lerp(pd.z,-0.62,t)+randn()*0.03,{thr:1,bias:0.012,size:0.014}));}
+    const mav=[],map=[];
+    const mp=[[s*0.3,0.2,-0.56],[s*0.12,-0.3,-0.63],[s*0.36,-0.32,-0.58]];
+    for(let i=0;i<3;i++){
+      mav.push(addN('MB',mp[i][0]+0.035,mp[i][1],mp[i][2],{thr:0.85,bias:0.03,size:0.03}));
+      map.push(addN('MB',mp[i][0]-0.035,mp[i][1]-0.025,mp[i][2]+0.02,{thr:0.85,bias:0.03,size:0.03}));
+    }
+    for(const k of kc){k.isKC=true;k.odors=new Set();k.mbIn=[];
+      for(let j=0;j<5;j++){const pn=ALLPN[(RNG()*ALLPN.length)|0];
+        syn(pn,k,clamp(0.22*Math.exp(randn()*0.55),0.06,0.85),true);}}
+    for(const m of mav) for(let j=0;j<60;j++){const k=kc[(RNG()*kc.length)|0];
+      const sy={i:m.id,w:0.12,w0:0.12,type:'mav'};k.out.push(sy);k.mbIn.push(sy);SYN++;}
+    for(const m of map) for(let j=0;j<60;j++){const k=kc[(RNG()*kc.length)|0];
+      const sy={i:m.id,w:0.12,w0:0.12,type:'map'};k.out.push(sy);k.mbIn.push(sy);SYN++;}
+    kcAll.push(...kc);
+    P.MB.push({kc,mav,map});
+  }
+
+  /* ---- conectividade inter-regional ---- */
+  for(let hi=0;hi<2;hi++){
+    const rndPN=gs=>{const g=gs[(RNG()*gs.length)|0],h=(RNG()*2)|0;return P.ALg[h][g][(RNG()*15)|0];};
+    for(const n of P.LH[hi].ap) for(let k=0;k<8;k++) syn(rndPN([0,1]),n,0.16,true);
+    for(const n of P.LH[hi].av){for(let k=0;k<6;k++) syn(rndPN([5]),n,0.4,true); syn(rndPN([4]),n,0.04,true);}
+    for(const m of P.MB[hi].mav) for(let k=0;k<2;k++) syn(m,P.FB[(RNG()*64)|0],0.15,false);
+    for(const m of P.MB[hi].map)  for(let k=0;k<2;k++) syn(m,P.FB[(RNG()*64)|0],0.13,false);
+    for(const n of P.LH[hi].ap) for(let k=0;k<3;k++) syn(n,P.FB[(RNG()*64)|0],0.1,false);
+    for(const n of P.LH[hi].av) for(let k=0;k<3;k++) syn(n,P.FB[(RNG()*64)|0],0.2,false);
+  }
+  for(let hi=0;hi<2;hi++) for(const n2 of P.OL2[hi]) for(let k=0;k<2;k++) syn(n2,P.FB[(RNG()*64)|0],0.05,false);
+  for(let i=0;i<64;i++) for(const k of [1,2,3]){ // atração local do anel → bump de heading
+    syn(P.EB[i],P.EB[(i+k)%64],[0.3,0.16,0.08][k-1],false);
+    syn(P.EB[i],P.EB[(i-k+64)%64],[0.3,0.16,0.08][k-1],false);}
+  for(const f of P.FB) for(let k=0;k<3;k++) syn(P.EB[(RNG()*64)|0],f,0.05,false);
+  for(const no of [...P.NOtl,...P.NOtr,...P.NOfw]) for(let k=0;k<4;k++) syn(P.FB[(RNG()*64)|0],no,0.09,false);
+  for(const no of P.NOtl) for(let k=0;k<8;k++) syn(no,P.VNC.tl[(RNG()*40)|0],0.14,false);
+  for(const no of P.NOtr) for(let k=0;k<8;k++) syn(no,P.VNC.tr[(RNG()*40)|0],0.14,false);
+  for(const no of P.NOfw) for(let k=0;k<10;k++) syn(no,P.VNC.fw[(RNG()*48)|0],0.13,false);
+  for(const gf of P.VNC.gf){for(let k=0;k<12;k++) syn(gf,P.VNC.fw[(RNG()*48)|0],0.4,false);
+    for(let k=0;k<6;k++){syn(gf,P.VNC.tl[(RNG()*40)|0],0.2,false);syn(gf,P.VNC.tr[(RNG()*40)|0],0.2,false);}}
+  for(let i=0;i<40;i++) syn(P.SEZ[(RNG()*80)|0],P.FB[(RNG()*64)|0],0.05,false);
+
+  /* taxas funcionais para os drives */
+  const reg=(k,cells)=>{RM[k]={r:0,n:cells.length};for(const c of cells)if(!c.rk)c.rk=k;};
+  reg('LHap',[...P.LH[0].ap,...P.LH[1].ap]); reg('LHav',[...P.LH[0].av,...P.LH[1].av]);
+  reg('MAV',[...P.MB[0].mav,...P.MB[1].mav]); reg('MAP',[...P.MB[0].map,...P.MB[1].map]);
+  reg('NOtl',P.NOtl); reg('NOtr',P.NOtr); reg('NOfw',P.NOfw);
+  reg('VNCtl',P.VNC.tl); reg('VNCtr',P.VNC.tr); reg('VNCfw',P.VNC.fw);
+}
+const REGCELLS={};
+function indexRegions(){for(const n of neurons)(REGCELLS[n.rg]??=[]).push(n);}
+
+/* ============================================================
+   4 · cena three.js
+============================================================ */
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setClearColor(0x05070a,1);
+stage.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,1,0.1,60);
+camera.position.set(3.4,1.5,6.8);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.target.set(0,-0.3,0.15);
+controls.enableDamping=true; controls.dampingFactor=0.07;
+controls.minDistance=2.2; controls.maxDistance=18;
+controls.autoRotate=true; controls.autoRotateSpeed=0.55;
+
+scene.add(new THREE.AmbientLight(0xffffff,0.55));
+const dl=new THREE.DirectionalLight(0xfff2dd,1.2); dl.position.set(3,5,4); scene.add(dl);
+const pl=new THREE.PointLight(0xf0a63c,14,12); pl.position.set(0,-3.2,2); scene.add(pl);
+
+const c3=h=>new THREE.Color(h);
+
+/* --- shader dos pontos (neurônios e pulsos sinápticos) --- */
+const VSH=`
+attribute vec3 aCol; attribute float aSize; attribute float aAct;
+varying vec3 vC; varying float vA;
+void main(){ vC=aCol; vA=aAct;
+  vec4 mv=modelViewMatrix*vec4(position,1.0);
+  gl_PointSize=aSize*uScale*(1.0+vA*1.3)/(-mv.z);
+  gl_Position=projectionMatrix*mv; }`;
+const FSH=`
+varying vec3 vC; varying float vA;
+void main(){ vec2 uv=gl_PointCoord-vec2(0.5); float d=length(uv);
+  if(d>0.5) discard;
+  float ring=smoothstep(0.5,0.14,d);
+  float core=smoothstep(0.17,0.0,d);
+  vec3 c=mix(vC,vec3(1.0,0.97,0.88),clamp(vA,0.0,1.0)*0.85);
+  float a=ring*(0.3+vA*0.7)+core*(0.2+vA*0.8);
+  gl_FragColor=vec4(c*a,a); }`;
+const ptMat=new THREE.ShaderMaterial({
+  uniforms:{uScale:{value:600}},vertexShader:VSH,fragmentShader:FSH,
+  transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+
+buildNet(); indexRegions();
+const N=neurons.length;
+
+const nPos=new Float32Array(N*3), nCol=new Float32Array(N*3), nSize=new Float32Array(N), nAct=new Float32Array(N);
+for(let i=0;i<N;i++){const n=neurons[i];
+  nPos[i*3]=n.x;nPos[i*3+1]=n.y;nPos[i*3+2]=n.z;
+  const c=c3(REG[n.rg].col).multiplyScalar(rand(0.62,0.82));
+  nCol[i*3]=c.r;nCol[i*3+1]=c.g;nCol[i*3+2]=c.b;
+  nSize[i]=n.size;}
+const nGeo=new THREE.BufferGeometry();
+nGeo.setAttribute('position',new THREE.BufferAttribute(nPos,3));
+nGeo.setAttribute('aCol',new THREE.BufferAttribute(nCol,3));
+nGeo.setAttribute('aSize',new THREE.BufferAttribute(nSize,1));
+nGeo.setAttribute('aAct',new THREE.BufferAttribute(nAct,1).setUsage(THREE.DynamicDrawUsage));
+scene.add(new THREE.Points(nGeo,ptMat));
+
+/* --- amostra do conectoma + tractos inter-regionais --- */
+{
+  const g=new THREE.BufferGeometry();
+  const pos=new Float32Array(LINESEG.length-(LINESEG.length%6)), col=new Float32Array(pos.length);
+  for(let i=0,j=0;i<pos.length;i+=6,j+=8){
+    pos.set(LINESEG.slice(i,i+6),i);
+    const c=c3(LINESEG[i+6]).multiplyScalar(0.5);
+    col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;col[i+3]=c.r;col[i+4]=c.g;col[i+5]=c.b;
+    void j;
+  }
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
+    opacity:0.11,blending:THREE.AdditiveBlending,depthWrite:false})));
+}
+{
+  const C={OL:s=>[s*2.25,0.12,0.35],AL:s=>[s*1.05,-0.12,2.1],MB:s=>[s*0.5,0.15,0.1],
+    LH:s=>[s*1.45,0.05,0.65],CX:()=>[0,0.15,-0.7],SEZ:()=>[0,-0.62,1.35],VNC:()=>[0,-1.6,-0.45]};
+  const pairs=[['AL','MB'],['AL','LH'],['LH','CX'],['MB','CX'],['OL','CX'],['CX','VNC'],['SEZ','CX']];
+  for(const [a,b] of pairs) for(const s of [-1,1]){
+    const p1=C[a](s),p2=C[b](s);
+    const mid=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2+0.22,(p1[2]+p2[2])/2];
+    const cur=new THREE.QuadraticBezierCurve3(new THREE.Vector3(...p1),new THREE.Vector3(...mid),new THREE.Vector3(...p2));
+    const col=c3(REG[a].col).lerp(c3(REG[b].col),0.5).multiplyScalar(0.55);
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(cur.getPoints(26)),
+      new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.22,blending:THREE.AdditiveBlending,depthWrite:false})));
+  }
+}
+
+/* --- espécimen: mosca em voo fixo, controlada pelos motores --- */
+const flyG=new THREE.Group();
+{
+  const bodyM=new THREE.MeshStandardMaterial({color:0x565b53,roughness:0.6,metalness:0.15});
+  const darkM=new THREE.MeshStandardMaterial({color:0x3b3f39,roughness:0.7});
+  const eyeM=new THREE.MeshStandardMaterial({color:0x6e211d,roughness:0.35});
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.17,18,14),bodyM); head.position.set(0,0,0.3);
+  const thorax=new THREE.Mesh(new THREE.SphereGeometry(0.2,18,14),bodyM); thorax.scale.set(1,0.9,1.3);
+  const abd=new THREE.Mesh(new THREE.SphereGeometry(0.16,18,14),darkM); abd.scale.set(0.85,0.85,1.7); abd.position.set(0,-0.02,-0.44);
+  const eL=new THREE.Mesh(new THREE.SphereGeometry(0.075,12,10),eyeM); eL.position.set(-0.11,0.03,0.36);
+  const eR=eL.clone(); eR.position.x=0.11;
+  const wingShape=new THREE.Shape();
+  wingShape.moveTo(0,0); wingShape.bezierCurveTo(0.16,0.17,0.52,0.18,0.7,0.02);
+  wingShape.bezierCurveTo(0.6,-0.11,0.2,-0.13,0,0);
+  const wingM=new THREE.MeshBasicMaterial({color:0xcfe4ee,transparent:true,opacity:0.24,side:THREE.DoubleSide,depthWrite:false});
+  const mkWing=sx=>{const w=new THREE.Mesh(new THREE.ShapeGeometry(wingShape,16),wingM);
+    const g=new THREE.Group(); g.position.set(sx*0.13,0.14,0.08); w.scale.x=sx; g.add(w); return g;};
+  flyG.userData.wL=mkWing(-1); flyG.userData.wR=mkWing(1);
+  const legG=new THREE.CylinderGeometry(0.009,0.005,0.26,5);
+  for(const sx of [-1,1]) for(const z of [-0.2,0.02,0.2]){
+    const l=new THREE.Mesh(legG,darkM); l.position.set(sx*0.14,-0.16,z); l.rotation.z=sx*0.75; flyG.add(l);}
+  flyG.add(head,thorax,abd,eL,eR,flyG.userData.wL,flyG.userData.wR);
+  flyG.position.set(0,-2.95,0.2);
+  scene.add(flyG);
+  /* cordão VNC → espécimen */
+  const a=new THREE.Vector3(0,-2.05,-0.45), b=new THREE.Vector3(0,-2.82,0.12);
+  const len=a.distanceTo(b);
+  const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,len,6),
+    new THREE.MeshStandardMaterial({color:0x4a4e48,roughness:0.8}));
+  cord.position.copy(a).add(b).multiplyScalar(0.5);
+  cord.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());
+  scene.add(cord);
+}
+
+/* --- pulsos sinápticos viajando entre neurônios --- */
+const PMAX=900, parts=new Array(PMAX).fill(null); let pIdx=0;
+const pPos=new Float32Array(PMAX*3).fill(-999), pAct=new Float32Array(PMAX);
+const pGeo=new THREE.BufferGeometry();
+pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3).setUsage(THREE.DynamicDrawUsage));
+pGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(PMAX*3).fill(1).map((v,i)=>[1,0.82,0.62][i%3]),3));
+pGeo.setAttribute('aSize',new THREE.BufferAttribute(new Float32Array(PMAX).fill(0.03),1));
+pGeo.setAttribute('aAct',new THREE.BufferAttribute(pAct,1).setUsage(THREE.DynamicDrawUsage));
+scene.add(new THREE.Points(pGeo,ptMat));
+function spawnP(x0,y0,z0,x1,y1,z1,d){parts[pIdx]={x0,y0,z0,x1,y1,z1,t:0,dur:Math.max(0.12,d/5.5)};pIdx=(pIdx+1)%PMAX;}
+
+/* --- proxies invisíveis para hover/clique por região --- */
+const proxies=[];
+{
+  const pm=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+  const add=(rg,x,y,z,r)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),pm);
+    m.position.set(x,y,z); m.userData.rg=rg; scene.add(m); proxies.push(m);};
+  add('OL',-2.25,0.12,0.35,1.1); add('OL',2.25,0.12,0.35,1.1);
+  add('AL',-1.05,-0.12,2.1,0.62); add('AL',1.05,-0.12,2.1,0.62);
+  add('MB',-0.5,0.15,0.05,0.55); add('MB',0.5,0.15,0.05,0.55);
+  add('LH',-1.45,0.05,0.65,0.45); add('LH',1.45,0.05,0.65,0.45);
+  add('CX',0,0.12,-0.7,0.62); add('SEZ',0,-0.62,1.35,0.52); add('VNC',0,-1.55,-0.45,0.62);
+}
+
+/* ============================================================
+   5 · dinâmica neural
+============================================================ */
+function fire(n){
+  n.v=0; n.cool=0.026+RNG()*0.016; n.act=1;
+  RGC[n.rgi]++; RGC2[n.rgi]++;
+  if(n.rk) RM[n.rk].r++;
+  S.acc++;
+  if(n.isKC) n.ema=Math.min(1,n.ema+0.65);
+  const L=n.out.length;
+  if(L){
+    for(let i=0;i<L;i++){const s=n.out[i],t=neurons[s.i];
+      t.v+=s.w; if(t.v>3)t.v=3; if(t.act<0.7)t.act=0.7;}
+    if(RNG()<0.8){const s=n.out[(RNG()*L)|0],t=neurons[s.i];
+      const d=Math.hypot(t.x-n.x,t.y-n.y,t.z-n.z);
+      if(d>0.4&&d<3.4) spawnP(n.x,n.y,n.z,t.x,t.y,t.z,d);}
+  }
+}
+function stepNet(dt){
+  const dcy=Math.exp(-dt/0.05);
+  for(let i=0;i<N;i++){const n=neurons[i];
+    if(n.cool>0){n.cool-=dt;n.v*=dcy;continue;}
+    n.v=n.v*dcy+(n.bias+n.ext)*dt*30+randn()*0.035;
+    if(n.v>3)n.v=3;
+    if(n.v>n.thr) fire(n);
+  }
+  let m=0; for(const e of P.EB) m+=e.v; m/=64;          // inibição global do anel (interneurônio tônico)
+  const off=(m-0.06)*0.9;
+  if(off>0) for(const e of P.EB){e.v-=off;if(e.v<0)e.v=0;}
+  for(const k in RM) RM[k].r*=Math.exp(-dt/0.55);
+  for(const k of kcAll) k.ema*=Math.exp(-dt/0.35);
+}
+
+/* ============================================================
+   6 · sensores, estímulos e drives comportamentais
+============================================================ */
+function concAt(o,x,y){let c=0;
+  for(const s of S.sources) if(s.o===o){
+    const d2=(x-s.x)**2+(y-s.y)**2; c+=s.amp*Math.exp(-d2/(2*s.sg*s.sg));}
+  return Math.min(c,1.4);}
+
+function injectOL(rel,I){
+  const J=I*(0.3+0.7*Math.max(0,Math.cos(rel)));
+  const sides=Math.abs(rel)<0.28?[0,1]:[rel>0?1:0];
+  for(const hi of sides){const amp=sides.length>1?J*0.5:J;
+    for(const n of P.OL0[hi]){const d=Math.abs(wrapA(rel-n.az));
+      n.ext+=amp*Math.exp(-(d*d)/0.25);}}
+}
+function triggerEscape(shAz){
+  S.escDir=Math.sign(wrapA(shAz+Math.PI-fly.h))||1;
+  S.escapeT=0.75; S.gfT=0.25;
+  log('RFX','sombra latejante → disparo das fibras gigantes · salto de fuga');
+}
+
+function senseAndDrive(dt){
+  for(let i=0;i<N;i++) neurons[i].ext=0;
+
+  /* quimiorrecepção bilateral */
+  const aL={x:fly.x+Math.cos(fly.h-0.55)*7,y:fly.y+Math.sin(fly.h-0.55)*7};
+  const aR={x:fly.x+Math.cos(fly.h+0.55)*7,y:fly.y+Math.sin(fly.h+0.55)*7};
+  let cL=0,cR=0;
+  for(const o in ODORS){
+    const l=concAt(o,aL.x,aL.y),r=concAt(o,aR.x,aR.y);
+    DRV.cOd[o]={l,r}; cL+=l; cR+=r;}
+  DRV.cL=cL; DRV.cR=cR;
+  for(let hi=0;hi<2;hi++) for(let g=0;g<6;g++){
+    let I=0;
+    for(const o in ODORS){const aff=ODORS[o].gl[g]||0; if(!aff)continue;
+      const c=hi===0?DRV.cOd[o].l:DRV.cOd[o].r;
+      const gain=ODORS[o].food?(0.7+0.9*S.hunger):(o==='CO2'?1.25:0.9);
+      I+=gain*Math.sqrt(c)*aff;}
+    I*=0.85;
+    if(I>0.002) for(const pn of P.ALg[hi][g]) pn.ext=I;
+  }
+
+  /* visão */
+  if(S.shadow){const sh=S.shadow,rel=wrapA(sh.az-fly.h);
+    injectOL(rel,0.45+1.1*(sh.r/120));
+    if(!sh.gf&&sh.r>40){sh.gf=true;triggerEscape(sh.az);}}
+  if(S.bar){const b=S.bar,az=Math.atan2(b.y-fly.y,b.x-fly.x),rel=wrapA(az-fly.h);
+    injectOL(rel,0.85);
+    if(b.relP!==null){const dAz=wrapA(rel-b.relP)/Math.max(dt,1e-4);
+      b.om=lerp(b.om,clamp(dAz*0.55,-1.2,1.2),0.25);}
+    b.relP=rel;}
+
+  /* valência: MBONs (aprendida) + corno lateral (inata) */
+  const ap=clamp(RM.MAP.r/(RM.MAP.n*8),0,1);
+  const lhAp=clamp(RM.LHap.r/(RM.LHap.n*8),0,1);
+  const av=clamp(RM.MAV.r/(RM.MAV.n*8)*1.1+RM.LHav.r/(RM.LHav.n*10)*0.55,0,1.3);
+  DRV.ap=Math.min(1,ap+lhAp*0.45); DRV.av=av;
+
+  /* bússola do complexo central — bump injetado, propagate pelas conexões do anel */
+  const bamp=0.5+clamp(DRV.thrust,0,1)*0.55, i0=Math.floor(wrap64(S.bumpIdx));
+  for(let k=-2;k<=2;k++){const e=P.EB[wrap64(i0+k)];e.ext+=bamp*Math.exp(-k*k*0.55);}
+
+  /* -------- decisão motora -------- */
+  let turn=0, thrust=0.15;
+  if(S.aut){
+    WT.t-=dt;
+    if(WT.t<=0){ if(RNG()<0.62){WT.dir=(RNG()<0.5?-1:1)*rand(0.35,1.05);WT.t=rand(0.12,0.5);}
+      else{WT.dir=0;WT.t=rand(0.35,1.4);}}
+    turn+=WT.dir; if(WT.dir!==0)thrust+=0.18;
+    const mc=(cL+cR)/2;
+    S.castOn=false;
+    if(mc>0.12&&Math.abs(cL-cR)<0.06&&av<0.3){ // casting: varreduras ao buscar gradiente
+      CAST.t-=dt; if(CAST.t<=0){CAST.s*=-1;CAST.t=rand(0.55,0.9);}
+      turn+=CAST.s*0.75; thrust=0.38; S.castOn=true;}
+    if(S.hunger>0.55&&RNG()<dt*0.5){WT.dir=(RNG()<0.5?-1:1)*rand(0.4,1);WT.t=0.3;}
+  }
+  const dirS=clamp((cL-cR)*2.4,-1,1);
+  turn+=-dirS*(DRV.ap-av)*1.15;              // quimiotaxia com sinal pela valência
+  thrust+=DRV.ap*0.5+av*0.9;
+  if(S.bar) turn+=S.bar.om*0.9;              // optomotor
+  if(S.escapeT>0){S.escapeT-=dt;turn=S.escDir*1.9;thrust=1.05;}
+  if(S.shockT>0){turn+=randn()*1.2;thrust*=0.4;}
+  if(S.starved)thrust*=0.5;
+  turn+=S.held.tl*1.15-S.held.tr*1.15; thrust+=S.held.fw*0.95;
+  if(S.burstT>0&&S.burstR==='VNC'){turn+=randn()*0.9;thrust+=0.55;}
+  DRV.turn=clamp(turn,-2,2); DRV.thrust=clamp(thrust,0,1.15);
+
+  /* tronco descendente → neurônios motores (via complexo central + tônus direto) */
+  const tD=DRV.turn,tT=DRV.thrust;
+  for(const n of P.NOtl)n.ext+=Math.max(0,tD);
+  for(const n of P.NOtr)n.ext+=Math.max(0,-tD);
+  for(const n of P.NOfw)n.ext+=tT*1.5;
+  for(const n of P.VNC.tl)n.ext+=Math.max(0,tD)*0.5+S.held.tl*0.9;
+  for(const n of P.VNC.tr)n.ext+=Math.max(0,-tD)*0.5+S.held.tr*0.9;
+  for(const n of P.VNC.fw)n.ext+=tT*0.65+S.held.fw*0.9;
+  if(S.gfT>0){S.gfT-=dt;for(const g of P.VNC.gf)g.ext+=1.8;}
+  if(S.burstT>0){S.burstT-=dt;
+    for(const n of REGCELLS[S.burstR])n.ext+=0.95*(0.7+RNG()*0.6);}
+}
+
+/* ============================================================
+   7 · corpo, energia, plasticidade e memória
+============================================================ */
+function moveFly(dt){
+  const angVel=DRV.turn*2.6*(0.88+0.24*RNG());
+  fly.h=wrapA(fly.h+angVel*dt);
+  S.bumpIdx=wrap64(S.bumpIdx+angVel*dt*(64/(2*Math.PI))); // cópia eferente → bússola
+  let sp=DRV.thrust*46;
+  if(S.shockT>0)sp*=0.35;
+  if(S.gust){fly.x+=S.gust.vx*dt;fly.y+=S.gust.vy*dt;}
+  fly.x+=Math.cos(fly.h)*sp*dt; fly.y+=Math.sin(fly.h)*sp*dt;
+  DRV.speed=sp; DRV.angVel=angVel;
+  const r=Math.hypot(fly.x,fly.y);
+  if(r>138){fly.x*=136/r;fly.y*=136/r;fly.h=wrapA(Math.atan2(-fly.y,-fly.x)+rand(-0.5,0.5));}
+  if(sp>3&&S.t-TR.last>0.09){TR.last=S.t;TR.pts.push({x:fly.x,y:fly.y,a:1});
+    if(TR.pts.length>360)TR.pts.shift();}
+  for(const p of TR.pts)p.a-=dt*0.35;
+
+  S.energy=clamp(S.energy-(0.5+sp*0.004)*dt,0,100);
+  S.hunger=clamp(1-S.energy/100,0,1);
+  if(S.energy<=0&&!S.starved){S.starved=true;
+    log('SYS','animal exausto — deposíte açúcar para recuperá-lo');}
+  if(S.energy>5)S.starved=false;
+
+  /* alimentação + recompensa octopaminérgica (aprendizado espontâneo) */
+  S.eating=false;
+  for(let i=S.sources.length-1;i>=0;i--){const s=S.sources[i];
+    if(ODORS[s.o].food&&!s.test&&s.amp>0.3&&Math.hypot(fly.x-s.x,fly.y-s.y)<15){
+      S.eating=true;S.energy=clamp(S.energy+6*dt,0,100);}}
+  for(let i=S.drops.length-1;i>=0;i--){const d=S.drops[i];
+    if(Math.hypot(fly.x-d.x,fly.y-d.y)<9){S.drops.splice(i,1);
+      S.energy=clamp(S.energy+16,0,100);rewardPulse(0.12);
+      log('RWD','açúcar ingerido — octopamina liberada');}}
+  if(S.eating&&S.t-S.lastReward>1.3)rewardPulse(0.07);
+  if(!S.eating)S.lastReward=Math.min(S.lastReward,S.t-0.4);
+}
+
+function activeOdors(){const a=[];
+  for(const o in ODORS){const c=(DRV.cOd[o].l+DRV.cOd[o].r)/2;if(c>0.1)a.push(o);}return a;}
+
+function punishPulse(){
+  const os=activeOdors();
+  if(!os.length){log('MEM','choque sem odor contingente — nenhuma associação formada');return;}
+  let n=0;
+  for(const k of kcAll) if(k.ema>0.22){
+    for(const s of k.mbIn){
+      if(s.type==='map')s.w=Math.max(0,s.w-0.10*k.ema);
+      else s.w=Math.min(0.22,s.w+0.055*k.ema);
+      n++;}
+    for(const o of os)k.odors.add(o);}
+  log('MEM',`dopamina: KC→MBON-ap ↓ · KC→MBON-av ↑ (${n} sinapses · CS: ${os.map(o=>ODORS[o].label).join(', ')})`);
+}
+function rewardPulse(eta=0.09){
+  S.lastReward=S.t;
+  const os=activeOdors();
+  if(!os.length)return;
+  let n=0;
+  for(const k of kcAll) if(k.ema>0.22){
+    for(const s of k.mbIn){
+      if(s.type==='mav')s.w=Math.max(0,s.w-eta*k.ema);
+      else s.w=Math.min(0.22,s.w+0.6*eta*k.ema);
+      n++;}
+    for(const o of os)k.odors.add(o);}
+  if(n)log('RWD',`octopamina: KC→MBON-av ↓ · KC→MBON-ap ↑ (${n} sinapses · CS: ${os.map(o=>ODORS[o].label).join(', ')})`);
+}
+function odorValence(o){
+  let v=0;
+  for(const k of kcAll){if(!k.odors.has(o))continue;
+    for(const s of k.mbIn)v+=s.type==='map'?(s.w-s.w0):-(s.w-s.w0);}
+  return Math.tanh(v/2.2);
+}
+
+/* ============================================================
+   8 · estímulos, treino e teste
+============================================================ */
+function spray(o,amp=1.1,x,y,sg=30){
+  if(x===undefined){const a=rand(0,6.28),r=rand(40,110);x=Math.cos(a)*r;y=Math.sin(a)*r;}
+  S.sources.push({o,x,y,amp,sg,born:S.t});
+  if(S.sources.length>6)S.sources.shift();
+  log('SEN',`odor ${ODORS[o].label} pulverizado na câmara`);
+}
+function doShockPulse(){
+  S.shockT=0.45; after(0.12,punishPulse);
+  log('RFX','choque elétrico aplicado — retração');
+}
+function startTrain(kind){
+  if(S.train)return;
+  S.train={kind,t:4.6};
+  log('SYS',kind==='av'?'treino aversivo iniciado — 3 pares CS (benzaldeído) + US (choque)'
+                       :'treino apetitivo iniciado — 3 pares CS (benzaldeído) + US (açúcar)');
+  spray('BENZ',1.5,fly.x,fly.y,36);
+  for(let i=0;i<3;i++){
+    after(0.7+i*1.5,()=>{ if(kind==='av')doShockPulse();
+      else{S.drops.push({x:fly.x,y:fly.y});} });
+  }
+  after(4.7,()=>{S.train=null;
+    log('SYS','treino concluído — consulte o engrama ou execute o teste de memória');});
+}
+function startTest(){
+  if(S.test)return;
+  let best='BENZ',bv=0;
+  for(const o in ODORS){const v=Math.abs(odorValence(o));if(v>bv){bv=v;best=o;}}
+  if(bv<0.12)log('SYS','memória fraca detectada — treine primeiro para um resultado claro');
+  const a=rand(0,6.28);
+  const src={o:best,x:Math.cos(a)*105,y:Math.sin(a)*105,amp:1.35,sg:30,born:S.t,test:true};
+  S.sources.push(src);
+  S.test={t:10,near:0,far:0,o:best,src};
+  log('SYS',`teste de memória: ${ODORS[best].label} na câmara — medindo preferência por 10 s`);
+}
+function finishTest(){
+  const T=S.test; S.test=null;
+  const i=S.sources.indexOf(T.src); if(i>=0)S.sources.splice(i,1);
+  const PI=(T.far-T.near)/10;
+  const cls=PI>0.15?'evitação aprendida':PI<-0.15?'atração':'sem preferência detectável';
+  log('MEM',`teste (${ODORS[T.o].label}): PI = ${PI>=0?'+':''}${PI.toFixed(2)} — ${cls}`);
+}
+function burstRegion(rg,silent){
+  S.burstR=rg; S.burstT=0.35; S.burstRGi=RGIDX[rg];
+  RGC2[S.burstRGi]=0;
+  if(!silent){
+    const cells=REGCELLS[rg].length;
+    log('MIC',`microeletrodo: burst de 350 ms em ${REG[rg].name.toLowerCase()} (${cells} neurônios)`);
+    after(0.55,()=>{const pct=clamp(RGC2[S.burstRGi]/(cells*15),0,1);
+      log('MIC',`recrutamento ≈ ${(pct*100)|0}% da região · propagação via sinapses`);});
+  }
+}
+function clearArena(){
+  S.sources=[];S.drops=[];S.shadow=null;S.bar=null;S.gust=null;TR.pts=[];
+  fly.x=0;fly.y=30;fly.h=rand(0,6.28);S.energy=72;
+  log('SYS','arena limpa — odores removidos, animal reposicionado');
+}
+function wipeMem(){
+  for(const k of kcAll){for(const s of k.mbIn)s.w=s.w0;k.odors.clear();}
+  log('SYS','engrama zerado — todas as memórias olfativas apagadas');
+}
+
+/* ============================================================
+   9 · interface
+============================================================ */
+const $=id=>document.getElementById(id);
+const logEl=$('log');
+function log(kind,msg){
+  const d=document.createElement('div');d.className='ln';
+  d.innerHTML=`<span class="lt">${fmtT(S.t)}</span><span class="lk lk-${kind}">${kind}</span>${msg}`;
+  const stick=logEl.scrollTop+logEl.clientHeight>=logEl.scrollHeight-24;
+  logEl.appendChild(d);
+  while(logEl.children.length>90)logEl.removeChild(logEl.firstChild);
+  if(stick)logEl.scrollTop=logEl.scrollHeight;
+}
+/* legenda + sparklines + engrama */
+{
+  const lg=$('legend');
+  for(const rg of RGORDER){const d=document.createElement('div');d.className='li';
+    d.innerHTML=`<i style="--c:${REG[rg].col}"></i>${REG[rg].name}<b>${REGCELLS[rg].length}</b>`;lg.appendChild(d);}
+  const sp=$('sparks');
+  for(const rg of RGORDER){const d=document.createElement('div');d.className='srow';
+    d.innerHTML=`<span class="dot" style="--c:${REG[rg].col}"></span><canvas width="184" height="40"></canvas><span class="hz">0 Hz</span>`;
+    d.querySelector('canvas').dataset.rg=rg; sp.appendChild(d);}
+  const en=$('engra');
+  for(const o in ODORS){const d=document.createElement('div');d.className='erow';
+    d.innerHTML=`<span class="ename">${ODORS[o].label}</span><div class="etrack"><i class="neg"></i><i class="pos"></i></div><b>0.00</b>`;
+    d.dataset.o=o; en.appendChild(d);}
+}
+function drawSpark(cv,data,col){
+  const ctx=cv.getContext('2d'); ctx.setTransform(2,0,0,2,0,0);
+  ctx.clearRect(0,0,92,20);
+  let mx=1; for(const v of data)if(v>mx)mx=v;
+  ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();
+  for(let i=0;i<data.length;i++){
+    const x=i/(68-1)*92,y=18-Math.min(1,data[i]/(mx*1.15))*16;
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+  ctx.stroke();
+}
+function updateEngra(){
+  for(const d of $('engra').children){
+    const v=odorValence(d.dataset.o),w=Math.abs(v)*50;
+    d.querySelector('.neg').style.width=v<0?w+'%':'0';
+    d.querySelector('.pos').style.width=v>0?w+'%':'0';
+    d.querySelector('b').textContent=(v>=0?'+':'')+v.toFixed(2);
+    d.querySelector('b').style.color=v>0.15?'var(--grn)':v<-0.15?'var(--red)':'var(--dim)';}
+}
+function stateNow(){
+  if(S.bootT>0)return['INICIALIZANDO','bootstrap do conectoma','c-sys'];
+  if(S.train)return['TREINO ASSOCIATIVO',S.train.kind==='av'?'pareando benzaldeído + choque':'pareando benzaldeído + açúcar','c-mem'];
+  if(S.test)return['TESTE DE MEMÓRIA',`${ODORS[S.test.o].label} · ${S.test.t.toFixed(1)} s restantes`,'c-mem'];
+  if(S.escapeT>0)return['FUGA','resposta de sobrevivência · fibras gigantes','c-rfx'];
+  if(S.shockT>0)return['CHOQUE','retração · sinal dopaminérgico','c-rfx'];
+  if(S.burstT>0)return['MICROESTIMULAÇÃO',REG[S.burstR].name.toLowerCase(),'c-mic'];
+  if(S.eating)return['ALIMENTANDO-SE','octopamina · recompensa','c-rwd'];
+  const mc=(DRV.cL+DRV.cR)/2;
+  let dom='';let mx=0;
+  for(const o in ODORS){const c=(DRV.cOd[o].l+DRV.cOd[o].r)/2;if(c>mx){mx=c;dom=ODORS[o].label;}}
+  if(DRV.av>0.45&&mc>0.04)return['EVITANDO',dom+' · valência negativa','c-rfx'];
+  if(DRV.ap>0.3&&mc>0.04)return['APROXIMANDO-SE',dom+' · valência positiva','c-rwd'];
+  if(S.castOn)return['VARRENDO','casting · localizando gradiente','c-sys'];
+  if(DRV.speed<3)return['REPOUSO','tônus motor basal','c-sys'];
+  return['EXPLORANDO',`bouts de giro · energia ${S.energy|0}%`,'c-sys'];
+}
+
+/* --- arena 2D --- */
+const arCv=$('arena'); const arX=arCv.getContext('2d');
+function sizeArena(){const w=arCv.clientWidth||290;arCv.width=w*2;arCv.height=w*2;arCv.style.height=w+'px';}
+function drawArena(){
+  const W=arCv.width/2,R=W/2-6;
+  arX.setTransform(2,0,0,2,0,0);arX.clearRect(0,0,W,W);
+  arX.save();arX.translate(W/2,W/2);
+  arX.strokeStyle='rgba(232,227,213,0.07)';arX.lineWidth=1;
+  for(const r of [35,70,105,140]){arX.beginPath();arX.arc(0,0,r,0,6.284);arX.stroke();}
+  arX.strokeStyle='rgba(232,227,213,0.14)';arX.beginPath();arX.arc(0,0,148,0,6.284);arX.stroke();
+  /* campos de odor (dados sensoriais visíveis) */
+  for(const s of S.sources){
+    const od=ODORS[s.o],r=s.sg*2.6;
+    const g=arX.createRadialGradient(s.x,s.y,0,s.x,s.y,r);
+    const a=0.15*Math.min(1,s.amp);
+    g.addColorStop(0,od.col+Math.round(a*255).toString(16).padStart(2,'0'));
+    g.addColorStop(1,od.col+'00');
+    arX.fillStyle=g;arX.beginPath();arX.arc(s.x,s.y,r,0,6.284);arX.fill();
+    arX.strokeStyle=od.col+'55';arX.beginPath();arX.arc(s.x,s.y,3,0,6.284);arX.stroke();}
+  for(const d of S.drops){arX.fillStyle='#f5e08a';
+    arX.beginPath();arX.arc(d.x,d.y,2.5,0,6.284);arX.fill();}
+  /* rastro */
+  arX.lineWidth=1;
+  for(const p of TR.pts){if(p.a<=0)continue;
+    arX.fillStyle=`rgba(232,227,213,${(p.a*0.35).toFixed(3)})`;
+    arX.fillRect(p.x-0.7,p.y-0.7,1.4,1.4);}
+  /* sombra */
+  if(S.shadow){const sh=S.shadow,cx=fly.x+Math.cos(sh.az)*55,cy=fly.y+Math.sin(sh.az)*55;
+    arX.fillStyle=`rgba(0,0,0,${(0.25+0.4*Math.min(1,sh.r/120)).toFixed(2)})`;
+    arX.beginPath();arX.arc(cx,cy,sh.r,0,6.284);arX.fill();}
+  /* barra optomotora */
+  if(S.bar){const b=S.bar;arX.save();arX.translate(b.x,b.y);arX.rotate(Math.atan2(b.dy,b.dx)+Math.PI/2);
+    arX.fillStyle='#0a0a0a';arX.strokeStyle='rgba(232,227,213,0.4)';
+    arX.fillRect(-2.5,-14,5,28);arX.strokeRect(-2.5,-14,5,28);arX.restore();}
+  /* choque */
+  if(S.shockT>0){arX.strokeStyle='rgba(255,106,94,0.8)';arX.lineWidth=1.5;
+    arX.beginPath();arX.arc(fly.x,fly.y,10+4*Math.sin(S.t*45),0,6.284);arX.stroke();}
+  /* a mosca */
+  arX.save();arX.translate(fly.x,fly.y);arX.rotate(fly.h);
+  const wl=DRV.wl,wr=DRV.wr,ph=performance.now()/1000*(7+24*DRV.fw);
+  const wa=0.15+0.8*Math.max(wl,wr);
+  arX.fillStyle='rgba(217,215,207,0.45)';
+  arX.beginPath();arX.ellipse(-2,-3.2,4,1.8*wa*(0.5+0.5*Math.abs(Math.sin(ph))),0.5,0,6.284);arX.fill();
+  arX.beginPath();arX.ellipse(-2,3.2,4,1.8*wa*(0.5+0.5*Math.abs(Math.sin(ph))),-0.5,0,6.284);arX.fill();
+  arX.fillStyle='#e8e4d8';
+  arX.beginPath();arX.ellipse(0,0,3.4,2.1,0,0,6.284);arX.fill();
+  arX.fillStyle='#8d897d';arX.beginPath();arX.arc(3.4,0,1.5,0,6.284);arX.fill();
+  arX.restore();arX.restore();
+}
+
+/* ============================================================
+   10 · eventos de UI
+============================================================ */
+document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>{
+  const a=b.dataset.act;
+  if(a==='spray')spray(b.dataset.o);
+  else if(a==='shadow'){if(!S.shadow){const az=rand(0,6.28);S.shadow={az,r:8,t:0,gf:false};log('SEN','sombra latejante aproximando-se do campo visual');}}
+  else if(a==='puff'){const az=rand(0,6.28);S.gust={vx:Math.cos(az)*85,vy:Math.sin(az)*85,t:0.5};log('SEN','sopro de ar — deflexão mecânica das antenas');}
+  else if(a==='shock')doShockPulse();
+  else if(a==='bar'){if(!S.bar){const d=rand(0,6.28),off=rand(-30,30),px=-Math.sin(d)*off,py=Math.cos(d)*off;
+    S.bar={x:fly.x-Math.cos(d)*140+px,y:fly.y-Math.sin(d)*140+py,dx:Math.cos(d),dy:Math.sin(d),t:0,dur:1.5,relP:null,om:0};
+    log('SEN','barra em movimento no campo visual — resposta optomotora esperada');}}
+  else if(a==='sugar'){S.drops.push({x:fly.x,y:fly.y});log('RWD','gota de açúcar depositada sobre o animal');}
+  else if(a==='trainAv')startTrain('av');
+  else if(a==='trainAp')startTrain('ap');
+  else if(a==='testMem')startTest();
+  else if(a==='wipe')wipeMem();
+}));
+document.querySelectorAll('[data-rg]').forEach(b=>b.addEventListener('click',()=>burstRegion(b.dataset.rg,false)));
+document.querySelectorAll('[data-m]').forEach(b=>{
+  const on=e=>{e.preventDefault();S.held[b.dataset.m]=1;
+    log('MOT',`estimulação direta do VNC: ${b.textContent.trim()}`);};
+  const off=()=>{S.held[b.dataset.m]=0;};
+  b.addEventListener('pointerdown',on);
+  b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);});
+ $('btnAut').addEventListener('click',()=>{S.aut=!S.aut;
+  $('btnAut').firstChild.textContent=`busca autônoma · ${S.aut?'ativa':'suspensa'}`;
+  log('SYS',S.aut?'comportamento autônomo retomado':'busca autônoma suspensa — apenas reflexos e estímulos manuais');});
+ $('btnClear').addEventListener('click',clearArena);
+const SPEEDS=[1,3,0.5];
+ $('btnSpeed').addEventListener('click',()=>{
+  S.speed=SPEEDS[(SPEEDS.indexOf(S.speed)+1)%SPEEDS.length];
+  $('btnSpeed').textContent='VEL ×'+S.speed;});
+const CAMS={front:{p:[0,0.4,7.8],t:[0,-0.2,0.5]},top:{p:[0.01,8.4,0.6],t:[0,0,-0.1]},side:{p:[7.9,0.9,0.9],t:[0,-0.1,0.2]}};
+let camA=null;
+document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click',()=>{
+  const c=CAMS[b.dataset.cam];controls.autoRotate=false;$('btnRot').classList.remove('on');
+  camA={p0:camera.position.clone(),p1:new THREE.Vector3(...c.p),
+        t0:controls.target.clone(),t1:new THREE.Vector3(...c.t),k:0};}));
+ $('btnRot').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;
+  $('btnRot').classList.toggle('on',controls.autoRotate);});
+renderer.domElement.addEventListener('pointerdown',()=>{controls.autoRotate=false;$('btnRot').classList.remove('on');});
+
+/* tooltip + clique por região */
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let mXY={x:0,y:0},tipOn=false;
+renderer.domElement.addEventListener('pointermove',e=>{
+  const r=renderer.domElement.getBoundingClientRect();
+  mXY={x:e.clientX-r.left,y:e.clientY-r.top};
+  mouse.x=(mXY.x/r.width)*2-1;mouse.y=-(mXY.y/r.height)*2+1;});
+setInterval(()=>{
+  ray.setFromCamera(mouse,camera);
+  const h=ray.intersectObjects(proxies,false)[0];
+  const tip=$('tip');
+  if(h){const rg=h.object.userData.rg,cells=REGCELLS[rg].length;
+    tip.innerHTML=`<b>${REG[rg].name}</b><span>${cells} neurônios simulados</span><em>${REG[rg].fn}</em>`;
+    tip.style.display='block';
+    const sw=stage.clientWidth,sh=stage.clientHeight;
+    tip.style.left=Math.min(mXY.x+14,sw-220)+'px';
+    tip.style.top=Math.min(mXY.y+10,sh-90)+'px';
+    renderer.domElement.style.cursor='crosshair';}
+  else{tip.style.display='none';renderer.domElement.style.cursor='';}
+},80);
+let pd=null;
+renderer.domElement.addEventListener('pointerdown',e=>{pd={x:e.clientX,y:e.clientY,t:Date.now()};});
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(!pd)return;
+  if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)<7&&Date.now()-pd.t<400){
+    const r=renderer.domElement.getBoundingClientRect();
+    mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+    ray.setFromCamera(mouse,camera);
+    const h=ray.intersectObjects(proxies,false)[0];
+    if(h)burstRegion(h.object.userData.rg,false);}
+  pd=null;});
+
+/* ============================================================
+   11 · loop principal
+============================================================ */
+function tick(dt){
+  S.t+=dt;
+  for(let i=TIMERS.length-1;i>=0;i--)if(S.t>=TIMERS[i].t){const f=TIMERS[i].fn;TIMERS.splice(i,1);f();}
+  /* estímulos */
+  for(let i=S.sources.length-1;i>=0;i--){const s=S.sources[i];
+    s.amp*=Math.exp(-dt/9); if(s.amp<0.05&&!(S.test&&S.test.src===s))S.sources.splice(i,1);}
+  if(S.gust){S.gust.t-=dt;S.gust.vx*=Math.exp(-dt*2.2);S.gust.vy*=Math.exp(-dt*2.2);if(S.gust.t<=0)S.gust=null;}
+  if(S.shockT>0)S.shockT-=dt;
+  if(S.shadow){const sh=S.shadow;sh.t+=dt;sh.r=8+112*Math.min(1,sh.t/0.85);if(sh.t>1.3)S.shadow=null;}
+  if(S.bar){const b=S.bar;b.t+=dt;b.x+=b.dx*190*dt;b.y+=b.dy*190*dt;if(b.t>b.dur)S.bar=null;}
+  if(S.bootT>0)S.bootT-=dt;
+  if(S.test){S.test.t-=dt;
+    const d=Math.hypot(fly.x-S.test.src.x,fly.y-S.test.src.y);
+    if(d<62)S.test.near+=dt;else S.test.far+=dt;
+    if(S.test.t<=0)finishTest();}
+  senseAndDrive(dt);
+  stepNet(dt);
+  moveFly(dt);
+  S.accT+=dt;
+  if(S.accT>=1){S.sps=S.acc/S.accT;S.acc=0;S.accT=0;}
+}
+let last=performance.now(),uiT=0,spT=0,enT=0,stT=0;
+let kcPct=0,wPhase=0;
+function frame(now){
+  requestAnimationFrame(frame);
+  const rdt=Math.min((now-last)/1000,0.05);last=now;
+  const steps=S.speed>=1?S.speed:1, sdt=S.speed>=1?rdt:rdt*S.speed;
+  for(let i=0;i<steps;i++)tick(sdt);
+  RGC2.fill(0);
+  /* decaimento visual da atividade + taxas regionais */
+  const vd=Math.exp(-rdt*4.5);
+  for(let i=0;i<N;i++){const n=neurons[i];n.act*=vd;nAct[i]=n.act;}
+  nGeo.attributes.aAct.needsUpdate=true;
+  for(let i=0;i<PMAX;i++){const p=parts[i];
+    if(!p){pAct[i]=0;continue;}
+    p.t+=rdt;if(p.t>=p.dur){parts[i]=null;pAct[i]=0;pPos[i*3+1]=-999;continue;}
+    const k=p.t/p.dur,u=1-k;
+    pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;
+    pAct[i]=1-k;}
+  pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aAct.needsUpdate=true;
+  /* espécimen obedece aos motores */
+  DRV.wl=clamp(0.12+RM.VNCtl.r/(RM.VNCtl.n*6),0,1);
+  DRV.wr=clamp(0.12+RM.VNCtr.r/(RM.VNCtr.n*6),0,1);
+  DRV.fw=clamp(0.12+RM.VNCfw.r/(RM.VNCfw.n*6),0,1);
+  wPhase+=rdt*(7+24*DRV.fw);
+  const wA=0.16+1.0;
+  flyG.userData.wL.rotation.z=-(0.12+0.95*DRV.wl)*Math.sin(wPhase)*wA;
+  flyG.userData.wR.rotation.z=(0.12+0.95*DRV.wr)*Math.sin(wPhase)*wA;
+  flyG.rotation.z=(DRV.wl-DRV.wr)*0.4;
+  flyG.rotation.x=0.12-0.3*DRV.fw;
+  flyG.position.y=-2.95+0.07*DRV.fw*Math.abs(Math.sin(wPhase*0.5));
+  /* câmera preset */
+  if(camA){camA.k+=rdt*1.5;const e=camA.k>=1?1:(1-Math.pow(1-camA.k,3));
+    camera.position.lerpVectors(camA.p0,camA.p1,e);
+    controls.target.lerpVectors(camA.t0,camA.t1,e);
+    if(camA.k>=1)camA=null;}
+  controls.update();
+  renderer.render(scene,camera);
+  drawArena();
+  /* UI periódica */
+  uiT+=rdt;
+  if(uiT>0.1){uiT=0;
+    for(let i=0;i<7;i++){RGe[i]=lerp(RGe[i],RGC[i]/rdt,0.2);RGC[i]=0;}
+    $('mWl').style.width=(DRV.wl*100)+'%';$('mWr').style.width=(DRV.wr*100)+'%';$('mFw').style.width=(DRV.fw*100)+'%';
+    $('vWl').textContent=DRV.wl.toFixed(2);$('vWr').textContent=DRV.wr.toFixed(2);$('vFw').textContent=DRV.fw.toFixed(2);
+    $('vW').textContent=`ω ${(DRV.angVel*57.3).toFixed(0)}°/s · v ${(DRV.speed/3).toFixed(0)} mm/s`;
+    $('mEn').style.width=S.energy+'%';
+    let kca=0;for(const k of kcAll)if(k.ema>0.25)kca++;
+    kcPct=kca/kcAll.length*100;
+    const [st,sub,cl]=stateNow();
+    $('state').textContent=st;$('state').className=cl;$('stateSub').textContent=sub;
+    $('subNeural').textContent=`PN ${RGe[1].toFixed(0)} Hz · KC ${kcPct.toFixed(0)}% · AP ${DRV.ap.toFixed(2)} · AV ${DRV.av.toFixed(2)}`;
+    let info='';for(const o in ODORS){const c=(DRV.cOd[o].l+DRV.cOd[o].r)/2;
+      if(c>0.03)info+=(info?' · ':'')+ODORS[o].label+' '+c.toFixed(2);}
+    $('arenaInfo').textContent=info||'placa · 92 mm · vista dorsal';}
+  spT+=rdt;
+  if(spT>0.15){spT=0;
+    for(const rg of RGORDER){SPKD[rg].push(RGe[RGIDX[rg]]);if(SPKD[rg].length>68)SPKD[rg].shift();
+      const cv=document.querySelector(`canvas[data-rg="${rg}"]`);
+      drawSpark(cv,SPKD[rg],REG[rg].col);
+      cv.parentElement.querySelector('.hz').textContent=RGe[RGIDX[rg]].toFixed(0)+' Hz';}}
+  enT+=rdt;if(enT>0.5){enT=0;updateEngra();}
+  stT+=rdt;if(stT>0.25){stT=0;
+    $('stSp').textContent=Math.round(S.sps);
+    $('stT').textContent=fmtT(S.t);}
+}
+function resize(){
+  const w=stage.clientWidth,h=stage.clientHeight;
+  renderer.setSize(w,h,false);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  ptMat.uniforms.uScale.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));
+}
+window.addEventListener('resize',()=>{resize();sizeArena();});
+resize();sizeArena();
+
+/* boot */
+ $('stN').textContent=N.toLocaleString('pt-BR');
+ $('stS').textContent=SYN.toLocaleString('pt-BR');
+log('SYS',`conectoma carregado — ${N.toLocaleString('pt-BR')} neurônios · ${SYN.toLocaleString('pt-BR')} sinapses`);
+log('SYS','modelo: LIF · plasticidade dopaminérgica no corpo fungiforme · anel-atrator no complexo central');
+for(const [i,rg] of RGORDER.entries())after(0.3+i*0.22,()=>burstRegion(rg,true));
+after(2.2,()=>log('SYS','comportamento autônomo iniciado — fome, exploração, reflexos e aprendizado ativos'));
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>
