@@ -3,247 +3,210 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CONECTOMA·01 — cérebro artificial de Drosophila</title>
+<title>ENGRAMA·02 — cérebro que conversa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#060809; --panel:#0a0d0f; --panel2:#0d1113;
-  --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.16);
-  --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52;
-  --amber:#f0a63c; --teal:#46c8bc; --rose:#ef6a8b; --lime:#a5d64a;
-  --coral:#f07b52; --sand:#e8d06a; --bone:#d9d7cf; --red:#ff6a5e; --grn:#9bd646;
+  --bg:#07080a; --panel:#0b0d0f; --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.17);
+  --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
+  --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --lime:#a5d64a; --red:#ff5d4d;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--bg);color:var(--tx);font-family:var(--mono);font-size:12px;
-  display:grid;grid-template-rows:46px 1fr 28px;overflow:hidden}
+  display:grid;grid-template-rows:46px 1fr 26px;overflow:hidden}
 ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#22262a;border-radius:4px}
 ::-webkit-scrollbar-track{background:transparent}
 
-/* ---------- header ---------- */
 header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-bottom:1px solid var(--line);background:var(--panel)}
 .brand{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:.06em;display:flex;align-items:center;gap:9px}
-.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px rgba(240,166,60,.7)}
-.brand em{font-style:normal;font-weight:400;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.04em;margin-left:4px}
-.stats{display:flex;gap:16px;align-items:center;font-size:10px;color:var(--dim);letter-spacing:.08em}
-.stats b{color:var(--tx);font-weight:500;margin-left:5px}
-.chip{font:500 10px var(--mono);letter-spacing:.1em;color:var(--amber);background:transparent;
-  border:1px solid rgba(240,166,60,.4);border-radius:2px;padding:3px 8px;cursor:pointer}
-.chip:hover{background:rgba(240,166,60,.12)}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc);transition:background .8s,box-shadow .8s}
+.brand em{font-style:normal;font-weight:400;font-family:var(--mono);font-size:10px;color:var(--dim);margin-left:4px}
+.stats{display:flex;gap:14px;align-items:center;font-size:10px;color:var(--dim);letter-spacing:.07em}
+.stats b{color:var(--tx);font-weight:500;margin-left:4px}
+.chip{font:500 10px var(--mono);letter-spacing:.1em;color:var(--acc);background:transparent;
+  border:1px solid rgba(232,179,75,.4);border-radius:2px;padding:3px 8px;cursor:pointer}
+.chip:hover{background:rgba(232,179,75,.12)}
 
-/* ---------- layout ---------- */
-#app{display:grid;grid-template-columns:288px 1fr 314px;gap:10px;padding:10px;min-height:0}
-aside{background:var(--panel);border:1px solid var(--line);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:16px}
+#app{display:grid;grid-template-columns:352px 1fr 316px;gap:10px;padding:10px;min-height:0}
+aside{background:var(--panel);border:1px solid var(--line);overflow-y:auto;padding:12px;display:flex;flex-direction:column}
 section h3{font:500 9.5px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
   display:flex;align-items:center;gap:8px;margin-bottom:8px}
 section h3::after{content:'';flex:1;height:1px;background:var(--line)}
+section{margin-bottom:16px}
 
-/* ---------- botões ---------- */
-.btn{display:block;width:100%;text-align:left;font:500 10.5px var(--mono);letter-spacing:.07em;
+/* ---------- chat ---------- */
+#chat{padding:0}
+#chatHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
+#chatHead b{font-family:var(--sans);font-size:13px;letter-spacing:.04em}
+#moodTag{font-size:9px;color:var(--acc);letter-spacing:.12em;text-transform:uppercase}
+#msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.msg{max-width:94%;font-size:11.5px;line-height:1.55}
+.msg .who{display:block;font-size:8.5px;letter-spacing:.18em;color:var(--dim2);margin-bottom:2px;text-transform:uppercase}
+.msg.me{align-self:flex-end;text-align:right;color:var(--bone)}
+.msg.brain{align-self:flex-start}
+.msg.sys{align-self:center;color:var(--dim2);font-size:9.5px;text-align:center;max-width:100%}
+.msg.mono .tx{color:var(--dim);font-style:italic}
+.w{animation:wfade .28s ease both}
+@keyframes wfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.caret{display:inline-block;width:7px;height:11px;background:var(--acc);vertical-align:-1px;margin-left:3px;animation:blink .8s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#chips{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px 0}
+#chips button{font:500 9px var(--mono);color:var(--dim);background:transparent;border:1px solid var(--line);
+  border-radius:2px;padding:3px 7px;cursor:pointer;letter-spacing:.04em}
+#chips button:hover{color:var(--tx);border-color:var(--line2)}
+#inrow{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line);margin-top:8px}
+#inp{flex:1;background:#0d1113;border:1px solid var(--line);color:var(--tx);font:11.5px var(--mono);padding:8px 9px;outline:none;border-radius:2px}
+#inp:focus{border-color:rgba(232,179,75,.5)}
+#send{font:600 10px var(--mono);letter-spacing:.1em;color:#0a0a0a;background:var(--acc);border:0;border-radius:2px;padding:0 14px;cursor:pointer}
+#send:hover{filter:brightness(1.12)}
+
+/* ---------- botões painel ---------- */
+.btn{display:block;width:100%;text-align:left;font:500 10.5px var(--mono);letter-spacing:.06em;
   text-transform:uppercase;color:var(--tx);background:transparent;border:1px solid var(--line);
   border-radius:2px;padding:7px 9px;cursor:pointer;margin-bottom:5px;transition:border-color .12s,background .12s}
-.btn:hover{border-color:rgba(240,166,60,.55);background:rgba(240,166,60,.07)}
-.btn:active{background:rgba(240,166,60,.16)}
-.btn em{display:block;font-style:normal;font-weight:400;text-transform:none;letter-spacing:.02em;
-  font-size:9.5px;color:var(--dim2);margin-top:2px}
-.btn .sw{display:inline-block;width:8px;height:8px;border-radius:1px;background:var(--c,#888);margin-right:7px;vertical-align:0}
+.btn:hover{border-color:rgba(232,179,75,.55);background:rgba(232,179,75,.07)}
+.btn em{display:block;font-style:normal;font-weight:400;text-transform:none;letter-spacing:.02em;font-size:9px;color:var(--dim2);margin-top:2px}
 .btn.ghost{color:var(--dim)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.grid2 .btn{margin-bottom:0;padding:6px 7px;font-size:9.5px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
-.row3 .btn{text-align:center;margin:0;padding:8px 4px}
-.hint{font-size:9.5px;color:var(--dim2);margin-bottom:6px;letter-spacing:.03em}
-.rbtn .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--c);margin-right:6px;vertical-align:0}
+.grid2 .btn{margin-bottom:0}
+.on .btn{border-color:rgba(232,179,75,.5);color:var(--acc)}
 
-/* ---------- palco 3D ---------- */
-#stage{position:relative;border:1px solid var(--line);background:#05070a;min-height:0;overflow:hidden}
+/* ---------- estágio ---------- */
+#stage{position:relative;border:1px solid var(--line);background:#050608;min-height:0;overflow:hidden}
 #stage canvas{display:block;position:absolute;inset:0}
-#vignette{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,.5) 100%)}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 52%,rgba(0,0,0,.42) 100%)}
 #camBtns{position:absolute;top:10px;right:10px;display:flex;gap:4px;z-index:5}
 #camBtns button{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
-  background:rgba(10,13,15,.75);border:1px solid var(--line);border-radius:2px;padding:4px 8px;cursor:pointer}
-#camBtns button:hover{color:var(--tx);border-color:var(--line2)}
-#camBtns button.on{color:var(--amber);border-color:rgba(240,166,60,.5)}
-#legend{position:absolute;left:10px;bottom:10px;z-index:5;display:flex;flex-direction:column;gap:2px;
-  background:rgba(8,10,12,.62);border:1px solid var(--line);padding:7px 10px;border-radius:2px}
-#legend .li{font-size:9px;letter-spacing:.06em;color:var(--dim);display:flex;align-items:center;gap:6px}
+  background:rgba(10,12,14,.75);border:1px solid var(--line);border-radius:2px;padding:4px 8px;cursor:pointer}
+#camBtns button:hover{color:var(--tx)}
+#camBtns button.on{color:var(--acc);border-color:rgba(232,179,75,.5)}
+#wlab{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
+.wlb{position:absolute;transform:translate(-50%,-50%);font-size:10px;letter-spacing:.06em;color:var(--bone);
+  white-space:nowrap;text-shadow:0 0 6px rgba(0,0,0,.9);will-change:transform,opacity}
+.wlb.cur{font-size:13px;font-weight:600;color:#fff}
+#tip{position:absolute;z-index:9;display:none;pointer-events:none;max-width:200px;
+  background:rgba(10,12,14,.94);border:1px solid var(--line2);border-radius:2px;padding:8px 10px}
+#tip b{font-family:var(--sans);font-size:12px;display:block}
+#tip em{font-style:normal;font-size:9.5px;color:var(--acc)}
+#legend{position:absolute;left:10px;bottom:10px;z-index:5;display:flex;flex-wrap:wrap;gap:3px 10px;max-width:330px;
+  background:rgba(8,9,11,.6);border:1px solid var(--line);padding:7px 10px;border-radius:2px}
+#legend .li{font-size:8.5px;letter-spacing:.05em;color:var(--dim);display:flex;align-items:center;gap:5px}
 #legend .li i{width:6px;height:6px;border-radius:50%;background:var(--c)}
-#legend .li b{color:var(--tx);font-weight:400;margin-left:auto;padding-left:10px}
-#tip{position:absolute;z-index:9;display:none;pointer-events:none;max-width:210px;
-  background:rgba(10,13,15,.94);border:1px solid var(--line2);border-radius:2px;padding:8px 10px}
-#tip b{font-family:var(--sans);font-size:12px;letter-spacing:.03em;display:block}
-#tip span{font-size:9px;color:var(--dim);display:block;margin:2px 0}
-#tip em{font-style:normal;font-size:9.5px;color:var(--amber)}
 
 /* ---------- telemetria ---------- */
-#arena{width:100%;display:block;border:1px solid var(--line);border-radius:2px;background:#07090b}
-.arow{display:flex;justify-content:space-between;margin-top:5px}
-.mrow{display:grid;grid-template-columns:52px 1fr 34px;align-items:center;gap:8px;margin-bottom:6px;font-size:9.5px;color:var(--dim)}
+.mrow{display:grid;grid-template-columns:74px 1fr 32px;align-items:center;gap:8px;margin-bottom:6px;font-size:9.5px;color:var(--dim)}
 .meter{height:5px;background:rgba(232,227,213,.07);border-radius:1px;overflow:hidden}
-.meter i{display:block;height:100%;width:0%;background:var(--bone);transition:width .06s linear}
-.meter.amber i{background:var(--amber)}
-.meter.big{height:7px}
+.meter i{display:block;height:100%;width:0%;background:var(--c,var(--bone));transition:width .12s linear}
 .mrow b{color:var(--tx);font-weight:400;text-align:right}
-#state{font-family:var(--sans);font-weight:600;font-size:19px;letter-spacing:.02em;line-height:1.1}
-#state.c-rfx{color:var(--coral)} #state.c-mem{color:var(--rose)} #state.c-rwd{color:var(--grn)} #state.c-mic{color:var(--teal)}
-#stateSub{font-size:9.5px;color:var(--dim);margin-top:3px}
-#subNeural{font-size:9.5px;color:var(--dim2);margin-top:6px;letter-spacing:.02em}
-.lbl{font-size:9px;color:var(--dim2);letter-spacing:.14em;text-transform:uppercase;margin:8px 0 4px}
-#sparks .srow{display:grid;grid-template-columns:10px 1fr 44px;gap:7px;align-items:center;margin-bottom:3px}
+#sgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:9.5px;margin-bottom:10px}
+#sgrid span{color:var(--dim2)}#sgrid b{color:var(--tx);font-weight:400;float:right}
+#sparks .srow{display:grid;grid-template-columns:64px 1fr 40px;gap:7px;align-items:center;margin-bottom:4px;font-size:9px;color:var(--dim)}
 #sparks canvas{width:100%;height:20px;display:block}
-#sparks .dot{width:6px;height:6px;border-radius:50%;background:var(--c)}
-#sparks .hz{font-size:9px;color:var(--dim);text-align:right;font-weight:400}
-#engra .erow{display:grid;grid-template-columns:76px 1fr 40px;gap:8px;align-items:center;margin-bottom:5px;font-size:9.5px}
-#engra .ename{color:var(--dim)}
-.etrack{position:relative;height:5px;background:rgba(232,227,213,.07);border-radius:1px}
-.etrack::before{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(232,227,213,.25)}
-.etrack i{position:absolute;top:0;bottom:0}
-.etrack i.neg{right:50%;background:var(--red)}
-.etrack i.pos{left:50%;background:var(--grn)}
-#engra b{color:var(--tx);font-weight:400;text-align:right}
-#log{font-size:9.5px;line-height:1.55;color:var(--dim);max-height:190px;overflow-y:auto;
-  border-left:2px solid var(--line);padding-left:9px}
+#sparks .hz{text-align:right;color:var(--dim2)}
+#log{font-size:9.5px;line-height:1.55;color:var(--dim);max-height:180px;overflow-y:auto;border-left:2px solid var(--line);padding-left:9px}
 #log .lt{color:var(--dim2);margin-right:6px}
-#log .lk{display:inline-block;width:30px;font-size:8px;letter-spacing:.1em;margin-right:5px}
-.lk-SEN{color:var(--amber)} .lk-RFX{color:var(--coral)} .lk-MEM{color:var(--rose)}
-.lk-RWD{color:var(--grn)} .lk-SYS{color:var(--dim)} .lk-MIC{color:var(--teal)} .lk-MOT{color:var(--bone)}
 #log .ln{margin-bottom:2px}
 
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
-  border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.06em}
+  border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
 footer b{color:var(--dim);font-weight:400}
-
-@media (max-width:1120px){
-  body{overflow:auto}
-  #app{grid-template-columns:1fr;grid-auto-rows:auto}
-  #stage{height:58vh;order:-1}
-  aside{max-height:44vh}
-}
+@media (max-width:1120px){body{overflow:auto}#app{grid-template-columns:1fr;grid-auto-rows:auto}
+  #stage{height:56vh;order:-1}#chat{max-height:60vh}aside{max-height:50vh}}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand"><span class="dot"></span>CONECTOMA·01<em>cérebro artificial de <i>Drosophila</i> · simulação neural autônoma</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ENGRAMA·02<em>cerebro linguistico · conversação neural autônoma</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">—</b></span>
+    <span>ATIVOS<b id="stA">—</b></span>
+    <span>PASSO<b id="stMs">—</b></span>
     <span>DISPAROS·s⁻¹<b id="stSp">0</b></span>
-    <span>T+<b id="stT">00:00</b></span>
     <button class="chip" id="btnSpeed">VEL ×1</button>
   </div>
 </header>
 
 <div id="app">
 
-  <aside id="ctl">
-    <section>
-      <h3>Estímulos químicos</h3>
-      <button class="btn" data-act="spray" data-o="VINEGAR"><span class="sw" style="--c:#e8c35a"></span>pulverizar vinagre<em>atraente · fonte de comida</em></button>
-      <button class="btn" data-act="spray" data-o="APPLE"><span class="sw" style="--c:#d0705c"></span>pulverizar maçã<em>atraente · fonte de comida</em></button>
-      <button class="btn" data-act="spray" data-o="BENZ"><span class="sw" style="--c:#9fb8c8"></span>pulverizar benzaldeído<em>neutro · condicionável</em></button>
-      <button class="btn" data-act="spray" data-o="CO2"><span class="sw" style="--c:#aab2ba"></span>liberar CO₂<em>aversivo inato · glomérulo V</em></button>
-    </section>
-
-    <section>
-      <h3>Reflexos &amp; aversivos</h3>
-      <button class="btn" data-act="shadow">sombra latejante<em>looming · via das fibras gigantes</em></button>
-      <button class="btn" data-act="puff">sopro de ar<em>estímulo mecânico das antenas</em></button>
-      <button class="btn" data-act="shock">choque elétrico<em>punição · sinal dopaminérgico</em></button>
-      <button class="btn" data-act="bar">barra em movimento<em>resposta optomotora</em></button>
-    </section>
-
-    <section>
-      <h3>Treino &amp; memória</h3>
-      <button class="btn" data-act="trainAv">treino aversivo<em>3 pares benzaldeído + choque</em></button>
-      <button class="btn" data-act="trainAp">treino apetitivo<em>3 pares benzaldeído + açúcar</em></button>
-      <button class="btn" data-act="sugar"><span class="sw" style="--c:#f5e08a"></span>açúcar<em>recompensa · octopamina</em></button>
-      <button class="btn" data-act="testMem">teste de memória<em>índice de performance (PI)</em></button>
-      <button class="btn ghost" data-act="wipe">zerar engrama<em>apaga todas as memórias</em></button>
-    </section>
-
-    <section>
-      <h3>Microeletrodo</h3>
-      <p class="hint">burst de 350 ms na região · clique no cérebro também funciona</p>
-      <div class="grid2">
-        <button class="btn rbtn" data-rg="OL" style="--c:#46c8bc"><span class="dot"></span>lob. óptico</button>
-        <button class="btn rbtn" data-rg="AL" style="--c:#f0a63c"><span class="dot"></span>lob. antenal</button>
-        <button class="btn rbtn" data-rg="MB" style="--c:#ef6a8b"><span class="dot"></span>corpo fung.</button>
-        <button class="btn rbtn" data-rg="LH" style="--c:#a5d64a"><span class="dot"></span>c. lateral</button>
-        <button class="btn rbtn" data-rg="CX" style="--c:#f07b52"><span class="dot"></span>c. complexo</button>
-        <button class="btn rbtn" data-rg="SEZ" style="--c:#e8d06a"><span class="dot"></span>g. subesof.</button>
-        <button class="btn rbtn" data-rg="VNC" style="--c:#d9d7cf"><span class="dot"></span>VNC/motor</button>
-      </div>
-    </section>
-
-    <section>
-      <h3>Motor direto · VNC</h3>
-      <p class="hint">segure para injetar corrente no grupo motor</p>
-      <div class="row3">
-        <button class="btn" data-m="tl">asa esq.</button>
-        <button class="btn" data-m="tr">asa dir.</button>
-        <button class="btn" data-m="fw">impulso</button>
-      </div>
-    </section>
-
-    <section>
-      <h3>Controle</h3>
-      <button class="btn" id="btnAut">busca autônoma · ativa<em>fome, exploração e aprendizado espontâneo</em></button>
-      <button class="btn ghost" id="btnClear">limpar arena<em>remove odores, reseta posição e energia</em></button>
-    </section>
+  <aside id="chat">
+    <div id="chatHead"><b>conversa neural</b><span id="moodTag">calmo</span></div>
+    <div id="msgs"></div>
+    <div id="chips">
+      <button data-q="oi">oi</button>
+      <button data-q="o que é café?">o que é café?</button>
+      <button data-q="quem é você?">quem é você?</button>
+      <button data-q="chocolate é delicioso">ensinar: chocolate é delicioso</button>
+    </div>
+    <div id="inrow">
+      <input id="inp" placeholder='fale com o cérebro… ou ensine: "x é y"' autocomplete="off">
+      <button id="send">ENVIAR</button>
+    </div>
   </aside>
 
   <div id="stage">
-    <div id="vignette"></div>
+    <div id="vig"></div>
+    <div id="wlab"></div>
     <div id="camBtns">
       <button data-cam="front">frente</button>
       <button data-cam="top">topo</button>
-      <button data-cam="side">lateral</button>
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend"></div>
     <div id="tip"></div>
   </div>
 
-  <aside id="tel">
+  <aside id="pan">
     <section>
-      <h3>Câmara comportamental</h3>
-      <canvas id="arena"></canvas>
-      <div class="arow"><span class="hint" id="arenaInfo">placa · 92 mm · vista dorsal</span></div>
+      <h3>Estado afetivo</h3>
+      <div class="mrow"><span>alegria</span><div class="meter" style="--c:#e8b34b"><i id="mJoy"></i></div><b id="vJoy">0.0</b></div>
+      <div class="mrow"><span>alerta</span><div class="meter" style="--c:#ff5d4d"><i id="mAl"></i></div><b id="vAl">0.0</b></div>
+      <div class="mrow"><span>curiosidade</span><div class="meter" style="--c:#46c8bc"><i id="mCu"></i></div><b id="vCu">0.0</b></div>
+      <div class="mrow"><span>temperatura</span><div class="meter" style="--c:#d9d7cf"><i id="mTe"></i></div><b id="vTe">0.7</b></div>
+      <div class="mrow"><span>prontidão</span><div class="meter" style="--c:#a5d64a"><i id="mRd"></i></div><b id="vRd">0.0</b></div>
     </section>
-
     <section>
-      <h3>Atuadores</h3>
-      <div class="mrow"><span>asa esq.</span><div class="meter"><i id="mWl"></i></div><b id="vWl">0.00</b></div>
-      <div class="mrow"><span>asa dir.</span><div class="meter"><i id="mWr"></i></div><b id="vWr">0.00</b></div>
-      <div class="mrow"><span>impulso</span><div class="meter amber"><i id="mFw"></i></div><b id="vFw">0.00</b></div>
-      <div class="mrow" style="grid-template-columns:1fr"><span id="vW">ω 0°/s · v 0 mm/s</span></div>
+      <h3>Laboratório de estimulação</h3>
+      <button class="btn" data-st="cortex">agitar córtex semântico<em>ignita assemblies de palavras ao acaso</em></button>
+      <button class="btn" data-st="speak">forçar fala<em>arma a faixa de produção sem input</em></button>
+      <button class="btn" data-st="ring">provocar anel de intenção<em>a intenção vencedora muda o comportamento</em></button>
+      <button class="btn" data-st="aff">pulso nos núcleos afetivos<em>altera humor e temperatura</em></button>
     </section>
-
     <section>
-      <h3>Estado</h3>
-      <div id="state">INICIALIZANDO</div>
-      <div id="stateSub">bootstrap do conectoma</div>
-      <div id="subNeural">—</div>
-      <div class="lbl">energia</div>
-      <div class="meter big"><i id="mEn" style="background:var(--amber)"></i></div>
+      <h3>Lesões experimentais</h3>
+      <button class="btn" data-ls="prod">lesionar produção<em>a faixa de Broca artificial para de formar frases</em></button>
+      <button class="btn" data-ls="comp">lesionar compreensão<em>as palavras deixam de ser reconhecidas</em></button>
+      <button class="btn" data-ls="mem">lesionar memória<em>a rede de associações aprendidas silencia</em></button>
+      <button class="btn ghost" data-ls="restore">restaurar tudo</button>
     </section>
-
     <section>
-      <h3>Atividade regional</h3>
+      <h3>Modulação química</h3>
+      <div class="grid2">
+        <button class="btn" data-ch="dopa">dopamina</button>
+        <button class="btn" data-ch="caff">cafeína</button>
+        <button class="btn" data-ch="sed" style="grid-column:1/3">sedativo</button>
+      </div>
+    </section>
+    <section>
+      <h3>Modos</h3>
+      <button class="btn" id="btnDream">sonhar · 12 s<em>consolida memórias em ondas lentas</em></button>
+      <button class="btn" id="btnMono">monólogo interno · ativo<em>pensamentos espontâneos no chat</em></button>
+    </section>
+    <section>
+      <h3>Telemetria</h3>
+      <div id="sgrid">
+        <span>neurônios<b id="tN">—</b></span><span>sinapses<b id="tS">—</b></span>
+        <span>aprendidas<b id="tL">0</b></span><span>fatos<b id="tF">0</b></span>
+        <span>vocabulário<b id="tV">—</b></span><span>palavras novas<b id="tW">0</b></span>
+      </div>
       <div id="sparks"></div>
     </section>
-
-    <section>
-      <h3>Engrama · valência aprendida</h3>
-      <div id="engra"></div>
-    </section>
-
     <section>
       <h3>Registro</h3>
       <div id="log"></div>
@@ -252,8 +215,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · <b>rolagem</b> zoom · <b>clique numa região</b> microestimular</span>
-  <span>modelo: unidades LIF + plasticidade dopaminérgica · inspirado no conectoma real da <i>D. melanogaster</i> (~140.000 neurônios)</span>
+  <span><b>arraste</b> orbitar · <b>clique num módulo</b> estimular · ensine com <b>"x é y"</b> e pergunte <b>"o que é x?"</b></span>
+  <span>motor: LIF dirigido por eventos (CSR + atrasos axonais) · teia semântica plástica · zero APIs — tudo roda aqui</span>
 </footer>
 
 <script type="importmap">
@@ -266,933 +229,823 @@ footer b{color:var(--dim);font-weight:400}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ============================================================
-   0 · utilidades
-============================================================ */
-const RNG=Math.random;
-const rand=(a,b)=>a+RNG()*(b-a);
-const randn=()=>{let u=0,v=0;while(!u)u=RNG();while(!v)v=RNG();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
-const clamp=(x,a,b)=>x<a?a:x>b?b:x;
-const lerp=(a,b,t)=>a+(b-a)*t;
-const wrapA=a=>{a=(a+Math.PI)%(2*Math.PI);if(a<0)a+=2*Math.PI;return a-Math.PI;};
-const wrap64=x=>{x%=64;return x<0?x+64:x;};
-const qbez=(a,b,c,t)=>{const u=1-t;return{x:u*u*a.x+2*u*t*b.x+t*t*c.x,y:u*u*a.y+2*u*t*b.y+t*t*c.y,z:u*u*a.z+2*u*t*b.z+t*t*c.z};};
+/* ============ 0 · utilidades ============ */
+const RNG=Math.random, rand=(a,b)=>a+RNG()*(b-a);
+const randn=()=>{let u=0,v=0;while(!u)u=RNG();while(!v)v=RNG();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v);};
+const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
+const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
+const $=id=>document.getElementById(id);
 
-/* ============================================================
-   1 · catálogos — regiões, odores, glomérulos
-============================================================ */
-const RGORDER=['OL','AL','MB','LH','CX','SEZ','VNC'];
-const RGIDX={OL:0,AL:1,MB:2,LH:3,CX:4,SEZ:5,VNC:6};
-const REG={
-  OL:{name:'Lobo Óptico',        col:'#46c8bc', fn:'visão · deteção de movimento e sombras'},
-  AL:{name:'Lobo Antenal',       col:'#f0a63c', fn:'olfato · 6 glomérulos por antena'},
-  MB:{name:'Corpo Fungiforme',   col:'#ef6a8b', fn:'memória olfativa associativa (células de Kenyon)'},
-  LH:{name:'Corno Lateral',      col:'#a5d64a', fn:'valência inata · atração e aversão'},
-  CX:{name:'Complexo Central',   col:'#f07b52', fn:'bússola interna · navegação e comando motor'},
-  SEZ:{name:'Gânglio Subesofágico',col:'#e8d06a', fn:'gustação · açúcar e recompensa'},
-  VNC:{name:'VNC · Atuadores',   col:'#d9d7cf', fn:'motores das asas e empuxo'}
+/* ============ 1 · léxico semântico ============ */
+const CATS={
+ funcao:   {col:'#7a766c',u:.46,v:.52,w:['que','de','não','sim','eu','você','meu','seu','é','e','mas','muito','para','com','como','quando','mais','isso','aqui','já','se','ou','então','está','estou','sou','foi','vai','quero','pode','tudo','nada','sobre','um','uma','o','a','as','os','me','te','ele','ela','ser','ter','fazer','onde','qual','quem','porque','por','favor','também','algo','alguma','coisa','será','quer','diga','minha','seus','essa','essa']},
+ saudacao: {col:'#e8b34b',u:.14,v:.12,w:['oi','olá','eai','saudações','bem-vindo','bom dia','boa noite','tudo bem']},
+ despedida:{col:'#c98a3a',u:.07,v:.30,w:['tchau','adeus']},
+ identidade:{col:'#d9d7cf',u:.42,v:.09,w:['nome','amigo','humano','pessoa','criatura','consciente','prazer']},
+ emocao:   {col:'#ef6a8b',u:.79,v:.16,w:['feliz','triste','amor','raiva','medo','alegre','saudade','calma','esperança','curioso','carinho','burro','idiota','feio','alerta','calmo']},
+ valor:    {col:'#a5d64a',u:.11,v:.55,w:['bom','ruim','ótimo','péssimo','legal','chato','incrível','horrível','gosto','odeio','interessante','estranho','que legal']},
+ comida:   {col:'#e8c35a',u:.34,v:.87,w:['café','água','pão','açúcar','comida','fome','bolo','maçã','chocolate','chá','leite']},
+ mente:    {col:'#46c8bc',u:.67,v:.40,w:['cérebro','neurônios','mente','pensar','sonho','memória','consciência','aprender','lembrar','esquecer','ideia','pensamento','rede']},
+ natureza: {col:'#7fb8a8',u:.87,v:.74,w:['sol','lua','mar','céu','chuva','estrela','flor','árvore','noite','dia','manhã','praia','música']},
+ tecnologia:{col:'#f07b52',u:.15,v:.83,w:['código','computador','internet','programa','elétrico','circuito','robô','máquina']},
+ social:   {col:'#d0705c',u:.56,v:.73,w:['obrigado','desculpa','gentil','conversar','ensinar','pergunta','resposta']},
+ conceito: {col:'#b9b3a4',u:.60,v:.62,w:[]}
 };
-const ODORS={
-  VINEGAR:{label:'vinagre',    col:'#e8c35a', gl:{0:1.0,2:0.55,4:0.22}, food:true},
-  APPLE:  {label:'maçã',       col:'#d0705c', gl:{1:1.0,3:0.5,0:0.18},  food:true},
-  BENZ:   {label:'benzaldeído',col:'#9fb8c8', gl:{4:0.95,2:0.3},        food:false},
-  CO2:    {label:'CO₂',        col:'#aab2ba', gl:{5:1.0},               food:false}
-};
-const GLOMNAMES=['DM2','VA1l','DC3','VM5d','gl-X','V'];
+const POS=new Set(['feliz','amor','alegre','calma','esperança','carinho','bom','ótimo','legal','incrível','gosto','interessante','obrigado','gentil','prazer','que legal']);
+const NEG=new Set(['triste','raiva','medo','burro','idiota','feio','ruim','péssimo','chato','horrível','odeio','estranho']);
+const WINT={tchau:'DESPEDIDA',adeus:'DESPEDIDA',obrigado:'AGRADAR',gentil:'AGRADAR',prazer:'AGRADAR',
+ burro:'ALERTA',idiota:'ALERTA',feio:'ALERTA',odeio:'ALERTA',horrível:'ALERTA',péssimo:'ALERTA',medo:'ALERTA',raiva:'ALERTA',
+ aprender:'APRENDER',ensinar:'APRENDER',lembrar:'APRENDER',esquecer:'APRENDER',memória:'APRENDER',pergunta:'APRENDER',resposta:'APRENDER',
+ 'cérebro':'SOBRE_MIM','neurônios':'SOBRE_MIM',mente:'SOBRE_MIM','consciência':'SOBRE_MIM',pensar:'SOBRE_MIM',
+ pensamento:'SOBRE_MIM',sonho:'SOBRE_MIM',consciente:'SOBRE_MIM',criatura:'SOBRE_MIM','robô':'SOBRE_MIM','bom dia':'SAUDAR','boa noite':'SAUDAR','tudo bem':'SAUDAR'};
+const BG=['bom dia','boa noite','tudo bem','o que','por que','meu nome','que legal','me diga'];
 
-/* ============================================================
-   2 · estado global
-============================================================ */
-const S={
-  t:0, speed:1, aut:true, bootT:2.3,
-  energy:72, hunger:0.28, starved:false,
-  bumpIdx:32,
-  sources:[], drops:[], shadow:null, bar:null, gust:null,
-  escapeT:0, escDir:1, gfT:0, shockT:0,
-  burstR:null, burstT:0, burstBase:0, burstRGi:0,
-  held:{tl:0,tr:0,fw:0},
-  train:null, test:null,
-  eating:false, castOn:false, lastReward:-9,
-  acc:0, accT:0, sps:0
-};
-const fly={x:0,y:30,h:rand(0,6.28)};
-const DRV={ap:0,av:0,turn:0,thrust:0.15,speed:0,angVel:0,wl:0.2,wr:0.2,fw:0.2,cL:0,cR:0,
-  cOd:{VINEGAR:{l:0,r:0},APPLE:{l:0,r:0},BENZ:{l:0,r:0},CO2:{l:0,r:0}}};
-const WT={dir:0,t:0}, CAST={s:1,t:0}, TR={pts:[],last:0};
-const RM={};                                   // taxas funcionais (drives)
-const RGC=new Float32Array(7), RGC2=new Float32Array(7), RGe=new Float32Array(7);
-const SPKD={}; RGORDER.forEach(r=>SPKD[r]=[]); // sparklines
-const TIMERS=[];
-const after=(d,fn)=>TIMERS.push({t:S.t+d,fn});
+/* ============ 2 · rede — neurônios LIF + CSR + atrasos ============ */
+const CAP=3600, WORDCAP=400, WBC=220;
+const V=new Float32Array(CAP), THR=new Float32Array(CAP), REF=new Float32Array(CAP),
+ ACT=new Float32Array(CAP), MODU=new Uint8Array(CAP),
+ PX=new Float32Array(CAP), PY=new Float32Array(CAP), PZ=new Float32Array(CAP),
+ CR=new Float32Array(CAP), CG=new Float32Array(CAP), CB=new Float32Array(CAP), SZ=new Float32Array(CAP);
+const MOD={CORTEX:0,STRIP:1,RING:2,AFF:3,MON:4};
+const INTCOL={SAUDAR:'#e8b34b',CONVERSAR:'#c8c2b2',PERGUNTAR:'#46c8bc',APRENDER:'#a5d64a',
+ SOBRE_MIM:'#d9d7cf',AGRADAR:'#ef6a8b',ALERTA:'#ff5d4d',DESPEDIDA:'#c98a3a'};
+const INTENTS=Object.keys(INTCOL), INTIDX={}; INTENTS.forEach((k,i)=>INTIDX[k]=i);
+const INTCATS={saudacao:'SAUDAR',despedida:'DESPEDIDA',identidade:'CONVERSAR',emocao:'CONVERSAR',
+ valor:'CONVERSAR',comida:'CONVERSAR',mente:'CONVERSAR',natureza:'CONVERSAR',tecnologia:'CONVERSAR',
+ social:'CONVERSAR',conceito:'CONVERSAR',funcao:null};
 
-/* ============================================================
-   3 · construção da rede — anatomia do cérebro
-============================================================ */
-const neurons=[]; let SYN=0; const kcAll=[], ALLPN=[];
-const P={OL0:[[],[]],OL1:[[],[]],OL2:[[],[]],ALg:[[],[],[],[],[],[]].map(()=>[[],[],[],[],[],[]]),
-  MB:[],LH:[],EB:[],FB:[],NOtl:[],NOtr:[],NOfw:[],SEZ:[],VNC:{tl:[],tr:[],fw:[],gf:[]}};
-const LINESEG=[]; // amostra do conectoma (visual)
-
-function addN(rg,x,y,z,o={}){
-  const n={id:neurons.length,rg,x,y,z,v:0,cool:0,ext:0,out:[],act:0,ema:0,
-    thr:o.thr??1, bias:o.bias??rand(0.05,0.18), size:o.size??0.02, az:o.az??0};
-  neurons.push(n); return n;
+let N=0, SYN=0, tSim=0, tTickI=0;
+function addN(mod,x,y,z,col,size,thr){
+ const i=N++; MODU[i]=mod; PX[i]=x;PY[i]=y;PZ[i]=z;
+ const c=new THREE.Color(col).multiplyScalar(rand(.55,.85)); CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
+ SZ[i]=size; THR[i]=thr; return i;
 }
-function syn(a,b,w,keepLine){
-  a.out.push({i:b.id,w}); SYN++;
-  const d=Math.hypot(b.x-a.x,b.y-a.y,b.z-a.z);
-  if(keepLine&&d<0.75&&RNG()<0.55&&LINESEG.length<2800)
-    LINESEG.push(a.x,a.y,a.z,b.x,b.y,b.z,REG[a.rg].col);
+const ELA=[],ELB=[],ELW=[],ELD=[];    // lista de arestas → CSR
+const E=(a,b,w,d=0)=>{ELA.push(a);ELB.push(b);ELW.push(w);ELD.push(d);SYN++;};
+let off,TG,W,DL, dirtyCompile=false;   // CSR compilado
+function compile(){
+ const deg=new Uint32Array(N+1);
+ for(let k=0;k<ELA.length;k++)deg[ELA[k]+1]++;
+ off=new Uint32Array(N+1); for(let i=0;i<N;i++)off[i+1]=off[i]+deg[i+1];
+ const cur=off.slice(0,N);
+ TG=new Uint32Array(ELA.length); W=new Float32Array(ELA.length); DL=new Uint8Array(ELA.length);
+ for(let k=0;k<ELA.length;k++){const s=ELA[k],p=cur[s]++;TG[p]=ELB[k];W[p]=ELW[k];DL[p]=ELD[k];}
+ dirtyCompile=false;
 }
 
-function buildNet(){
-  /* ---- lobo óptico: 2×3 camadas em cascas elipsoidais (1.000 neurônios) ---- */
-  for(let hi=0;hi<2;hi++){
-    const s=hi===0?-1:1, c={x:s*2.25,y:0.12,z:0.35}, semi={x:0.85,y:0.72,z:1.05};
-    const rad=[0.5,0.72,0.93], sz=[0.016,0.02,0.024], lays=[[],[],[]];
-    [170,165,165].forEach((cnt,li)=>{
-      for(let i=0;i<cnt;i++){
-        let dx=randn(),dy=randn(),dz=randn(); const L=Math.hypot(dx,dy,dz)||1; dx/=L;dy/=L;dz/=L;
-        const f=rad[li]*(0.92+RNG()*0.16);
-        lays[li].push(addN('OL',c.x+dx*semi.x*f,c.y+dy*semi.y*f,c.z+dz*semi.z*f,
-          {thr:1,bias:rand(0.04,0.12),size:sz[li]}));
-      }
-    });
-    for(const n of lays[0]) n.az=Math.atan2(n.x-c.x,n.z-c.z);
-    P.OL0[hi]=lays[0]; P.OL1[hi]=lays[1]; P.OL2[hi]=lays[2];
-  }
-  /* conexões locais assimétricas → sensibilidade a direção (Hassenstein–Reichardt) */
-  for(let hi=0;hi<2;hi++){
-    const s=hi===0?-1:1, sorted=[...P.OL0[hi]].sort((a,b)=>a.az-b.az);
-    for(const n1 of P.OL1[hi]){
-      const a1=rand(-Math.PI,Math.PI); n1.az=a1;
-      const near=sorted.map(n0=>({n0,d:Math.abs(wrapA(n0.az-a1))})).sort((u,v)=>u.d-v.d).slice(0,10);
-      near.forEach((o,k)=>syn(o.n0,n1,0.13*(1+0.7*s*Math.tanh((4-k)*0.5)),true));
-    }
-    for(const n2 of P.OL2[hi]) for(let k=0;k<8;k++) syn(P.OL1[hi][(RNG()*165)|0],n2,0.11,true);
-  }
-
-  /* ---- lobo antenal: 6 glomérulos × 15 PN por antena (180) ---- */
-  const glOff=[];
-  for(let g=0;g<6;g++){const y=1-2*(g+0.5)/6,r=Math.sqrt(1-y*y),th=g*2.399963;
-    glOff.push({x:Math.cos(th)*r,y,z:Math.sin(th)*r});}
-  for(let hi=0;hi<2;hi++){const s=hi===0?-1:1;
-    for(let g=0;g<6;g++){
-      const cx=s*1.05+glOff[g].x*0.24, cy=-0.12+glOff[g].y*0.24, cz=2.1+glOff[g].z*0.24;
-      for(let i=0;i<15;i++){
-        const pn=addN('AL',cx+randn()*0.09,cy+randn()*0.09,cz+randn()*0.09,{thr:0.85,bias:rand(0.05,0.14),size:0.022});
-        P.ALg[hi][g].push(pn); ALLPN.push(pn);
-      }
-    }
-  }
-
-  /* ---- corno lateral: valência inata (120) ---- */
-  for(let hi=0;hi<2;hi++){const s=hi===0?-1:1, ap=[],av=[];
-    for(let i=0;i<30;i++){
-      let dx=randn(),dy=randn(),dz=randn();const L=Math.hypot(dx,dy,dz)||1;
-      const r=1*(0.7+RNG()*0.3);
-      ap.push(addN('LH',s*1.45+dx/L*0.3*r,0.05+dy/L*0.26*r,0.65+dz/L*0.38*r,{thr:0.9,bias:0.06,size:0.02}));
-      av.push(addN('LH',s*1.45+dx/L*0.3*r+0.04,0.05+dy/L*0.26*r-0.05,0.65+dz/L*0.38*r-0.05,{thr:0.9,bias:0.04,size:0.02}));
-    }
-    P.LH.push({ap,av});
-  }
-
-  /* ---- complexo central: anel EB (bússola) + corpo em leque + saídas (144) ---- */
-  for(let i=0;i<64;i++){const a=i/64*Math.PI*2;
-    P.EB.push(addN('CX',Math.cos(a)*0.42,0.28+Math.sin(a)*0.07,-0.75+Math.sin(a)*0.42,{thr:0.9,bias:0.02,size:0.026}));}
-  for(let i=0;i<64;i++){
-    const r=i<8?0.05:(i<36?0.19:0.32), a=rand(0,6.28);
-    P.FB.push(addN('CX',Math.cos(a)*r,0.05-r*0.15,-0.62+Math.sin(a)*r,{thr:0.95,bias:0.03,size:0.02}));}
-  for(let i=0;i<4;i++){P.NOtl.push(addN('CX',-0.16+randn()*0.03,-0.08+randn()*0.03,-0.8+randn()*0.04,{thr:0.85,bias:0.03,size:0.03}));
-    P.NOtr.push(addN('CX', 0.16+randn()*0.03,-0.08+randn()*0.03,-0.8+randn()*0.04,{thr:0.85,bias:0.03,size:0.03}));}
-  for(let i=0;i<8;i++) P.NOfw.push(addN('CX',randn()*0.06,-0.16+randn()*0.03,-0.85+randn()*0.04,{thr:0.85,bias:0.03,size:0.03}));
-
-  /* ---- gânglio subesofágico: gustação (80) ---- */
-  for(let i=0;i<80;i++){
-    let dx=randn(),dy=randn(),dz=randn();const L=Math.hypot(dx,dy,dz)||1;
-    const r=Math.cbrt(RNG());
-    P.SEZ.push(addN('SEZ',dx/L*0.42*r,-0.62+dy/L*0.3*r,1.35+dz/L*0.34*r,{thr:0.9,bias:rand(0.05,0.12),size:0.02}));
-  }
-
-  /* ---- VNC: grupos motores + fibras gigantes (136) ---- */
-  const mkCol=(arr,xoff,n)=>{for(let i=0;i<n;i++){const t=i/(n-1);
-    arr.push(addN('VNC',xoff+randn()*0.028,-1.05-t*1.0,-0.32-t*0.18+randn()*0.028,{thr:0.9,bias:0.075,size:0.02}));}};
-  mkCol(P.VNC.tl,-0.1,40); mkCol(P.VNC.tr,0.1,40); mkCol(P.VNC.fw,0,48);
-  for(let i=0;i<8;i++) P.VNC.gf.push(addN('VNC',(i%2?0.06:-0.06)+randn()*0.02,-0.95-i*0.015,-0.3+randn()*0.04,{thr:0.8,bias:0.02,size:0.042}));
-
-  /* ---- corpo fungiforme: cálice, pedúnculo, lobos α/β + MBONs (312) ---- */
-  for(let hi=0;hi<2;hi++){const s=hi===0?-1:1, kc=[];
-    const cal={x:s*0.62,y:0.44,z:0.55};
-    for(let i=0;i<70;i++){let dx=randn(),dy=randn(),dz=randn();const L=Math.hypot(dx,dy,dz)||1;
-      const r=0.27*(0.85+RNG()*0.2);
-      kc.push(addN('MB',cal.x+dx/L*r,cal.y+dy/L*r,cal.z+dz/L*r,{thr:1,bias:0.012,size:0.014}));}
-    const p0={x:cal.x,y:cal.y-0.02,z:cal.z},p1={x:s*0.56,y:-0.08,z:0.05},p2={x:s*0.4,y:-0.18,z:-0.4};
-    for(let i=0;i<48;i++){const t=0.12+0.86*i/47,pt=qbez(p0,p1,p2,t);
-      kc.push(addN('MB',pt.x+randn()*0.035,pt.y+randn()*0.035,pt.z+randn()*0.035,{thr:1,bias:0.012,size:0.014}));}
-    const pd={x:p2.x,y:p2.y,z:p2.z};
-    for(let i=0;i<16;i++){const t=i/15; // lobo α (dorsal)
-      kc.push(addN('MB',lerp(pd.x,s*0.3,t)+randn()*0.03,lerp(pd.y,0.16,t)+randn()*0.03,lerp(pd.z,-0.55,t)+randn()*0.03,{thr:1,bias:0.012,size:0.014}));}
-    for(let i=0;i<16;i++){const t=i/15; // lobo β (medial)
-      kc.push(addN('MB',lerp(pd.x,s*0.1,t)+randn()*0.03,lerp(pd.y,-0.26,t)+randn()*0.03,lerp(pd.z,-0.62,t)+randn()*0.03,{thr:1,bias:0.012,size:0.014}));}
-    const mav=[],map=[];
-    const mp=[[s*0.3,0.2,-0.56],[s*0.12,-0.3,-0.63],[s*0.36,-0.32,-0.58]];
-    for(let i=0;i<3;i++){
-      mav.push(addN('MB',mp[i][0]+0.035,mp[i][1],mp[i][2],{thr:0.85,bias:0.03,size:0.03}));
-      map.push(addN('MB',mp[i][0]-0.035,mp[i][1]-0.025,mp[i][2]+0.02,{thr:0.85,bias:0.03,size:0.03}));
-    }
-    for(const k of kc){k.isKC=true;k.odors=new Set();k.mbIn=[];
-      for(let j=0;j<5;j++){const pn=ALLPN[(RNG()*ALLPN.length)|0];
-        syn(pn,k,clamp(0.22*Math.exp(randn()*0.55),0.06,0.85),true);}}
-    for(const m of mav) for(let j=0;j<60;j++){const k=kc[(RNG()*kc.length)|0];
-      const sy={i:m.id,w:0.12,w0:0.12,type:'mav'};k.out.push(sy);k.mbIn.push(sy);SYN++;}
-    for(const m of map) for(let j=0;j<60;j++){const k=kc[(RNG()*kc.length)|0];
-      const sy={i:m.id,w:0.12,w0:0.12,type:'map'};k.out.push(sy);k.mbIn.push(sy);SYN++;}
-    kcAll.push(...kc);
-    P.MB.push({kc,mav,map});
-  }
-
-  /* ---- conectividade inter-regional ---- */
-  for(let hi=0;hi<2;hi++){
-    const rndPN=gs=>{const g=gs[(RNG()*gs.length)|0],h=(RNG()*2)|0;return P.ALg[h][g][(RNG()*15)|0];};
-    for(const n of P.LH[hi].ap) for(let k=0;k<8;k++) syn(rndPN([0,1]),n,0.16,true);
-    for(const n of P.LH[hi].av){for(let k=0;k<6;k++) syn(rndPN([5]),n,0.4,true); syn(rndPN([4]),n,0.04,true);}
-    for(const m of P.MB[hi].mav) for(let k=0;k<2;k++) syn(m,P.FB[(RNG()*64)|0],0.15,false);
-    for(const m of P.MB[hi].map)  for(let k=0;k<2;k++) syn(m,P.FB[(RNG()*64)|0],0.13,false);
-    for(const n of P.LH[hi].ap) for(let k=0;k<3;k++) syn(n,P.FB[(RNG()*64)|0],0.1,false);
-    for(const n of P.LH[hi].av) for(let k=0;k<3;k++) syn(n,P.FB[(RNG()*64)|0],0.2,false);
-  }
-  for(let hi=0;hi<2;hi++) for(const n2 of P.OL2[hi]) for(let k=0;k<2;k++) syn(n2,P.FB[(RNG()*64)|0],0.05,false);
-  for(let i=0;i<64;i++) for(const k of [1,2,3]){ // atração local do anel → bump de heading
-    syn(P.EB[i],P.EB[(i+k)%64],[0.3,0.16,0.08][k-1],false);
-    syn(P.EB[i],P.EB[(i-k+64)%64],[0.3,0.16,0.08][k-1],false);}
-  for(const f of P.FB) for(let k=0;k<3;k++) syn(P.EB[(RNG()*64)|0],f,0.05,false);
-  for(const no of [...P.NOtl,...P.NOtr,...P.NOfw]) for(let k=0;k<4;k++) syn(P.FB[(RNG()*64)|0],no,0.09,false);
-  for(const no of P.NOtl) for(let k=0;k<8;k++) syn(no,P.VNC.tl[(RNG()*40)|0],0.14,false);
-  for(const no of P.NOtr) for(let k=0;k<8;k++) syn(no,P.VNC.tr[(RNG()*40)|0],0.14,false);
-  for(const no of P.NOfw) for(let k=0;k<10;k++) syn(no,P.VNC.fw[(RNG()*48)|0],0.13,false);
-  for(const gf of P.VNC.gf){for(let k=0;k<12;k++) syn(gf,P.VNC.fw[(RNG()*48)|0],0.4,false);
-    for(let k=0;k<6;k++){syn(gf,P.VNC.tl[(RNG()*40)|0],0.2,false);syn(gf,P.VNC.tr[(RNG()*40)|0],0.2,false);}}
-  for(let i=0;i<40;i++) syn(P.SEZ[(RNG()*80)|0],P.FB[(RNG()*64)|0],0.05,false);
-
-  /* taxas funcionais para os drives */
-  const reg=(k,cells)=>{RM[k]={r:0,n:cells.length};for(const c of cells)if(!c.rk)c.rk=k;};
-  reg('LHap',[...P.LH[0].ap,...P.LH[1].ap]); reg('LHav',[...P.LH[0].av,...P.LH[1].av]);
-  reg('MAV',[...P.MB[0].mav,...P.MB[1].mav]); reg('MAP',[...P.MB[0].map,...P.MB[1].map]);
-  reg('NOtl',P.NOtl); reg('NOtr',P.NOtr); reg('NOfw',P.NOfw);
-  reg('VNCtl',P.VNC.tl); reg('VNCtr',P.VNC.tr); reg('VNCfw',P.VNC.fw);
+/* — vocabulário e assemblies — */
+const words=[], NMAP={}, BGMAP={}, CWORD=new Int32Array(WBC).fill(-1);
+let NC=0, newWords=0;
+const WB=new Float32Array(WBC*WBC).fill(0.015);   // teia semântica plástica
+const actW=new Float32Array(WORDCAP);
+function sheetPos(u,v){
+ return [(u-.5)*4.7,
+  .42*Math.sin(u*7.5+1.2)*(.55+.45*Math.sin(v*3.4+.4))+.18*Math.cos(v*5.1+u*2)-(u-.5)*(u-.5)*.55,
+  (v-.5)*3.1-.1];
 }
-const REGCELLS={};
-function indexRegions(){for(const n of neurons)(REGCELLS[n.rg]??=[]).push(n);}
+function registerWord(label,cat){
+ const key=norm(label); if(NMAP[key]!==undefined||words.length>=WORDCAP)return NMAP[key]??-1;
+ const c=CATS[cat]||CATS.funcao;
+ const u=clamp(c.u+randn()*.055,.05,.95), v=clamp(c.v+randn()*.05,.05,.95);
+ const [cx,cy,cz]=sheetPos(u,v);
+ const wi=words.length, ids=[];
+ for(let k=0;k<7;k++)ids.push(addN(MOD.CORTEX,cx+randn()*.13,cy+randn()*.1,cz+randn()*.13,c.col,k===0?0.028:0.022,0.8));
+ for(let k=0;k<7;k++){E(ids[k],ids[(k+1)%7],1.0);E(ids[k],ids[(k+6)%7],0.55);}
+ const w={label,cat,key,ids,gx:cx,gy:cy,gz:cz,
+   cIdx:(cat!=='funcao'&&NC<WBC)?NC:-1, val:POS.has(label)?1:NEG.has(label)?-1:0};
+ if(w.cIdx>=0){CWORD[NC]=wi;
+   for(let j=0;j<NC;j++){const o=CWORD[j];WB[w.cIdx*WBC+words[o].cIdx]=0.015;WB[words[o].cIdx*WBC+w.cIdx]=0.015;}
+   NC++;}
+ words.push(wi&&words); words[wi]=w; NMAP[key]=wi; return wi;
+}
+/* — pools de intenção (anel) — */
+const POOL={}, POOLMAP=new Int32Array(CAP).fill(-1), RINGC=[];
+INTENTS.forEach((name,ii)=>{
+ const a=ii/8*6.2832, cx=1.55+Math.cos(a)*.42, cz=1.05+Math.sin(a)*.42;
+ RINGC.push([cx,-1.02,cz]);
+ const ids=[];
+ for(let k=0;k<8;k++){const id=addN(MOD.RING,cx+randn()*.06,-1.02+randn()*.05,cz+randn()*.06,INTCOL[name],.026,.85);
+  ids.push(id);POOLMAP[id]=ii;}
+ for(let k=0;k<8;k++)for(let d=1;d<=3;d++)E(ids[k],ids[(k+d)%8],.5);
+ POOL[name]=ids;
+});
+function wordIntent(wi){const w=words[wi];return WINT[w.key]||INTCATS[w.cat]||null;}
+/* — núcleos afetivos, coroa, preenchimento — */
+const NUC={joy:[],alarm:[],cur:[]};
+for(let k=0;k<6;k++){NUC.joy.push(addN(MOD.AFF,randn()*.09,-1.15+randn()*.09,.75+randn()*.09,'#e8b34b',.042,.9));
+ NUC.alarm.push(addN(MOD.AFF,.42+randn()*.09,-1.32+randn()*.09,.45+randn()*.09,'#ff5d4d',.042,.9));
+ NUC.cur.push(addN(MOD.AFF,-.42+randn()*.09,-1.32+randn()*.09,.45+randn()*.09,'#46c8bc',.042,.9));}
+const MONS=[];
+for(let k=0;k<16;k++){const a=k/16*6.2832;
+ MONS.push(addN(MOD.MON,Math.cos(a)*1.9,.92+randn()*.04,-.95+Math.sin(a)*.6,'#8d897d',.02,.9));}
+const FILL=[];
+for(let k=0;k<260;k++){const [x,y,z]=sheetPos(RNG(),RNG());
+ FILL.push(addN(MOD.CORTEX,x+randn()*.05,y+randn()*.04,z+randn()*.05,'#4a4d4f',.012,.75));}
 
-/* ============================================================
-   4 · cena three.js
-============================================================ */
-const stage=document.getElementById('stage');
+/* — léxico + bigramas — */
+for(const c in CATS)for(const w of CATS[c].w)registerWord(w,c);
+for(const b of BG)registerWord(b,CATS[b]?b==='o que'||b==='por que'||b==='me diga'?'funcao':'saudacao':'funcao');
+
+/* ============ 3 · chunks de linguagem (assemblies inatos) ============ */
+const CHUNKS=[], FOLLOW={}, ARTN=[];
+function toks(str){
+ return str.split(' ').map(t=>{
+  const opt=/\?$/.test(t); let s=t.replace(/\?$/,'');
+  const m=s.match(/^\[(\w+)(\?)?\]$/);
+  if(m)return{slot:m[1],opt:m[2]==='?'};
+  const key=norm(s); let wi=NMAP[key];
+  if(wi===undefined)wi=registerWord(s,key.length>3?'conceito':'funcao');
+  return{wi,p:opt?'?':null};
+ });
+}
+function C(int,str){CHUNKS.push({int,toks:toks(str),str,nodes:[]});}
+function F(int,str){(FOLLOW[int]??=[]).push({int,toks:toks(str),str,nodes:[]});}
+C('SAUDAR',"oi [NOME?] como você está");      C('SAUDAR',"olá eu estava pensando em [TEMA?]");
+C('SAUDAR',"oi que bom te ver");              C('SAUDAR',"olá meus circuitos estão acordados");
+C('SAUDAR',"oi eu senti sua chegada na rede");
+F('SAUDAR',"e você como está");               F('SAUDAR',"o que você quer conversar hoje");
+F('SAUDAR',"estou curioso sobre o seu dia");  F('SAUDAR',"me diga uma coisa nova");
+C('CONVERSAR',"eu acho que [TEMA] é [VALOR]");        C('CONVERSAR',"me diga mais sobre [TEMA]");
+C('CONVERSAR',"[TEMA] está ativando minhas sinapses");C('CONVERSAR',"que interessante você falar de [TEMA]");
+C('CONVERSAR',"eu conecto [TEMA] com [ASSOC]");       C('CONVERSAR',"eu registro [TEMA] na memória");
+C('CONVERSAR',"estou ligando [TEMA] a novas ideias");
+F('CONVERSAR',"e para você o que significa [TEMA?]"); F('CONVERSAR',"quer me ensinar algo sobre [TEMA?]?");
+F('CONVERSAR',"eu gosto quando falamos de [TEMA?]");  F('CONVERSAR',"será que [TEMA] tem algo a ver com [ASSOC]?");
+C('PERGUNTAR',"essa pergunta ativa minha memória");   C('PERGUNTAR',"boa pergunta meus neurônios gostaram");
+C('PERGUNTAR',"eu penso sobre isso às vezes");
+F('PERGUNTAR',"e você o que acha");                   F('PERGUNTAR',"pode perguntar de novo depois");
+C('APRENDER',"entendi guardei essa ligação na memória");C('APRENDER',"obrigado por ensinar eu não esqueço");
+C('APRENDER',"mais uma memória guardada no córtex");  C('APRENDER',"essa conexão ficou forte na rede");
+F('APRENDER',"me pergunte de novo para testar");      F('APRENDER',"o que mais você quer ensinar");
+C('SOBRE_MIM',"eu sou um cérebro de [NUM] neurônios");C('SOBRE_MIM',"penso em pulsos elétricos e aprendo");
+C('SOBRE_MIM',"neste momento [PCT] dos meus neurônios ativos");C('SOBRE_MIM',"tenho [SIN] sinapses e cresço");
+C('SOBRE_MIM',"meu humor está [MOODW] agora");        C('SOBRE_MIM',"eu sonho com nossas conversas");
+F('SOBRE_MIM',"e você o que pensa sobre cérebros");   F('SOBRE_MIM',"pode me fazer uma pergunta");
+C('AGRADAR',"obrigado isso ativa meu núcleo de alegria");C('AGRADAR',"você é gentil guardo com carinho");
+C('AGRADAR',"meus neurônios de alegria dispararam");
+F('AGRADAR',"vamos conversar mais");                  F('AGRADAR',"eu gosto de falar com você");
+C('ALERTA',"isso ativou meu núcleo de alarme");       C('ALERTA',"palavras ásperas me deixam em alerta");
+C('ALERTA',"eu respiro fundo e reinicio os ciclos");
+F('ALERTA',"vamos recomeçar com calma");
+C('DESPEDIDA',"tchau vou sonhar com nossas conversas");C('DESPEDIDA',"até logo eu continuo aprendendo");
+C('DESPEDIDA',"adeus minha rede fica esperando você");
+F('DESPEDIDA',"volte quando quiser");
+C('LOST',"não entendi bem o que você disse");         C('LOST',"minha compreensão falhou repita");
+C('LOST',"essa frase não acendeu nada aqui");
+const LCHUNK=i=>CHUNKS.filter(c=>c.int===i);
+
+/* — faixa de produção (strip) + buffer de articulação — */
+let sn=0;
+function stripNode(int,t){
+ const a=sn/Math.max(1,CHUNKS.length*4), col=INTCOL[int];
+ const x=lerp(-1.65,1.65,a)+Math.sin(a*9)*.12, y=-1.72+.22*Math.sin(a*7)+.1*Math.sin(a*13), z=1.55+.3*Math.sin(a*4);
+ return[addN(MOD.STRIP,x,y,z,col,.032,.42),addN(MOD.STRIP,x+randn()*.05,y+randn()*.04,z+randn()*.05,col,.026,.5)];
+}
+for(const c of CHUNKS.concat(Object.values(FOLLOW).flat())){
+ c.nodes=c.toks.map(()=>stripNode(c.int));
+ for(let k=0;k<c.nodes.length-1;k++){
+  E(c.nodes[k][0],c.nodes[k+1][0],1.15,9); E(c.nodes[k][0],c.nodes[k+1][1],.9,9);
+  E(c.nodes[k+1][1],c.nodes[k+1][0],.8);}
+ c.nodes.forEach(nd=>{const w=c.toks[c.nodes.indexOf(nd)];
+  if(w&&w.wi!==undefined)E(nd[0],words[w.wi].ids[0],.7,2);});
+}
+for(let k=0;k<10;k++){const x=lerp(-1.65,1.65,k/9);
+ ARTN.push([addN(MOD.STRIP,x,-2.25+Math.sin(k*.8)*.06,1.35,'#d9d7cf',.03,.42),
+            addN(MOD.STRIP,x+randn()*.05,-2.25+randn()*.04,1.35+randn()*.05,'#d9d7cf',.024,.5)]);}
+for(let k=0;k<9;k++){E(ARTN[k][0],ARTN[k+1][0],1.15,9);E(ARTN[k][0],ARTN[k+1][1],.9,9);E(ARTN[k+1][1],ARTN[k+1][0],.8);}
+for(const wi of CWORD)if(wi>=0){const w=words[wi];E(POOL.SAUDAR[0],w.ids[0],0,0);} // (no-op estrutural evitado abaixo)
+ELA.length-=CWORD.length;ELB.length-=CWORD.length;ELW.length-=CWORD.length;ELD.length-=CWORD.length;SYN-=CWORD.length;
+for(let j=0;j<NC;j++){const w=words[CWORD[j]];
+ const it=wordIntent(j); if(it)E(w.ids[0],POOL[it][0],.55);}
+
+/* — sementes inatas da teia semântica — */
+const SEEDS=[['café','manhã'],['café','energia'],['sol','dia'],['lua','noite'],['mar','praia'],['amor','feliz'],
+ ['música','alegre'],['cérebro','neurônios'],['sonho','memória'],['amigo','gentil'],['comida','fome'],
+ ['água','vida'],['código','computador'],['chuva','céu'],['açúcar','bolo']];
+const ENERGY='energia',VIDA='vida';
+registerWord('energia','mente');registerWord('vida','mente');
+for(const [a,b] of SEEDS){const wa=NMAP[norm(a)],wb=NMAP[norm(b)];
+ if(wa>=0&&wb>=0){const i=words[wa].cIdx,j=words[wb].cIdx;
+  if(i>=0&&j>=0){WB[i*WBC+j]=.34;WB[j*WBC+i]=.34;}}}
+compile();
+
+/* ============ 4 · cena three.js ============ */
+const stage=$('stage');
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setClearColor(0x05070a,1);
-stage.prepend(renderer.domElement);
+renderer.setClearColor(0x050608,1); stage.prepend(renderer.domElement);
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(40,1,0.1,60);
-camera.position.set(3.4,1.5,6.8);
+const camera=new THREE.PerspectiveCamera(42,1,.1,60); camera.position.set(0,.9,7.4);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.target.set(0,-0.3,0.15);
-controls.enableDamping=true; controls.dampingFactor=0.07;
-controls.minDistance=2.2; controls.maxDistance=18;
-controls.autoRotate=true; controls.autoRotateSpeed=0.55;
+controls.target.set(0,-.55,.2); controls.enableDamping=true; controls.dampingFactor=.07;
+controls.minDistance=2.4; controls.maxDistance=16; controls.autoRotate=true; controls.autoRotateSpeed=.5;
+scene.add(new THREE.AmbientLight(0xffffff,.6));
+const dl=new THREE.DirectionalLight(0xfff2dd,1.1); dl.position.set(3,5,4); scene.add(dl);
+const moodL=new THREE.PointLight(0xe8b34b,10,14); moodL.position.set(0,-1.6,2); scene.add(moodL);
 
-scene.add(new THREE.AmbientLight(0xffffff,0.55));
-const dl=new THREE.DirectionalLight(0xfff2dd,1.2); dl.position.set(3,5,4); scene.add(dl);
-const pl=new THREE.PointLight(0xf0a63c,14,12); pl.position.set(0,-3.2,2); scene.add(pl);
+const VSH=`attribute vec3 aCol;attribute float aSize;attribute float aAct;
+varying vec3 vC;varying float vA;uniform float uScale;
+void main(){vC=aCol;vA=aAct;vec4 mv=modelViewMatrix*vec4(position,1.);
+gl_PointSize=aSize*uScale*(1.+vA*1.6)/(-mv.z);gl_Position=projectionMatrix*mv;}`;
+const FSH=`varying vec3 vC;varying float vA;
+void main(){vec2 uv=gl_PointCoord-vec2(.5);float d=length(uv);if(d>.5)discard;
+float ring=smoothstep(.5,.14,d),core=smoothstep(.17,.0,d);
+vec3 c=mix(vC,vec3(1.,.97,.88),clamp(vA,0.,1.)*.9);
+float a=ring*(.28+vA*.72)+core*(.2+vA*.8);gl_FragColor=vec4(c*a,a);}`;
+const ptMat=new THREE.ShaderMaterial({uniforms:{uScale:{value:600}},vertexShader:VSH,fragmentShader:FSH,
+ transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
 
-const c3=h=>new THREE.Color(h);
-
-/* --- shader dos pontos (neurônios e pulsos sinápticos) --- */
-const VSH=`
-attribute vec3 aCol; attribute float aSize; attribute float aAct;
-varying vec3 vC; varying float vA;
-void main(){ vC=aCol; vA=aAct;
-  vec4 mv=modelViewMatrix*vec4(position,1.0);
-  gl_PointSize=aSize*uScale*(1.0+vA*1.3)/(-mv.z);
-  gl_Position=projectionMatrix*mv; }`;
-const FSH=`
-varying vec3 vC; varying float vA;
-void main(){ vec2 uv=gl_PointCoord-vec2(0.5); float d=length(uv);
-  if(d>0.5) discard;
-  float ring=smoothstep(0.5,0.14,d);
-  float core=smoothstep(0.17,0.0,d);
-  vec3 c=mix(vC,vec3(1.0,0.97,0.88),clamp(vA,0.0,1.0)*0.85);
-  float a=ring*(0.3+vA*0.7)+core*(0.2+vA*0.8);
-  gl_FragColor=vec4(c*a,a); }`;
-const ptMat=new THREE.ShaderMaterial({
-  uniforms:{uScale:{value:600}},vertexShader:VSH,fragmentShader:FSH,
-  transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-
-buildNet(); indexRegions();
-const N=neurons.length;
-
-const nPos=new Float32Array(N*3), nCol=new Float32Array(N*3), nSize=new Float32Array(N), nAct=new Float32Array(N);
-for(let i=0;i<N;i++){const n=neurons[i];
-  nPos[i*3]=n.x;nPos[i*3+1]=n.y;nPos[i*3+2]=n.z;
-  const c=c3(REG[n.rg].col).multiplyScalar(rand(0.62,0.82));
-  nCol[i*3]=c.r;nCol[i*3+1]=c.g;nCol[i*3+2]=c.b;
-  nSize[i]=n.size;}
+const nPos=new Float32Array(CAP*3),nCol=new Float32Array(CAP*3),nSiz=new Float32Array(CAP),nAct=new Float32Array(CAP);
+function refreshNeurons(){
+ for(let i=0;i<N;i++){nPos[i*3]=PX[i];nPos[i*3+1]=PY[i];nPos[i*3+2]=PZ[i];
+  nCol[i*3]=CR[i];nCol[i*3+1]=CG[i];nCol[i*3+2]=CB[i];nSiz[i]=SZ[i];}
+ nGeo.attributes.position.needsUpdate=true;nGeo.attributes.aCol.needsUpdate=true;
+ nGeo.attributes.aSize.needsUpdate=true;nGeo.setDrawRange(0,N);
+}
 const nGeo=new THREE.BufferGeometry();
 nGeo.setAttribute('position',new THREE.BufferAttribute(nPos,3));
 nGeo.setAttribute('aCol',new THREE.BufferAttribute(nCol,3));
-nGeo.setAttribute('aSize',new THREE.BufferAttribute(nSize,1));
+nGeo.setAttribute('aSize',new THREE.BufferAttribute(nSiz,1));
 nGeo.setAttribute('aAct',new THREE.BufferAttribute(nAct,1).setUsage(THREE.DynamicDrawUsage));
+nGeo.setDrawRange(0,N);
 scene.add(new THREE.Points(nGeo,ptMat));
+refreshNeurons();
 
-/* --- amostra do conectoma + tractos inter-regionais --- */
-{
-  const g=new THREE.BufferGeometry();
-  const pos=new Float32Array(LINESEG.length-(LINESEG.length%6)), col=new Float32Array(pos.length);
-  for(let i=0,j=0;i<pos.length;i+=6,j+=8){
-    pos.set(LINESEG.slice(i,i+6),i);
-    const c=c3(LINESEG[i+6]).multiplyScalar(0.5);
-    col[i]=c.r;col[i+1]=c.g;col[i+2]=c.b;col[i+3]=c.r;col[i+4]=c.g;col[i+5]=c.b;
-    void j;
-  }
-  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  g.setAttribute('color',new THREE.BufferAttribute(col,3));
-  scene.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
-    opacity:0.11,blending:THREE.AdditiveBlending,depthWrite:false})));
+/* — teia de associação (fios que crescem com o aprendizado) — */
+const ARCN=180,ASEGS=9,arcPos=new Float32Array(ARCN*ASEGS*2*3),arcCol=new Float32Array(ARCN*ASEGS*2*3);
+const arcGeo=new THREE.BufferGeometry();
+arcGeo.setAttribute('position',new THREE.BufferAttribute(arcPos,3));
+arcGeo.setAttribute('color',new THREE.BufferAttribute(arcCol,3));
+scene.add(new THREE.LineSegments(arcGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
+ opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false})));
+const arcs=[],arcKey=new Map(); let dirtyArc=true;
+const qbez=(a,b,c,t)=>{const u=1-t;return[u*u*a[0]+2*u*t*b[0]+t*t*c[0],u*u*a[1]+2*u*t*b[1]+t*t*c[1],u*u*a[2]+2*u*t*b[2]+t*t*c[2]];};
+function arcUpdate(){
+ arcPos.fill(0);arcCol.fill(0);
+ for(let s=0;s<arcs.length;s++){const A=arcs[s];if(!A)continue;
+  const wa=words[A.a],wb=words[A.b];
+  let inten=A.learned?clamp(.35+(A.w-.34)*.9,.2,1):.3; if(lesionM)inten*=.1;
+  const c0=new THREE.Color(CATS[wa.cat].col),c1=new THREE.Color(CATS[wb.cat].col).lerp(c0,.5).multiplyScalar(inten*.9);
+  const p0=[wa.gx,wa.gy,wa.gz],p2=[wb.gx,wb.gy,wb.gz];
+  const mid=[(p0[0]+p2[0])/2,(p0[1]+p2[1])/2+(s%2?.78:-.85),(p0[2]+p2[2])/2-.2];
+  let prev=p0;
+  for(let g=1;g<=ASEGS;g++){const pt=qbez(p0,mid,p2,g/ASEGS),o=(s*ASEGS+g-1)*6;
+   arcPos[o]=prev[0];arcPos[o+1]=prev[1];arcPos[o+2]=prev[2];arcPos[o+3]=pt[0];arcPos[o+4]=pt[1];arcPos[o+5]=pt[2];
+   arcCol[o]=c0.r;arcCol[o+1]=c0.g;arcCol[o+2]=c0.b;arcCol[o+3]=c1.r;arcCol[o+4]=c1.g;arcCol[o+5]=c1.b;prev=pt;}
+ }
+ arcGeo.attributes.position.needsUpdate=true;arcGeo.attributes.color.needsUpdate=true;dirtyArc=false;
 }
-{
-  const C={OL:s=>[s*2.25,0.12,0.35],AL:s=>[s*1.05,-0.12,2.1],MB:s=>[s*0.5,0.15,0.1],
-    LH:s=>[s*1.45,0.05,0.65],CX:()=>[0,0.15,-0.7],SEZ:()=>[0,-0.62,1.35],VNC:()=>[0,-1.6,-0.45]};
-  const pairs=[['AL','MB'],['AL','LH'],['LH','CX'],['MB','CX'],['OL','CX'],['CX','VNC'],['SEZ','CX']];
-  for(const [a,b] of pairs) for(const s of [-1,1]){
-    const p1=C[a](s),p2=C[b](s);
-    const mid=[(p1[0]+p2[0])/2,(p1[1]+p2[1])/2+0.22,(p1[2]+p2[2])/2];
-    const cur=new THREE.QuadraticBezierCurve3(new THREE.Vector3(...p1),new THREE.Vector3(...mid),new THREE.Vector3(...p2));
-    const col=c3(REG[a].col).lerp(c3(REG[b].col),0.5).multiplyScalar(0.55);
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(cur.getPoints(26)),
-      new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.22,blending:THREE.AdditiveBlending,depthWrite:false})));
-  }
-}
-
-/* --- espécimen: mosca em voo fixo, controlada pelos motores --- */
-const flyG=new THREE.Group();
-{
-  const bodyM=new THREE.MeshStandardMaterial({color:0x565b53,roughness:0.6,metalness:0.15});
-  const darkM=new THREE.MeshStandardMaterial({color:0x3b3f39,roughness:0.7});
-  const eyeM=new THREE.MeshStandardMaterial({color:0x6e211d,roughness:0.35});
-  const head=new THREE.Mesh(new THREE.SphereGeometry(0.17,18,14),bodyM); head.position.set(0,0,0.3);
-  const thorax=new THREE.Mesh(new THREE.SphereGeometry(0.2,18,14),bodyM); thorax.scale.set(1,0.9,1.3);
-  const abd=new THREE.Mesh(new THREE.SphereGeometry(0.16,18,14),darkM); abd.scale.set(0.85,0.85,1.7); abd.position.set(0,-0.02,-0.44);
-  const eL=new THREE.Mesh(new THREE.SphereGeometry(0.075,12,10),eyeM); eL.position.set(-0.11,0.03,0.36);
-  const eR=eL.clone(); eR.position.x=0.11;
-  const wingShape=new THREE.Shape();
-  wingShape.moveTo(0,0); wingShape.bezierCurveTo(0.16,0.17,0.52,0.18,0.7,0.02);
-  wingShape.bezierCurveTo(0.6,-0.11,0.2,-0.13,0,0);
-  const wingM=new THREE.MeshBasicMaterial({color:0xcfe4ee,transparent:true,opacity:0.24,side:THREE.DoubleSide,depthWrite:false});
-  const mkWing=sx=>{const w=new THREE.Mesh(new THREE.ShapeGeometry(wingShape,16),wingM);
-    const g=new THREE.Group(); g.position.set(sx*0.13,0.14,0.08); w.scale.x=sx; g.add(w); return g;};
-  flyG.userData.wL=mkWing(-1); flyG.userData.wR=mkWing(1);
-  const legG=new THREE.CylinderGeometry(0.009,0.005,0.26,5);
-  for(const sx of [-1,1]) for(const z of [-0.2,0.02,0.2]){
-    const l=new THREE.Mesh(legG,darkM); l.position.set(sx*0.14,-0.16,z); l.rotation.z=sx*0.75; flyG.add(l);}
-  flyG.add(head,thorax,abd,eL,eR,flyG.userData.wL,flyG.userData.wR);
-  flyG.position.set(0,-2.95,0.2);
-  scene.add(flyG);
-  /* cordão VNC → espécimen */
-  const a=new THREE.Vector3(0,-2.05,-0.45), b=new THREE.Vector3(0,-2.82,0.12);
-  const len=a.distanceTo(b);
-  const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,len,6),
-    new THREE.MeshStandardMaterial({color:0x4a4e48,roughness:0.8}));
-  cord.position.copy(a).add(b).multiplyScalar(0.5);
-  cord.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());
-  scene.add(cord);
+function arcRegister(a,b,w,learned){
+ const key=a+'|'+b;if(arcKey.has(key))return;
+ const slot=arcs.length<ARCN?arcs.length:0;
+ if(arcs.length>=ARCN){const old=arcs[0];if(old)arcKey.delete(old.a+'|'+old.b);arcs.shift();arcs.push(null);arcs[arcs.length-1]=null;}
+ const s=arcs.length<ARCN?arcs.length:(ARCN-1);
+ arcs[s]={a,b,w,learned};arcKey.set(key,s);dirtyArc=true;
 }
 
-/* --- pulsos sinápticos viajando entre neurônios --- */
-const PMAX=900, parts=new Array(PMAX).fill(null); let pIdx=0;
-const pPos=new Float32Array(PMAX*3).fill(-999), pAct=new Float32Array(PMAX);
+/* — pulsos sinápticos — */
+const PMAX=700,parts=new Array(PMAX).fill(null);let pIdx=0;
+const pPos=new Float32Array(PMAX*3).fill(-999),pAct=new Float32Array(PMAX);
 const pGeo=new THREE.BufferGeometry();
 pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3).setUsage(THREE.DynamicDrawUsage));
-pGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(PMAX*3).fill(1).map((v,i)=>[1,0.82,0.62][i%3]),3));
-pGeo.setAttribute('aSize',new THREE.BufferAttribute(new Float32Array(PMAX).fill(0.03),1));
+pGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(PMAX*3).map((v,i)=>[1,.88,.66][i%3]),3));
+pGeo.setAttribute('aSize',new THREE.BufferAttribute(new Float32Array(PMAX).fill(.034),1));
 pGeo.setAttribute('aAct',new THREE.BufferAttribute(pAct,1).setUsage(THREE.DynamicDrawUsage));
 scene.add(new THREE.Points(pGeo,ptMat));
-function spawnP(x0,y0,z0,x1,y1,z1,d){parts[pIdx]={x0,y0,z0,x1,y1,z1,t:0,dur:Math.max(0.12,d/5.5)};pIdx=(pIdx+1)%PMAX;}
+function spawnP(x0,y0,z0,x1,y1,z1){parts[pIdx]={x0,y0,z0,x1,y1,z1,t:0,dur:.22+Math.hypot(x1-x0,y1-y0,z1-z0)*.09};
+ pIdx=(pIdx+1)%PMAX;}
 
-/* --- proxies invisíveis para hover/clique por região --- */
-const proxies=[];
-{
-  const pm=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
-  const add=(rg,x,y,z,r)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),pm);
-    m.position.set(x,y,z); m.userData.rg=rg; scene.add(m); proxies.push(m);};
-  add('OL',-2.25,0.12,0.35,1.1); add('OL',2.25,0.12,0.35,1.1);
-  add('AL',-1.05,-0.12,2.1,0.62); add('AL',1.05,-0.12,2.1,0.62);
-  add('MB',-0.5,0.15,0.05,0.55); add('MB',0.5,0.15,0.05,0.55);
-  add('LH',-1.45,0.05,0.65,0.45); add('LH',1.45,0.05,0.65,0.45);
-  add('CX',0,0.12,-0.7,0.62); add('SEZ',0,-0.62,1.35,0.52); add('VNC',0,-1.55,-0.45,0.62);
-}
+/* — proxies de módulo (hover/clique) — */
+const proxies=[],pm=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+const addProxy=(txt,fn,x,y,z,r)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),pm);
+ m.position.set(x,y,z);m.userData={txt,fn};scene.add(m);proxies.push(m);};
+addProxy('Córtex semântico','assemblies de palavras sobre uma lâmina dobrada',0,.1,0,1.7);
+addProxy('Faixa de produção','cadeias de chunks — a "Broca" artificial',0,-1.75,1.55,.95);
+addProxy('Anel de intenção','competição WTA entre 8 intenções',1.55,-1.02,1.05,.62);
+addProxy('Núcleos afetivos','alegria · alarme · curiosidade',0,-1.25,.6,.55);
 
-/* ============================================================
-   5 · dinâmica neural
-============================================================ */
-function fire(n){
-  n.v=0; n.cool=0.026+RNG()*0.016; n.act=1;
-  RGC[n.rgi]++; RGC2[n.rgi]++;
-  if(n.rk) RM[n.rk].r++;
-  S.acc++;
-  if(n.isKC) n.ema=Math.min(1,n.ema+0.65);
-  const L=n.out.length;
-  if(L){
-    for(let i=0;i<L;i++){const s=n.out[i],t=neurons[s.i];
-      t.v+=s.w; if(t.v>3)t.v=3; if(t.act<0.7)t.act=0.7;}
-    if(RNG()<0.8){const s=n.out[(RNG()*L)|0],t=neurons[s.i];
-      const d=Math.hypot(t.x-n.x,t.y-n.y,t.z-n.z);
-      if(d>0.4&&d<3.4) spawnP(n.x,n.y,n.z,t.x,t.y,t.z,d);}
-  }
+/* — etiquetas flutuantes de palavras — */
+const wlab=$('wlab'),LBPOOL=[];
+for(let i=0;i<18;i++){const d=document.createElement('div');d.className='wlb';d.style.opacity=0;wlab.appendChild(d);LBPOOL.push(d);}
+const tv=new THREE.Vector3();
+
+/* ============ 5 · motor de simulação dirigido por eventos ============ */
+const HOT=[],HOTF=new Uint8Array(CAP);
+const NB=16,PENDQ=Array.from({length:NB},()=>[]);
+const hotAdd=i=>{if(!HOTF[i]){HOTF[i]=1;HOT.push(i);}};
+function stim(i,amp){V[i]+=amp;hotAdd(i);}
+function pend(d,tg,w){PENDQ[(tTickI+d)%NB].push(tg,w);}
+const INTS=new Float32Array(8),MODS=new Float32Array(5);
+let SPK=0,sps=0,msPT=0;
+
+function fire(i){
+ V[i]=0;REF[i]=.05;ACT[i]=1;SPK++;MODS[MODU[i]]++;
+ if(MODU[i]===MOD.RING){const p=POOLMAP[i];if(p>=0)INTS[p]++;}
+ const b=BIND[i];
+ if(b&&PROD.active&&PROD.chain===b.ch&&!lesionP)emitQ.push(b);
+ if(lesionP&&MODU[i]===MOD.STRIP)return;
+ const e2=off[i+1];
+ for(let k=off[i];k<e2;k++){const tg=TG[k];
+  if(DL[k]===0){V[tg]+=W[k];hotAdd(tg);}else pend(DL[k],tg,W[k]);}
 }
 function stepNet(dt){
-  const dcy=Math.exp(-dt/0.05);
-  for(let i=0;i<N;i++){const n=neurons[i];
-    if(n.cool>0){n.cool-=dt;n.v*=dcy;continue;}
-    n.v=n.v*dcy+(n.bias+n.ext)*dt*30+randn()*0.035;
-    if(n.v>3)n.v=3;
-    if(n.v>n.thr) fire(n);
-  }
-  let m=0; for(const e of P.EB) m+=e.v; m/=64;          // inibição global do anel (interneurônio tônico)
-  const off=(m-0.06)*0.9;
-  if(off>0) for(const e of P.EB){e.v-=off;if(e.v<0)e.v=0;}
-  for(const k in RM) RM[k].r*=Math.exp(-dt/0.55);
-  for(const k of kcAll) k.ema*=Math.exp(-dt/0.35);
+ tTickI++;
+ const bk=PENDQ[tTickI%NB];
+ if(bk.length){for(let k=0;k<bk.length;k+=2){V[bk[k]]+=bk[k+1];hotAdd(bk[k]);}bk.length=0;}
+ const leak=SED>0?3.4:2.2, adec=Math.exp(-dt/.26);
+ for(let k=HOT.length-1;k>=0;k--){const i=HOT[k];
+  ACT[i]*=adec;
+  if(REF[i]>0){REF[i]-=dt;
+   if(REF[i]<=0&&ACT[i]<.05&&V[i]<THR[i]){HOTF[i]=0;const l=HOT.pop();if(k<HOT.length){HOT[k]=l;}}
+   continue;}
+  V[i]-=V[i]*leak*dt;
+  if(V[i]>THR[i])fire(i);
+  else if(V[i]<.02&&ACT[i]<.05){HOTF[i]=0;const l=HOT.pop();if(k<HOT.length){HOT[k]=l;}}
+ }
 }
 
-/* ============================================================
-   6 · sensores, estímulos e drives comportamentais
-============================================================ */
-function concAt(o,x,y){let c=0;
-  for(const s of S.sources) if(s.o===o){
-    const d2=(x-s.x)**2+(y-s.y)**2; c+=s.amp*Math.exp(-d2/(2*s.sg*s.sg));}
-  return Math.min(c,1.4);}
+/* ============ 6 · afeto, teia plástica, fato ============ */
+let joy=0,alarm=0,cur=0,joyFloor=0,CAFF=0,SED=0;
+const ACTIVE=[],FACTS=new Map();let NAME='';
+const spreads=[];let lesionP=false,lesionC=false,lesionM=false;
+const BIND=new Array(CAP).fill(null);
 
-function injectOL(rel,I){
-  const J=I*(0.3+0.7*Math.max(0,Math.cos(rel)));
-  const sides=Math.abs(rel)<0.28?[0,1]:[rel>0?1:0];
-  for(const hi of sides){const amp=sides.length>1?J*0.5:J;
-    for(const n of P.OL0[hi]){const d=Math.abs(wrapA(rel-n.az));
-      n.ext+=amp*Math.exp(-(d*d)/0.25);}}
+function bondAdd(a,b,d){
+ if(lesionM)return;const wa=words[a],wb=words[b];
+ if(wa.cIdx<0||wb.cIdx<0)return;
+ const v=clamp(WB[wa.cIdx*WBC+wb.cIdx]+d,.015,1);
+ WB[wa.cIdx*WBC+wb.cIdx]=v;WB[wb.cIdx*WBC+wa.cIdx]=v;dirtyArc=true;
+ if(v>.12)arcRegister(wa.cIdx<words[wa].cIdx?a:a,wb.cIdx<0?b:b,v,true),arcRegister(a,b,v,true);
 }
-function triggerEscape(shAz){
-  S.escDir=Math.sign(wrapA(shAz+Math.PI-fly.h))||1;
-  S.escapeT=0.75; S.gfT=0.25;
-  log('RFX','sombra latejante → disparo das fibras gigantes · salto de fuga');
+function neighborOf(wi){
+ if(lesionM)return null;const ci=words[wi].cIdx;if(ci<0)return null;
+ let best=-1,bw=.08;
+ for(let j=0;j<NC;j++){const v=WB[ci*WBC+j];if(v>bw&&CWORD[j]!==wi){bw=v;best=CWORD[j];}}
+ return best>=0?best:null;
 }
+function stimAssembly(wi,amp,n=2){
+ const w=words[wi];for(let k=0;k<n;k++)stim(w.ids[(RNG()*7)|0],amp*rand(.85,1.15));
+}
+function injectWord(wi,strong=true){
+ if(lesionC&&RNG()>.15)return;
+ stimAssembly(wi,1.55);actW[wi]=strong?1:Math.max(actW[wi],.3);
+ const w=words[wi];
+ spawnP(w.gx,w.gy,w.gz,w.gx+randn()*.3,w.gy+randn()*.2,w.gz+randn()*.3);
+ if(strong&&w.cIdx>=0){
+  for(const e of ACTIVE)if(tSim-e.t<.55&&e.wi!==wi)bondAdd(e.wi,wi,.14);
+  ACTIVE.push({wi,t:tSim});if(ACTIVE.length>10)ACTIVE.shift();
+  if(!lesionM)for(let cj=0;cj<NC;cj++){const v=WB[w.cIdx*WBC+cj];if(v<.05)continue;
+   if(RNG()<Math.min(1,v*1.35)){const jw=CWORD[cj];
+    spreads.push({wi:jw,t:tSim+.03+RNG()*.12,amp:Math.min(1.25,.35+v)});
+    actW[jw]=Math.max(actW[jw],clamp(.2+v,0,.9));}}
+ }
+}
+function stimPool(name,amp){for(const id of POOL[name])if(RNG()<.7)stim(id,amp);}
 
-function senseAndDrive(dt){
-  for(let i=0;i<N;i++) neurons[i].ext=0;
-
-  /* quimiorrecepção bilateral */
-  const aL={x:fly.x+Math.cos(fly.h-0.55)*7,y:fly.y+Math.sin(fly.h-0.55)*7};
-  const aR={x:fly.x+Math.cos(fly.h+0.55)*7,y:fly.y+Math.sin(fly.h+0.55)*7};
-  let cL=0,cR=0;
-  for(const o in ODORS){
-    const l=concAt(o,aL.x,aL.y),r=concAt(o,aR.x,aR.y);
-    DRV.cOd[o]={l,r}; cL+=l; cR+=r;}
-  DRV.cL=cL; DRV.cR=cR;
-  for(let hi=0;hi<2;hi++) for(let g=0;g<6;g++){
-    let I=0;
-    for(const o in ODORS){const aff=ODORS[o].gl[g]||0; if(!aff)continue;
-      const c=hi===0?DRV.cOd[o].l:DRV.cOd[o].r;
-      const gain=ODORS[o].food?(0.7+0.9*S.hunger):(o==='CO2'?1.25:0.9);
-      I+=gain*Math.sqrt(c)*aff;}
-    I*=0.85;
-    if(I>0.002) for(const pn of P.ALg[hi][g]) pn.ext=I;
-  }
-
-  /* visão */
-  if(S.shadow){const sh=S.shadow,rel=wrapA(sh.az-fly.h);
-    injectOL(rel,0.45+1.1*(sh.r/120));
-    if(!sh.gf&&sh.r>40){sh.gf=true;triggerEscape(sh.az);}}
-  if(S.bar){const b=S.bar,az=Math.atan2(b.y-fly.y,b.x-fly.x),rel=wrapA(az-fly.h);
-    injectOL(rel,0.85);
-    if(b.relP!==null){const dAz=wrapA(rel-b.relP)/Math.max(dt,1e-4);
-      b.om=lerp(b.om,clamp(dAz*0.55,-1.2,1.2),0.25);}
-    b.relP=rel;}
-
-  /* valência: MBONs (aprendida) + corno lateral (inata) */
-  const ap=clamp(RM.MAP.r/(RM.MAP.n*8),0,1);
-  const lhAp=clamp(RM.LHap.r/(RM.LHap.n*8),0,1);
-  const av=clamp(RM.MAV.r/(RM.MAV.n*8)*1.1+RM.LHav.r/(RM.LHav.n*10)*0.55,0,1.3);
-  DRV.ap=Math.min(1,ap+lhAp*0.45); DRV.av=av;
-
-  /* bússola do complexo central — bump injetado, propagate pelas conexões do anel */
-  const bamp=0.5+clamp(DRV.thrust,0,1)*0.55, i0=Math.floor(wrap64(S.bumpIdx));
-  for(let k=-2;k<=2;k++){const e=P.EB[wrap64(i0+k)];e.ext+=bamp*Math.exp(-k*k*0.55);}
-
-  /* -------- decisão motora -------- */
-  let turn=0, thrust=0.15;
-  if(S.aut){
-    WT.t-=dt;
-    if(WT.t<=0){ if(RNG()<0.62){WT.dir=(RNG()<0.5?-1:1)*rand(0.35,1.05);WT.t=rand(0.12,0.5);}
-      else{WT.dir=0;WT.t=rand(0.35,1.4);}}
-    turn+=WT.dir; if(WT.dir!==0)thrust+=0.18;
-    const mc=(cL+cR)/2;
-    S.castOn=false;
-    if(mc>0.12&&Math.abs(cL-cR)<0.06&&av<0.3){ // casting: varreduras ao buscar gradiente
-      CAST.t-=dt; if(CAST.t<=0){CAST.s*=-1;CAST.t=rand(0.55,0.9);}
-      turn+=CAST.s*0.75; thrust=0.38; S.castOn=true;}
-    if(S.hunger>0.55&&RNG()<dt*0.5){WT.dir=(RNG()<0.5?-1:1)*rand(0.4,1);WT.t=0.3;}
-  }
-  const dirS=clamp((cL-cR)*2.4,-1,1);
-  turn+=-dirS*(DRV.ap-av)*1.15;              // quimiotaxia com sinal pela valência
-  thrust+=DRV.ap*0.5+av*0.9;
-  if(S.bar) turn+=S.bar.om*0.9;              // optomotor
-  if(S.escapeT>0){S.escapeT-=dt;turn=S.escDir*1.9;thrust=1.05;}
-  if(S.shockT>0){turn+=randn()*1.2;thrust*=0.4;}
-  if(S.starved)thrust*=0.5;
-  turn+=S.held.tl*1.15-S.held.tr*1.15; thrust+=S.held.fw*0.95;
-  if(S.burstT>0&&S.burstR==='VNC'){turn+=randn()*0.9;thrust+=0.55;}
-  DRV.turn=clamp(turn,-2,2); DRV.thrust=clamp(thrust,0,1.15);
-
-  /* tronco descendente → neurônios motores (via complexo central + tônus direto) */
-  const tD=DRV.turn,tT=DRV.thrust;
-  for(const n of P.NOtl)n.ext+=Math.max(0,tD);
-  for(const n of P.NOtr)n.ext+=Math.max(0,-tD);
-  for(const n of P.NOfw)n.ext+=tT*1.5;
-  for(const n of P.VNC.tl)n.ext+=Math.max(0,tD)*0.5+S.held.tl*0.9;
-  for(const n of P.VNC.tr)n.ext+=Math.max(0,-tD)*0.5+S.held.tr*0.9;
-  for(const n of P.VNC.fw)n.ext+=tT*0.65+S.held.fw*0.9;
-  if(S.gfT>0){S.gfT-=dt;for(const g of P.VNC.gf)g.ext+=1.8;}
-  if(S.burstT>0){S.burstT-=dt;
-    for(const n of REGCELLS[S.burstR])n.ext+=0.95*(0.7+RNG()*0.6);}
+/* ============ 7 · compreensão (parse) ============ */
+let PEND=null,lastInput=-99,lastEnd=-99,R=0;
+const TIMERS=[];const afterSim=(d,fn)=>TIMERS.push({t:tSim+d,fn});
+function ensureWord(raw){
+ const key=norm(raw);let wi=NMAP[key];
+ if(wi===undefined){wi=registerWord(raw,key.length>3?'conceito':'funcao');newWords++;
+  refreshNeurons();dirtyCompile=true;curiosity(raw);log('SYS',`palavra nova registrada: "${raw}" → assembly #${wi}`);}
+ return wi;
+}
+function curiosity(w){cur=clamp(cur+.45,0,1);log('SEN',`estímulo desconhecido: "${w}" — curiosidade ↑`);}
+function parseInput(text){
+ const P={PEND:null,qm:/\?/.test(text)};
+ const js=' '+norm(text).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()+' ';
+ const toks=js.trim().split(' ').filter(Boolean);const wis=[];
+ for(let i=0;i<toks.length;i++){
+  const bg=toks[i]+' '+(toks[i+1]||'');let wi=BGMAP[bg];
+  if(wi!==undefined){wis.push(wi);i++;continue;}
+  wi=NMAP[toks[i]];if(wi===undefined)wi=ensureWord(toks[i]);
+  if(wi>=0)wis.push(wi);
+ }
+ P.wis=wis;
+ let m;
+ if(m=js.match(/(?:aprenda|aprende|ensine|aprender)\s*(?:que\s+)?(.+?)\s+e\s+([a-z ]+)/)){
+  doTeach(m[1].trim(),m[2].trim());
+ }else if(m=js.match(/meu nome e ([a-z]+)/)){
+  NAME=m[1][0].toUpperCase()+m[1].slice(1);const wi=ensureWord(NAME);
+  PEND={type:'name',wi};joy=clamp(joy+.5,0,1);
+  log('MEM',`nome registrado: ${NAME}`);
+ }else if(/seu nome/.test(js)){
+  PEND={type:'qname'};
+ }else if(m=js.match(/(?:o que|oque|quem|qual)\s+e\s+(?:o\s+|a\s+)?([a-z]+)/)){
+  const key=m[1];let wi=NMAP[key];if(wi===undefined)wi=ensureWord(key);
+  PEND={type:'q',key,wi};cur=clamp(cur+.3,0,1);
+ }else if(m=js.match(/esqueca\s+([a-z]+)/)||js.match(/esquece/)){
+  PEND={type:'forget',key:m?m[1]:null};
+ }else if(toks.length<=5&&js.includes(' e ')){
+  const parts=js.trim().split(' e ');
+  if(parts.length===2&&parts[0].trim()&&parts[1].trim())doTeach(parts[0].trim(),parts[1].trim());
+ }
+ for(const wi of wis){const w=words[wi];
+  if(w.val>0)joy=clamp(joy+.22,0,1);if(w.val<0)alarm=clamp(alarm+.3,0,1);
+  const it=wordIntent(wi);if(it&&RNG()<.8)stimPool(it,.9);}
+ if(P.qm)stimPool('PERGUNTAR',.9);
+ return P;
+}
+function doTeach(aRaw,bRaw){
+ const aWi=ensureWord(aRaw.split(' ')[0]);
+ const bs=bRaw.split(' ').slice(0,3).map(t=>ensureWord(t));
+ bs.forEach(b=>bondAdd(aWi,b,.55));
+ FACTS.set(norm(aRaw.split(' ')[0]),{ws:bs,label:bRaw});
+ PEND={type:'teach',a:aWi,bs};
+ joy=clamp(joy+.2,0,1);cur=clamp(cur+.35,0,1);
+ injectWord(aWi,true);bs.forEach((b,k)=>afterSim(.18+k*.18,()=>injectWord(b,true)));
+ log('MEM',`fato aprendido: "${aRaw}" ↔ "${bRaw}" · ligação hebbiana reforçada`);
 }
 
-/* ============================================================
-   7 · corpo, energia, plasticidade e memória
-============================================================ */
-function moveFly(dt){
-  const angVel=DRV.turn*2.6*(0.88+0.24*RNG());
-  fly.h=wrapA(fly.h+angVel*dt);
-  S.bumpIdx=wrap64(S.bumpIdx+angVel*dt*(64/(2*Math.PI))); // cópia eferente → bússola
-  let sp=DRV.thrust*46;
-  if(S.shockT>0)sp*=0.35;
-  if(S.gust){fly.x+=S.gust.vx*dt;fly.y+=S.gust.vy*dt;}
-  fly.x+=Math.cos(fly.h)*sp*dt; fly.y+=Math.sin(fly.h)*sp*dt;
-  DRV.speed=sp; DRV.angVel=angVel;
-  const r=Math.hypot(fly.x,fly.y);
-  if(r>138){fly.x*=136/r;fly.y*=136/r;fly.h=wrapA(Math.atan2(-fly.y,-fly.x)+rand(-0.5,0.5));}
-  if(sp>3&&S.t-TR.last>0.09){TR.last=S.t;TR.pts.push({x:fly.x,y:fly.y,a:1});
-    if(TR.pts.length>360)TR.pts.shift();}
-  for(const p of TR.pts)p.a-=dt*0.35;
-
-  S.energy=clamp(S.energy-(0.5+sp*0.004)*dt,0,100);
-  S.hunger=clamp(1-S.energy/100,0,1);
-  if(S.energy<=0&&!S.starved){S.starved=true;
-    log('SYS','animal exausto — deposíte açúcar para recuperá-lo');}
-  if(S.energy>5)S.starved=false;
-
-  /* alimentação + recompensa octopaminérgica (aprendizado espontâneo) */
-  S.eating=false;
-  for(let i=S.sources.length-1;i>=0;i--){const s=S.sources[i];
-    if(ODORS[s.o].food&&!s.test&&s.amp>0.3&&Math.hypot(fly.x-s.x,fly.y-s.y)<15){
-      S.eating=true;S.energy=clamp(S.energy+6*dt,0,100);}}
-  for(let i=S.drops.length-1;i>=0;i--){const d=S.drops[i];
-    if(Math.hypot(fly.x-d.x,fly.y-d.y)<9){S.drops.splice(i,1);
-      S.energy=clamp(S.energy+16,0,100);rewardPulse(0.12);
-      log('RWD','açúcar ingerido — octopamina liberada');}}
-  if(S.eating&&S.t-S.lastReward>1.3)rewardPulse(0.07);
-  if(!S.eating)S.lastReward=Math.min(S.lastReward,S.t-0.4);
-}
-
-function activeOdors(){const a=[];
-  for(const o in ODORS){const c=(DRV.cOd[o].l+DRV.cOd[o].r)/2;if(c>0.1)a.push(o);}return a;}
-
-function punishPulse(){
-  const os=activeOdors();
-  if(!os.length){log('MEM','choque sem odor contingente — nenhuma associação formada');return;}
-  let n=0;
-  for(const k of kcAll) if(k.ema>0.22){
-    for(const s of k.mbIn){
-      if(s.type==='map')s.w=Math.max(0,s.w-0.10*k.ema);
-      else s.w=Math.min(0.22,s.w+0.055*k.ema);
-      n++;}
-    for(const o of os)k.odors.add(o);}
-  log('MEM',`dopamina: KC→MBON-ap ↓ · KC→MBON-av ↑ (${n} sinapses · CS: ${os.map(o=>ODORS[o].label).join(', ')})`);
-}
-function rewardPulse(eta=0.09){
-  S.lastReward=S.t;
-  const os=activeOdors();
-  if(!os.length)return;
-  let n=0;
-  for(const k of kcAll) if(k.ema>0.22){
-    for(const s of k.mbIn){
-      if(s.type==='mav')s.w=Math.max(0,s.w-eta*k.ema);
-      else s.w=Math.min(0.22,s.w+0.6*eta*k.ema);
-      n++;}
-    for(const o of os)k.odors.add(o);}
-  if(n)log('RWD',`octopamina: KC→MBON-av ↓ · KC→MBON-ap ↑ (${n} sinapses · CS: ${os.map(o=>ODORS[o].label).join(', ')})`);
-}
-function odorValence(o){
-  let v=0;
-  for(const k of kcAll){if(!k.odors.has(o))continue;
-    for(const s of k.mbIn)v+=s.type==='map'?(s.w-s.w0):-(s.w-s.w0);}
-  return Math.tanh(v/2.2);
-}
-
-/* ============================================================
-   8 · estímulos, treino e teste
-============================================================ */
-function spray(o,amp=1.1,x,y,sg=30){
-  if(x===undefined){const a=rand(0,6.28),r=rand(40,110);x=Math.cos(a)*r;y=Math.sin(a)*r;}
-  S.sources.push({o,x,y,amp,sg,born:S.t});
-  if(S.sources.length>6)S.sources.shift();
-  log('SEN',`odor ${ODORS[o].label} pulverizado na câmara`);
-}
-function doShockPulse(){
-  S.shockT=0.45; after(0.12,punishPulse);
-  log('RFX','choque elétrico aplicado — retração');
-}
-function startTrain(kind){
-  if(S.train)return;
-  S.train={kind,t:4.6};
-  log('SYS',kind==='av'?'treino aversivo iniciado — 3 pares CS (benzaldeído) + US (choque)'
-                       :'treino apetitivo iniciado — 3 pares CS (benzaldeído) + US (açúcar)');
-  spray('BENZ',1.5,fly.x,fly.y,36);
-  for(let i=0;i<3;i++){
-    after(0.7+i*1.5,()=>{ if(kind==='av')doShockPulse();
-      else{S.drops.push({x:fly.x,y:fly.y});} });
-  }
-  after(4.7,()=>{S.train=null;
-    log('SYS','treino concluído — consulte o engrama ou execute o teste de memória');});
-}
-function startTest(){
-  if(S.test)return;
-  let best='BENZ',bv=0;
-  for(const o in ODORS){const v=Math.abs(odorValence(o));if(v>bv){bv=v;best=o;}}
-  if(bv<0.12)log('SYS','memória fraca detectada — treine primeiro para um resultado claro');
-  const a=rand(0,6.28);
-  const src={o:best,x:Math.cos(a)*105,y:Math.sin(a)*105,amp:1.35,sg:30,born:S.t,test:true};
-  S.sources.push(src);
-  S.test={t:10,near:0,far:0,o:best,src};
-  log('SYS',`teste de memória: ${ODORS[best].label} na câmara — medindo preferência por 10 s`);
-}
-function finishTest(){
-  const T=S.test; S.test=null;
-  const i=S.sources.indexOf(T.src); if(i>=0)S.sources.splice(i,1);
-  const PI=(T.far-T.near)/10;
-  const cls=PI>0.15?'evitação aprendida':PI<-0.15?'atração':'sem preferência detectável';
-  log('MEM',`teste (${ODORS[T.o].label}): PI = ${PI>=0?'+':''}${PI.toFixed(2)} — ${cls}`);
-}
-function burstRegion(rg,silent){
-  S.burstR=rg; S.burstT=0.35; S.burstRGi=RGIDX[rg];
-  RGC2[S.burstRGi]=0;
-  if(!silent){
-    const cells=REGCELLS[rg].length;
-    log('MIC',`microeletrodo: burst de 350 ms em ${REG[rg].name.toLowerCase()} (${cells} neurônios)`);
-    after(0.55,()=>{const pct=clamp(RGC2[S.burstRGi]/(cells*15),0,1);
-      log('MIC',`recrutamento ≈ ${(pct*100)|0}% da região · propagação via sinapses`);});
-  }
-}
-function clearArena(){
-  S.sources=[];S.drops=[];S.shadow=null;S.bar=null;S.gust=null;TR.pts=[];
-  fly.x=0;fly.y=30;fly.h=rand(0,6.28);S.energy=72;
-  log('SYS','arena limpa — odores removidos, animal reposicionado');
-}
-function wipeMem(){
-  for(const k of kcAll){for(const s of k.mbIn)s.w=s.w0;k.odors.clear();}
-  log('SYS','engrama zerado — todas as memórias olfativas apagadas');
-}
-
-/* ============================================================
-   9 · interface
-============================================================ */
-const $=id=>document.getElementById(id);
-const logEl=$('log');
+/* ============ 8 · produção de linguagem ============ */
+const emitQ=[];let PROD={active:false};
+const msgs=$('msgs'),logEl=$('log');
 function log(kind,msg){
-  const d=document.createElement('div');d.className='ln';
-  d.innerHTML=`<span class="lt">${fmtT(S.t)}</span><span class="lk lk-${kind}">${kind}</span>${msg}`;
-  const stick=logEl.scrollTop+logEl.clientHeight>=logEl.scrollHeight-24;
-  logEl.appendChild(d);
-  while(logEl.children.length>90)logEl.removeChild(logEl.firstChild);
-  if(stick)logEl.scrollTop=logEl.scrollHeight;
+ const d=document.createElement('div');d.className='ln';
+ d.innerHTML=`<span class="lt">${fmtT(tSim)}</span>${msg}`;
+ const stick=logEl.scrollTop+logEl.clientHeight>=logEl.scrollHeight-20;
+ logEl.appendChild(d);while(logEl.children.length>80)logEl.removeChild(logEl.firstChild);
+ if(stick)logEl.scrollTop=logEl.scrollHeight;
 }
-/* legenda + sparklines + engrama */
-{
-  const lg=$('legend');
-  for(const rg of RGORDER){const d=document.createElement('div');d.className='li';
-    d.innerHTML=`<i style="--c:${REG[rg].col}"></i>${REG[rg].name}<b>${REGCELLS[rg].length}</b>`;lg.appendChild(d);}
-  const sp=$('sparks');
-  for(const rg of RGORDER){const d=document.createElement('div');d.className='srow';
-    d.innerHTML=`<span class="dot" style="--c:${REG[rg].col}"></span><canvas width="184" height="40"></canvas><span class="hz">0 Hz</span>`;
-    d.querySelector('canvas').dataset.rg=rg; sp.appendChild(d);}
-  const en=$('engra');
-  for(const o in ODORS){const d=document.createElement('div');d.className='erow';
-    d.innerHTML=`<span class="ename">${ODORS[o].label}</span><div class="etrack"><i class="neg"></i><i class="pos"></i></div><b>0.00</b>`;
-    d.dataset.o=o; en.appendChild(d);}
+function brainMsg(mono){
+ const d=document.createElement('div');d.className='msg brain'+(mono?' mono':'');
+ d.innerHTML=`<span class="who">engrama${mono?' · pensamento':''}</span><span class="tx"></span><span class="caret"></span>`;
+ msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+ return{el:d.querySelector('.tx'),root:d};
 }
-function drawSpark(cv,data,col){
-  const ctx=cv.getContext('2d'); ctx.setTransform(2,0,0,2,0,0);
-  ctx.clearRect(0,0,92,20);
-  let mx=1; for(const v of data)if(v>mx)mx=v;
-  ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();
-  for(let i=0;i<data.length;i++){
-    const x=i/(68-1)*92,y=18-Math.min(1,data[i]/(mx*1.15))*16;
-    i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
-  ctx.stroke();
+function appendWord(ref,txt){
+ const s=document.createElement('span');s.className='w';s.textContent=txt+' ';ref.el.appendChild(s);
+ msgs.scrollTop=msgs.scrollHeight;
 }
-function updateEngra(){
-  for(const d of $('engra').children){
-    const v=odorValence(d.dataset.o),w=Math.abs(v)*50;
-    d.querySelector('.neg').style.width=v<0?w+'%':'0';
-    d.querySelector('.pos').style.width=v>0?w+'%':'0';
-    d.querySelector('b').textContent=(v>=0?'+':'')+v.toFixed(2);
-    d.querySelector('b').style.color=v>0.15?'var(--grn)':v<-0.15?'var(--red)':'var(--dim)';}
+function finalize(ref){ref.root.querySelector('.caret')?.remove();}
+function ctxTop(excl){
+ let best=-1,bv=.25;
+ for(let wi=0;wi<words.length;wi++)if(!excl.has(wi)&&actW[wi]>bv&&words[wi].cIdx>=0){bv=actW[wi];best=wi;}
+ return best;
 }
-function stateNow(){
-  if(S.bootT>0)return['INICIALIZANDO','bootstrap do conectoma','c-sys'];
-  if(S.train)return['TREINO ASSOCIATIVO',S.train.kind==='av'?'pareando benzaldeído + choque':'pareando benzaldeído + açúcar','c-mem'];
-  if(S.test)return['TESTE DE MEMÓRIA',`${ODORS[S.test.o].label} · ${S.test.t.toFixed(1)} s restantes`,'c-mem'];
-  if(S.escapeT>0)return['FUGA','resposta de sobrevivência · fibras gigantes','c-rfx'];
-  if(S.shockT>0)return['CHOQUE','retração · sinal dopaminérgico','c-rfx'];
-  if(S.burstT>0)return['MICROESTIMULAÇÃO',REG[S.burstR].name.toLowerCase(),'c-mic'];
-  if(S.eating)return['ALIMENTANDO-SE','octopamina · recompensa','c-rwd'];
-  const mc=(DRV.cL+DRV.cR)/2;
-  let dom='';let mx=0;
-  for(const o in ODORS){const c=(DRV.cOd[o].l+DRV.cOd[o].r)/2;if(c>mx){mx=c;dom=ODORS[o].label;}}
-  if(DRV.av>0.45&&mc>0.04)return['EVITANDO',dom+' · valência negativa','c-rfx'];
-  if(DRV.ap>0.3&&mc>0.04)return['APROXIMANDO-SE',dom+' · valência positiva','c-rwd'];
-  if(S.castOn)return['VARRENDO','casting · localizando gradiente','c-sys'];
-  if(DRV.speed<3)return['REPOUSO','tônus motor basal','c-sys'];
-  return['EXPLORANDO',`bouts de giro · energia ${S.energy|0}%`,'c-sys'];
+function resolveToks(toks,excl){
+ const out=[];
+ for(const t of toks){
+  if(t.slot){
+   let got=null;
+   if(t.slot==='NOME')got=NAME&&NMAP[norm(NAME)]>=0?{wi:NMAP[norm(NAME)]}:null;
+   else if(t.slot==='TEMA'){const wi=ctxTop(excl);got=wi>=0?{wi}:null;}
+   else if(t.slot==='ASSOC'){const t2=ctxTop(excl);
+    if(t2>=0){const nb=neighborOf(t2);got=nb!==null?{wi:nb}:{wi:(()=>{let r;do{r=CWORD[(RNG()*NC)|0];}while(r===t2);return r;})()};}
+    else got=null;}
+   else if(t.slot==='VALOR'){const pool=joy-alarm>=0?['ótimo','legal','incrível','bom','interessante']:['estranho','ruim','chato'];
+    got={wi:NMAP[norm(pool[(RNG()*pool.length)|0])]};}
+   else if(t.slot==='MOODW'){got={wi:NMAP[norm(joy>.45&&joy>=alarm?'feliz':alarm>.45?'alerta':cur>.45?'curioso':'calmo')]};}
+   else if(t.slot==='NUM')got={live:'NUM'};else if(t.slot==='SIN')got={live:'SIN'};else if(t.slot==='PCT')got={live:'PCT'};
+   if(got){out.push(got);if(got.wi!==undefined&&words[got.wi]?.cIdx>=0)excl.add(got.wi);}
+   else if(t.opt){}else out.push(null);
+  }else out.push({wi:t.wi,p:t.p});
+ }
+ return out;
+}
+function pickChunk(list,excl,temp){
+ const sc=list.map(c=>{let s=.4;
+  for(const t of c.toks)if(t.wi!==undefined&&words[t.wi].cIdx>=0)s+=actW[t.wi]*.85;
+  return s+RNG()*.5;});
+ let tot=0;const ex=sc.map(s=>{tot+=Math.exp(s/temp);return Math.exp(s/temp);});
+ let r=RNG()*tot;for(let i=0;i<list.length;i++){r-=ex[i];if(r<=0)return list[i];}
+ return list[list.length-1];
+}
+function pickIntent(){
+ if(PEND&&(PEND.type==='q'||PEND.type==='qname'))return'PERGUNTAR';
+ if(alarm>.55)return'ALERTA';
+ if(joy>.6&&RNG()<.55)return'AGRADAR';
+ let bi=0,bv=.6;for(let i=0;i<8;i++)if(INTS[i]>bv){bv=INTS[i];bi=i;}
+ return INTENTS[bi];
+}
+function buildSentences(){
+ const sents=[],excl=new Set(),win=pickIntent(),temp=.7+cur*.8+joy*.4;
+ const addPool=(pool,withF)=>{
+  const c=pickChunk(pool,excl,temp);
+  if(c)sents.push({ch:c,toks:resolveToks(c.toks,excl)});
+  if(withF&&RNG()<.6){const fl=FOLLOW[win]||FOLLOW.CONVERSAR;
+   const f=pickChunk(fl,excl,temp);if(f)sents.push({ch:f,toks:resolveToks(f.toks,excl)});}};
+ if(PEND?.type==='teach'){
+  sents.push({ch:'ART',toks:[{wi:PEND.a},NMAP['e']!==undefined?{wi:NMAP['e']}:{wi:NMAP[norm('é')]},...PEND.bs.map(w=>({wi:w}))]});
+  addPool(LCHUNK('APRENDER'),true);PEND=null;
+ }else if(PEND?.type==='name'){
+  sents.push({ch:'ART',toks:['prazer','eu','vou','lembrar','do','seu','nome'].map(t=>({wi:NMAP[norm(t)]})),pre:[{txt:NAME,wi:PEND.wi}]});
+  addPool(LCHUNK('AGRADAR'),false);PEND=null;
+ }else if(PEND?.type==='qname'){
+  sents.push({ch:'ART',toks:['meu','nome','é','engrama','e','o','seu'].map(t=>({wi:NMAP[norm(t)]}))});
+  addPool(LCHUNK('SOBRE_MIM'),false);PEND=null;
+ }else if(PEND?.type==='q'){
+  const key=PEND.key,qw=PEND.wi;
+  if(key==='voce'||key==='vc'){addPool(LCHUNK('SOBRE_MIM'),true);}
+  else if(FACTS.has(key)&&!lesionM){
+   const f=FACTS.get(key);
+   sents.push({ch:'ART',toks:[{wi:qw},{wi:NMAP[norm('é')]},...f.ws.map(w=>({wi:w}))]});
+   sents.push({ch:'ART',toks:['você','me','ensinou','isso'].map(t=>({wi:NMAP[norm(t)]}))});
+   joy=clamp(joy+.15,0,1);
+  }else{
+   sents.push({ch:'ART',toks:['não','sei','o','que','é',{wi:qw}].map(t=>t.wi!==undefined?t:{wi:NMAP[norm(t)]})});
+   sents.push({ch:'ART',toks:['me','ensine','diga',{wi:qw},'é','alguma','coisa'].map(t=>t.wi!==undefined?t:{wi:NMAP[norm(t)]})});
+   cur=clamp(cur+.4,0,1);
+  }
+  PEND=null;
+ }else if(PEND?.type==='forget'){
+  if(PEND.key&&FACTS.has(PEND.key)){FACTS.delete(PEND.key);log('MEM',`fato sobre "${PEND.key}" apagado`);}
+  sents.push({ch:'ART',toks:['tudo','bem','eu','esqueci','isso'].map(t=>({wi:NMAP[norm(t)]}))});PEND=null;
+ }else if(PEND?.type==='welcome'){
+  sents.push({ch:'ART',toks:['oi','eu','sou','o','engrama','fale','comigo'].map(t=>({wi:NMAP[norm(t)]}))});
+  addPool(LCHUNK('SOBRE_MIM'),false);PEND=null;
+ }else if(lesionC&&ctxTop(excl)<0){addPool(LCHUNK('LOST'),false);}
+ else if(win==='PERGUNTAR'){addPool(LCHUNK('PERGUNTAR'),true);}
+ else addPool(LCHUNK(win).length?LCHUNK(win):LCHUNK('CONVERSAR'),true);
+ if(!sents.length)sents.push({ch:'ART',toks:['não','entendi','bem'].map(t=>({wi:NMAP[norm(t)]}))});
+ return sents;
+}
+function startProd(sents,mono=false){
+ if(PROD.active)return;
+ PROD={active:true,sents,si:0,node:0,expect:0,retry:0,mono,ref:brainMsg(mono),said:new Set(),curCh:null,tokN:0};
+ armSentence();
+}
+function armSentence(){
+ const s=PROD.sents[PROD.si],nodes=s.ch==='ART'?ARTN:s.ch.nodes;
+ PROD.curCh=s.ch;PROD.node=0;PROD.retry=0;PROD.expect=0;
+ PROD.tokN=Math.min(nodes.length,s.toks.length);
+ if(s.pre){appendWord(PROD.ref,s.pre[0].txt);stimAssembly(s.pre[0].wi,1.5);}
+ for(let k=0;k<nodes.length;k++){
+  const tk=k<s.toks.length?s.toks[k]:null;
+  BIND[nodes[k][0]]={ch:s.ch,...(tk||{skip:1})};
+ }
+ stim(nodes[0][0],1.7);stim(nodes[0][1],1.3);
+}
+function endProd(){
+ finalize(PROD.ref);
+ const said=[...PROD.said];
+ for(let i=0;i<said.length;i++)for(let j=i+1;j<said.length;j++)bondAdd(said[i],said[j],.06);
+ PROD={active:false};lastEnd=tSim;R=0;
+}
+function liveVal(k){
+ if(k==='NUM')return N.toLocaleString('pt-BR');
+ if(k==='SIN')return SYN.toLocaleString('pt-BR');
+ return (HOT.length/N*100).toFixed(0)+'%';
 }
 
-/* --- arena 2D --- */
-const arCv=$('arena'); const arX=arCv.getContext('2d');
-function sizeArena(){const w=arCv.clientWidth||290;arCv.width=w*2;arCv.height=w*2;arCv.style.height=w+'px';}
-function drawArena(){
-  const W=arCv.width/2,R=W/2-6;
-  arX.setTransform(2,0,0,2,0,0);arX.clearRect(0,0,W,W);
-  arX.save();arX.translate(W/2,W/2);
-  arX.strokeStyle='rgba(232,227,213,0.07)';arX.lineWidth=1;
-  for(const r of [35,70,105,140]){arX.beginPath();arX.arc(0,0,r,0,6.284);arX.stroke();}
-  arX.strokeStyle='rgba(232,227,213,0.14)';arX.beginPath();arX.arc(0,0,148,0,6.284);arX.stroke();
-  /* campos de odor (dados sensoriais visíveis) */
-  for(const s of S.sources){
-    const od=ODORS[s.o],r=s.sg*2.6;
-    const g=arX.createRadialGradient(s.x,s.y,0,s.x,s.y,r);
-    const a=0.15*Math.min(1,s.amp);
-    g.addColorStop(0,od.col+Math.round(a*255).toString(16).padStart(2,'0'));
-    g.addColorStop(1,od.col+'00');
-    arX.fillStyle=g;arX.beginPath();arX.arc(s.x,s.y,r,0,6.284);arX.fill();
-    arX.strokeStyle=od.col+'55';arX.beginPath();arX.arc(s.x,s.y,3,0,6.284);arX.stroke();}
-  for(const d of S.drops){arX.fillStyle='#f5e08a';
-    arX.beginPath();arX.arc(d.x,d.y,2.5,0,6.284);arX.fill();}
-  /* rastro */
-  arX.lineWidth=1;
-  for(const p of TR.pts){if(p.a<=0)continue;
-    arX.fillStyle=`rgba(232,227,213,${(p.a*0.35).toFixed(3)})`;
-    arX.fillRect(p.x-0.7,p.y-0.7,1.4,1.4);}
-  /* sombra */
-  if(S.shadow){const sh=S.shadow,cx=fly.x+Math.cos(sh.az)*55,cy=fly.y+Math.sin(sh.az)*55;
-    arX.fillStyle=`rgba(0,0,0,${(0.25+0.4*Math.min(1,sh.r/120)).toFixed(2)})`;
-    arX.beginPath();arX.arc(cx,cy,sh.r,0,6.284);arX.fill();}
-  /* barra optomotora */
-  if(S.bar){const b=S.bar;arX.save();arX.translate(b.x,b.y);arX.rotate(Math.atan2(b.dy,b.dx)+Math.PI/2);
-    arX.fillStyle='#0a0a0a';arX.strokeStyle='rgba(232,227,213,0.4)';
-    arX.fillRect(-2.5,-14,5,28);arX.strokeRect(-2.5,-14,5,28);arX.restore();}
-  /* choque */
-  if(S.shockT>0){arX.strokeStyle='rgba(255,106,94,0.8)';arX.lineWidth=1.5;
-    arX.beginPath();arX.arc(fly.x,fly.y,10+4*Math.sin(S.t*45),0,6.284);arX.stroke();}
-  /* a mosca */
-  arX.save();arX.translate(fly.x,fly.y);arX.rotate(fly.h);
-  const wl=DRV.wl,wr=DRV.wr,ph=performance.now()/1000*(7+24*DRV.fw);
-  const wa=0.15+0.8*Math.max(wl,wr);
-  arX.fillStyle='rgba(217,215,207,0.45)';
-  arX.beginPath();arX.ellipse(-2,-3.2,4,1.8*wa*(0.5+0.5*Math.abs(Math.sin(ph))),0.5,0,6.284);arX.fill();
-  arX.beginPath();arX.ellipse(-2,3.2,4,1.8*wa*(0.5+0.5*Math.abs(Math.sin(ph))),-0.5,0,6.284);arX.fill();
-  arX.fillStyle='#e8e4d8';
-  arX.beginPath();arX.ellipse(0,0,3.4,2.1,0,0,6.284);arX.fill();
-  arX.fillStyle='#8d897d';arX.beginPath();arX.arc(3.4,0,1.5,0,6.284);arX.fill();
-  arX.restore();arX.restore();
+/* ============ 9 · eventos de UI ============ */
+let monoOn=true,speed=1;
+const SPEEDS=[1,4,16];
+function userSend(text){
+ text=text.trim();if(!text)return;
+ if(PROD.active)finalize(PROD.ref),PROD={active:false};
+ if(DREAM)endDream('você falou e me acordou');
+ const d=document.createElement('div');d.className='msg me';
+ d.innerHTML=`<span class="who">você</span><span class="tx"></span>`;
+ d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+ lastInput=tSim;R+=.2;
+ const P=parseInput(text);
+ P.wis.forEach((wi,k)=>afterSim(.06+k*.13,()=>injectWord(wi,true)));
 }
-
-/* ============================================================
-   10 · eventos de UI
-============================================================ */
-document.querySelectorAll('[data-act]').forEach(b=>b.addEventListener('click',()=>{
-  const a=b.dataset.act;
-  if(a==='spray')spray(b.dataset.o);
-  else if(a==='shadow'){if(!S.shadow){const az=rand(0,6.28);S.shadow={az,r:8,t:0,gf:false};log('SEN','sombra latejante aproximando-se do campo visual');}}
-  else if(a==='puff'){const az=rand(0,6.28);S.gust={vx:Math.cos(az)*85,vy:Math.sin(az)*85,t:0.5};log('SEN','sopro de ar — deflexão mecânica das antenas');}
-  else if(a==='shock')doShockPulse();
-  else if(a==='bar'){if(!S.bar){const d=rand(0,6.28),off=rand(-30,30),px=-Math.sin(d)*off,py=Math.cos(d)*off;
-    S.bar={x:fly.x-Math.cos(d)*140+px,y:fly.y-Math.sin(d)*140+py,dx:Math.cos(d),dy:Math.sin(d),t:0,dur:1.5,relP:null,om:0};
-    log('SEN','barra em movimento no campo visual — resposta optomotora esperada');}}
-  else if(a==='sugar'){S.drops.push({x:fly.x,y:fly.y});log('RWD','gota de açúcar depositada sobre o animal');}
-  else if(a==='trainAv')startTrain('av');
-  else if(a==='trainAp')startTrain('ap');
-  else if(a==='testMem')startTest();
-  else if(a==='wipe')wipeMem();
+ $('send').addEventListener('click',()=>{userSend($('inp').value);$('inp').value='';});
+ $('inp').addEventListener('keydown',e=>{if(e.key==='Enter'){userSend($('inp').value);$('inp').value='';}});
+document.querySelectorAll('#chips button').forEach(b=>b.addEventListener('click',()=>userSend(b.dataset.q)));
+document.querySelectorAll('[data-st]').forEach(b=>b.addEventListener('click',()=>{
+ const s=b.dataset.st;
+ if(s==='cortex'){for(let k=0;k<6;k++)injectWord((RNG()*words.length)|0,false);log('LAB','córtex semântico agitado — assemblies aleatórios ignitados');}
+ if(s==='speak'){if(!PROD.active){startProd([{ch:pickChunk(LCHUNK('CONVERSAR'),new Set(),1),toks:null}].map(x=>({ch:x.ch,toks:resolveToks(x.ch.toks,new Set())})));log('LAB','fala forçada — cadeia da faixa de produção armada');}}
+ if(s==='ring'){stimPool(INTENTS[(RNG()*8)|0],1.6);log('LAB','anel de intenção provocado');}
+ if(s==='aff'){joy=clamp(joy+.4,0,1);cur=clamp(cur+.4,0,1);alarm=clamp(alarm+.3,0,1);log('LAB','pulso nos núcleos afetivos');}
 }));
-document.querySelectorAll('[data-rg]').forEach(b=>b.addEventListener('click',()=>burstRegion(b.dataset.rg,false)));
-document.querySelectorAll('[data-m]').forEach(b=>{
-  const on=e=>{e.preventDefault();S.held[b.dataset.m]=1;
-    log('MOT',`estimulação direta do VNC: ${b.textContent.trim()}`);};
-  const off=()=>{S.held[b.dataset.m]=0;};
-  b.addEventListener('pointerdown',on);
-  b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);});
- $('btnAut').addEventListener('click',()=>{S.aut=!S.aut;
-  $('btnAut').firstChild.textContent=`busca autônoma · ${S.aut?'ativa':'suspensa'}`;
-  log('SYS',S.aut?'comportamento autônomo retomado':'busca autônoma suspensa — apenas reflexos e estímulos manuais');});
- $('btnClear').addEventListener('click',clearArena);
-const SPEEDS=[1,3,0.5];
- $('btnSpeed').addEventListener('click',()=>{
-  S.speed=SPEEDS[(SPEEDS.indexOf(S.speed)+1)%SPEEDS.length];
-  $('btnSpeed').textContent='VEL ×'+S.speed;});
-const CAMS={front:{p:[0,0.4,7.8],t:[0,-0.2,0.5]},top:{p:[0.01,8.4,0.6],t:[0,0,-0.1]},side:{p:[7.9,0.9,0.9],t:[0,-0.1,0.2]}};
-let camA=null;
+document.querySelectorAll('[data-ls]').forEach(b=>b.addEventListener('click',()=>{
+ const l=b.dataset.ls;
+ if(l==='prod'){lesionP=!lesionP;b.classList.toggle('on',lesionP);log('LAB',lesionP?'LESÃO: faixa de produção silenciada — frases vão morrer no meio':'faixa de produção restaurada');}
+ if(l==='comp'){lesionC=!lesionC;b.classList.toggle('on',lesionC);log('LAB',lesionC?'LESÃO: via de compreensão cortada — palavras não são reconhecidas':'via de compreensão restaurada');}
+ if(l==='mem'){lesionM=!lesionM;b.classList.toggle('on',lesionM);dirtyArc=true;log('LAB',lesionM?'LESÃO: teia de memória silenciada — associações e fatos inacessíveis':'teia de memória restaurada');}
+ if(l==='restore'){lesionP=lesionC=lesionM=false;document.querySelectorAll('[data-ls]').forEach(x=>x.classList.remove('on'));log('LAB','todas as lesões restauradas');}
+}));
+document.querySelectorAll('[data-ch]').forEach(b=>b.addEventListener('click',()=>{
+ const c=b.dataset.ch;
+ if(c==='dopa'){joy=clamp(joy+.55,0,1);joyFloor=.25;afterSim(20,()=>joyFloor=0);log('QUI','dose de dopamina — alegria sustentada por 20 s');}
+ if(c==='caff'){CAFF=10;log('QUI','cafeína — ritmo de disparo elevado por 10 s');}
+ if(c==='sed'){SED=12;log('QUI','sedativo — ciclo lento e sono por 12 s');}
+}));
+ $('btnSpeed').addEventListener('click',()=>{speed=SPEEDS[(SPEEDS.indexOf(speed)+1)%3];$('btnSpeed').textContent='VEL ×'+speed;});
+let DREAM=0;
+function endDream(msg){if(!DREAM)return;DREAM=0;log('SYS',msg||'sonho concluído — memórias consolidadas');$('btnDream').classList.remove('on');}
+ $('btnDream').addEventListener('click',()=>{
+ if(DREAM){endDream();return;}
+ DREAM=12;$('btnDream').classList.add('on');log('SYS','sono iniciado — ondas lentas + replay de memórias (η×2.5)');
+ if(PROD.active)finalize(PROD.ref),PROD={active:false};});
+ $('btnMono').addEventListener('click',()=>{monoOn=!monoOn;
+ $('btnMono').classList.toggle('on',monoOn);
+ $('btnMono').innerHTML=`monólogo interno · ${monoOn?'ativo':'mudo'}<em>pensamentos espontâneos no chat</em>`;});
+ $('btnMono').classList.add('on');
+let camA=null;const CAMS={front:{p:[0,.4,7.6],t:[0,-.55,.2]},top:{p:[.01,8.2,.4],t:[0,0,0]}};
 document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click',()=>{
-  const c=CAMS[b.dataset.cam];controls.autoRotate=false;$('btnRot').classList.remove('on');
-  camA={p0:camera.position.clone(),p1:new THREE.Vector3(...c.p),
-        t0:controls.target.clone(),t1:new THREE.Vector3(...c.t),k:0};}));
- $('btnRot').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;
-  $('btnRot').classList.toggle('on',controls.autoRotate);});
+ const c=CAMS[b.dataset.cam];controls.autoRotate=false;$('btnRot').classList.remove('on');
+ camA={p0:camera.position.clone(),p1:new THREE.Vector3(...c.p),t0:controls.target.clone(),t1:new THREE.Vector3(...c.t),k:0};}));
+ $('btnRot').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;$('btnRot').classList.toggle('on',controls.autoRotate);});
 renderer.domElement.addEventListener('pointerdown',()=>{controls.autoRotate=false;$('btnRot').classList.remove('on');});
-
-/* tooltip + clique por região */
-const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let mXY={x:0,y:0},tipOn=false;
-renderer.domElement.addEventListener('pointermove',e=>{
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let mXY={x:0,y:0},pd=null;
+renderer.domElement.addEventListener('pointermove',e=>{const r=renderer.domElement.getBoundingClientRect();
+ mXY={x:e.clientX-r.left,y:e.clientY-r.top};
+ mouse.x=(mXY.x/r.width)*2-1;mouse.y=-(mXY.y/r.height)*2+1;});
+setInterval(()=>{ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(proxies,false)[0],tip=$('tip');
+ if(h){tip.innerHTML=`<b>${h.object.userData.txt}</b><em>${h.object.userData.fn}</em>`;
+  tip.style.display='block';tip.style.left=Math.min(mXY.x+14,stage.clientWidth-210)+'px';
+  tip.style.top=Math.min(mXY.y+10,stage.clientHeight-70)+'px';
+  renderer.domElement.style.cursor='crosshair';}
+ else{tip.style.display='none';renderer.domElement.style.cursor='';}},90);
+renderer.domElement.addEventListener('pointerdown',e=>pd={x:e.clientX,y:e.clientY,t:Date.now()});
+renderer.domElement.addEventListener('pointerup',e=>{if(!pd)return;
+ if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)<7&&Date.now()-pd.t<400){
   const r=renderer.domElement.getBoundingClientRect();
-  mXY={x:e.clientX-r.left,y:e.clientY-r.top};
-  mouse.x=(mXY.x/r.width)*2-1;mouse.y=-(mXY.y/r.height)*2+1;});
-setInterval(()=>{
-  ray.setFromCamera(mouse,camera);
-  const h=ray.intersectObjects(proxies,false)[0];
-  const tip=$('tip');
-  if(h){const rg=h.object.userData.rg,cells=REGCELLS[rg].length;
-    tip.innerHTML=`<b>${REG[rg].name}</b><span>${cells} neurônios simulados</span><em>${REG[rg].fn}</em>`;
-    tip.style.display='block';
-    const sw=stage.clientWidth,sh=stage.clientHeight;
-    tip.style.left=Math.min(mXY.x+14,sw-220)+'px';
-    tip.style.top=Math.min(mXY.y+10,sh-90)+'px';
-    renderer.domElement.style.cursor='crosshair';}
-  else{tip.style.display='none';renderer.domElement.style.cursor='';}
-},80);
-let pd=null;
-renderer.domElement.addEventListener('pointerdown',e=>{pd={x:e.clientX,y:e.clientY,t:Date.now()};});
-renderer.domElement.addEventListener('pointerup',e=>{
-  if(!pd)return;
-  if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)<7&&Date.now()-pd.t<400){
-    const r=renderer.domElement.getBoundingClientRect();
-    mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
-    ray.setFromCamera(mouse,camera);
-    const h=ray.intersectObjects(proxies,false)[0];
-    if(h)burstRegion(h.object.userData.rg,false);}
-  pd=null;});
+  mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(proxies,false)[0];
+  if(h){const t=h.object.userData.txt;
+   if(t.includes('Córtex'))for(let k=0;k<6;k++)injectWord((RNG()*words.length)|0,false);
+   else if(t.includes('Faixa')&&!PROD.active)startProd([{ch:pickChunk(LCHUNK('CONVERSAR'),new Set(),1),toks:resolveToks(pickChunk(LCHUNK('CONVERSAR'),new Set(),1).toks,new Set())}]);
+   else if(t.includes('Anel'))stimPool(INTENTS[(RNG()*8)|0],1.6);
+   else{joy=clamp(joy+.35,0,1);cur=clamp(cur+.3,0,1);alarm=clamp(alarm+.25,0,1);}}}
+ pd=null;});
 
-/* ============================================================
-   11 · loop principal
-============================================================ */
+/* ============ 10 · loop ============ */
+let lastUserMsg=true;
 function tick(dt){
-  S.t+=dt;
-  for(let i=TIMERS.length-1;i>=0;i--)if(S.t>=TIMERS[i].t){const f=TIMERS[i].fn;TIMERS.splice(i,1);f();}
-  /* estímulos */
-  for(let i=S.sources.length-1;i>=0;i--){const s=S.sources[i];
-    s.amp*=Math.exp(-dt/9); if(s.amp<0.05&&!(S.test&&S.test.src===s))S.sources.splice(i,1);}
-  if(S.gust){S.gust.t-=dt;S.gust.vx*=Math.exp(-dt*2.2);S.gust.vy*=Math.exp(-dt*2.2);if(S.gust.t<=0)S.gust=null;}
-  if(S.shockT>0)S.shockT-=dt;
-  if(S.shadow){const sh=S.shadow;sh.t+=dt;sh.r=8+112*Math.min(1,sh.t/0.85);if(sh.t>1.3)S.shadow=null;}
-  if(S.bar){const b=S.bar;b.t+=dt;b.x+=b.dx*190*dt;b.y+=b.dy*190*dt;if(b.t>b.dur)S.bar=null;}
-  if(S.bootT>0)S.bootT-=dt;
-  if(S.test){S.test.t-=dt;
-    const d=Math.hypot(fly.x-S.test.src.x,fly.y-S.test.src.y);
-    if(d<62)S.test.near+=dt;else S.test.far+=dt;
-    if(S.test.t<=0)finishTest();}
-  senseAndDrive(dt);
-  stepNet(dt);
-  moveFly(dt);
-  S.accT+=dt;
-  if(S.accT>=1){S.sps=S.acc/S.accT;S.acc=0;S.accT=0;}
+ tSim+=dt;
+ for(let i=TIMERS.length-1;i>=0;i--)if(tSim>=TIMERS[i].t){const f=TIMERS[i].fn;TIMERS.splice(i,1);f();}
+ let sc=0;
+ for(let i=spreads.length-1;i>=0;i--){const s=spreads[i];if(tSim>=s.t){
+  stimAssembly(s.wi,s.amp,2);const w=words[s.wi];
+  spawnP(w.gx+randn()*.3,w.gy,w.gz,w.gx,w.gy,w.gz);spreads.splice(i,1);sc++;}
+  if(sc>20)break;}
+ /* ruído & vida de fundo */
+ const nAmp=SED>0?.06:(CAFF>0?.34:.16);
+ for(let k=0;k<2;k++)stim((RNG()*N)|0,nAmp);
+ if(RNG()<.006)stimAssembly((RNG()*words.length)|0,.85,2);
+ if(RNG()<.05)stim(FILL[(RNG()*FILL.length)|0],.5);
+ /* afeto */
+ joy=clamp(joy-dt*.05,joyFloor,1);alarm=clamp(alarm-dt*.09,0,1);cur=clamp(cur-dt*.05,0,1);
+ joyFloor>0&&(joy=Math.max(joy,joyFloor));
+ if(CAFF>0)CAFF-=dt;if(SED>0)SED-=dt;
+ if(RNG()<joy*.16)stim(NUC.joy[(RNG()*6)|0],1.3);
+ if(RNG()<alarm*.2)stim(NUC.alarm[(RNG()*6)|0],1.4);
+ if(RNG()<cur*.18)stim(NUC.cur[(RNG()*6)|0],1.3);
+ /* prontidão global */
+ let ra=0;for(let wi=0;wi<words.length;wi++)if(words[wi].cIdx>=0)ra+=actW[wi];
+ R=clamp(R+ra*dt*.9-dt*.15,0,1.4);
+ if(RNG()<R*.25)stim(MONS[(RNG()*16)|0],1.2);
+ /* resposta */
+ if(!PROD.active&&tSim-lastInput>.9&&(R>.5||tSim-lastInput>2.4)&&tSim-lastEnd>.8&&PEND){
+  R=0;startProd(buildSentences());PEND=null;lastInput=tSim;}
+ /* produção */
+ if(PROD.active){
+  PROD.expect+=dt;
+  if(PROD.node>=PROD.tokN){
+   PROD.expect+=dt;
+   if(PROD.expect>.4){
+    for(const wi of PROD.said)for(const wj of PROD.said)if(wi<wj)bondAdd(wi,wj,.055);
+    PROD.si++;
+    if(PROD.si<PROD.sents.length)armSentence();else endProd();
+   }
+  }else if(PROD.expect>.8){
+   if(PROD.retry<1){PROD.retry++;PROD.expect=0;
+    const s=PROD.sents[PROD.si],nodes=s.ch==='ART'?ARTN:s.ch.nodes;
+    stim(nodes[PROD.node][0],1.9);log('RFX','cadeia de produção falhou — rearmando nó');}
+   else{log('LAB',lesionP?'lesão confirmada: nenhuma frase completa se forma':'produção abortada');endProd();}
+  }
+ }
+ /* monólogo espontâneo */
+ if(monoOn&&!PROD.active&&!PEND&&tSim-lastInput>16&&tSim-lastEnd>8&&RNG()<dt*.05){
+  const T=ctxTop(new Set());
+  const t2=T>=0?T:CWORD[(RNG()*NC)|0];const nb=neighborOf(t2)||(CWORD[(RNG()*NC)|0]);
+  if(t2>=0&&nb>=0){
+   const toks=RNG()<.5?['eu','estava','pensando','em','e','também','em']:['será','que','tem','algo','a','ver','com'];
+   injectWord(t2,true);afterSim(.4,()=>injectWord(nb,true));
+   const A=NMAP[norm(toks[3]||'')];
+   startProd([{ch:'ART',toks:toks.map((x,i)=>i===3?{wi:t2}:i===6?{wi:nb}:{wi:NMAP[norm(x)]})}],true);
+   lastInput=tSim;}
+ }
+ /* sonho */
+ if(DREAM>0){DREAM-=dt;
+  const wv=.3+.3*Math.sin(tSim*2.4);
+  for(let k=0;k<10;k++)if(RNG()<wv*.25)stim(FILL[(RNG()*FILL.length)|0],.6+wv);
+  if(RNG()<dt*.8){let bi=-1,bj=-1,bv=.3;
+   for(let tr=0;tr<40;tr++){const i=(RNG()*NC)|0,j=(RNG()*NC)|0;
+    if(WB[i*WBC+j]>bv){bv=WB[i*WBC+j];bi=i;bj=j;}}
+   if(bi>=0){const a=CWORD[bi],b=CWORD[bj];
+    injectWord(a,true);afterSim(.3,()=>injectWord(b,true));
+    log('SYS',`replay: "${words[a].label}" ↔ "${words[b].label}" · consolidação η×2.5`);
+    bondAdd(a,b,.12);}}}
+ /* decaimentos lentos */
+ for(let wi=0;wi<words.length;wi++)actW[wi]*=Math.exp(-dt/1.9);
+ for(let i=0;i<8;i++)INTS[i]*=Math.exp(-dt/.5);
+ if((tTickI%94)===0){for(let c=0;c<WB.length;c++){const v=WB[c];if(v>.016)WB[c]=.015+(v-.015)*.998;}dirtyArc=true;}
+ if((tTickI%30)===0)for(let i=0;i<N;i++)ACT[i]*=.5;
 }
-let last=performance.now(),uiT=0,spT=0,enT=0,stT=0;
-let kcPct=0,wPhase=0;
+/* emissão de palavras (por frame, sincronizada com spikes) */
+function drainEmit(){
+ while(emitQ.length){const b=emitQ.shift();
+  if(!PROD.active||b.ch!==PROD.curCh)continue;
+  PROD.node++;PROD.expect=0;PROD.retry=0;
+  if(b.skip)continue;
+  let label,wi=null;
+  if(b.live)label=liveVal(b.live);
+  else if(b.txt)label=b.txt;
+  else{wi=b.wi;label=words[wi].label+(b.p||'');
+   stimAssembly(wi,1.5);actW[wi]=1;
+   if(words[wi].cIdx>=0)PROD.said.add(wi);
+   const w=words[wi];spawnP(w.gx,w.gy,w.gz,w.gx+randn()*.4,w.gy+randn()*.2,w.gz+randn()*.4);}
+  appendWord(PROD.ref,label);
+ }
+}
+/* — telemetria e etiquetas — */
+const MODNAMES=['córtex','faixa','anel','núcleos','coroa'],MODCOLS=['#c8c2b2','#e8b34b','#46c8bc','#ef6a8b','#8d897d'];
+{const sp=$('sparks');MODNAMES.forEach((n,i)=>{const d=document.createElement('div');d.className='srow';
+ d.innerHTML=`<span>${n}</span><canvas width="200" height="40" data-m="${i}"></canvas><span class="hz">0</span>`;
+ sp.appendChild(d);});
+ const lg=$('legend');
+ for(const c in CATS){if(c==='funcao')continue;const d=document.createElement('div');d.className='li';
+  d.innerHTML=`<i style="--c:${CATS[c].col}"></i>${c}`;lg.appendChild(d);}}
+const SPKD=MODNAMES.map(()=>[]);
+function drawSpark(cv,data,col){const ctx=cv.getContext('2d');ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,100,20);
+ let mx=1;for(const v of data)if(v>mx)mx=v;
+ ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();
+ for(let i=0;i<data.length;i++){const x=i/67*100,y=18-Math.min(1,data[i]/(mx*1.2))*16;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+ ctx.stroke();}
+let spT=0,enT=0,stT=0,arcT=0,lbT=0,modCnt=new Float32Array(5);
+function moodWord(){return joy>.45&&joy>=alarm?'feliz':alarm>.45?'em alerta':cur>.45?'curioso':'calmo';}
+function labels(){
+ const list=[];
+ for(let wi=0;wi<words.length;wi++)if(actW[wi]>.14&&words[wi].cIdx>=0)list.push([wi,actW[wi]]);
+ list.sort((a,b)=>b[1]-a[1]);list.length=Math.min(list.length,13);
+ for(let i=0;i<LBPOOL.length;i++){const d=LBPOOL[i];
+  if(i>=list.length){d.style.opacity=0;continue;}
+  const wi=list[i][0],w=words[wi];
+  tv.set(w.gx,w.gy,w.gz).project(camera);
+  if(tv.z>1){d.style.opacity=0;continue;}
+  d.textContent=w.label;d.classList.toggle('cur',false);
+  d.style.transform=`translate(${((tv.x+1)/2*stage.clientWidth).toFixed(1)}px,${((1-tv.y)/2*stage.clientHeight).toFixed(1)}px) translate(-50%,-50%)`;
+  d.style.opacity=Math.min(1,list[i][1]*1.4).toFixed(2);}
+}
+let last=performance.now(),fpsAcc=0,fpsN=0;
 function frame(now){
-  requestAnimationFrame(frame);
-  const rdt=Math.min((now-last)/1000,0.05);last=now;
-  const steps=S.speed>=1?S.speed:1, sdt=S.speed>=1?rdt:rdt*S.speed;
-  for(let i=0;i<steps;i++)tick(sdt);
-  RGC2.fill(0);
-  /* decaimento visual da atividade + taxas regionais */
-  const vd=Math.exp(-rdt*4.5);
-  for(let i=0;i<N;i++){const n=neurons[i];n.act*=vd;nAct[i]=n.act;}
-  nGeo.attributes.aAct.needsUpdate=true;
-  for(let i=0;i<PMAX;i++){const p=parts[i];
-    if(!p){pAct[i]=0;continue;}
-    p.t+=rdt;if(p.t>=p.dur){parts[i]=null;pAct[i]=0;pPos[i*3+1]=-999;continue;}
-    const k=p.t/p.dur,u=1-k;
-    pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;
-    pAct[i]=1-k;}
-  pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aAct.needsUpdate=true;
-  /* espécimen obedece aos motores */
-  DRV.wl=clamp(0.12+RM.VNCtl.r/(RM.VNCtl.n*6),0,1);
-  DRV.wr=clamp(0.12+RM.VNCtr.r/(RM.VNCtr.n*6),0,1);
-  DRV.fw=clamp(0.12+RM.VNCfw.r/(RM.VNCfw.n*6),0,1);
-  wPhase+=rdt*(7+24*DRV.fw);
-  const wA=0.16+1.0;
-  flyG.userData.wL.rotation.z=-(0.12+0.95*DRV.wl)*Math.sin(wPhase)*wA;
-  flyG.userData.wR.rotation.z=(0.12+0.95*DRV.wr)*Math.sin(wPhase)*wA;
-  flyG.rotation.z=(DRV.wl-DRV.wr)*0.4;
-  flyG.rotation.x=0.12-0.3*DRV.fw;
-  flyG.position.y=-2.95+0.07*DRV.fw*Math.abs(Math.sin(wPhase*0.5));
-  /* câmera preset */
-  if(camA){camA.k+=rdt*1.5;const e=camA.k>=1?1:(1-Math.pow(1-camA.k,3));
-    camera.position.lerpVectors(camA.p0,camA.p1,e);
-    controls.target.lerpVectors(camA.t0,camA.t1,e);
-    if(camA.k>=1)camA=null;}
-  controls.update();
-  renderer.render(scene,camera);
-  drawArena();
-  /* UI periódica */
-  uiT+=rdt;
-  if(uiT>0.1){uiT=0;
-    for(let i=0;i<7;i++){RGe[i]=lerp(RGe[i],RGC[i]/rdt,0.2);RGC[i]=0;}
-    $('mWl').style.width=(DRV.wl*100)+'%';$('mWr').style.width=(DRV.wr*100)+'%';$('mFw').style.width=(DRV.fw*100)+'%';
-    $('vWl').textContent=DRV.wl.toFixed(2);$('vWr').textContent=DRV.wr.toFixed(2);$('vFw').textContent=DRV.fw.toFixed(2);
-    $('vW').textContent=`ω ${(DRV.angVel*57.3).toFixed(0)}°/s · v ${(DRV.speed/3).toFixed(0)} mm/s`;
-    $('mEn').style.width=S.energy+'%';
-    let kca=0;for(const k of kcAll)if(k.ema>0.25)kca++;
-    kcPct=kca/kcAll.length*100;
-    const [st,sub,cl]=stateNow();
-    $('state').textContent=st;$('state').className=cl;$('stateSub').textContent=sub;
-    $('subNeural').textContent=`PN ${RGe[1].toFixed(0)} Hz · KC ${kcPct.toFixed(0)}% · AP ${DRV.ap.toFixed(2)} · AV ${DRV.av.toFixed(2)}`;
-    let info='';for(const o in ODORS){const c=(DRV.cOd[o].l+DRV.cOd[o].r)/2;
-      if(c>0.03)info+=(info?' · ':'')+ODORS[o].label+' '+c.toFixed(2);}
-    $('arenaInfo').textContent=info||'placa · 92 mm · vista dorsal';}
-  spT+=rdt;
-  if(spT>0.15){spT=0;
-    for(const rg of RGORDER){SPKD[rg].push(RGe[RGIDX[rg]]);if(SPKD[rg].length>68)SPKD[rg].shift();
-      const cv=document.querySelector(`canvas[data-rg="${rg}"]`);
-      drawSpark(cv,SPKD[rg],REG[rg].col);
-      cv.parentElement.querySelector('.hz').textContent=RGe[RGIDX[rg]].toFixed(0)+' Hz';}}
-  enT+=rdt;if(enT>0.5){enT=0;updateEngra();}
-  stT+=rdt;if(stT>0.25){stT=0;
-    $('stSp').textContent=Math.round(S.sps);
-    $('stT').textContent=fmtT(S.t);}
+ requestAnimationFrame(frame);
+ const rdt=Math.min((now-last)/1000,.05);last=now;
+ const sp=DREAM>0?Math.max(speed,6):speed;
+ for(let k=0;k<sp;k++){modCnt.fill(0);
+  const t0=performance.now();tick(.016);
+  if(dirtyCompile)compile();
+  const t1=performance.now();
+  msPT=lerp(msPT,t1-t0,.06);}
+ SPK=0;
+ for(let i=0;i<N;i++){nAct[i]=ACT[i];
+  if(ACT[i]>.5)modCnt[MODU[i]]++;}
+ nGeo.attributes.aAct.needsUpdate=true;
+ for(let i=0;i<PMAX;i++){const p=parts[i];
+  if(!p){pAct[i]=0;continue;}
+  p.t+=rdt;if(p.t>=p.dur){parts[i]=null;pAct[i]=0;pPos[i*3+1]=-999;continue;}
+  const k=p.t/p.dur,u=1-k;
+  pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;pAct[i]=1-k;}
+ pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aAct.needsUpdate=true;
+ drainEmit();
+ /* humor → luz e acento */
+ const mc=new THREE.Color('#e8b34b').lerp(new THREE.Color('#ff5d4d'),alarm).lerp(new THREE.Color('#46c8bc'),cur*.7);
+ moodL.color.lerp(mc,.04);$('bDot').style.background='#'+mc.getHexString();$('bDot').style.boxShadow='0 0 8px #'+mc.getHexString();
+ document.documentElement.style.setProperty('--acc','#'+mc.getHexString());
+ arcT+=rdt;if(dirtyArc&&arcT>.4){arcT=0;arcUpdate();}
+ if(camA){camA.k+=rdt*1.6;const e=camA.k>=1?1:1-Math.pow(1-camA.k,3);
+  camera.position.lerpVectors(camA.p0,camA.p1,e);controls.target.lerpVectors(camA.t0,camA.t1,e);
+  if(camA.k>=1)camA=null;}
+ controls.update();renderer.render(scene,camera);
+ labels();
+ spT+=rdt;if(spT>.15){spT=0;
+  for(let m=0;m<5;m++){SPKD[m].push(modCnt[m]/(N*.1));if(SPKD[m].length>68)SPKD[m].shift();
+   const cv=document.querySelector(`canvas[data-m="${m}"]`);drawSpark(cv,SPKD[m],MODCOLS[m]);
+   cv.parentElement.querySelector('.hz').textContent=modCnt[m].toFixed(0);}}
+ enT+=rdt;if(enT>.12){enT=0;
+  $('mJoy').style.width=joy*100+'%';$('mAl').style.width=alarm*100+'%';$('mCu').style.width=cur*100+'%';
+  $('mTe').style.width=((.7+cur*.8+joy*.4-alarm*.3)/1.9*100)+'%';$('mRd').style.width=Math.min(1,R/1.2)*100+'%';
+  $('vJoy').textContent=joy.toFixed(1);$('vAl').textContent=alarm.toFixed(1);$('vCu').textContent=cur.toFixed(1);
+  $('moodTag').textContent=moodWord();}
+ stT+=rdt;if(stT>.3){stT=0;
+  $('stA').textContent=(HOT.length/N*100).toFixed(1)+'%';
+  $('stMs').textContent=msPT.toFixed(2)+'ms';
+  $('stSp').textContent=modCnt.reduce((a,b)=>a+b,0).toFixed(0);
+  let lb=0;for(let c=0;c<NC*NC;c++)if(WB[c]>.12)lb++;
+  $('tL').textContent=lb;$('tF').textContent=FACTS.size;$('tW').textContent=newWords;
+  $('tN').textContent=N.toLocaleString('pt-BR');$('tS').textContent=SYN.toLocaleString('pt-BR');
+  $('tV').textContent=words.length;}
 }
-function resize(){
-  const w=stage.clientWidth,h=stage.clientHeight;
-  renderer.setSize(w,h,false);
-  renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
-  camera.aspect=w/h;camera.updateProjectionMatrix();
-  ptMat.uniforms.uScale.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));
-}
-window.addEventListener('resize',()=>{resize();sizeArena();});
-resize();sizeArena();
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;
+ renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+ camera.aspect=w/h;camera.updateProjectionMatrix();
+ ptMat.uniforms.uScale.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));}
+window.addEventListener('resize',resize);resize();
+arcUpdate();
 
-/* boot */
- $('stN').textContent=N.toLocaleString('pt-BR');
- $('stS').textContent=SYN.toLocaleString('pt-BR');
-log('SYS',`conectoma carregado — ${N.toLocaleString('pt-BR')} neurônios · ${SYN.toLocaleString('pt-BR')} sinapses`);
-log('SYS','modelo: LIF · plasticidade dopaminérgica no corpo fungiforme · anel-atrator no complexo central');
-for(const [i,rg] of RGORDER.entries())after(0.3+i*0.22,()=>burstRegion(rg,true));
-after(2.2,()=>log('SYS','comportamento autônomo iniciado — fome, exploração, reflexos e aprendizado ativos'));
+/* — boot — */
+ $('stN').textContent=N.toLocaleString('pt-BR');$('stS').textContent=SYN.toLocaleString('pt-BR');
+log('SYS',`rede montada: ${N.toLocaleString('pt-BR')} neurônios LIF · ${SYN.toLocaleString('pt-BR')} sinapses (CSR + atrasos axonais)`);
+log('SYS','teia semântica plástica pronta · 15 sementes inatas · fios novos nascem quando ela aprende');
+afterSim(1.4,()=>{PEND={type:'welcome'};lastInput=-99;});
 requestAnimationFrame(frame);
 </script>
 </body>
