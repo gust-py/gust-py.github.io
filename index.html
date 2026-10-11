@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TABULA·07 — 1000 neurônios · cérebro vazio · IA valida tudo</title>
+<title>TABULA·07 — 1000 neurônios · polos semânticos · IA valida tudo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -69,8 +69,8 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .btn.on{border-color:rgba(200,182,232,.6);color:var(--rev)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .grid2 .btn{margin-bottom:0}
-.grid4{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:6px}
-.grid4 .btn{margin-bottom:0;text-align:center;padding:7px 2px;font-size:8px;letter-spacing:.02em}
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
+.grid6 .btn{margin-bottom:0;text-align:center;padding:7px 2px;font-size:8px;letter-spacing:.02em}
 .srow{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--dim);margin-bottom:9px}
 .srow input[type=range]{flex:1;accent-color:var(--acc);height:3px}
 .srow b{color:var(--tx);font-weight:400;min-width:30px;text-align:right}
@@ -118,7 +118,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>nasce vazio · 1000 neurônios fixos · 3000 palavras · 175 hábitos · IA valida tudo</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>1000 neurônios · polos positivo/negativo · IA valida e ancora o significado</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -152,9 +152,9 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 800 neurônios (32 colunas × 25) + 175 gânglios + 25 de módulos = 1000 fixos</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>conceitos aprendidos — luzes sinápticas: brilham, conectam, mas não são neurônios</div>
-      <div class="li"><i class="th" style="--c:#8fd0ff"></i>fio de sentido — palavra real validada pela IA, ancorada em conceitos conhecidos</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 800 neurônios (32 colunas × 25) + 175 gânglios + 25 módulos = 1000 fixos</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>conceitos aprendidos — luzes sinápticas; polos "positivo" e "negativo" concentram a valência</div>
+      <div class="li"><i class="th" style="--c:#8fd0ff"></i>fio de sentido — significado ancorado pela IA: polaridade, categoria, uso</div>
       <div class="li"><i style="--c:#ff9a8b"></i>validador IA — typo ou palavra sem sentido é apagada do cérebro na hora</div>
       <div class="li"><i style="--c:#f0a63c"></i>gânglios da base — hábitos (175 atalhos simultâneos)</div>
       <div class="li"><i style="--c:#b9c4e8"></i>lobo frontal — plano de fala · parada · revisor (6 rascunhos)</div>
@@ -167,10 +167,10 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Como usar · o protocolo</h3>
       <div class="inst">
-        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>100% vazio</b>: <b>1000 neurônios fixos</b> — 800 de córtex dormente, 175 gânglios de hábito, 25 de módulos. Capacidade: <b>3000 palavras</b>, 175 hábitos, 16 fios de linha. Zero palavras no boot.</span></div>
-        <div class="step"><span class="n">2</span><span>Cada palavra nova é <b>validada pela IA groq</b>: palavra real do português → ganha <b>fio de sentido</b> azul ancorado nos conceitos que ele já conhece. Typo ou invenção → <b>apagada do cérebro</b> (rotas, episódios, fios: tudo).</span></div>
-        <div class="step"><span class="n">3</span><span>Cada resposta passa pelo revisor (6 rascunhos); se nenhuma presta, a <b>IA reescreve</b> e o cérebro absorve a correção como memória. No começo ele não sabe nada — a IA faz a ponte até a teia crescer.</span></div>
-        <div class="step"><span class="n">4</span><span>Com conversa o vazio vira teia: 175 slots de hábito para atalhos firmes e 16 fios de episódio girando a memória recente. Botão <b>ia</b> desliga a muleta quando ele estiver andando sozinho.</span></div>
+        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>100% vazio</b>: <b>1000 neurônios fixos</b> — 800 de córtex dormente, 175 gânglios, 25 módulos. Capacidade: <b>3000 palavras</b>, 175 hábitos, 16 fios de linha.</span></div>
+        <div class="step"><span class="n">2</span><span>Palavra nova → a IA valida: real ⇢ <b>fio de sentido</b> azul ensinando o significado — <b>polaridade primeiro</b> (bem⇢positivo, mal⇢negativo, sim⇢positivo, não⇢negativo), depois categoria e uso. Typo ⇢ apagada do cérebro.</span></div>
+        <div class="step"><span class="n">3</span><span>A geração usa a polaridade: contexto com "bem" atrai "positivo", com "mal" atrai "negativo" — e os polos se ligam a tudo de valência parecida.</span></div>
+        <div class="step"><span class="n">4</span><span>Botão <b>revalidar</b> refaz os fios de todo o vocabulário com as regras novas — use se palavras antigas saíram com ancoragem ruim. Botão <b>ia</b> desliga a muleta quando ele andar sozinho.</span></div>
       </div>
     </section>
 
@@ -183,8 +183,9 @@ footer b{color:var(--dim);font-weight:400}
         <button class="btn" id="btnLesion">lesionar 25%<em>amígdala em alarme</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json</em></button>
       </div>
-      <div class="grid4">
+      <div class="grid6">
         <button class="btn" id="btnImport">importar</button>
+        <button class="btn" id="btnReval">revalidar</button>
         <button class="btn on" id="btnThread">fios</button>
         <button class="btn on" id="btnChunk">hábitos</button>
         <button class="btn on" id="btnRev">revisor</button>
@@ -215,8 +216,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · cérebro vazio no boot · a IA valida cada palavra: real ⇢ fio de sentido · typo ⇢ esquecida</span>
-  <span>1000 neurônios fixos · 3000 palavras · 175 hábitos · 16 episódios · memória 100% sináptica</span>
+  <span><b>arraste</b> orbitar · a IA ensina polaridade e categoria: bem⇢positivo · mal⇢negativo · typo ⇢ esquecida</span>
+  <span>1000 neurônios fixos · 3000 palavras · 175 hábitos · polos semânticos no centro da teia</span>
 </footer>
 
 <script type="importmap">
@@ -246,9 +247,7 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 1000 neurônios =================
-   23 módulos + 2 marcadores + 175 gânglios + 800 córtex (32 colunas × 25) = 1000.
-   Capacidade: 3000 palavras · 175 hábitos · 16 episódios. Nada disso cresce. */
+/* ================= 1 · motor LIF — hardware FIXO de 1000 neurônios ================= */
 const CAPW=3000, NCOLS=32, NPER=25, NCHUNK=175, NEPI=16, CAPN=1000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
@@ -314,9 +313,7 @@ function recover(){
 }
 let SPK=0;
 
-/* ================= 2 · córtex semântico =================
-   NENHUMA palavra predefinida. Toda palavra aprendida é um conceito-luz:
-   posição, brilho e sinapses — zero neurônios. Capacidade: 3000. */
+/* ================= 2 · córtex semântico ================= */
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);
 function sheetPos(u,v){
@@ -377,7 +374,6 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
-  /* córtex dormente: 32 colunas × 25 = 800 neurônios numa grade 8×4 com jitter */
   dormantIds=[];
   const GX=8,GY=4;
   for(let c=0;c<NCOLS;c++){
@@ -525,7 +521,6 @@ function learnDialogue(prev,cur){
   }
   log('WEB',`ligação de turno ${prev.qa?'(pergunta)':''}: ${qsal.slice(0,3).map(i=>`"${words[i].label}"`).join(' ')} → ${cur.slice(0,3).map(i=>`"${words[i].label}"`).join(' ')}…`);
 }
-/* apaga a palavra do cérebro inteiro — validador IA reprovou */
 function forgetWord(wi,reason){
   const w=words[wi];if(!w||w.dead)return;
   const lbl=w.label;
@@ -757,12 +752,14 @@ function reviseAndSpeak(inputWids,T,qa,plan){
   return r;
 }
 
-/* ================= 8.5 · IA groq — valida, ancora, corrige, esquece ================= */
+/* ================= 8.5 · IA groq — valida, ancora (polaridade primeiro), corrige, esquece ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL='openai/gpt-oss-120b';
 let aiOn=true;
 const history=[];
+/* polos semânticos: ligações com essas palavras entram mais fortes */
+const POLAR=new Set(['positivo','negativo']);
 function knownVocab(){
   return words.filter(w=>!w.io&&!w.dead&&w.count>0)
     .sort((a,b)=>b.count-a.count).slice(0,120)
@@ -790,8 +787,9 @@ async function groqRepair(userText,draftText){
     'Ele gera rascunhos às vezes sem sentido; sua tarefa é transformá-los numa resposta curta, natural e coerente. '+
     'REGRAS: no máximo 12 palavras; tudo minúsculo; sem emojis; sem aspas; sem listas; sem explicações; '+
     'reaproveite ao máximo as palavras do rascunho e do vocabulário conhecido (é assim que o cérebro aprende); '+
-    'se o rascunho já faz sentido, apenas refine; se for vazio, responda de forma simples e direta à mensagem do usuário. '+
-    'Responda SOMENTE com a frase final.';
+    'se o rascunho já faz sentido, apenas refine; se for vazio, responda de forma simples e direta à mensagem do usuário; '+
+    'respeite a polaridade do que o usuário disse: mensagem boa/afirmativa pede resposta de valência positiva (bem, bom, positivo, sim), '+
+    'mensagem ruim/negativa pede valência negativa (mal, ruim, negativo, não). Responda SOMENTE com a frase final.';
   const usr='mensagem do usuário: "'+userText+'"\n'+
     (hist?'conversa recente:\n'+hist+'\n':'')+
     'rascunho do cérebro: "'+(draftText||'(vazio)')+'"\n'+
@@ -799,7 +797,7 @@ async function groqRepair(userText,draftText){
   return cleanAI(await groqChat(sys,usr));
 }
 
-/* ---------- fila de validação: real ⇢ fio de sentido · typo ⇢ esquecida ---------- */
+/* ---------- fila de validação ---------- */
 const groundQ=[]; let groundBusy=false;
 function queueGround(wis,ctx){
   if(!aiOn||!wis||!wis.length)return;
@@ -815,7 +813,7 @@ async function pumpGround(){
     const wis=[...new Set(job.wis)].filter(wi=>words[wi]&&!words[wi].dead&&!words[wi].grounded&&!words[wi].io&&wi>1);
     if(!wis.length)continue;
     wis.forEach(wi=>words[wi].groundTries++);
-    log('AI',`validando: ${wis.map(wi=>`"${words[wi].label}"`).join(', ')} — real ou erro de digitação? (${GROQ_MODEL})`);
+    log('AI',`validando: ${wis.map(wi=>`"${words[wi].label}"`).join(', ')} — significado, polaridade, categoria (${GROQ_MODEL})`);
     try{
       const map=await groqValidate(wis.map(wi=>words[wi].label),job.ctx);
       let nOK=0,nFGT=0;
@@ -839,18 +837,25 @@ async function groqValidate(labels,ctx){
   const vocab=words.filter(w=>!w.io&&!w.dead&&w.count>0)
     .sort((a,b)=>b.count-a.count).slice(0,60).map(w=>w.label);
   const sys='Você é o validador semântico de um cérebro artificial que aprende português do Brasil DO ZERO. '+
-    'Para cada palavra nova, decida se é uma palavra REAL (qualquer classe: substantivo, verbo, artigo, preposição, pronome, interjeição, nome próprio, número) '+
-    'ou se é ERRO DE DIGITAÇÃO / palavra inventada sem sentido. '+
-    'Responda UMA linha por palavra no formato exato:\n'+
-    'palavra: sim, conceito1, conceito2, conceito3   (se for real)\n'+
-    'palavra: nao                                     (se for erro de digitação ou sem sentido)\n'+
-    'Regras: os conceitos são UMA palavra cada, simples, do português, preferindo o vocabulário conhecido informado; '+
-    'no máximo 3 conceitos; palavras gramaticais (de, que, não, meu, etc.) são REAIS — ancore-as com palavras que as acompanham; '+
-    'sem frases, sem explicação, sem numeração, sem markdown. Responda apenas com as linhas.';
+    'Para cada palavra nova, decida se é REAL (qualquer classe gramatical) ou ERRO DE DIGITAÇÃO / palavra inventada. '+
+    'Se for real, ancore pelo SIGNIFICADO com 3 conceitos, nesta ordem de prioridade:\n'+
+    '1. POLARIDADE — palavras de valência positiva/afirmativa ligam ao conceito "positivo"; valência negativa liga a "negativo". '+
+    'Exemplos exatos: bem: sim, positivo, bom | mal: sim, negativo, ruim | sim: sim, positivo | nao: sim, negativo | '+
+    'otimo: sim, positivo, bom | pessimo: sim, negativo, ruim | gosto: sim, positivo | odeio: sim, negativo\n'+
+    '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | casa: sim, lugar, morar\n'+
+    '3. USO — com que palavras aparece: eu: sim, pessoa | de: sim, ligacao\n'+
+    'Regras: os conceitos "positivo" e "negativo" são os polos centrais — use-os SEMPRE que a palavra tiver valência; '+
+    'cada conceito é UMA palavra simples do português; no máximo 3; '+
+    'palavras gramaticais (de, que, o, meu, é) são REAIS — ancore-as pelo papel, não pelas vizinhas; '+
+    'nunca ancore uma palavra pela frase onde apareceu se você pode ancorar pelo significado. '+
+    'Formato exato, UMA linha por palavra:\n'+
+    'palavra: sim, conceito1, conceito2, conceito3\n'+
+    'palavra: nao\n'+
+    'Sem frases, sem explicação, sem numeração, sem markdown. Apenas as linhas.';
   const usr='palavras novas: '+labels.join(', ')+'\n'+
     'frase onde apareceram: "'+ctx+'"\n'+
     'vocabulário conhecido: '+(vocab.join(', ')||'(nenhum ainda — é a primeira palavra)')+'\n\nlinhas:';
-  const txt=await groqChat(sys,usr,200,.2);
+  const txt=await groqChat(sys,usr,220,.2);
   const map=new Map();
   for(const raw of txt.split(/\n+/)){
     const m=raw.match(/^\s*(?:[-*•\d.)\s]*)("?)([\p{L}\p{N}'-]+)\1\s*[:\-–]\s*(.+)$/u);
@@ -877,7 +882,11 @@ function applyGrounding(wi,labels){
   const awids=[];
   for(const lb of labels.slice(0,3)){
     const awi=ensureWord(lb);
-    if(awi>=0&&awi!==wi&&!words[awi].dead){addAssoc(wi,awi,1.7);awids.push(awi);}
+    if(awi>=0&&awi!==wi&&!words[awi].dead){
+      /* ligação com polo semântico entra com peso dobrado */
+      addAssoc(wi,awi,POLAR.has(norm(words[awi].label))?2.4:1.7);
+      awids.push(awi);
+    }
   }
   if(!awids.length){w.groundTries=Math.min(w.groundTries,1);return;}
   w.grounded=true;w.groundTries=0;w.ground=awids.slice(0,3);
@@ -1361,7 +1370,6 @@ function rebuildVisFromNet(){
   for(const e of as.slice(0,CAPV-visE.length))visE.push(e);
   visDirty=true;
 }
-/* FIOS DE SENTIDO — uma linha azul por palavra validada */
 let groundLine=null;
 function rebuildGroundLines(){
   if(groundLine){scene.remove(groundLine);groundLine.geometry.dispose();groundLine=null;}
@@ -1490,6 +1498,7 @@ function rebuildWordLabels(){
     el.textContent=w.io?(w.idx===0?'início':'fim'):w.label+(w.grounded?' ✓':'');
     el._o=w.io?1:clamp(.4+w.count*.07,.4,.95);
     if(w.grounded&&!w.io)el.style.color='#8fd0ff';
+    if(POLAR.has(w.key)&&!w.io)el.style.color='#d0a8ff';
     wlab.appendChild(el);wordLabels.push({el,w});
   }
 }
@@ -1613,7 +1622,7 @@ function lesion(){
 }
  $('btnLesion').addEventListener('click',lesion);
 function exportBrain(){
-  const data={v:6,model:'tabula-07',
+  const data={v:7,model:'tabula-07',
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0})),
     trans:[],rev:[],assoc:[],
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
@@ -1684,6 +1693,18 @@ function importBrain(d){
   rd.onload=()=>{try{importBrain(JSON.parse(rd.result));}catch(e){log('SYS','arquivo inválido: '+e.message);}};
   rd.readAsText(f);ev.target.value='';
 });
+/* revalidar: refaz os fios de sentido de todo o vocabulário com as regras novas */
+ $('btnReval').addEventListener('click',()=>{
+  if(!aiOn){log('AI','ligue a IA para revalidar');return;}
+  const list=words.filter(w=>!w.dead&&!w.io&&w.idx>1&&w.count>0).map(w=>w.idx);
+  if(!list.length){log('AI','nada para revalidar — cérebro vazio');return;}
+  for(const wi of list){words[wi].grounded=false;words[wi].groundTries=0;words[wi].ground=null;}
+  rebuildGroundLines();
+  for(let i=0;i<list.length;i+=6)
+    groundQ.push({wis:list.slice(i,i+6),ctx:'revalidação completa do vocabulário'});
+  log('AI',`revalidação: ${list.length} palavra(s) na fila — a IA vai reancorar todas pelos significados`);
+  pumpGround();
+});
 let wipeArm=0;
  $('btnWipe').addEventListener('click',()=>{
   const b=$('btnWipe');
@@ -1727,7 +1748,6 @@ function animate(){
   const rdt=Math.min(.05,clock.getDelta());
   const dt=rdt*SIMSPEED;
   stepNet(dt);recover();
-  /* ruído espontâneo: o córtex dormente cintila organicamente */
   noiseT-=rdt;
   if(noiseT<=0&&dormantIds.length){
     noiseT=.08+RNG()*.22;
@@ -1775,8 +1795,7 @@ resize();
 updateStats();
 log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 175 gânglios + 800 córtex dormente (32 colunas × 25)`);
 log('SYS','capacidade: 3000 palavras · 175 hábitos · 16 fios de linha · zero palavras no boot');
-log('SYS','cérebro vazio: cada palavra que você digitar será validada pela IA');
-log('SYS','palavra real ⇢ fio de sentido azul · typo/invenção ⇢ apagada do cérebro');
+log('SYS','IA ancora por significado: polaridade primeiro (bem⇢positivo, mal⇢negativo), depois categoria e uso');
 log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · ${GROQ_MODEL}`);
 setTimeout(fireSweep,700);
 animate();
