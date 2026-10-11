@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TABULA·06 — atlas cerebral · lobo frontal · amígdala · gânglios da base</title>
+<title>TABULA·07 — atlas cerebral + revisor de fluência local</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 :root{
   --bg:#07080a; --panel:#0b0d0f; --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.17);
   --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
-  --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a; --fro:#b9c4e8;
+  --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a; --fro:#b9c4e8; --rev:#c8b6e8;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -65,11 +65,11 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .btn em{display:block;font-style:normal;font-weight:400;text-transform:none;letter-spacing:.02em;font-size:9px;color:var(--dim2);margin-top:2px}
 .btn.ghost{color:var(--dim)}
 .btn.armed{border-color:var(--red);color:var(--red);background:rgba(255,93,77,.08)}
-.btn.on{border-color:rgba(165,214,74,.6);color:var(--grn)}
+.btn.on{border-color:rgba(200,182,232,.6);color:var(--rev)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .grid2 .btn{margin-bottom:0}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px}
-.grid3 .btn{margin-bottom:0;text-align:center;padding:7px 4px;font-size:9px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.grid4 .btn{margin-bottom:0;text-align:center;padding:7px 2px;font-size:8.5px}
 .srow{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--dim);margin-bottom:9px}
 .srow input[type=range]{flex:1;accent-color:var(--acc);height:3px}
 .srow b{color:var(--tx);font-weight:400;min-width:30px;text-align:right}
@@ -98,7 +98,8 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 #log .lt{color:var(--dim2);margin-right:6px}
 #log .lk{display:inline-block;width:34px;font-size:8px;letter-spacing:.1em;margin-right:5px}
 .lk-SYS{color:var(--dim)} .lk-NEW{color:var(--grn)} .lk-WEB{color:var(--teal)} .lk-TLK{color:var(--acc)}
-.lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c} .lk-FRO{color:var(--fro)}
+.lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
+.lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)}
 #log .ln{margin-bottom:2px}
 .inst{font-size:10px;line-height:1.7;color:var(--dim)}
 .inst b{color:var(--tx);font-weight:500}
@@ -115,7 +116,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>TABULA·06<em>atlas cerebral · 7 estruturas · conteúdo 100% seu</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>atlas + revisor local · 6 rascunhos por resposta · zero API</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -150,11 +151,12 @@ footer b{color:var(--dim);font-weight:400}
     </div>
     <div id="legend">
       <div class="li"><i style="--c:#d9d7cf"></i>córtex semântico — assemblies de 25 neurônios por palavra</div>
-      <div class="li"><i style="--c:#b9c4e8"></i>lobo frontal — plano de fala · parada inibitória · foco</div>
+      <div class="li"><i style="--c:#b9c4e8"></i>lobo frontal — plano de fala · parada inibitória</div>
+      <div class="li"><i style="--c:#c8b6e8"></i>revisor — pontua 6 rascunhos, só fala o melhor</div>
       <div class="li"><i style="--c:#ef6a8b"></i>amígdala — arousal emocional · amplifica a atenção</div>
       <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — fios por linha (12 episódios coloridos)</div>
       <div class="li"><i style="--c:#f0a63c"></i>gânglios da base — hábitos (atalhos de rota firme)</div>
-      <div class="li"><i style="--c:#46c8bc"></i>tálamo — portão de atenção · entrada/saída</div>
+      <div class="li"><i style="--c:#46c8bc"></i>tálamo — portão de atenção</div>
       <div class="li"><i style="--c:#ff5d4d"></i>VTA — dopamina de surpresa e novidade</div>
     </div>
   </div>
@@ -163,10 +165,10 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Como usar · o protocolo</h3>
       <div class="inst">
-        <div class="step"><span class="n">1</span><span>Cérebro nasce <b>vazio</b>. As 7 estruturas existem; o conteúdo, não. Toda palavra, rota e resposta vem do que você digita.</span></div>
-        <div class="step"><span class="n">2</span><span>Cada frase grava um <b>fio colorido no hipocampo</b> e cria rotas diretas + inversas + associações. Rotas firmes viram <b>hábitos</b> nos gânglios da base.</span></div>
-        <div class="step"><span class="n">3</span><span>O <b>lobo frontal</b> escolhe o plano de cada resposta (cadeia · lembrança · inversa) e pode encerrar a frase cedo (parada inibitória).</span></div>
-        <div class="step"><span class="n">4</span><span><b>Pergunte com "?"</b>. Para ensinar: pergunta → ele balbucia → você manda a resposta certa. Repita 2–3×. <b>Dormir</b> consolida e cria atalhos que você nunca digitou.</span></div>
+        <div class="step"><span class="n">1</span><span>Cérebro nasce <b>vazio</b>. Todo conteúdo vem do que você digita — mas agora cada resposta passa pelo <b>revisor</b>: 6 rascunhos gerados, o mais fluente é falado.</span></div>
+        <div class="step"><span class="n">2</span><span>Se nenhum rascunho for entendível, ele <b>não balbucia</b>: recupera a frase literal que você ensinou e que mais combina com a sua mensagem.</span></div>
+        <div class="step"><span class="n">3</span><span>Para ensinar respostas: pergunta → resposta (a resposta vira episódio e o revisor aprende a preferi-la). Repita 2–3×.</span></div>
+        <div class="step"><span class="n">4</span><span>O vencedor do concurso <b>reforça seus próprios caminhos</b> — a correção de hoje vira fluência de amanhã. Com o revisor ligado, temperatura 0.8–1.0 fica segura.</span></div>
       </div>
     </section>
 
@@ -179,10 +181,11 @@ footer b{color:var(--dim);font-weight:400}
         <button class="btn" id="btnLesion">lesionar 25%<em>amígdala em alarme</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json</em></button>
       </div>
-      <div class="grid3">
+      <div class="grid4">
         <button class="btn" id="btnImport">importar</button>
-        <button class="btn on" id="btnThread">fios linha</button>
+        <button class="btn on" id="btnThread">fios</button>
         <button class="btn on" id="btnChunk">hábitos</button>
+        <button class="btn on" id="btnRev">revisor</button>
       </div>
       <button class="btn ghost" id="btnWipe" style="margin-top:6px">apagar memória<em>clique duas vezes para confirmar</em></button>
       <input type="file" id="fileIn" accept=".json" style="display:none">
@@ -194,8 +197,8 @@ footer b{color:var(--dim);font-weight:400}
         <span>palavras<b id="tW">0</b></span><span>rotas diretas<b id="tR">0</b></span>
         <span>rotas inversas<b id="tRev">0</b></span><span>associações<b id="tA">0</b></span>
         <span>hábitos<b id="tK">0</b></span><span>fios de linha<b id="tT">0</b></span>
-        <span>atalhos (sono)<b id="tSk">0</b></span><span>saltos<b id="tJ">0</b></span>
         <span>último plano<b id="tP">—</b></span><span>arousal<b id="tAr">0.00</b></span>
+        <span>fluência<b id="tF">—</b></span><span>modo<b id="tM">—</b></span>
         <span>confiança<b id="tC">—</b></span><span>balbucios<b id="tB">0</b></span>
       </div>
     </section>
@@ -208,8 +211,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · <b>?</b> pergunta · o lobo frontal anuncia o plano no registro antes de cada resposta</span>
-  <span>anatomia inata: córtex · frontal · amígdala · hipocampo · gânglios · tálamo · VTA — conteúdo zero no boot</span>
+  <span><b>arraste</b> orbitar · <b>?</b> pergunta · o revisor roda 6 rascunhos por resposta — veja o placar no registro</span>
+  <span>anatomia inata · conteúdo zero no boot · revisor local: re-ranking de fluência + lembrança de segurança · zero API</span>
 </footer>
 
 <script type="importmap">
@@ -304,7 +307,7 @@ function recover(){
 }
 let SPK=0;
 
-/* ================= 2 · córtex semântico (grande, plano, organizado) ================= */
+/* ================= 2 · córtex semântico ================= */
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);
 const LOCAL=new Array(CAPW);
@@ -352,11 +355,10 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia: 7 estruturas ================= */
+/* ================= 3 · anatomia ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
-let planN=-1,stopN=-1,focusN=-1;              // lobo frontal
-let amgA=-1,amgB=-1;                          // amígdala
-let vtaA=-1,vtaB=-1;                          // VTA
+let planN=-1,stopN=-1;
+let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
 let chunkIds=[],chunkFree=[];
 const chunkMap=new Map();
 function buildModules(){
@@ -369,7 +371,6 @@ function buildModules(){
   thalN=addN(0,2.7,-.3,'#46c8bc',.085,.75);
   planN =addN(4.1,1.55,-.9,'#b9c4e8',.062,.7);
   stopN =addN(4.4,.95,-.25,'#b9c4e8',.055,.72);
-  focusN=addN(3.75,1.95,-.35,'#b9c4e8',.055,.72);
   amgA=addN(3.2,-1.55,1.1,'#ef6a8b',.052,.72);
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
@@ -448,15 +449,20 @@ function addAssoc(a,b,dw){
 }
 const sal=wi=>1/Math.sqrt(1+words[wi].count);
 
-/* ================= 5 · episódios ================= */
+/* ================= 5 · episódios + índice do revisor ================= */
 const threadAct=new Float32Array(NEPI);
 const dirtyThread=new Array(NEPI).fill(true);
+const epiPair=new Set();   // pares que aparecem em frases reais (suporte do revisor)
+function indexEpisodePairs(wids){
+  for(let i=0;i+1<wids.length;i++)epiPair.add(wids[i]*CAPW+wids[i+1]);
+}
 function writeEpisode(wids){
   const ctxI=episodeIdx%NEPI;episodeIdx++;
   const ep=epiData[ctxI];
   for(const rec of ep.words)if(EDGES[rec.ci]){EDGES[rec.ci].w=0;EDGES[rec.ci].dead=true;}
   ep.epi=wids.slice(0,30);
   ep.words=ep.epi.map(wi=>({wi,ci:pushE(epiIds[ctxI],words[wi].hub,.55,2,.55)}));
+  indexEpisodePairs(ep.epi);
   stim(epiIds[ctxI],1.3);
   threadAct[ctxI]=1.25;dirtyThread[ctxI]=true;
   dirtyC=true;
@@ -506,7 +512,7 @@ function learnDialogue(prev,cur){
   log('WEB',`ligação de turno ${prev.qa?'(pergunta)':''}: ${qsal.slice(0,3).map(i=>`"${words[i].label}"`).join(' ')} → ${cur.slice(0,3).map(i=>`"${words[i].label}"`).join(' ')}…`);
 }
 
-/* ================= 7 · lobo frontal · amígdala · geração ================= */
+/* ================= 7 · lobo frontal + geração ================= */
 let frontalPlan='—', arousal=0;
 const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc'};
 function bumpArousal(v){
@@ -517,6 +523,14 @@ function bumpArousal(v){
     stim(amgA,1.2);stim(amgB,1.0);
   }
 }
+function outSum(a){let s=0;const m=transAdj[a];if(m)for(const o of m.values())s+=o.w;return s;}
+function sampleWeighted(arr){
+  let tot=0;for(const e of arr)tot+=Math.max(0,e[1]);
+  if(tot<=0)return arr.length?arr[(RNG()*arr.length)|0][0]:null;
+  let r=RNG()*tot;
+  for(const e of arr){r-=Math.max(0,e[1]);if(r<=0)return e[0];}
+  return arr[arr.length-1][0];
+}
 function frontalDecide(inputWids,qa){
   const last=inputWids[inputWids.length-1];
   const chainS=(last!==undefined&&transAdj[last])?outSum(last):0;
@@ -526,18 +540,9 @@ function frontalDecide(inputWids,qa){
   if(qa)invS*=1.6;
   const epiS=recentEpisodes().length?1.15:.15;
   const opts=[['cadeia',chainS+.12],['inversa',invS+.12],['lembrança',epiS]];
-  const pick=sampleWeighted(opts.map(([n,s])=>[n,Math.pow(Math.max(.01,s),1.1)]));
-  return pick||'cadeia';
+  return sampleWeighted(opts.map(([n,s])=>[n,Math.pow(Math.max(.01,s),1.1)]))||'cadeia';
 }
-function outSum(a){let s=0;const m=transAdj[a];if(m)for(const o of m.values())s+=o.w;return s;}
-function sampleWeighted(arr){
-  let tot=0;for(const e of arr)tot+=Math.max(0,e[1]);
-  if(tot<=0)return arr.length?arr[(RNG()*arr.length)|0][0]:null;
-  let r=RNG()*tot;
-  for(const e of arr){r-=Math.max(0,e[1]);if(r<=0)return e[0];}
-  return arr[arr.length-1][0];
-}
-function generate(inputWids,T,qa,plan){
+function generate(inputWids,T,qa,plan,learn){
   const inputSet=new Set(inputWids);
   const ctx=new Map();
   for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2);
@@ -608,7 +613,7 @@ function generate(inputWids,T,qa,plan){
     if(!pick)break;
     const [b,,o]=pick;
     confSum+=o.w/tot;confN++;
-    o.w+=.1;touchW(o,'t');
+    if(learn){o.w+=.1;touchW(o,'t');}
     prevTok=cur;cur=b;
   }
   for(const c of contrib)if(c[2]==='episódio'&&c[3]!==undefined)epiSlots.add(c[3]);
@@ -616,7 +621,99 @@ function generate(inputWids,T,qa,plan){
   return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),epi:[...epiSlots]};
 }
 
-/* ================= 8 · chat ================= */
+/* ================= 8 · REVISOR local (re-ranking + lembrança) ================= */
+let revOn=true;
+function pairSupport(a,b){
+  const m=transAdj[a];if(!m)return 0;
+  const o=m.get(b);if(!o)return 0;
+  return o.w/Math.max(.001,outSum(a));
+}
+function quoteBoost(toks){
+  outer: for(const ep of epiData){
+    const E=ep.epi;
+    if(E.length<toks.length)continue;
+    for(let off2=0;off2+toks.length<=E.length;off2++){
+      let match=true;
+      for(let k=0;k<toks.length;k++)if(E[off2+k]!==toks[k]){match=false;break;}
+      if(match)return true;
+    }
+  }
+  return false;
+}
+function scoreFluency(toks){
+  if(!toks||toks.length<2)return .05;
+  let s=0;
+  for(let i=0;i+1<toks.length;i++){
+    const a=toks[i],b=toks[i+1];
+    const sup=pairSupport(a,b);
+    if(sup>0){s+=.45+.55*Math.min(1,sup*2);
+      if(epiPair.has(a*CAPW+b))s+=.3;}
+    else s-=.55;
+  }
+  s/=(toks.length-1);
+  if(toks.length<2)s-=.4; else if(toks.length>14)s-=.15;
+  let rare=0;
+  for(let i=1;i<toks.length-1;i++)if(words[toks[i]].count<=1)rare++;
+  s-=Math.min(.3,rare*.1);
+  for(let i=0;i+1<toks.length;i++)if(toks[i]===toks[i+1])s-=.5;
+  if(quoteBoost(toks))s+=1.0;
+  return clamp(s,0,1.35);
+}
+function bestOfN(inputWids,T,qa,plan,n=6){
+  const temps=[T*.7,T,T*1.25,T*.85,T*1.4,T*.6];
+  let best=null;
+  for(let i=0;i<n;i++){
+    const r=generate(inputWids,temps[i%temps.length],qa,plan,false);
+    r.flu=scoreFluency(r.tokens);
+    r.cand=i+1;
+    if(!best||r.flu>best.flu)best=r;
+  }
+  best.candN=n;
+  return best;
+}
+function recallEpisode(inputWids){
+  let best=-1,bs=0;
+  epiData.forEach((ep,i)=>{
+    if(!ep.epi.length)return;
+    const set=new Set(ep.epi);
+    let sc=0;
+    for(const wi of inputWids)if(set.has(wi))sc+=sal(wi)+words[wi].count*.02;
+    if(sc>bs){bs=sc;best=i;}
+  });
+  if(best<0||bs<.6)return null;
+  return{slot:best,tokens:epiData[best].epi.slice(),score:bs};
+}
+function reviseAndSpeak(inputWids,T,qa,plan){
+  let r,mode='gerado',candN=0,candI=0;
+  if(revOn){
+    r=bestOfN(inputWids,T,qa,plan,6);
+    candN=r.candN;candI=r.cand;
+    const THRESH=.42;
+    if(r.flu<THRESH){
+      const rec=recallEpisode(inputWids);
+      if(rec){
+        mode='lembrança';candI=0;
+        r={tokens:rec.tokens,path:rec.tokens,conf:1,babble:false,jumps:0,
+           contrib:rec.tokens.slice(0,4).map(wi=>[wi,0,'episódio',rec.slot]),
+           epi:[rec.slot],flu:scoreFluency(rec.tokens),slot:rec.slot};
+      }
+    }
+  }else{
+    r=generate(inputWids,T,qa,plan,true);
+    r.flu=scoreFluency(r.tokens);
+    candN=1;candI=1;
+  }
+  /* consolidação: o vencedor reforça os próprios caminhos */
+  for(let i=0;i+1<r.tokens.length;i++){
+    const m=transAdj[r.tokens[i]];
+    const o=m&&m.get(r.tokens[i+1]);
+    if(o){o.w+=.15;touchW(o,'t');}
+  }
+  r.mode=mode;r.candN=candN;r.candI=candI;
+  return r;
+}
+
+/* ================= 9 · chat ================= */
 const msgs=$('msgs'),logEl=$('log'),sendBtn=$('send'),inp=$('inp');
 let simT=0, prevTurn=null, typing=null, lastBrainWids=null;
 function log(kind,msg){
@@ -653,7 +750,6 @@ function userSend(){
     if(!(transAdj[wids[i]]&&transAdj[wids[i]].get(wids[i+1])))sur++;
   const surprise=sur/Math.max(1,wids.length-1);
   const eta=1+.7*surprise+(newWordsMsg>0?.5:0);
-  /* VTA → dopamina → tálamo + amígdala */
   stim(vtaA,1+1.5*surprise);stim(vtaB,1+1.2*surprise);
   bumpArousal(surprise*.55+(newWordsMsg>0?.18:0));
   pulseAt(PX[vtaA],PY[vtaA],PZ[vtaA],PX[thalN],PY[thalN],PZ[thalN],.6,'#ff5d4d');
@@ -688,17 +784,19 @@ function stimAssembly(wi,amp){
 }
 function respond(qa){
   const T=parseFloat($('rngTemp').value);
-  /* lobo frontal decide o plano */
-  frontalPlan=frontalDecide(prevTurn?prevTurn.q:[],qa);
+  const q=prevTurn?prevTurn.q:[];
+  frontalPlan=frontalDecide(q,qa);
   stim(planN,1.5);
   const pc=PLANCOL[frontalPlan]||'#b9c4e8';
   pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.7,pc);
-  log('FRO',`lobo frontal: plano = ${frontalPlan}${arousal>.5?` · arousal ${arousal.toFixed(2)}`:''}`);
-  const r=generate(prevTurn?prevTurn.q:[],T,qa,frontalPlan);
+  log('FRO',`plano = ${frontalPlan}${arousal>.5?` · arousal ${arousal.toFixed(2)}`:''}`);
+  const r=reviseAndSpeak(q,T,qa,frontalPlan);
   lastConf=r.conf;lastBrainWids=r.tokens;
   if(prevTurn)prevTurn.a=r.tokens;
-  $('confTag').textContent=r.babble?'balbucio · sem rota':
-    `plano ${frontalPlan} · conf ${r.conf.toFixed(2)}${r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:''}`;
+  log('REV',`revisor: ${r.candN} rascunho(s) · fluência ${r.flu.toFixed(2)} · `+
+    (r.mode==='lembrança'?`nenhuma boa → lembrança literal (linha ${r.slot+1})`:`venceu o rascunho #${r.candI}`));
+  $('confTag').textContent=`${r.mode} · flu ${r.flu.toFixed(2)}`+
+    (r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:'');
   for(const [b,s,src,slot] of r.contrib){
     const wb=words[b];if(!wb)continue;
     if(src==='episódio'&&slot!==undefined){
@@ -708,20 +806,19 @@ function respond(qa){
     }else stimAssembly(b,1.1);
   }
   if(!r.tokens.length)return;
-  if(r.babble)log('TLK','sem rota — balbucio (ensine respondendo)');
+  if(r.mode==='lembrança')log('TLK',`resposta por lembrança: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
   else log('TLK',`rota: ${r.path.slice(0,10).map(i=>words[i].label).join(' → ')}${r.path.length>10?'…':''} · conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}`);
   typeOut(r);
 }
 function typeOut(r){
   const d=document.createElement('div');
-  d.className='msg brain'+(r.babble||r.conf<.35?' weak':'');
-  d.innerHTML=`<span class="who">tabula</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  d.className='msg brain'+((r.mode!=='lembrança'&&r.flu<.3)?' weak':'');
+  d.innerHTML=`<span class="who">tabula${r.mode==='lembrança'?' · lembrança':''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
   let i=0,stopped=false;
   const step=()=>{
     if(i>=r.tokens.length){finish();return;}
-    /* parada inibitória do lobo frontal */
     if(i>7&&RNG()<.07){
       stopped=true;stim(stopN,1.4);
       pulseAt(PX[stopN],PY[stopN],PZ[stopN],0,.1,.8,.6,'#b9c4e8');
@@ -737,7 +834,7 @@ function typeOut(r){
       if(ch){const c=[PX[ch.ci],PY[ch.ci],PZ[ch.ci]];
         pulseAt(w.base[0],w.base[1],w.base[2],c[0],c[1],c[2],.9,'#f0a63c');
         pulseAt(c[0],c[1],c[2],wb.base[0],wb.base[1],wb.base[2],.9,'#f0a63c');
-        stim(ch.ci,.9);}
+        stim(chunkIds[ch.ci],.9);}
       else if(i<r.path.length-1)
         pulseAt(w.base[0],w.base[1],w.base[2],wb.base[0],wb.base[1],wb.base[2],.9);
     }
@@ -746,8 +843,9 @@ function typeOut(r){
   const finish=()=>{
     ref.root.querySelector('.caret')?.remove();
     ref.meta.textContent=(stopped?'parada frontal · ':'')
-      +(r.babble?'balbucio — ensine-me respondendo'
-      :`confiança ${r.conf.toFixed(2)} · plano ${frontalPlan}`);
+      +(r.mode==='lembrança'
+        ?`frase literal sua (linha ${r.slot+1}) · fluência ${r.flu.toFixed(2)}`
+        :`fluência ${r.flu.toFixed(2)} · rascunho ${r.candI}/${r.candN} · confiança ${r.conf.toFixed(2)}`);
     typing=null;sendBtn.disabled=false;
   };
   sendBtn.disabled=true;
@@ -762,7 +860,7 @@ function cancelTyping(){
 sendBtn.addEventListener('click',userSend);
 inp.addEventListener('keydown',e=>{if(e.key==='Enter')userSend();});
 
-/* ================= 9 · cena 3D ================= */
+/* ================= 10 · cena 3D ================= */
 const stage=$('stage');
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setClearColor(0x050608,1);stage.prepend(renderer.domElement);
@@ -799,7 +897,6 @@ function syncNeuronAttrs(){
   nGeo.attributes.aSize.needsUpdate=true;
 }
 function hubPos(wi){const w=words[wi];return[w.base[0]+OFFX[wi*3],w.base[1]+OFFX[wi*3+1],w.base[2]+OFFX[wi*3+2]];}
-/* — contornos de região (halos organizadores) — */
 let hulls=[];
 function buildHulls(){
   for(const h of hulls){scene.remove(h);h.geometry.dispose();}
@@ -809,27 +906,25 @@ function buildHulls(){
     const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op,
       blending:THREE.AdditiveBlending,depthWrite:false}));
     scene.add(l);hulls.push(l);};
-  /* hipocampo */
   const hp=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     hp.push(new THREE.Vector3(Math.cos(a)*2.6,-.2,-3.4+Math.sin(a)*1.0));}
   mk(hp,'#a5d64a',.22);
-  /* gânglios da base (C) */
   const st=[];for(let i=0;i<=48;i++){const [x,y,z]=striatumPos(0,i/48);st.push(new THREE.Vector3(x,y,z));}
   mk(st,'#f0a63c',.16);
-  /* lobo frontal */
   mk([new THREE.Vector3(3.7,2.05,-.35),new THREE.Vector3(4.25,1.55,-.9),
       new THREE.Vector3(4.55,.9,-.2),new THREE.Vector3(3.95,.6,.2),new THREE.Vector3(3.55,1.9,0)],
      '#b9c4e8',.2);
-  /* amígdala */
   const am=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     am.push(new THREE.Vector3(3.38+Math.cos(a)*.42,-1.68+Math.sin(a)*.34,.85));}
   mk(am,'#ef6a8b',.2);
-  /* tálamo */
   const th=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     th.push(new THREE.Vector3(Math.cos(a)*.5,2.7+Math.sin(a)*.3,-.3));}
   mk(th,'#46c8bc',.25);
+  /* revisor: halo hexagonal próximo ao frontal */
+  const rv=[];for(let i=0;i<=6;i++){const a=i/6*6.283;
+    rv.push(new THREE.Vector3(2.55+Math.cos(a)*.34,1.15+Math.sin(a)*.34,-.55));}
+  mk(rv,'#c8b6e8',.24);
 }
-/* — anel do hipocampo — */
 let ringLine=null;
 function buildRing(){
   if(ringLine){scene.remove(ringLine);ringLine.geometry.dispose();ringLine=null;}
@@ -846,7 +941,6 @@ function buildRing(){
     opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(ringLine);
 }
-/* — fios por linha — */
 const TPAL=['#e8b34b','#46c8bc','#ef6a8b','#a5d64a','#e8c35a','#7fb8a8','#d0705c','#9fb8c8','#c98a3a','#6ea8d8','#b8c46a','#d88a6a'];
 let threadsGroup=null,threadLines=[],showThread=true;
 function buildThreads(){
@@ -893,7 +987,6 @@ function showTrace(wids){
       blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(traceLine);traceOp=1;
 }
-/* — fios de rota (discretos, organizados) — */
 const CAPV=700,ASEGS=6;
 const arcPos=new Float32Array(CAPV*ASEGS*2*3),arcCol=new Float32Array(CAPV*ASEGS*2*3);
 const arcGeo=new THREE.BufferGeometry();
@@ -950,7 +1043,6 @@ function rebuildVisFromNet(){
   for(const e of as.slice(0,CAPV-visE.length))visE.push(e);
   visDirty=true;
 }
-/* — conectores de hábito — */
 let chunkLine=null,showChunk=true;
 const chunkMat=new THREE.LineBasicMaterial({color:'#f0a63c',transparent:true,opacity:.5,
   blending:THREE.AdditiveBlending,depthWrite:false});
@@ -971,7 +1063,6 @@ function rebuildChunkArcs(){
     scene.add(chunkLine);}
   chunkDirty=false;
 }
-/* — pulsos coloridos — */
 const PMAX=700,parts=new Array(PMAX).fill(null);let pIdx=0;
 const pPos=new Float32Array(PMAX*3).fill(-999),pAct=new Float32Array(PMAX),pCol=new Float32Array(PMAX*3);
 for(let i=0;i<PMAX;i++){pCol[i*3]=1;pCol[i*3+1]=.88;pCol[i*3+2]=.66;}
@@ -988,13 +1079,13 @@ function pulseAt(x0,y0,z0,x1,y1,z1,s,col){
   if(col){tmpC.set(col);pCol[pIdx*3]=tmpC.r;pCol[pIdx*3+1]=tmpC.g;pCol[pIdx*3+2]=tmpC.b;}
   pIdx=(pIdx+1)%PMAX;
 }
-/* — etiquetas — */
 const wlab=$('wlab'),LB=[];
 for(let i=0;i<26;i++){const d=document.createElement('div');d.className='wlb';d.style.opacity=0;wlab.appendChild(d);LB.push(d);}
 const tv=new THREE.Vector3();
 const MODLB=[
   {x:0,y:3.25,z:-.3,txt:'TÁLAMO',col:'#46c8bc'},
   {x:4.2,y:2.5,z:-.5,txt:'LOBO FRONTAL',col:'#b9c4e8'},
+  {x:2.55,y:1.75,z:-.55,txt:'REVISOR',col:'#c8b6e8'},
   {x:3.45,y:-2.4,z:.85,txt:'AMÍGDALA',col:'#ef6a8b'},
   {x:0,y:-.2,z:-4.75,txt:'HIPOCAMPO · FIOS',col:'#a5d64a'},
   {x:-2.35,y:-2.6,z:.55,txt:'GÂNGLIOS DA BASE',col:'#f0a63c'},
@@ -1025,7 +1116,6 @@ function labels(){
     d.style.opacity=(c[3]?.85:clamp(.35+c[1]*.1,.35,1)).toFixed(2);
   }
 }
-/* — molas — */
 function springs(){
   for(const e of visE){
     if(!words[e.a]||!words[e.b]||words[e.a].io||words[e.b].io)continue;
@@ -1056,7 +1146,7 @@ function syncPositions(){
   nGeo.attributes.position.needsUpdate=true;posDirty=false;
 }
 
-/* ================= 10 · sono · poda · lesão · reset · io ================= */
+/* ================= 11 · sono · poda · lesão · reset · io ================= */
 let SLEEP=0,sleepStep=0;
 function endSleep(msg){if(!SLEEP)return;SLEEP=0;$('btnSleep').classList.remove('on');
   arousal*=.3;log('SLP',msg||'sono concluído — amígdala calma, atalhos consolidados');}
@@ -1155,6 +1245,7 @@ function resetBrain(){
   frontalPlan='—';arousal=0;
   chunkMap.clear();
   chunkFree.length=0;for(let i=0;i<NCHUNK;i++)chunkFree.push(i);
+  epiPair.clear();
   HOT.length=0;HOTF.fill(0);for(const q of BQ)q.length=0;
   EDGES=[];FAT.length=0;
   lastBrainWids=null;prevTurn=null;
@@ -1166,7 +1257,7 @@ function resetBrain(){
   log('SYS','memória apagada — cérebro de volta ao estado de nascença');
 }
 function exportBrain(){
-  const obj={v:4,t:simT,words:[{l:'<START>',c:0},{l:'<END>',c:0}],trans:[],rev:[],assoc:[],epi:[]};
+  const obj={v:5,t:simT,words:[{l:'<START>',c:0},{l:'<END>',c:0}],trans:[],rev:[],assoc:[],epi:[]};
   for(const w of words.slice(2))obj.words.push({l:w.label,c:w.count});
   for(let a=0;a<CAPW;a++){
     const mt=transAdj[a];if(mt)for(const [b,o] of mt)obj.trans.push([a,b,+o.w.toFixed(3)]);
@@ -1195,6 +1286,7 @@ function importBrain(file){
         if(!arr.length)continue;
         const slot=episodeIdx%NEPI;episodeIdx++;
         epiData[slot].epi=arr.filter(wi=>wi<words.length);
+        indexEpisodePairs(epiData[slot].epi);
         threadAct[slot]=1;dirtyThread[slot]=true;}
       resetEdgesAll();rebuildVisFromNet();syncNeuronAttrs();
       log('SYS',`importado: ${words.length-2} palavras · ${routes} rotas · ${revN} inversas · ${chunkMap.size} hábitos`);
@@ -1215,6 +1307,9 @@ function importBrain(file){
  $('btnChunk').addEventListener('click',()=>{showChunk=!showChunk;
   if(chunkLine)chunkLine.visible=showChunk;
   $('btnChunk').classList.toggle('on',showChunk);});
+ $('btnRev').addEventListener('click',()=>{revOn=!revOn;
+  $('btnRev').classList.toggle('on',revOn);
+  log('SYS',revOn?'revisor ligado — respostas passam pelo concurso de fluência':'revisor desligado — fala direta da rota mais forte');});
  $('rngTemp').addEventListener('input',()=>$('vTemp').textContent=parseFloat($('rngTemp').value).toFixed(2));
 let camA=null;const CAMS={
   front:{p:[0,1,12.4],t:[0,-.25,-.6]},
@@ -1231,8 +1326,9 @@ const SPEEDS=[1,4,8];let speed=1;
  $('btnSpeed').addEventListener('click',()=>{speed=SPEEDS[(SPEEDS.indexOf(speed)+1)%3];
   $('btnSpeed').textContent='VEL ×'+speed;});
 
-/* ================= 11 · loop ================= */
+/* ================= 12 · loop ================= */
 let last=performance.now(),msPT=0,uiT=0,sprT=0,lbT=0,hzAcc=0,hzT=0;
+let lastFlu=null,lastMode='—';
 function tick(dt){
   simT+=dt;
   arousal=Math.max(0,arousal-dt/9);
@@ -1282,7 +1378,6 @@ function frame(now){
   uiT+=rdt;
   if(uiT>.3){uiT=0;
     $('stHz').textContent=hzT>0?(hzAcc/hzT).toFixed(0):'0';hzAcc=0;hzT=0;
-    $('stMs')&&0;
     $('stW').textContent=Math.max(0,words.length-2);
     $('stR').textContent=routes;$('stS').textContent=EDGES.length.toLocaleString('pt-BR');
     $('stK').textContent=chunkMap.size;
@@ -1290,12 +1385,11 @@ function frame(now){
     $('tRev').textContent=revN;$('tA').textContent=assocN;
     $('tK').textContent=chunkMap.size;
     $('tT').textContent=epiData.filter(e=>e.epi.length).length;
-    $('tSk').textContent=skips;$('tJ').textContent=jumpsTotal;
     $('tP').textContent=frontalPlan;$('tAr').textContent=arousal.toFixed(2);
+    $('tF').textContent=lastFlu===null?'—':lastFlu.toFixed(2);
+    $('tM').textContent=lastMode;
     $('tC').textContent=lastConf===null?'—':lastConf.toFixed(2);
     $('tB').textContent=babbles;
-    /* humor na marca e no ponto do header */
-    const mood=arousal>.62?'agitado':arousal>.32?'alerta':'calmo';
     const mc=new THREE.Color('#e8b34b').lerp(new THREE.Color('#ff5d4d'),arousal*.9);
     $('bDot').style.background='#'+mc.getHexString();}
 }
@@ -1307,7 +1401,7 @@ function resize(){
 }
 window.addEventListener('resize',resize);
 
-/* ================= 12 · boot ================= */
+/* ================= 13 · boot ================= */
 function bootWords(){
   registerWord('·início','start');
   registerWord('·fim','end');
@@ -1322,11 +1416,11 @@ function bootWords(){
 bootWords();
 syncNeuronAttrs();rebuildVisFromNet();compile();
  $('stN').textContent=N;
-log('SYS',`atlas montado: ${N} neurônios · córtex 25/palavra · lobo frontal · amígdala · hipocampo (12 fios) · gânglios da base (56 hábitos) · tálamo · VTA`);
-log('SYS','conteúdo ZERO — cada estrutura vazia, esperando o que você ensinar');
+log('SYS',`atlas: ${N} neurônios · 7 estruturas + revisor local`);
+log('SYS','revisor: 6 rascunhos por resposta · fluência = suporte nas suas frases · fallback = lembrança literal');
 setTimeout(()=>{
   const d=document.createElement('div');d.className='msg sys';
-  d.textContent='— digite uma frase; o lobo frontal escolhe o plano e o fio da linha nasce no hipocampo (câmera "fios"). —';
+  d.textContent='— ensine frases; o revisor garante que só saia algo com suporte no que você ensinou. —';
   msgs.appendChild(d);
 },300);
 resize();
