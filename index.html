@@ -119,7 +119,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot"></span>TABULA·03<em>cerebro em branco · aprende tudo com você · nada predefinido</em></div>
+  <div class="brand"><span class="dot"></span>TABULA·03<em>cerebro em branco · assemblies de 25 neurônios · nada predefinido</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -153,7 +153,7 @@ footer b{color:var(--dim);font-weight:400}
     <div id="legend">
       <div class="li"><i style="--c:#46c8bc"></i>entrada sensorial (início de frase)</div>
       <div class="li"><i style="--c:#ef6a8b"></i>saída motora (fim de frase)</div>
-      <div class="li"><i style="--c:#d9d7cf"></i>assemblies de palavras · fios = rotas aprendidas</div>
+      <div class="li"><i style="--c:#d9d7cf"></i>assemblies de 25 neurônios · fios = rotas aprendidas</div>
     </div>
   </div>
 
@@ -162,7 +162,7 @@ footer b{color:var(--dim);font-weight:400}
       <h3>Como usar · o protocolo</h3>
       <div class="inst">
         <div class="step"><span class="n">1</span><span>O cérebro nasce <b>vazio</b>. Toda palavra e toda resposta que ele tiver, <b>você ensinou</b>. Nada vem pronto.</span></div>
-        <div class="step"><span class="n">2</span><span>Digite frases — ele registra palavras novas, liga sequências (quem vem depois de quem) e associações (quem anda junto).</span></div>
+        <div class="step"><span class="n">2</span><span>Digite frases — ele registra palavras novas (cada uma vira um <b>assembly de 25 neurônios</b>), liga sequências e associações.</span></div>
         <div class="step"><span class="n">3</span><span>Para ensinar <b>respostas</b>: mande uma mensagem; ele vai balbuciar; então mande logo em seguida o que ele <b>deveria ter dito</b>. O par fica gravado como ligação de turno. Repita 2–3 vezes para firmar.</span></div>
         <div class="step"><span class="n">4</span><span>Pergunte de volta. A <b>confiança</b> sob a resposta diz o quão firme está a rota aprendida. Baixa = treine de novo.</span></div>
       </div>
@@ -198,8 +198,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · <b>rolagem</b> zoom · a resposta nasce do que VOCÊ digitou — veja a corrente percorrendo os fios</span>
-  <span>tabula rasa: léxico vazio no boot · Hebb + turnos · motor LIF dirigido por eventos · exporte e continue em outro lugar</span>
+  <span><b>arraste</b> orbitar · <b>rolagem</b> zoom · a resposta nasce do que VOCÊ digitou — veja a onda varrer os assemblies de 25 neurônios</span>
+  <span>tabula rasa: léxico vazio no boot · Hebb + turnos + fadiga sináptica · motor LIF dirigido por eventos · exporte e continue</span>
 </footer>
 
 <script type="importmap">
@@ -221,7 +221,8 @@ const $=id=>document.getElementById(id);
 function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
 
 /* ================= 1 · motor LIF (event-driven, CSR + atrasos) ================= */
-const CAPW=1400, CAPN=CAPW*6+64;
+/* NPR membros + 1 hub = 25 neurônios por palavra */
+const CAPW=1400, NPR=24, CAPN=CAPW*(NPR+1)+64;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN), MODU=new Uint8Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -236,6 +237,7 @@ function addN(mod,x,y,z,col,size,thr){
   const c=new THREE.Color(col); CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
   SZ[i]=size; THR[i]=thr; return i;
 }
+let ROUTE=[]; // índices das sinapses de rota (para fadiga/recuperação)
 function compile(){
   const deg=new Uint32Array(N+1);
   for(let k=0;k<eA.length;k++)deg[eA[k]+1]++;
@@ -244,6 +246,9 @@ function compile(){
   tg=new Uint32Array(eA.length); wA=new Float32Array(eA.length); dA=new Uint8Array(eA.length);
   for(let k=0;k<eA.length;k++){const s=eA[k],p=cur[s]++;tg[p]=eB[k];wA[p]=eW[k];dA[p]=eD[k];}
   for(const w of words){const o=transAdj[w.idx];if(o)for(const t of o.values())if(t.ci>=0)wA[t.ci]=edgeW(t.w);}
+  ROUTE.length=0;
+  for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
+    for(const o of m.values())if(o.ci>=0&&o.ci<wA.length)ROUTE.push({ci:o.ci,o});}
   dirtyC=false;
 }
 const HOT=[],HOTF=new Uint8Array(CAPN);
@@ -255,7 +260,7 @@ function fire(i){
   const e2=off[i+1];
   for(let k=off[i];k<e2;k++){const t=tg[k];
     if(dA[k]===0){V[t]+=wA[k];hotAdd(t);}
-    else BQ[(tickI+dA[k])%NB].push(t,wA[k]);}
+    else{wA[k]*=.98;BQ[(tickI+dA[k])%NB].push(t,wA[k]);}} // fadiga a cada entrega
 }
 function stepNet(dt){
   tickI++;
@@ -271,10 +276,10 @@ function stepNet(dt){
 }
 let SPK=0;
 
-/* ================= 2 · palavras = assemblies neurais ================= */
+/* ================= 2 · palavras = assemblies neurais (25 células) ================= */
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);      // deslocamento de mola
-const LOCAL=new Array(CAPW);              // offsets locais dos 5 neurônios
+const LOCAL=new Array(CAPW);              // offsets locais dos 24 membros
 function sheetPos(u,v){
   return [(u-.5)*4.9,
     .40*Math.sin(u*7.3+1.2)*(.55+.45*Math.sin(v*3.5+.4))+.16*Math.cos(v*5.2+u*2)-(u-.5)*(u-.5)*.5,
@@ -283,6 +288,15 @@ function sheetPos(u,v){
 function wordColor(count){ // osso → âmbar conforme o uso
   const t=clamp(count/12,0,1);
   return new THREE.Color('#cfcabc').lerp(new THREE.Color('#e8b34b'),t*.85);
+}
+/* conectividade interna do assembly: cadeia + atalhos + 3 sementes do hub */
+function buildIntra(w){
+  const ids=w.ids,n=ids.length;
+  for(let k=0;k<n;k++){
+    if(k+1<n){eA.push(ids[k]);eB.push(ids[k+1]);eW.push(.9);eD.push(0);SYN++;}
+    if(k+4<n){eA.push(ids[k]);eB.push(ids[k+4]);eW.push(.88);eD.push(0);SYN++;}
+  }
+  for(const s of [0,8,16]){eA.push(w.hub);eB.push(ids[s]);eW.push(1.05);eD.push(0);SYN++;}
 }
 function registerWord(label,special){
   const key=norm(label);
@@ -298,25 +312,25 @@ function registerWord(label,special){
   hub=addN(mod,x,y,z,col,special?.05:.05,.72);
   const ids=[];
   if(!special){
-    const loc=new Float32Array(15);
-    for(let k=0;k<5;k++){
-      loc[k*3]=randn3();loc[k*3+1]=randn3();loc[k*3+2]=randn3();
-      ids.push(addN(MOD.CORT,x+loc[k*3]*.14,y+loc[k*3+1]*.11,z+loc[k*3+2]*.14,col,.016,.78));
+    const loc=new Float32Array(NPR*3);
+    for(let k=0;k<NPR;k++){
+      let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
+      const L=Math.hypot(dx,dy,dz)||1, r=Math.cbrt(RNG())*.17+.035;
+      loc[k*3]=dx/L*r;loc[k*3+1]=dy/L*r*.75;loc[k*3+2]=dz/L*r;
+      ids.push(addN(MOD.CORT,x+loc[k*3],y+loc[k*3+1],z+loc[k*3+2],col,.014,.78));
     }
     LOCAL[idx]=loc;
-    for(let k=0;k<5;k++){eA.push(ids[k]);eB.push(ids[(k+1)%5]);eW.push(.8);eD.push(0);SYN++;}
   }
-  eA.push(hub);eB.push(ids[0]??hub);eW.push(1.1);eD.push(0);SYN++; // hub → assembly
-  words.push({idx,label,key,hub,ids,base:[x,y,z],count:0,last:-99});
-  wkey.set(key,idx); dirtyC=true;
+  const w={idx,label,key,hub,ids,base:[x,y,z],count:0,last:-99};
+  words.push(w); wkey.set(key,idx);
+  if(ids.length)buildIntra(w);
+  dirtyC=true;
   return idx;
 }
-function randn3(){return (RNG()*2-1);}
 
 /* ================= 3 · teia: rotas (bigramas) + associações ================= */
 const transAdj=Array.from({length:CAPW},()=>null);
 const assocAdj=Array.from({length:CAPW},()=>null);
-const TKEY=(a,b)=>a*CAPW+b;
 const edgeW=w=>Math.min(1.25,.3+w*.075);
 let routes=0, assocN=0, babbles=0, lastConf=null;
 
@@ -355,13 +369,12 @@ let newWordsMsg=0, newRoutesMsg=0;
 function ensureWord(label){
   const key=norm(label);let wi=wkey.get(key);
   if(wi===undefined){wi=registerWord(label);if(wi<0)return -1;
-    newWordsMsg++;log('NEW',`palavra nova: "${label}" → assembly #${wi}`);posDirty=true;}
+    newWordsMsg++;log('NEW',`palavra nova: "${label}" → assembly #${wi} (25 neurônios)`);posDirty=true;}
   return wi;
 }
 function learnMessage(wids){
   newRoutesMsg=0;newWordsMsg=0;
-  addTrans(0,wids[0],1)&&0;
-  if(!transAdj[0].get(wids[0])){} // (addTrans sempre retorna objeto)
+  addTrans(0,wids[0],1);
   for(let i=0;i<wids.length;i++){
     if(i<wids.length-1){const o=addTrans(wids[i],wids[i+1],1);if(o&&o.w<=1.001)newRoutesMsg++;}
     else{const o=addTrans(wids[i],1,1);if(o&&o.w<=1.001)newRoutesMsg++;}
@@ -454,12 +467,10 @@ function tokenize(text){
   const raw=text.trim().split(/\s+/).slice(0,40);
   const out=[];
   for(let t of raw){
-    if(RNG()?0:0){}
-    const isQ=/\?$/.test(t);
     t=t.replace(/[^\p{L}\p{N}'-]/gu,'');
     if(!t)continue;
     const wi=ensureWord(t);
-    if(wi>=0)out.push({wi,q:isQ});
+    if(wi>=0)out.push({wi});
   }
   return out;
 }
@@ -489,7 +500,10 @@ function userSend(){
 function stimAssembly(wi,amp){
   const w=words[wi];if(!w)return;
   stim(w.hub,amp);
-  if(w.ids.length)stim(w.ids[(RNG()*w.ids.length)|0],amp*.9);
+  if(w.ids.length){
+    stim(w.ids[(RNG()*w.ids.length)|0],amp*.8);
+    stim(w.ids[(RNG()*w.ids.length)|0],amp*.8);
+  }
 }
 function respond(){
   const T=parseFloat($('rngTemp').value);
@@ -681,9 +695,9 @@ function syncPositions(){
     const cx=w.base[0]+OFFX[w.idx*3],cy=w.base[1]+OFFX[w.idx*3+1],cz=w.base[2]+OFFX[w.idx*3+2];
     PX[w.hub]=cx;PY[w.hub]=cy;PZ[w.hub]=cz;
     const loc=LOCAL[w.idx];
-    if(loc)for(let k=0;k<5;k++){
+    if(loc)for(let k=0;k<NPR;k++){
       const id=w.ids[k];
-      PX[id]=cx+loc[k*3]*.14;PY[id]=cy+loc[k*3+1]*.11;PZ[id]=cz+loc[k*3+2]*.14;
+      PX[id]=cx+loc[k*3];PY[id]=cy+loc[k*3+1];PZ[id]=cz+loc[k*3+2];
     }
   }
   nGeo.attributes.position.needsUpdate=true;posDirty=false;
@@ -692,12 +706,7 @@ function syncPositions(){
 /* ================= 9 · lesões, poda, reset, export/import ================= */
 function rebuildEdges(){
   eA.length=0;eB.length=0;eW.length=0;eD.length=0;SYN=0;routes=0;
-  for(const w of words){
-    if(w.ids.length){
-      for(let k=0;k<5;k++){eA.push(w.ids[k]);eB.push(w.ids[(k+1)%5]);eW.push(.8);eD.push(0);SYN++;}
-      eA.push(w.hub);eB.push(w.ids[0]);eW.push(1.1);eD.push(0);SYN++;
-    }
-  }
+  for(const w of words)if(w.ids.length)buildIntra(w);
   for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
     for(const [b,o] of m){o.ci=eA.length;
       eA.push(words[a].hub);eB.push(words[b].hub);eW.push(edgeW(o.w));eD.push(3);SYN++;routes++;}}
@@ -806,16 +815,18 @@ const SPEEDS=[1,4,8];let speed=1;
   $('btnSpeed').textContent='VEL ×'+speed;});
 
 /* ================= 11 · loop ================= */
-const after=[]; // não usado; timers via setTimeout
 let last=performance.now(),msPT=0,uiT=0,sprT=0,lbT=0,hzAcc=0,hzT=0;
 function tick(dt){
   simT+=dt;
+  /* recuperação sináptica: rotas voltam ao peso-base (fadida some em ~1-2 s) */
+  if((tickI&63)===0)for(const r of ROUTE)wA[r.ci]+=(edgeW(r.o.w)-wA[r.ci])*.08;
   stepNet(dt);
   if(RNG()<.05)stim((RNG()*Math.max(1,N))|0,.1); // ruído de fundo
 }
 function frame(now){
   requestAnimationFrame(frame);
   const rdt=Math.min((now-last)/1000,.05);last=now;
+  if(dirtyC)compile();
   for(let k=0;k<speed;k++){const t0=performance.now();tick(.016);msPT=lerp(msPT,performance.now()-t0,.05);}
   for(let i=0;i<N;i++)nAct[i]=ACT[i];
   nGeo.attributes.aAct.needsUpdate=true;
@@ -861,8 +872,8 @@ function bootWords(){
 bootWords();
 syncNeuronAttrs();compile();
  $('stN').textContent=N;
-log('SYS',`cérebro montado: ${N} neurônios · léxico VAZIO · nenhuma resposta predefinida`);
-log('SYS','o que ele falar, ele aprendeu com você — use o protocolo ao lado');
+log('SYS',`cérebro montado: ${N} neurônios · ${NPR+1} por palavra · léxico VAZIO · nenhuma resposta predefinida`);
+log('SYS','cada palavra = 1 hub + 24 membros com cadeia interna + atalhos · fadiga sináptica ativa');
 setTimeout(()=>{
   const d=document.createElement('div');d.className='msg sys';
   d.textContent='— cérebro em branco. digite qualquer frase; depois ensine respostas seguindo o protocolo. —';
