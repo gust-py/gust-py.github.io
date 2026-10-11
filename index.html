@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TABULA·04 — cérebro em branco · hipocampo · atenção · sono</title>
+<title>TABULA·05 — fios por linha · chunks · surpresa preditiva</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -67,6 +67,8 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .btn.on{border-color:rgba(165,214,74,.6);color:var(--grn)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .grid2 .btn{margin-bottom:0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:5px}
+.grid3 .btn{margin-bottom:0;text-align:center;padding:6px 4px;font-size:9px}
 .srow{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--dim);margin-bottom:8px}
 .srow input[type=range]{flex:1;accent-color:var(--acc);height:3px}
 .srow b{color:var(--tx);font-weight:400;min-width:30px;text-align:right}
@@ -85,16 +87,17 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .wlb.mod{color:var(--grn);font-size:8.5px;letter-spacing:.2em;text-transform:uppercase}
 #legend{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(8,9,11,.6);
   border:1px solid var(--line);padding:7px 10px;border-radius:2px;font-size:8.5px;color:var(--dim);
-  letter-spacing:.06em;display:flex;flex-direction:column;gap:3px}
+  letter-spacing:.06em;display:flex;flex-direction:column;gap:3px;max-width:340px}
 #legend .li{display:flex;align-items:center;gap:6px}
 #legend .li i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+#legend .li i.th{height:2px;border-radius:1px;width:14px}
 #sgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:9.5px;margin-bottom:10px}
 #sgrid span{color:var(--dim2)}#sgrid b{color:var(--tx);font-weight:400;float:right}
 #log{font-size:9.5px;line-height:1.55;color:var(--dim);max-height:190px;overflow-y:auto;border-left:2px solid var(--line);padding-left:9px}
 #log .lt{color:var(--dim2);margin-right:6px}
 #log .lk{display:inline-block;width:32px;font-size:8px;letter-spacing:.1em;margin-right:5px}
 .lk-SYS{color:var(--dim)} .lk-NEW{color:var(--grn)} .lk-WEB{color:var(--teal)} .lk-TLK{color:var(--acc)}
-.lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8}
+.lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 #log .ln{margin-bottom:2px}
 .inst{font-size:10px;line-height:1.65;color:var(--dim)}
 .inst b{color:var(--tx);font-weight:500}
@@ -111,12 +114,13 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot"></span>TABULA·04<em>córtex + hipocampo + atenção + sono · conteúdo 100% seu</em></div>
+  <div class="brand"><span class="dot"></span>TABULA·05<em>fios por linha · chunks · surpresa preditiva · conteúdo 100% seu</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
     <span>PALAVRAS<b id="stW">0</b></span>
     <span>ROTAS<b id="stR">0</b></span>
+    <span>CHUNKS<b id="stK">0</b></span>
     <span>Hz<b id="stHz">0</b></span>
     <span>PASSO<b id="stMs">—</b></span>
     <button class="chip" id="btnSpeed">VEL ×1</button>
@@ -140,15 +144,17 @@ footer b{color:var(--dim);font-weight:400}
     <div id="camBtns">
       <button data-cam="front">frente</button>
       <button data-cam="top">topo</button>
-      <button data-cam="hipo">hipocampo</button>
+      <button data-cam="hipo">linhas</button>
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#46c8bc"></i>início · tálamo (atenção)</div>
+      <div class="li"><i class="th" style="--c:#e8b34b"></i>fio por linha — cada frase ensinada é um fio colorido (12 slots)</div>
+      <div class="li"><i style="--c:#f0a63c"></i>chunks — conectores de rota firme (gânglio de base)</div>
+      <div class="li"><i style="--c:#46c8bc"></i>início · tálamo</div>
       <div class="li"><i style="--c:#ef6a8b"></i>fim (saída motora)</div>
       <div class="li"><i style="--c:#d9d7cf"></i>assemblies de 25 neurônios</div>
-      <div class="li"><i style="--c:#a5d64a"></i>hipocampo episódico · 12 episódios</div>
-      <div class="li"><i style="--c:#ff5d4d"></i>núcleo de novidade (dopamina)</div>
+      <div class="li"><i style="--c:#a5d64a"></i>hipocampo episódico</div>
+      <div class="li"><i style="--c:#ff5d4d"></i>núcleo de novidade (surpresa → dopamina)</div>
     </div>
   </div>
 
@@ -156,10 +162,10 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Como usar · o protocolo</h3>
       <div class="inst">
-        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>vazio</b>. Arquitetura pronta (córtex, hipocampo, tálamo), conteúdo nenhum. Tudo que ele fala, você ensinou.</span></div>
-        <div class="step"><span class="n">2</span><span>Digite frases. Cada frase vira um <b>episódio no hipocampo</b> + rotas diretas + rotas <b>inversas</b> + associações por saliência (palavras raras pesam mais).</span></div>
-        <div class="step"><span class="n">3</span><span><b>Pergunte com "?".</b> O modo pergunta usa busca inversa + episódios: a pergunta recupera a frase-resposta que você associou. Para ensinar respostas: mande a pergunta, ele balbucia, mande logo depois a resposta certa. Repita 2–3×.</span></div>
-        <div class="step"><span class="n">4</span><span><b>Dormir</b> consolida: percorre os episódios e cria <b>atalhos de inferência</b> (A→B→C vira A→C) que você nunca digitou.</span></div>
+        <div class="step"><span class="n">1</span><span>Cérebro nasce <b>vazio</b>. Cada frase que você digita grava um <b>fio colorido</b> no hipocampo — 12 fios no total, um por linha, visíveis passando palavra por palavra.</span></div>
+        <div class="step"><span class="n">2</span><span>Rotas diretas + <b>inversas</b> + associações por saliência nascem a cada mensagem. Quando uma rota firma, um <b>chunk laranja</b> se conecta fisicamente entre as duas palavras.</span></div>
+        <div class="step"><span class="n">3</span><span><b>Pergunte com "?".</b> Para ensinar respostas: mande a pergunta, ele balbucia, mande logo depois a resposta certa. Repita 2–3×.</span></div>
+        <div class="step"><span class="n">4</span><span><b>Dormir</b> faz replay dos fios linha por linha e cria <b>atalhos A→C</b> que você nunca digitou.</span></div>
       </div>
     </section>
 
@@ -167,10 +173,15 @@ footer b{color:var(--dim);font-weight:400}
       <h3>Controles</h3>
       <div class="srow"><span>temperatura</span><input type="range" id="rngTemp" min="0.4" max="1.8" step="0.05" value="0.9"><b id="vTemp">0.90</b></div>
       <div class="grid2">
-        <button class="btn" id="btnSleep">dormir · consolidar<em>replay dos episódios + atalhos A→C</em></button>
+        <button class="btn" id="btnSleep">dormir · consolidar<em>replay + atalhos A→C</em></button>
         <button class="btn" id="btnPrune">podar ruído<em>remove rotas fracas</em></button>
         <button class="btn" id="btnLesion">lesionar 25%<em>corta sinapses ao acaso</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json treinado</em></button>
+      </div>
+      <div class="grid3">
+        <button class="btn" id="btnImport">importar</button>
+        <button class="btn on" id="btnThread">fios linha</button>
+        <button class="btn on" id="btnChunk">chunks</button>
       </div>
       <button class="btn ghost" id="btnWipe" style="margin-top:5px">apagar memória<em>clique duas vezes para confirmar</em></button>
       <input type="file" id="fileIn" accept=".json" style="display:none">
@@ -181,8 +192,8 @@ footer b{color:var(--dim);font-weight:400}
       <div id="sgrid">
         <span>palavras<b id="tW">0</b></span><span>rotas diretas<b id="tR">0</b></span>
         <span>rotas inversas<b id="tRev">0</b></span><span>associações<b id="tA">0</b></span>
-        <span>episódios ativos<b id="tE">0</b></span><span>atalhos (sono)<b id="tSk">0</b></span>
-        <span>saltos associativos<b id="tJ">0</b></span><span>fios visíveis<b id="tV">0</b></span>
+        <span>chunks<b id="tK">0</b></span><span>fios de linha ativos<b id="tT">0</b></span>
+        <span>atalhos (sono)<b id="tSk">0</b></span><span>saltos associativos<b id="tJ">0</b></span>
         <span>última confiança<b id="tC">—</b></span><span>balbucios<b id="tB">0</b></span>
       </div>
     </section>
@@ -195,8 +206,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · <b>?</b> modo pergunta · <b>dormir</b> cria conexões que você nunca digitou</span>
-  <span>tabula rasa: anatomia inata (córtex · hipocampo · tálamo · novidade) · conteúdo zero no boot · LIF por eventos</span>
+  <span><b>arraste</b> orbitar · <b>?</b> pergunta · cada linha ensinada = um fio colorido que você pode ver pulsando</span>
+  <span>anatomia inata · conteúdo zero no boot · chunks nascem do uso · LIF por eventos + fadiga + surpresa</span>
 </footer>
 
 <script type="importmap">
@@ -217,8 +228,8 @@ const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<1
 const $=id=>document.getElementById(id);
 function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
 
-/* ================= 1 · motor LIF (event-driven · CSR · atrasos · fadiga) ================= */
-const CAPW=1400, NPR=24, CAPN=CAPW*(NPR+1)+160;
+/* ================= 1 · motor LIF ================= */
+const CAPW=1400, NPR=24, NCHUNK=56, NEPI=12, CAPN=CAPW*(NPR+1)+NEPI+NCHUNK+16;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -230,9 +241,8 @@ function addN(x,y,z,col,size,thr){
   const c=new THREE.Color(col); CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
   SZ[i]=size; THR[i]=thr; return i;
 }
-/* — armazém único de arestas (fonte da verdade) — */
 let EDGES=[];
-function pushE(a,b,w,delay,rec=null){EDGES.push({a,b,w,delay,rec});return EDGES.length-1;}
+function pushE(a,b,w,delay,rec=null){EDGES.push({a,b,w,delay,rec,dead:false});return EDGES.length-1;}
 let off,tg,wA,dA, FAT=[];
 function compile(){
   const nE=EDGES.length, deg=new Uint32Array(N+1);
@@ -242,7 +252,7 @@ function compile(){
   tg=new Uint32Array(nE); wA=new Float32Array(nE); dA=new Uint8Array(nE);
   FAT.length=0;
   for(let k=0;k<nE;k++){const e=EDGES[k],p=cur[e.a]++;
-    tg[p]=e.b;wA[p]=e.w;dA[p]=e.delay;
+    tg[p]=e.b;wA[p]=e.dead?0:e.w;dA[p]=e.delay;
     if(e.delay>0)FAT.push({k,rec:e.rec});
     if(e.rec&&e.rec.ci!==undefined)e.rec.ci=p;}
   dirtyC=false;
@@ -256,7 +266,7 @@ function fire(i){
   const e2=off[i+1];
   for(let k=off[i];k<e2;k++){const t=tg[k];
     if(dA[k]===0){V[t]+=wA[k];hotAdd(t);}
-    else{wA[k]*=.985;BQ[(tickI+dA[k])%NB].push(t,wA[k]);}} // fadiga na entrega
+    else{wA[k]*=.985;BQ[(tickI+dA[k])%NB].push(t,wA[k]);}}
 }
 function stepNet(dt){
   tickI++;
@@ -270,15 +280,16 @@ function stepNet(dt){
     else if(V[i]<.02&&ACT[i]<.04){HOTF[i]=0;const l=HOT.pop();if(k<HOT.length)HOT[k]=l;}
   }
 }
-function recover(){ // recuperação sináptica (fadiga some)
+function recover(){
   for(const f of FAT){
-    const e=EDGES[f.k],base=f.rec?(f.rec.kind==='t'?edgeW(f.rec.w):f.rec.kind==='r'?revW(f.rec.w):f.rec):e.w;
+    const e=EDGES[f.k]; if(e.dead)continue;
+    const base=f.rec?(f.rec.kind==='t'?edgeW(f.rec.w):f.rec.kind==='r'?revW(f.rec.w):f.rec):e.w;
     wA[f.k]+=(base-wA[f.k])*.09;
   }
 }
 let SPK=0;
 
-/* ================= 2 · córtex: palavras = assemblies de 25 neurônios ================= */
+/* ================= 2 · córtex ================= */
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);
 const LOCAL=new Array(CAPW);
@@ -326,9 +337,10 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia inata: hipocampo · tálamo · novidade ================= */
-const NEPI=12;
+/* ================= 3 · anatomia: hipocampo · tálamo · novidade · chunks ================= */
 let epiIds=[],epiData=[],thalN=-1,novN=-1,episodeIdx=0;
+let chunkIds=[],chunkFree=[];
+const chunkMap=new Map();
 function buildModules(){
   epiIds=[];epiData=[];
   for(let i=0;i<NEPI;i++){
@@ -339,17 +351,38 @@ function buildModules(){
   thalN=addN(0,2.15,-.2,'#46c8bc',.06,.75);
   novN=addN(0,-2.55,-1.1,'#ff5d4d',.055,.75);
 }
+function buildChunks(){
+  chunkIds=[];chunkFree=[];
+  for(let i=0;i<NCHUNK;i++){
+    const t=i/(NCHUNK-1);
+    const x=lerp(-1.85,1.85,t), y=-1.05+Math.sin(t*3.1)*.22, z=1.05+Math.cos(t*2.2)*.55;
+    chunkIds.push(addN(x,y,z,'#f0a63c',.032,.68));
+    chunkFree.push(i);
+  }
+}
 
-/* ================= 4 · teia: diretas · inversas · associações ================= */
+/* ================= 4 · teia ================= */
 const transAdj=Array.from({length:CAPW},()=>null);
 const revAdj=Array.from({length:CAPW},()=>null);
 const assocAdj=Array.from({length:CAPW},()=>null);
 const edgeW=w=>Math.min(1.25,.3+w*.075);
 const revW=w=>Math.min(.9,.22+w*.055);
 let routes=0, revN=0, skips=0, assocN=0, jumpsTotal=0, babbles=0, lastConf=null;
-function touchW(o,kind){ // atualiza peso lógico + sinapse física
+let chunkDirty=true;
+function touchW(o,kind){
   const v=kind==='t'?edgeW(o.w):revW(o.w);
   if(o.ci!==undefined&&EDGES[o.ci]){EDGES[o.ci].w=v;if(!dirtyC)wA[o.ci]=v;}
+}
+function bindChunk(a,b,o){
+  if(!chunkFree.length)return;
+  const ci=chunkFree.pop(), key=a*CAPW+b;
+  const ea=pushE(words[a].hub,chunkIds[ci],.85,1,.85);
+  const eb=pushE(chunkIds[ci],words[b].hub,1.0,1,1.0);
+  o.chunk={ci,ea,eb};chunkMap.set(key,o.chunk);chunkDirty=true;dirtyC=true;
+  const ha=words[a].base,hc=[PX[chunkIds[ci]],PY[chunkIds[ci]],PZ[chunkIds[ci]]],hb=words[b].base;
+  pulseAt(ha[0],ha[1],ha[2],hc[0],hc[1],hc[2],.8,'#f0a63c');
+  pulseAt(hc[0],hc[1],hc[2],hb[0],hb[1],hb[2],.8,'#f0a63c');
+  log('CHK',`chunk ligado: "${words[a].label}" ⇢ "${words[b].label}" (atalho físico criado)`);
 }
 function addTrans(a,b,dw){
   if(a===b||a<0||b<0)return null;
@@ -357,9 +390,10 @@ function addTrans(a,b,dw){
   let o=m.get(b);
   if(o){o.w+=dw;touchW(o,'t');}
   else{o={w:dw,ci:-1,kind:'t'};o.ci=pushE(words[a].hub,words[b].hub,edgeW(dw),3,o);
-    m.set(b,o);routes++;dirtyC=true;
+    m.set(b,o);dirtyC=true;
     const wa=words[a],wb=words[b];
     pulseAt(wa.base[0],wa.base[1],wa.base[2],wb.base[0],wb.base[1],wb.base[2],.7);}
+  if(o.w>=2.2&&!o.chunk)bindChunk(a,b,o);
   return o;
 }
 function addRev(a,b,dw){
@@ -368,7 +402,7 @@ function addRev(a,b,dw){
   let o=m.get(b);
   if(o){o.w+=dw;touchW(o,'r');}
   else{o={w:dw,ci:-1,kind:'r'};o.ci=pushE(words[a].hub,words[b].hub,revW(dw),3,o);
-    m.set(b,o);revN++;dirtyC=true;}
+    m.set(b,o);dirtyC=true;}
   return o;
 }
 function addAssoc(a,b,dw){
@@ -382,20 +416,24 @@ function addAssoc(a,b,dw){
 }
 const sal=wi=>1/Math.sqrt(1+words[wi].count);
 
-/* ================= 5 · episódios (hipocampo) ================= */
+/* ================= 5 · episódios ================= */
+const threadAct=new Float32Array(NEPI);
+const dirtyThread=new Array(NEPI).fill(true);
 function writeEpisode(wids){
   const ctxI=episodeIdx%NEPI;episodeIdx++;
   const ep=epiData[ctxI];
-  for(const rec of ep.words)if(EDGES[rec.ci])EDGES[rec.ci].w=0; // apaga episódio antigo do mesmo slot
+  for(const rec of ep.words)if(EDGES[rec.ci]){EDGES[rec.ci].w=0;EDGES[rec.ci].dead=true;}
   ep.epi=wids.slice(0,30);
   ep.words=ep.epi.map(wi=>({wi,ci:pushE(epiIds[ctxI],words[wi].hub,.55,2,.55)}));
   stim(epiIds[ctxI],1.3);
+  threadAct[ctxI]=1.25;dirtyThread[ctxI]=true;
   dirtyC=true;
   return ctxI;
 }
-function recentEpisodes(){ // últimos 2 slots escritos
+function recentEpisodes(){
   const out=[];
-  for(let k=1;k<=2;k++){const i=(episodeIdx-k)%NEPI;if(i>=0&&epiData[i]&&epiData[i].epi.length)out.push({i,rec:k===1?1:.6});}
+  for(let k=1;k<=2;k++){const i=(episodeIdx-k+NEPI*4)%NEPI;
+    if(epiData[i]&&epiData[i].epi.length)out.push({i,rec:k===1?1:.6});}
   return out;
 }
 
@@ -404,27 +442,27 @@ let newWordsMsg=0,newRoutesMsg=0;
 function ensureWord(label){
   const key=norm(label);let wi=wkey.get(key);
   if(wi===undefined){wi=registerWord(label);if(wi<0)return -1;
-    newWordsMsg++;stim(novN,1.6); // dopamina
+    newWordsMsg++;stim(novN,.8);
     log('NEW',`palavra nova: "${label}" → assembly #${wi} (25 neurônios)`);
-    const w=words[wi];pulseAt(w.base[0],w.base[1],w.base[2],0,-2.55,-1.1,.6);}
+    const w=words[wi];pulseAt(w.base[0],w.base[1],w.base[2],0,-2.55,-1.1,.6,'#ff5d4d');}
   return wi;
 }
 function learnMessage(wids,eta){
-  newRoutesMsg=0;newWordsMsg=0;
+  newRoutesMsg=0;
   addTrans(0,wids[0],eta);
   for(let i=0;i<wids.length;i++){
     if(i<wids.length-1){const o=addTrans(wids[i],wids[i+1],eta);if(o&&o.w<=1.001)newRoutesMsg++;}
     else{const o=addTrans(wids[i],1,eta);if(o&&o.w<=1.001)newRoutesMsg++;}
-    if(i<wids.length-1)addRev(wids[i+1],wids[i],eta); // rota inversa
+    if(i<wids.length-1)addRev(wids[i+1],wids[i],eta);
     const w=words[wids[i]];w.count++;w.last=simT;
     const c=wordColor(w.count),h=w.hub;CR[h]=c.r;CG[h]=c.g;CB[h]=c.b;
   }
   for(let i=0;i<wids.length;i++)
     for(let j=i+1;j<Math.min(wids.length,i+5);j++)addAssoc(wids[i],wids[j],.3);
   const epiI=writeEpisode(wids);
-  log('EPI',`episódio #${epiI} gravado no hipocampo (${Math.min(wids.length,30)} palavras)`);
+  log('EPI',`fio da linha ${epiI+1} regravado (${Math.min(wids.length,30)} palavras) · η ${eta.toFixed(2)}`);
 }
-function learnDialogue(prev,cur){ // turno anterior (pergunta + resposta do cérebro) → mensagem atual
+function learnDialogue(prev,cur){
   if(!prev)return;
   const qsal=[...prev.q].sort((a,b)=>sal(b)-sal(a)).slice(0,6);
   const wBoost=prev.qa?1.5:1;
@@ -433,10 +471,10 @@ function learnDialogue(prev,cur){ // turno anterior (pergunta + resposta do cér
     const asal=[...new Set(prev.a)].slice(0,8);
     for(const aw of asal)for(const cw of cur)addAssoc(aw,cw,.25*sal(aw)*2);
   }
-  log('WEB',`ligação de turno ${prev.qa?'(pergunta)':''}: ${qsal.map(i=>`"${words[i].label}"`).join(' ')} → ${cur.slice(0,4).map(i=>`"${words[i].label}"`).join(' ')}…`);
+  log('WEB',`ligação de turno ${prev.qa?'(pergunta)':''}: ${qsal.slice(0,3).map(i=>`"${words[i].label}"`).join(' ')} → ${cur.slice(0,3).map(i=>`"${words[i].label}"`).join(' ')}…`);
 }
 
-/* ================= 7 · geração com atenção · episódios · saltos ================= */
+/* ================= 7 · geração ================= */
 function outSum(a){let s=0;const m=transAdj[a];if(m)for(const o of m.values())s+=o.w;return s;}
 function sampleWeighted(arr){
   let tot=0;for(const e of arr)tot+=Math.max(0,e[1]);
@@ -445,32 +483,27 @@ function sampleWeighted(arr){
   for(const e of arr){r-=Math.max(0,e[1]);if(r<=0)return e[0];}
   return arr[arr.length-1][0];
 }
-function buildContext(inputWids,qa){
+function generate(inputWids,T,qa){
+  const inputSet=new Set(inputWids);
   const ctx=new Map();
   for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2);
   if(lastBrainWids)for(const wi of lastBrainWids.slice(0,6))if(!ctx.has(wi))ctx.set(wi,sal(wi)*.5);
-  return ctx;
-}
-function generate(inputWids,T,qa){
-  const inputSet=new Set(inputWids);
-  const ctx=buildContext(inputWids,qa);
   const ctxArr=[...ctx.entries()];
   const ctxNorm=ctxArr.reduce((s,[,w])=>s+w,0)||1;
   const att=b=>{let s=0;const m=assocAdj[b];
     if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)s+=o.w*wt;}
     return 1+.7*s/ctxNorm;};
-  /* — primeiro token: associações + inversas + episódios + continuação — */
   const score=new Map(),contrib=[];
-  const addC=(b,s,src)=>{if(inputSet.has(b)&&src!=='cont')return;
-    score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src]);};
+  const addC=(b,s,src,slot)=>{if(inputSet.has(b)&&src!=='cont')return;
+    if(words[b]&&words[b].io)return;
+    score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src,slot]);};
   for(const [cw,wt] of ctxArr){const m=assocAdj[cw];
     if(m)for(const [b,o] of m)addC(b,wt*o.w*.5,'assoc');}
   for(const wi of [...inputWids].sort((a,b)=>sal(b)-sal(a)).slice(0,3)){
     const m=revAdj[wi];
-    if(m)for(const [b,o] of m)addC(b,sal(wi)*o.w*(qa?1.7:.9),'inv');
-  }
+    if(m)for(const [b,o] of m)addC(b,sal(wi)*o.w*(qa?1.7:.9),'inv');}
   for(const {i,rec} of recentEpisodes())
-    for(const wi of epiData[i].epi)addC(wi,.85*rec,'episódio');
+    for(const wi of epiData[i].epi)addC(wi,.85*rec,'episódio',i);
   for(const wi of inputWids){const m=transAdj[wi];
     if(m)for(const [b,o] of m)addC(b,o.w*.8,'cont');}
   let first=null,babble=false;
@@ -485,14 +518,15 @@ function generate(inputWids,T,qa){
     for(const w of words)if(!w.io&&w.count>0)pool.push([w.idx,Math.pow(w.count,.7)*(outSum(w.idx)>0?1:.3)]);
     first=pool.length?sampleWeighted(pool):inputWids[0];
   }
-  /* — caminhada com atenção + saltos — */
-  const tokens=[],used=new Set(),path=[];let confSum=0,confN=0,jumps=0,epiTag=false;
+  const tokens=[],used=new Set(),recent=[],path=[];let confSum=0,confN=0,jumps=0;
+  const epiSlots=new Set();
   let cur=first,prevTok=null,guard=0;
-  while(cur!==null&&cur!==1&&guard++<24){
-    tokens.push(cur);used.add(cur);path.push(cur);
+  while(cur!==null&&cur!==1&&guard++<26){
+    tokens.push(cur);used.add(cur);path.push(cur);recent.push(cur);
+    if(recent.length>6)recent.shift();
     const m=transAdj[cur];
     let tot=m?outSum(cur):0;
-    if(!m||tot<=0){ // salto associativo
+    if(!m||tot<=0){
       if(jumps>=2)break;jumps++;jumpsTotal++;
       const am=assocAdj[cur];if(!am)break;
       const opts=[];
@@ -504,7 +538,11 @@ function generate(inputWids,T,qa){
     const opts=[];
     for(const [b,o] of m){
       let p=Math.pow(o.w/tot,1/T)*att(b);
+      if(chunkMap.has(cur*CAPW+b))p*=1.5;
+      if(prevTok!==null){const pm=assocAdj[prevTok];
+        if(pm){const po=pm.get(b);if(po)p*=1+.4*Math.min(1,po.w/3);}}
       if(used.has(b))p*=words[b].count>6?.8:.3;
+      if(recent.includes(b))p*=.35;
       if(inputSet.has(b)&&b!==0)p*=(b===inputWids[0]?.9:.6);
       if(lastBrainWids&&lastBrainWids.includes(b)&&!inputSet.has(b))p*=.45;
       if(b===prevTok)p*=.2;
@@ -514,12 +552,13 @@ function generate(inputWids,T,qa){
     if(!pick)break;
     const [b,,o]=pick;
     confSum+=o.w/tot;confN++;
-    o.w+=.1;touchW(o,'t'); // consolidação por uso
+    o.w+=.1;touchW(o,'t');
     prevTok=cur;cur=b;
   }
+  for(const c of contrib)if(c[2]==='episódio'&&c[3]!==undefined)epiSlots.add(c[3]);
   const conf=confN?confSum/confN:0;
   return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),
-    epi:contrib.some(c=>c[2]==='episódio')};
+    epi:[...epiSlots]};
 }
 
 /* ================= 8 · chat ================= */
@@ -545,27 +584,47 @@ function tokenize(text){
 function userSend(){
   const text=inp.value.trim();if(!text)return;
   if(typing)cancelTyping();
-  if(SLEEP)endSleep('sono interrompido');
+  if(SLEEP)endSleep('sono interrompido — você falou');
   inp.value='';
   const hadQ=/\?|？/.test(text);
   const d=document.createElement('div');d.className='msg me';
   d.innerHTML=`<span class="who">você${hadQ?' · pergunta':''}</span><span class="tx"></span>`;
   d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  newWordsMsg=0;
   const wids=tokenize(text);
   if(!wids.length)return;
-  const novelty=clamp(newWordsMsgNow(),0,1);
-  learnMessage(wids,1+.4*novelty);
+  /* — surpresa preditiva: fração de bigramas inesperados — */
+  let sur=0;
+  for(let i=0;i<wids.length-1;i++)
+    if(!(transAdj[wids[i]]&&transAdj[wids[i]].get(wids[i+1])))sur++;
+  const surprise=sur/Math.max(1,wids.length-1);
+  const eta=1+.7*surprise+(newWordsMsg>0?.5:0);
+  stim(novN,1+1.5*surprise);
+  learnMessage(wids,eta);
   learnDialogue(prevTurn,wids);
-  log('WEB',`absorvido: ${newWordsMsg} nova(s) · ${newRoutesMsg} rota(s) nova(s) · inversas criadas`);
+  log('WEB',`absorvido: ${newWordsMsg} nova(s) · ${newRoutesMsg} rota(s) nova(s) · surpresa ${(surprise*100)|0}%`);
   if(dirtyC)compile();
-  stim(thalN,1.5); // tálamo: atenção
+  stim(thalN,1.5);
   wids.slice(0,4).forEach((wi,k)=>{const w=words[wi];
-    pulseAt(w.base[0],w.base[1],w.base[2],0,2.15,-.2,.4);});
-  wids.forEach((wi,k)=>setTimeout(()=>stimAssembly(wi,1.6),90*k));
+    pulseAt(w.base[0],w.base[1],w.base[2],0,2.15,-.2,.4,'#46c8bc');});
+  showTrace(wids);
+  /* acende assemblies em sequência + chunks no caminho */
+  let prevW=null;
+  wids.forEach((wi,k)=>setTimeout(()=>{
+    stimAssembly(wi,1.6);
+    const w=words[wi];
+    if(prevW!==null){
+      const ch=chunkMap.get(prevW*CAPW+wi);
+      if(ch){stim(ch.ci,1.0);
+        const a=words[prevW],b=w,c=[PX[ch.ci],PY[ch.ci],PZ[ch.ci]];
+        pulseAt(a.base[0],a.base[1],a.base[2],c[0],c[1],c[2],.8,'#f0a63c');
+        pulseAt(c[0],c[1],c[2],b.base[0],b.base[1],b.base[2],.8,'#f0a63c');}
+    }
+    prevW=wi;
+  },90*k));
   prevTurn={q:wids,a:null,qa:hadQ};
   setTimeout(()=>respond(hadQ),Math.max(420,wids.length*90)+240);
 }
-let _nw=0;function newWordsMsgNow(){const v=_nw;_nw=newWordsMsg;return newWordsMsg-_nw>0?1:0;}
 function stimAssembly(wi,amp){
   const w=words[wi];if(!w)return;
   stim(w.hub,amp);
@@ -577,14 +636,13 @@ function respond(qa){
   lastConf=r.conf;lastBrainWids=r.tokens;
   if(prevTurn)prevTurn.a=r.tokens;
   $('confTag').textContent=r.babble?'balbucio · sem rota':
-    `${qa?'pergunta · ':''}confiança ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}${r.epi?' · episódio':''}`;
-  for(const [b,s,src] of r.contrib){
+    `${qa?'pergunta · ':''}conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}${r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:''}`;
+  for(const [b,s,src,slot] of r.contrib){
     const wb=words[b];
-    if(src==='episódio'){ // pulso vindo do hipocampo
-      for(const {i} of recentEpisodes())if(epiData[i].epi.includes(b)){
-        const a=i/NEPI*6.283;
-        pulseAt(Math.cos(a)*2.15,-.1,-2.3+Math.sin(a)*.75,wb.base[0],wb.base[1],wb.base[2],.8);
-        stim(epiIds[i],1.1);break;}
+    if(src==='episódio'&&slot!==undefined){
+      const a=slot/NEPI*6.283;
+      pulseAt(Math.cos(a)*2.15,-.1,-2.3+Math.sin(a)*.75,wb.base[0],wb.base[1],wb.base[2],.8,TPAL[slot]);
+      stim(epiIds[slot],1.1);threadAct[slot]=Math.max(threadAct[slot],.9);
     }else stimAssembly(b,1.1);
   }
   if(!r.tokens.length)return;
@@ -605,17 +663,22 @@ function typeOut(r){
     const s=document.createElement('span');s.className='w';s.textContent=w.label+' ';
     ref.el.appendChild(s);msgs.scrollTop=msgs.scrollHeight;
     stimAssembly(wi,1.7);
-    if(i<r.path.length-1){
-      const nb=r.path[i+1],wb=words[nb];
-      pulseAt(w.base[0]+OFFX[wi*3],w.base[1]+OFFX[wi*3+1],w.base[2]+OFFX[wi*3+2],
-              wb.base[0]+OFFX[nb*3],wb.base[1]+OFFX[nb*3+1],wb.base[2]+OFFX[nb*3+2],.9);
+    if(i<r.tokens.length-1){
+      const nb=r.tokens[i+1],wb=words[nb];
+      const ch=chunkMap.get(wi*CAPW+nb);
+      if(ch){const c=[PX[ch.ci],PY[ch.ci],PZ[ch.ci]];
+        pulseAt(w.base[0],w.base[1],w.base[2],c[0],c[1],c[2],.9,'#f0a63c');
+        pulseAt(c[0],c[1],c[2],wb.base[0],wb.base[1],wb.base[2],.9,'#f0a63c');
+        stim(ch.ci,.9);}
+      else if(i<r.path.length-1)
+        pulseAt(w.base[0],w.base[1],w.base[2],wb.base[0],wb.base[1],wb.base[2],.9);
     }
     i++;typing=setTimeout(step,235);
   };
   const finish=()=>{
     ref.root.querySelector('.caret')?.remove();
     ref.meta.textContent=r.babble?'balbucio — ensine-me respondendo'
-      :`confiança ${r.conf.toFixed(2)} · ${r.jumps} salto(s) · ep. #${(episodeIdx-1+NEPI)%NEPI}`;
+      :`confiança ${r.conf.toFixed(2)} · ${r.jumps} salto(s)${r.epi.length?` · via linha ${r.epi.map(x=>x+1).join(',')}`:''}`;
     typing=null;sendBtn.disabled=false;
   };
   sendBtn.disabled=true;
@@ -666,23 +729,69 @@ function syncNeuronAttrs(){
   nGeo.attributes.position.needsUpdate=true;nGeo.attributes.aCol.needsUpdate=true;
   nGeo.attributes.aSize.needsUpdate=true;
 }
-/* — anel do hipocampo visível — */
-let ringGeo=null;
+/* — anel do hipocampo — */
+let ringLine=null;
 function buildRing(){
-  if(ringGeo)scene.remove(new THREE.LineSegments(ringGeo));
+  if(ringLine){scene.remove(ringLine);ringLine.geometry.dispose();}
   const pos=new Float32Array(NEPI*6),col=new Float32Array(NEPI*6);
   for(let i=0;i<NEPI;i++){
     const a=i/NEPI*6.283,b=(i+1)/NEPI*6.283;
     pos.set([Math.cos(a)*2.15,-.1,-2.3+Math.sin(a)*.75,Math.cos(b)*2.15,-.1,-2.3+Math.sin(b)*.75],i*6);
     col.set([.35,.55,.2,.35,.55,.2],i*6);
   }
-  ringGeo=new THREE.BufferGeometry();
-  ringGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  ringGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
-  scene.add(new THREE.LineSegments(ringGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
-    opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false})));
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setAttribute('color',new THREE.BufferAttribute(col,3));
+  ringLine=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
+    opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));
+  scene.add(ringLine);
 }
-/* — fios das rotas (até 900) — */
+/* — FIOS POR LINHA: 12 threads coloridas, uma por episódio — */
+const TPAL=['#e8b34b','#46c8bc','#ef6a8b','#a5d64a','#e8c35a','#7fb8a8','#d0705c','#9fb8c8','#c98a3a','#6ea8d8','#b8c46a','#d88a6a'];
+let threadsGroup=null,threadLines=[];
+function buildThreads(){
+  if(threadsGroup)scene.remove(threadsGroup);
+  threadsGroup=new THREE.Group();threadLines=[];
+  for(let i=0;i<NEPI;i++){
+    const mat=new THREE.LineBasicMaterial({color:TPAL[i],transparent:true,opacity:0,
+      blending:THREE.AdditiveBlending,depthWrite:false});
+    const geo=new THREE.BufferGeometry();
+    geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(3),3));
+    const line=new THREE.Line(geo,mat);
+    threadsGroup.add(line);threadLines.push(line);
+  }
+  scene.add(threadsGroup);
+}
+function rebuildThread(i){
+  const ep=epiData[i],line=threadLines[i];
+  if(!ep||!ep.epi.length){
+    line.geometry.dispose();
+    line.geometry=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-99,0)]);
+    dirtyThread[i]=false;return;}
+  const pts=[];const a=i/NEPI*6.283;
+  pts.push(new THREE.Vector3(Math.cos(a)*1.7,-.08,-2.3+Math.sin(a)*.75));
+  for(const wi of ep.epi){const h=hubPos(wi);pts.push(new THREE.Vector3(h[0],h[1]+.02,h[2]));}
+  const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',.4);
+  const n=Math.min(360,Math.max(8,pts.length*8));
+  line.geometry.dispose();
+  line.geometry=new THREE.BufferGeometry().setFromPoints(curve.getPoints(n));
+  dirtyThread[i]=false;
+}
+/* — rastro da última frase digitada — */
+let traceLine=null,traceOp=0;
+function showTrace(wids){
+  if(traceLine){scene.remove(traceLine);traceLine.geometry.dispose();traceLine=null;}
+  if(wids.length<1)return;
+  const pts=wids.map(wi=>{const h=hubPos(wi);return new THREE.Vector3(h[0],h[1]+.05,h[2]);});
+  if(pts.length===1)pts.push(pts[0].clone().add(new THREE.Vector3(0,.08,0)));
+  const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',.5);
+  traceLine=new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(curve.getPoints(Math.min(300,pts.length*10))),
+    new THREE.LineBasicMaterial({color:'#fff3d8',transparent:true,opacity:.85,
+      blending:THREE.AdditiveBlending,depthWrite:false}));
+  scene.add(traceLine);traceOp=1;
+}
+/* — fios de rota (diretas/inversas/assoc) — */
 const CAPV=900,ASEGS=6;
 const arcPos=new Float32Array(CAPV*ASEGS*2*3),arcCol=new Float32Array(CAPV*ASEGS*2*3);
 const arcGeo=new THREE.BufferGeometry();
@@ -724,51 +833,62 @@ function rebuildArcs(){
   arcGeo.attributes.position.needsUpdate=true;arcGeo.attributes.color.needsUpdate=true;
   visDirty=false;
 }
-function rebuildVisFromNet(){
-  visE.length=0;visK.clear();
-  const tr=[],as=[];
-  for(let a=0;a<CAPW;a++){
-    const mt=transAdj[a],mr=revAdj[a];
-    if(mt)for(const [b,o] of mt){tr.push({a,b,w:o.w,kind:'t'});tr.push({a:b,b:a,w:o.w,kind:'r'});}
-    if(mr)for(const [b,o] of mr)if(!(transAdj[b]&&transAdj[b].get(a)))tr.push({a,b,w:o.w,kind:'r'});
-    const ma=assocAdj[a];
-    if(ma)for(const [b,o] of ma)if(a<b&&o.w>=1.6)as.push({a,b,w:o.w,kind:'a'});
+/* — conectores de chunk (a→chunk→b) — */
+let chunkLine=null;
+const chunkMat=new THREE.LineBasicMaterial({color:'#f0a63c',transparent:true,opacity:.55,
+  blending:THREE.AdditiveBlending,depthWrite:false});
+function rebuildChunkArcs(){
+  const pts=[];
+  for(const [key,ch] of chunkMap){
+    const a=Math.floor(key/CAPW),b=key%CAPW;
+    if(!words[a]||!words[b])continue;
+    const ha=hubPos(a),hb=hubPos(b);
+    const c=[PX[ch.ci],PY[ch.ci],PZ[ch.ci]];
+    pts.push(new THREE.Vector3(...ha),new THREE.Vector3(...c),
+             new THREE.Vector3(...c),new THREE.Vector3(...hb));
   }
-  tr.sort((x,y)=>y.w-x.w);as.sort((x,y)=>y.w-x.w);
-  for(const e of tr.slice(0,700))visE.push(e);
-  for(const e of as.slice(0,CAPV-visE.length))visE.push(e);
-  visDirty=true;
+  if(chunkLine){scene.remove(chunkLine);chunkLine.geometry.dispose();chunkLine=null;}
+  if(pts.length){
+    chunkLine=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),chunkMat);
+    scene.add(chunkLine);}
+  chunkDirty=false;
 }
-/* — pulsos — */
+/* — pulsos (agora com cor por partícula) — */
 const PMAX=600,parts=new Array(PMAX).fill(null);let pIdx=0;
-const pPos=new Float32Array(PMAX*3).fill(-999),pAct=new Float32Array(PMAX);
+const pPos=new Float32Array(PMAX*3).fill(-999),pAct=new Float32Array(PMAX),pCol=new Float32Array(PMAX*3);
+for(let i=0;i<PMAX;i++){pCol[i*3]=1;pCol[i*3+1]=.88;pCol[i*3+2]=.66;}
 const pGeo=new THREE.BufferGeometry();
 pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3).setUsage(THREE.DynamicDrawUsage));
-pGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(PMAX*3).map((v,i)=>[1,.88,.66][i%3]),3));
+pGeo.setAttribute('aCol',new THREE.BufferAttribute(pCol,3).setUsage(THREE.DynamicDrawUsage));
 pGeo.setAttribute('aSize',new THREE.BufferAttribute(new Float32Array(PMAX).fill(.036),1));
 pGeo.setAttribute('aAct',new THREE.BufferAttribute(pAct,1).setUsage(THREE.DynamicDrawUsage));
 scene.add(new THREE.Points(pGeo,ptMat));
-function pulseAt(x0,y0,z0,x1,y1,z1,s){
-  parts[pIdx]={x0,y0,z0,x1:x1||x0+.01,y1:y1||y0,z1:z1||z0,t:0,dur:.2+Math.hypot((x1||x0+.01)-x0,(y1||y0)-y0,(z1||z0)-z0)*.1,s:s||1};
+const tmpC=new THREE.Color();
+function pulseAt(x0,y0,z0,x1,y1,z1,s,col){
+  x1=x1||x0+.01;y1=y1||y0;z1=z1||z0;
+  parts[pIdx]={x0,y0,z0,x1,y1,z1,t:0,dur:.2+Math.hypot(x1-x0,y1-y0,z1-z0)*.1,s:s||1};
+  if(col){tmpC.set(col);pCol[pIdx*3]=tmpC.r;pCol[pIdx*3+1]=tmpC.g;pCol[pIdx*3+2]=tmpC.b;}
   pIdx=(pIdx+1)%PMAX;
 }
 /* — etiquetas — */
 const wlab=$('wlab'),LB=[];
-for(let i=0;i<18;i++){const d=document.createElement('div');d.className='wlb';d.style.opacity=0;wlab.appendChild(d);LB.push(d);}
+for(let i=0;i<20;i++){const d=document.createElement('div');d.className='wlb';d.style.opacity=0;wlab.appendChild(d);LB.push(d);}
 const tv=new THREE.Vector3();
+const MODLB=[{x:0,y:-.1,z:-2.3,txt:'hipocampo · fios por linha'},{x:0,y:-1.05,z:1.05,txt:'chunks'},
+  {x:0,y:2.15,z:-.2,txt:'tálamo'},{x:0,y:-2.55,z:-1.1,txt:'novidade'}];
 function labels(){
   const cand=[];
   for(const w of words){
     if(w.io){cand.push([w.idx,2,true,false]);continue;}
     if(simT-w.last<6)cand.push([w.idx,w.count+(6-(simT-w.last)),false,false]);
   }
-  cand.push([-1,3,false,true]);
+  for(const m of MODLB)cand.push([-1,2.4,false,m]);
   cand.sort((a,b)=>b[1]-a[1]);
   for(let i=0;i<LB.length;i++){
     const d=LB[i];
     if(i>=cand.length){d.style.opacity=0;continue;}
     const c=cand[i];let px,py,pz,txt,cls;
-    if(c[3]){px=0;py=-.1;pz=-2.3;txt='hipocampo';cls=' mod';}
+    if(c[3]){px=c[3].x;py=c[3].y;pz=c[3].z;txt=c[3].txt;cls=' mod';}
     else{const w=words[c[0]];
       px=w.base[0]+OFFX[w.idx*3];py=w.base[1]+OFFX[w.idx*3+1]+.09;pz=w.base[2]+OFFX[w.idx*3+2];
       txt=w.io?w.label:`${w.label} ·${w.count}`;
@@ -780,7 +900,7 @@ function labels(){
     d.style.opacity=(c[3]?.8:clamp(.35+c[1]*.1,.35,1)).toFixed(2);
   }
 }
-/* — molas espaciais — */
+/* — molas — */
 function springs(){
   for(const e of visE){
     if(words[e.a].io||words[e.b].io)continue;
@@ -811,14 +931,14 @@ function syncPositions(){
   nGeo.attributes.position.needsUpdate=true;posDirty=false;
 }
 
-/* ================= 10 · sono · poda · lesão · reset · export ================= */
+/* ================= 10 · sono · poda · lesão · reset · io ================= */
 let SLEEP=0,sleepStep=0;
 function endSleep(msg){if(!SLEEP)return;SLEEP=0;$('btnSleep').classList.remove('on');
-  log('SLP',msg||'sono concluído — atalhos de inferência criados');}
+  log('SLP',msg||'sono concluído — atalhos consolidados');}
 function startSleep(){
   if(SLEEP){endSleep();return;}
   SLEEP=6;sleepStep=0;$('btnSleep').classList.add('on');
-  log('SLP','sono iniciado — replay dos episódios em ondas lentas');
+  log('SLP','sono — replay dos fios linha por linha em ondas lentas');
 }
 function sleepTick(rdt){
   SLEEP-=rdt;
@@ -826,45 +946,63 @@ function sleepTick(rdt){
   if(RNG()<rdt*3.5){
     const i=sleepStep%NEPI;sleepStep++;
     const ep=epiData[i];
-    stim(epiIds[i],1.2);
-    const a=i/NEPI*6.283;
-    pulseAt(Math.cos(a)*2.15,-.1,-2.3+Math.sin(a)*.75,ep.epi.length?words[ep.epi[0]].base[0]:0,ep.epi.length?words[ep.epi[0]].base[1]:0,ep.epi.length?words[ep.epi[0]].base[2]:0,.7);
+    stim(epiIds[i],1.2);threadAct[i]=Math.max(threadAct[i],1);
+    if(ep.epi.length){
+      const k=(RNG()*(ep.epi.length-1))|0;
+      const ha=hubPos(ep.epi[k]),hb=hubPos(ep.epi[k+1]);
+      pulseAt(ha[0],ha[1],ha[2],hb[0],hb[1],hb[2],.7,TPAL[i]);
+    }
     if(ep.epi.length>=3){
       let made=0;
       for(let k=0;k+2<ep.epi.length;k++)
         if(RNG()<.5&&addTrans(ep.epi[k],ep.epi[k+2],.35))made++;
       if(made){skips+=made;
-        log('SLP',`replay ep.#${i}: ${made} atalho(s) A→C criado(s) — inferência sem treino direto`);}
+        log('SLP',`replay linha ${i+1}: ${made} atalho(s) A→C — inferência sem treino direto`);}
     }
   }
 }
 function resetEdgesAll(){
-  EDGES=[];
+  EDGES=[];routes=0;revN=0;
   for(const w of words)if(w.ids.length)buildIntra(w);
-  for(let i=0;i<NEPI;i++)pushE(epiIds[i],epiIds[(i+1)%NEPI],.7,2,.7); // cadeia temporal
-  for(const ep of epiData)ep.words=ep.epi.map(wi=>({wi,ci:pushE(epiIds[epiData.indexOf(ep)],words[wi].hub,.55,2,.55)}));
+  pushE(novN,thalN,.9,2,.9);
+  for(let i=0;i<NEPI;i++){
+    pushE(thalN,epiIds[i],.4,2,.4);
+    pushE(epiIds[i],epiIds[(i+1)%NEPI],.7,2,.7);
+    const ep=epiData[i];
+    ep.words=ep.epi.map(wi=>({wi,ci:pushE(epiIds[i],words[wi].hub,.55,2,.55)}));
+  }
   for(let a=0;a<CAPW;a++){
-    const mt=transAdj[a];if(mt)for(const [b,o] of mt){o.ci=EDGES.length;pushE(words[a].hub,words[b].hub,edgeW(o.w),3,o);}
-    const mr=revAdj[a];if(mr)for(const [b,o] of mr){o.ci=EDGES.length;pushE(words[a].hub,words[b].hub,revW(o.w),3,o);}
+    const mt=transAdj[a];
+    if(mt)for(const [b,o] of mt){o.ci=EDGES.length;
+      pushE(words[a].hub,words[b].hub,edgeW(o.w),3,o);routes++;}
+    const mr=revAdj[a];
+    if(mr)for(const [b,o] of mr){o.ci=EDGES.length;
+      pushE(words[a].hub,words[b].hub,revW(o.w),3,o);revN++;}
+  }
+  for(const [key,ch] of chunkMap){
+    const a=Math.floor(key/CAPW),b=key%CAPW;
+    ch.ea=EDGES.length;pushE(words[a].hub,chunkIds[ch.ci],.85,1,.85);
+    ch.eb=EDGES.length;pushE(chunkIds[ch.ci],words[b].hub,1.0,1,1.0);
   }
   dirtyC=true;
 }
 function prune(){
   let rm=0,rmr=0;
   for(let a=0;a<CAPW;a++){
-    const mt=transAdj[a];if(mt)for(const [b,o] of [...mt])if(o.w<1.2){mt.delete(b);rm++;}
+    const mt=transAdj[a];if(mt)for(const [b,o] of [...mt])if(o.w<1.2){mt.delete(b);rm++;
+      if(o.chunk){chunkMap.delete(a*CAPW+b);chunkFree.push(o.chunk.ci);chunkDirty=true;}}
     const mr=revAdj[a];if(mr)for(const [b,o] of [...mr])if(o.w<.5){mr.delete(b);rmr++;}
   }
-  routes-=rm;revN-=rmr;
   if(rm+rmr){resetEdgesAll();rebuildVisFromNet();
-    log('LES',`poda: ${rm} direta(s) + ${rmr} inversa(s) fraca(s) removida(s)`);}
+    log('LES',`poda: ${rm} direta(s) + ${rmr} inversa(s) removida(s) · sobraram ${routes} + ${revN}`);}
   else log('LES','nada a podar — rotas firmes');
 }
 function lesion(){
   let rm=0;
   for(let a=0;a<CAPW;a++){
-    const mt=transAdj[a];if(mt)for(const [b,o] of [...mt])if(RNG()<.25){mt.delete(b);rm++;routes--;}
-    const mr=revAdj[a];if(mr)for(const [b,o] of [...mr])if(RNG()<.25){mr.delete(b);rm++;revN--;}
+    const mt=transAdj[a];if(mt)for(const [b,o] of [...mt])if(RNG()<.25){mt.delete(b);rm++;
+      if(o.chunk){chunkMap.delete(a*CAPW+b);chunkFree.push(o.chunk.ci);chunkDirty=true;}}
+    const mr=revAdj[a];if(mr)for(const [b,o] of [...mr])if(RNG()<.25)mr.delete(b);
   }
   resetEdgesAll();rebuildVisFromNet();
   log('LES',`lesão: ${rm} sinapses destruídas — a fala pode quebrar`);
@@ -881,16 +1019,19 @@ function resetBrain(){
   words.length=0;wkey.clear();
   transAdj.fill(null);revAdj.fill(null);assocAdj.fill(null);
   OFFX.fill(0);
-  N=0;routes=0;revN=0;skips=0;assocN=0;jumpsTotal=0;babbles=0;lastConf=null;
+  N=0;skips=0;assocN=0;jumpsTotal=0;babbles=0;lastConf=null;
+  chunkMap.clear();
   HOT.length=0;HOTF.fill(0);for(const q of BQ)q.length=0;
+  EDGES=[];
   lastBrainWids=null;prevTurn=null;
+  episodeIdx=0;
+  for(let i=0;i<NEPI;i++){threadAct[i]=0;dirtyThread[i]=true;}
   bootWords();
   syncNeuronAttrs();rebuildVisFromNet();
-  prevUserWids=null;
   log('SYS','memória apagada — cérebro de volta ao estado de nascença');
 }
 function exportBrain(){
-  const obj={v:2,t:simT,words:[{l:'<START>',c:0},{l:'<END>',c:0}],trans:[],rev:[],assoc:[],epi:[]};
+  const obj={v:3,t:simT,words:[{l:'<START>',c:0},{l:'<END>',c:0}],trans:[],rev:[],assoc:[],epi:[]};
   for(const w of words.slice(2))obj.words.push({l:w.label,c:w.count});
   for(let a=0;a<CAPW;a++){
     const mt=transAdj[a];if(mt)for(const [b,o] of mt)obj.trans.push([a,b,+o.w.toFixed(3)]);
@@ -901,7 +1042,7 @@ function exportBrain(){
   const blob=new Blob([JSON.stringify(obj)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='cerebro-tabula.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS',`exportado: ${obj.words.length-2} palavras · ${obj.trans.length} rotas · ${obj.rev.length} inversas`);
+  log('SYS',`exportado: ${obj.words.length-2} palavras · ${obj.trans.length} rotas · ${obj.epi.flat().length?obj.epi.filter(e=>e.length).length:0} fios`);
 }
 function importBrain(file){
   const rd=new FileReader();
@@ -916,10 +1057,12 @@ function importBrain(file){
       if(obj.rev)for(const [a,b,w] of obj.rev)if(a<words.length&&b<words.length)addRev(a,b,w);
       if(obj.assoc)for(const [a,b,w] of obj.assoc)if(a<words.length&&b<words.length)addAssoc(a,b,w);
       if(obj.epi)for(const arr of obj.epi){
-        const ep=epiData[episodeIdx%NEPI];episodeIdx++;
-        ep.epi=arr.filter(wi=>wi<words.length);}
+        if(!arr.length)continue;
+        const slot=episodeIdx%NEPI;episodeIdx++;
+        epiData[slot].epi=arr.filter(wi=>wi<words.length);
+        threadAct[slot]=1;dirtyThread[slot]=true;}
       resetEdgesAll();rebuildVisFromNet();syncNeuronAttrs();
-      log('SYS',`importado: ${words.length-2} palavras · ${routes} rotas · ${revN} inversas · ${assocN} associações`);
+      log('SYS',`importado: ${words.length-2} palavras · ${routes} rotas · ${revN} inversas · ${chunkMap.size} chunks`);
     }catch{log('LES','arquivo inválido — import cancelado');}
   };
   rd.readAsText(file);
@@ -929,15 +1072,14 @@ function importBrain(file){
  $('btnLesion').addEventListener('click',lesion);
  $('btnWipe').addEventListener('click',e=>wipeArm(e.currentTarget));
  $('btnExport').addEventListener('click',exportBrain);
-document.querySelectorAll('[data-cam="hipo"]').forEach(()=>{});
+ $('btnImport').addEventListener('click',()=>$('fileIn').click());
+ $('fileIn').addEventListener('change',e=>{if(e.target.files[0])importBrain(e.target.files[0]);e.target.value='';});
+ $('btnThread').addEventListener('click',()=>{threadsGroup.visible=!threadsGroup.visible;
+  $('btnThread').classList.toggle('on',threadsGroup.visible);});
+ $('btnChunk').addEventListener('click',()=>{if(chunkLine)chunkLine.visible=!chunkLine.visible;
+  $('btnChunk').classList.toggle('on',!chunkLine||chunkLine.visible);});
  $('rngTemp').addEventListener('input',()=>$('vTemp').textContent=parseFloat($('rngTemp').value).toFixed(2));
-let fileIn=$('fileIn');
- $('btnExport').addEventListener('dblclick',()=>fileIn.click());
-fileIn.addEventListener('change',e=>{if(e.target.files[0])importBrain(e.target.files[0]);e.target.value='';});
-/* botão importar (grid tem 4: dormir/podar/lesionar/exportar) — import via duplo clique em exportar ou arraste; adicionamos botão oculto:
-   na verdade vamos trocar: remover dblclick e criar listener no botão de exportar? Melhor: botão dedicado */
-/* câmera/velocidade */
-let camA=null;const CAMS={front:{p:[0,.3,8.5],t:[0,-.4,-.2]},top:{p:[.01,8.6,-.2],t:[0,0,-.2]},hipo:{p:[0,.4,-6.4],t:[0,-.1,-2.2]}};
+let camA=null;const CAMS={front:{p:[0,.3,8.5],t:[0,-.4,-.2]},top:{p:[.01,8.6,-.2],t:[0,0,-.2]},hipo:{p:[.4,.2,-6.6],t:[0,-.2,-1.6]}};
 document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click',()=>{
   const c=CAMS[b.dataset.cam];controls.autoRotate=false;$('btnRot').classList.remove('on');
   camA={p0:camera.position.clone(),p1:new THREE.Vector3(...c.p),t0:controls.target.clone(),t1:new THREE.Vector3(...c.t),k:0};}));
@@ -969,7 +1111,24 @@ function frame(now){
     p.t+=rdt;if(p.t>=p.dur){parts[i]=null;pAct[i]=0;pPos[i*3+1]=-999;continue;}
     const k=p.t/p.dur,u=1-k;
     pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;pAct[i]=(1-k)*p.s;}
-  pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aAct.needsUpdate=true;
+  pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aCol.needsUpdate=true;
+  pGeo.attributes.aAct.needsUpdate=true;
+  /* fios por linha: reconstruir, brilho, pulsos fluindo */
+  if(posDirty)for(let i=0;i<NEPI;i++)dirtyThread[i]=true;
+  for(let i=0;i<NEPI;i++){
+    if(dirtyThread[i])rebuildThread(i);
+    threadAct[i]*=Math.exp(-rdt/6);
+    const ep=epiData[i];
+    threadLines[i].material.opacity=ep.epi.length?(.07+clamp(threadAct[i],0,1)*.55):0;
+    if(threadsGroup.visible&&threadAct[i]>.25&&ep.epi.length>=2&&RNG()<rdt*5*threadAct[i]){
+      const k=(RNG()*(ep.epi.length-1))|0;
+      const ha=hubPos(ep.epi[k]),hb=hubPos(ep.epi[k+1]);
+      pulseAt(ha[0],ha[1],ha[2],hb[0],hb[1],hb[2],.6,TPAL[i]);
+    }
+  }
+  if(traceLine){traceOp*=Math.exp(-rdt/1.6);traceLine.material.opacity=traceOp*.85;
+    if(traceOp<.03){scene.remove(traceLine);traceLine.geometry.dispose();traceLine=null;}}
+  if(chunkDirty||(posDirty&&chunkMap.size))rebuildChunkArcs();
   sprT+=rdt;if(sprT>.3){sprT=0;springs();}
   if(posDirty)syncPositions();
   if(visDirty)rebuildArcs();
@@ -985,11 +1144,12 @@ function frame(now){
     $('stMs').textContent=msPT.toFixed(2)+'ms';
     $('stW').textContent=Math.max(0,words.length-2);
     $('stR').textContent=routes;$('stS').textContent=EDGES.length.toLocaleString('pt-BR');
+    $('stK').textContent=chunkMap.size;
     $('tW').textContent=Math.max(0,words.length-2);$('tR').textContent=routes;
     $('tRev').textContent=revN;$('tA').textContent=assocN;
-    $('tE').textContent=epiData.filter(e=>e.epi.length).length;
+    $('tK').textContent=chunkMap.size;
+    $('tT').textContent=epiData.filter(e=>e.epi.length).length;
     $('tSk').textContent=skips;$('tJ').textContent=jumpsTotal;
-    $('tV').textContent=visE.length;
     $('tC').textContent=lastConf===null?'—':lastConf.toFixed(2);
     $('tB').textContent=babbles;}
 }
@@ -1006,19 +1166,20 @@ function bootWords(){
   registerWord('·início','start');words[0].io=true;
   registerWord('·fim','end');words[1].io=true;
   buildModules();
+  buildChunks();
   resetEdgesAll();
   episodeIdx=0;
   buildRing();
+  buildThreads();
 }
-let prevUserWids=null;
 bootWords();
 syncNeuronAttrs();rebuildVisFromNet();compile();
  $('stN').textContent=N;
-log('SYS',`anatomia montada: ${N} neurônios · córtex (25/palavra) + hipocampo (12 episódios) + tálamo + novidade`);
-log('SYS','conteúdo ZERO — sem palavras, sem respostas. módulos aguardando seus dados');
+log('SYS',`anatomia: ${N} neurônios · córtex 25/palavra + hipocampo de 12 fios de linha + 56 chunks + tálamo + novidade`);
+log('SYS','cada frase que você ensinar vira um FIO COLORIDO visível — conteúdo zero, estrutura toda');
 setTimeout(()=>{
   const d=document.createElement('div');d.className='msg sys';
-  d.textContent='— cérebro em branco. digite frases; pergunte com "?"; use "dormir" para consolidar. —';
+  d.textContent='— digite uma frase e veja o fio dela nascer no hipocampo (câmera "linhas"). —';
   msgs.appendChild(d);
 },300);
 resize();
