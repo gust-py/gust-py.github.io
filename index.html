@@ -47,6 +47,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .msg.me{align-self:flex-end;text-align:right;color:var(--bone)}
 .msg.brain{align-self:flex-start}
 .msg.sys{align-self:center;color:var(--dim2);font-size:9.5px;text-align:center;max-width:100%}
+.msg.err{align-self:center;color:var(--red);font-size:9.5px;text-align:center;max-width:100%}
 .msg.weak .tx{opacity:.62;font-style:italic}
 .w{animation:wfade .25s ease both}
 @keyframes wfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
@@ -220,13 +221,22 @@ footer b{color:var(--dim);font-weight:400}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ================= 0 · utilidades ================= */
+/* ================= 0 · utilidades + relator de erro ================= */
 const RNG=Math.random;
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
 const $=id=>document.getElementById(id);
 function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
+/* qualquer erro aparece no chat — nunca mais tela preta silenciosa */
+window.addEventListener('error',ev=>{
+  try{
+    const d=document.createElement('div');d.className='msg err';
+    d.textContent='— erro interno: '+(ev.message||'desconhecido')+' —';
+    const m=$('msgs');if(m){m.appendChild(d);m.scrollTop=m.scrollHeight;}
+    console.error(ev.error||ev.message);
+  }catch{}
+});
 
 /* ================= 1 · motor LIF ================= */
 const CAPW=1400, NPR=24, NCHUNK=56, NEPI=12, CAPN=CAPW*(NPR+1)+NEPI+NCHUNK+16;
@@ -243,24 +253,27 @@ function addN(x,y,z,col,size,thr){
 }
 let EDGES=[];
 function pushE(a,b,w,delay,rec=null){EDGES.push({a,b,w,delay,rec,dead:false});return EDGES.length-1;}
-let off,tg,wA,dA, FAT=[];
+let off,tg,wA,dA,cix=null,FAT=[];
 function compile(){
   const nE=EDGES.length, deg=new Uint32Array(N+1);
-  for(let k=0;k<nE;k++)deg[EDGES[k].a+1]++;
+  for(let k=0;k<nE;k++){const a=EDGES[k].a;if(a<N)deg[a+1]++;}
   off=new Uint32Array(N+1); for(let i=0;i<N;i++)off[i+1]=off[i]+deg[i+1];
   const cur=off.slice(0,N);
   tg=new Uint32Array(nE); wA=new Float32Array(nE); dA=new Uint8Array(nE);
+  cix=new Int32Array(nE).fill(-1);
   FAT.length=0;
-  for(let k=0;k<nE;k++){const e=EDGES[k],p=cur[e.a]++;
-    tg[p]=e.b;wA[p]=e.dead?0:e.w;dA[p]=e.delay;
-    if(e.delay>0)FAT.push({k,rec:e.rec});
-    if(e.rec&&e.rec.ci!==undefined)e.rec.ci=p;}
+  for(let k=0;k<nE;k++){const e=EDGES[k];
+    if(e.a>=N)continue;
+    const p=cur[e.a]++;
+    tg[p]=e.b;wA[p]=e.dead?0:e.w;dA[p]=e.delay;cix[k]=p;
+    if(e.delay>0)FAT.push({k,p,ref:e.rec});
+  }
   dirtyC=false;
 }
 const HOT=[],HOTF=new Uint8Array(CAPN);
 const NB=32, BQ=Array.from({length:NB},()=>[]); let tickI=0;
 const hotAdd=i=>{if(!HOTF[i]){HOTF[i]=1;HOT.push(i);}};
-function stim(i,amp){if(i===undefined||i<0)return;V[i]+=amp;hotAdd(i);}
+function stim(i,amp){if(i===undefined||i<0||i>=N)return;V[i]+=amp;hotAdd(i);}
 function fire(i){
   V[i]=0;REF[i]=.045;ACT[i]=1;SPK++;
   const e2=off[i+1];
@@ -282,9 +295,10 @@ function stepNet(dt){
 }
 function recover(){
   for(const f of FAT){
-    const e=EDGES[f.k]; if(e.dead)continue;
-    const base=f.rec?(f.rec.kind==='t'?edgeW(f.rec.w):f.rec.kind==='r'?revW(f.rec.w):f.rec):e.w;
-    wA[f.k]+=(base-wA[f.k])*.09;
+    const e=EDGES[f.k];if(e.dead)continue;
+    let base=f.ref;
+    if(base&&typeof base==='object')base=base.kind==='t'?edgeW(base.w):revW(base.w);
+    wA[f.p]+=(base-wA[f.p])*.09;
   }
 }
 let SPK=0;
@@ -370,8 +384,10 @@ const revW=w=>Math.min(.9,.22+w*.055);
 let routes=0, revN=0, skips=0, assocN=0, jumpsTotal=0, babbles=0, lastConf=null;
 let chunkDirty=true;
 function touchW(o,kind){
+  if(!o||o.ci===undefined||o.ci<0||o.ci>=EDGES.length)return;
   const v=kind==='t'?edgeW(o.w):revW(o.w);
-  if(o.ci!==undefined&&EDGES[o.ci]){EDGES[o.ci].w=v;if(!dirtyC)wA[o.ci]=v;}
+  EDGES[o.ci].w=v;
+  if(cix&&cix[o.ci]>=0&&!dirtyC)wA[cix[o.ci]]=v;
 }
 function bindChunk(a,b,o){
   if(!chunkFree.length)return;
@@ -385,28 +401,28 @@ function bindChunk(a,b,o){
   log('CHK',`chunk ligado: "${words[a].label}" ⇢ "${words[b].label}" (atalho físico criado)`);
 }
 function addTrans(a,b,dw){
-  if(a===b||a<0||b<0)return null;
+  if(a===b||a<0||b<0||!words[a]||!words[b])return null;
   const m=transAdj[a]||(transAdj[a]=new Map());
   let o=m.get(b);
   if(o){o.w+=dw;touchW(o,'t');}
   else{o={w:dw,ci:-1,kind:'t'};o.ci=pushE(words[a].hub,words[b].hub,edgeW(dw),3,o);
-    m.set(b,o);dirtyC=true;
+    m.set(b,o);routes++;dirtyC=true;
     const wa=words[a],wb=words[b];
     pulseAt(wa.base[0],wa.base[1],wa.base[2],wb.base[0],wb.base[1],wb.base[2],.7);}
   if(o.w>=2.2&&!o.chunk)bindChunk(a,b,o);
   return o;
 }
 function addRev(a,b,dw){
-  if(a===b||a<0||b<0)return null;
+  if(a===b||a<0||b<0||!words[a]||!words[b])return null;
   const m=revAdj[a]||(revAdj[a]=new Map());
   let o=m.get(b);
   if(o){o.w+=dw;touchW(o,'r');}
   else{o={w:dw,ci:-1,kind:'r'};o.ci=pushE(words[a].hub,words[b].hub,revW(dw),3,o);
-    m.set(b,o);dirtyC=true;}
+    m.set(b,o);revN++;dirtyC=true;}
   return o;
 }
 function addAssoc(a,b,dw){
-  if(a===b||a<0||b<0)return;
+  if(a===b||a<0||b<0||!words[a]||!words[b])return;
   let mA=assocAdj[a]||(assocAdj[a]=new Map());
   let o=mA.get(b);
   if(o)o.w=Math.min(8,o.w+dw);else{o={w:dw};mA.set(b,o);assocN++;}
@@ -460,7 +476,7 @@ function learnMessage(wids,eta){
   for(let i=0;i<wids.length;i++)
     for(let j=i+1;j<Math.min(wids.length,i+5);j++)addAssoc(wids[i],wids[j],.3);
   const epiI=writeEpisode(wids);
-  log('EPI',`fio da linha ${epiI+1} regravado (${Math.min(wids.length,30)} palavras) · η ${eta.toFixed(2)}`);
+  log('EPI',`fio da linha ${epiI+1} gravado (${Math.min(wids.length,30)} palavras) · η ${eta.toFixed(2)}`);
 }
 function learnDialogue(prev,cur){
   if(!prev)return;
@@ -494,8 +510,9 @@ function generate(inputWids,T,qa){
     if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)s+=o.w*wt;}
     return 1+.7*s/ctxNorm;};
   const score=new Map(),contrib=[];
-  const addC=(b,s,src,slot)=>{if(inputSet.has(b)&&src!=='cont')return;
-    if(words[b]&&words[b].io)return;
+  const addC=(b,s,src,slot)=>{
+    if(inputSet.has(b)&&src!=='cont')return;
+    if(b===0||b===1)return;
     score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src,slot]);};
   for(const [cw,wt] of ctxArr){const m=assocAdj[cw];
     if(m)for(const [b,o] of m)addC(b,wt*o.w*.5,'assoc');}
@@ -516,7 +533,7 @@ function generate(inputWids,T,qa){
     babble=true;babbles++;
     const pool=[];
     for(const w of words)if(!w.io&&w.count>0)pool.push([w.idx,Math.pow(w.count,.7)*(outSum(w.idx)>0?1:.3)]);
-    first=pool.length?sampleWeighted(pool):inputWids[0];
+    first=pool.length?sampleWeighted(pool):(inputWids[0]??null);
   }
   const tokens=[],used=new Set(),recent=[],path=[];let confSum=0,confN=0,jumps=0;
   const epiSlots=new Set();
@@ -525,7 +542,7 @@ function generate(inputWids,T,qa){
     tokens.push(cur);used.add(cur);path.push(cur);recent.push(cur);
     if(recent.length>6)recent.shift();
     const m=transAdj[cur];
-    let tot=m?outSum(cur):0;
+    const tot=m?outSum(cur):0;
     if(!m||tot<=0){
       if(jumps>=2)break;jumps++;jumpsTotal++;
       const am=assocAdj[cur];if(!am)break;
@@ -557,8 +574,7 @@ function generate(inputWids,T,qa){
   }
   for(const c of contrib)if(c[2]==='episódio'&&c[3]!==undefined)epiSlots.add(c[3]);
   const conf=confN?confSum/confN:0;
-  return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),
-    epi:[...epiSlots]};
+  return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),epi:[...epiSlots]};
 }
 
 /* ================= 8 · chat ================= */
@@ -592,8 +608,7 @@ function userSend(){
   d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   newWordsMsg=0;
   const wids=tokenize(text);
-  if(!wids.length)return;
-  /* — surpresa preditiva: fração de bigramas inesperados — */
+  if(!wids.length){log('SYS','mensagem sem palavras aproveitáveis');return;}
   let sur=0;
   for(let i=0;i<wids.length-1;i++)
     if(!(transAdj[wids[i]]&&transAdj[wids[i]].get(wids[i+1])))sur++;
@@ -605,10 +620,9 @@ function userSend(){
   log('WEB',`absorvido: ${newWordsMsg} nova(s) · ${newRoutesMsg} rota(s) nova(s) · surpresa ${(surprise*100)|0}%`);
   if(dirtyC)compile();
   stim(thalN,1.5);
-  wids.slice(0,4).forEach((wi,k)=>{const w=words[wi];
+  wids.slice(0,4).forEach(wi=>{const w=words[wi];
     pulseAt(w.base[0],w.base[1],w.base[2],0,2.15,-.2,.4,'#46c8bc');});
   showTrace(wids);
-  /* acende assemblies em sequência + chunks no caminho */
   let prevW=null;
   wids.forEach((wi,k)=>setTimeout(()=>{
     stimAssembly(wi,1.6);
@@ -638,7 +652,7 @@ function respond(qa){
   $('confTag').textContent=r.babble?'balbucio · sem rota':
     `${qa?'pergunta · ':''}conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}${r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:''}`;
   for(const [b,s,src,slot] of r.contrib){
-    const wb=words[b];
+    const wb=words[b];if(!wb)continue;
     if(src==='episódio'&&slot!==undefined){
       const a=slot/NEPI*6.283;
       pulseAt(Math.cos(a)*2.15,-.1,-2.3+Math.sin(a)*.75,wb.base[0],wb.base[1],wb.base[2],.8,TPAL[slot]);
@@ -729,10 +743,9 @@ function syncNeuronAttrs(){
   nGeo.attributes.position.needsUpdate=true;nGeo.attributes.aCol.needsUpdate=true;
   nGeo.attributes.aSize.needsUpdate=true;
 }
-/* — anel do hipocampo — */
 let ringLine=null;
 function buildRing(){
-  if(ringLine){scene.remove(ringLine);ringLine.geometry.dispose();}
+  if(ringLine){scene.remove(ringLine);ringLine.geometry.dispose();ringLine=null;}
   const pos=new Float32Array(NEPI*6),col=new Float32Array(NEPI*6);
   for(let i=0;i<NEPI;i++){
     const a=i/NEPI*6.283,b=(i+1)/NEPI*6.283;
@@ -746,9 +759,10 @@ function buildRing(){
     opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(ringLine);
 }
-/* — FIOS POR LINHA: 12 threads coloridas, uma por episódio — */
+function hubPos(wi){const w=words[wi];return[w.base[0]+OFFX[wi*3],w.base[1]+OFFX[wi*3+1],w.base[2]+OFFX[wi*3+2]];}
+/* — FIOS POR LINHA — */
 const TPAL=['#e8b34b','#46c8bc','#ef6a8b','#a5d64a','#e8c35a','#7fb8a8','#d0705c','#9fb8c8','#c98a3a','#6ea8d8','#b8c46a','#d88a6a'];
-let threadsGroup=null,threadLines=[];
+let threadsGroup=null,threadLines=[],showThread=true;
 function buildThreads(){
   if(threadsGroup)scene.remove(threadsGroup);
   threadsGroup=new THREE.Group();threadLines=[];
@@ -760,28 +774,30 @@ function buildThreads(){
     const line=new THREE.Line(geo,mat);
     threadsGroup.add(line);threadLines.push(line);
   }
+  threadsGroup.visible=showThread;
   scene.add(threadsGroup);
 }
 function rebuildThread(i){
   const ep=epiData[i],line=threadLines[i];
+  if(!line)return;
   if(!ep||!ep.epi.length){
     line.geometry.dispose();
     line.geometry=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,-99,0)]);
     dirtyThread[i]=false;return;}
   const pts=[];const a=i/NEPI*6.283;
   pts.push(new THREE.Vector3(Math.cos(a)*1.7,-.08,-2.3+Math.sin(a)*.75));
-  for(const wi of ep.epi){const h=hubPos(wi);pts.push(new THREE.Vector3(h[0],h[1]+.02,h[2]));}
+  for(const wi of ep.epi){if(!words[wi])continue;const h=hubPos(wi);pts.push(new THREE.Vector3(h[0],h[1]+.02,h[2]));}
+  if(pts.length<2){dirtyThread[i]=false;return;}
   const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',.4);
   const n=Math.min(360,Math.max(8,pts.length*8));
   line.geometry.dispose();
   line.geometry=new THREE.BufferGeometry().setFromPoints(curve.getPoints(n));
   dirtyThread[i]=false;
 }
-/* — rastro da última frase digitada — */
 let traceLine=null,traceOp=0;
 function showTrace(wids){
   if(traceLine){scene.remove(traceLine);traceLine.geometry.dispose();traceLine=null;}
-  if(wids.length<1)return;
+  if(!wids.length)return;
   const pts=wids.map(wi=>{const h=hubPos(wi);return new THREE.Vector3(h[0],h[1]+.05,h[2]);});
   if(pts.length===1)pts.push(pts[0].clone().add(new THREE.Vector3(0,.08,0)));
   const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',.5);
@@ -791,7 +807,7 @@ function showTrace(wids){
       blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(traceLine);traceOp=1;
 }
-/* — fios de rota (diretas/inversas/assoc) — */
+/* — fios de rota — */
 const CAPV=900,ASEGS=6;
 const arcPos=new Float32Array(CAPV*ASEGS*2*3),arcCol=new Float32Array(CAPV*ASEGS*2*3);
 const arcGeo=new THREE.BufferGeometry();
@@ -806,11 +822,11 @@ function visTouch(a,b,w,kind){
   if(visE.length<CAPV){visK.set(k,visE.length);visE.push({a,b,w,kind});visDirty=true;}
 }
 const qbez=(a,b,c,t)=>{const u=1-t;return[u*u*a[0]+2*u*t*b[0]+t*t*c[0],u*u*a[1]+2*u*t*b[1]+t*t*c[1],u*u*a[2]+2*u*t*b[2]+t*t*c[2]];};
-function hubPos(wi){const w=words[wi];return[w.base[0]+OFFX[wi*3],w.base[1]+OFFX[wi*3+1],w.base[2]+OFFX[wi*3+2]];}
 function rebuildArcs(){
   for(let s=0;s<CAPV;s++){
     const o0=s*ASEGS*6;
-    if(s>=visE.length){for(let k=o0;k<o0+ASEGS*6;k++){arcPos[k]=0;arcCol[k]=0;}continue;}
+    if(s>=visE.length||!words[visE[s].a]||!words[visE[s].b]){
+      for(let k=o0;k<o0+ASEGS*6;k++){arcPos[k]=0;arcCol[k]=0;}continue;}
     const e=visE[s],A=hubPos(e.a),B=hubPos(e.b);
     const up=(h32(words[e.a].key+words[e.b].key+e.kind)-.5)*1.4;
     const mid=[(A[0]+B[0])/2,(A[1]+B[1])/2+.35+up*.4,(A[2]+B[2])/2];
@@ -833,8 +849,23 @@ function rebuildArcs(){
   arcGeo.attributes.position.needsUpdate=true;arcGeo.attributes.color.needsUpdate=true;
   visDirty=false;
 }
-/* — conectores de chunk (a→chunk→b) — */
-let chunkLine=null;
+function rebuildVisFromNet(){
+  visE.length=0;visK.clear();
+  const tr=[],as=[];
+  for(let a=0;a<CAPW;a++){
+    const mt=transAdj[a],mr=revAdj[a];
+    if(mt)for(const [b,o] of mt){tr.push({a,b,w:o.w,kind:'t'});tr.push({a:b,b:a,w:o.w,kind:'r'});}
+    if(mr)for(const [b,o] of mr)if(!(transAdj[b]&&transAdj[b].get(a)))tr.push({a,b,w:o.w,kind:'r'});
+    const ma=assocAdj[a];
+    if(ma)for(const [b,o] of ma)if(a<b&&o.w>=1.6)as.push({a,b,w:o.w,kind:'a'});
+  }
+  tr.sort((x,y)=>y.w-x.w);as.sort((x,y)=>y.w-x.w);
+  for(const e of tr.slice(0,700))visE.push(e);
+  for(const e of as.slice(0,CAPV-visE.length))visE.push(e);
+  visDirty=true;
+}
+/* — conectores de chunk — */
+let chunkLine=null,showChunk=true;
 const chunkMat=new THREE.LineBasicMaterial({color:'#f0a63c',transparent:true,opacity:.55,
   blending:THREE.AdditiveBlending,depthWrite:false});
 function rebuildChunkArcs(){
@@ -850,10 +881,11 @@ function rebuildChunkArcs(){
   if(chunkLine){scene.remove(chunkLine);chunkLine.geometry.dispose();chunkLine=null;}
   if(pts.length){
     chunkLine=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),chunkMat);
+    chunkLine.visible=showChunk;
     scene.add(chunkLine);}
   chunkDirty=false;
 }
-/* — pulsos (agora com cor por partícula) — */
+/* — pulsos coloridos — */
 const PMAX=600,parts=new Array(PMAX).fill(null);let pIdx=0;
 const pPos=new Float32Array(PMAX*3).fill(-999),pAct=new Float32Array(PMAX),pCol=new Float32Array(PMAX*3);
 for(let i=0;i<PMAX;i++){pCol[i*3]=1;pCol[i*3+1]=.88;pCol[i*3+2]=.66;}
@@ -889,7 +921,7 @@ function labels(){
     if(i>=cand.length){d.style.opacity=0;continue;}
     const c=cand[i];let px,py,pz,txt,cls;
     if(c[3]){px=c[3].x;py=c[3].y;pz=c[3].z;txt=c[3].txt;cls=' mod';}
-    else{const w=words[c[0]];
+    else{const w=words[c[0]];if(!w){d.style.opacity=0;continue;}
       px=w.base[0]+OFFX[w.idx*3];py=w.base[1]+OFFX[w.idx*3+1]+.09;pz=w.base[2]+OFFX[w.idx*3+2];
       txt=w.io?w.label:`${w.label} ·${w.count}`;
       cls=w.io?' io':w.count>=6?' hub':'';}
@@ -903,7 +935,7 @@ function labels(){
 /* — molas — */
 function springs(){
   for(const e of visE){
-    if(words[e.a].io||words[e.b].io)continue;
+    if(!words[e.a]||!words[e.b]||words[e.a].io||words[e.b].io)continue;
     const k=(e.kind==='t'?.05:e.kind==='r'?.03:.02)*Math.min(1,e.w/6);
     for(let d=0;d<3;d++){
       const dx=OFFX[e.b*3+d]-OFFX[e.a*3+d];
@@ -931,7 +963,7 @@ function syncPositions(){
   nGeo.attributes.position.needsUpdate=true;posDirty=false;
 }
 
-/* ================= 10 · sono · poda · lesão · reset · io ================= */
+/* ================= 10 · sono · poda · lesão · reset · export/import ================= */
 let SLEEP=0,sleepStep=0;
 function endSleep(msg){if(!SLEEP)return;SLEEP=0;$('btnSleep').classList.remove('on');
   log('SLP',msg||'sono concluído — atalhos consolidados');}
@@ -947,7 +979,7 @@ function sleepTick(rdt){
     const i=sleepStep%NEPI;sleepStep++;
     const ep=epiData[i];
     stim(epiIds[i],1.2);threadAct[i]=Math.max(threadAct[i],1);
-    if(ep.epi.length){
+    if(ep.epi.length>=2){
       const k=(RNG()*(ep.epi.length-1))|0;
       const ha=hubPos(ep.epi[k]),hb=hubPos(ep.epi[k+1]);
       pulseAt(ha[0],ha[1],ha[2],hb[0],hb[1],hb[2],.7,TPAL[i]);
@@ -981,6 +1013,7 @@ function resetEdgesAll(){
   }
   for(const [key,ch] of chunkMap){
     const a=Math.floor(key/CAPW),b=key%CAPW;
+    if(!words[a]||!words[b])continue;
     ch.ea=EDGES.length;pushE(words[a].hub,chunkIds[ch.ci],.85,1,.85);
     ch.eb=EDGES.length;pushE(chunkIds[ch.ci],words[b].hub,1.0,1,1.0);
   }
@@ -1016,18 +1049,21 @@ function wipeArm(btn){
       btn.firstChild.textContent='apagar memória';}},2600);}
 }
 function resetBrain(){
+  if(SLEEP)endSleep('memória apagada durante o sono');
   words.length=0;wkey.clear();
   transAdj.fill(null);revAdj.fill(null);assocAdj.fill(null);
   OFFX.fill(0);
   N=0;skips=0;assocN=0;jumpsTotal=0;babbles=0;lastConf=null;
   chunkMap.clear();
+  chunkFree.length=0;for(let i=0;i<NCHUNK;i++)chunkFree.push(i);
   HOT.length=0;HOTF.fill(0);for(const q of BQ)q.length=0;
-  EDGES=[];
+  EDGES=[];FAT.length=0;
   lastBrainWids=null;prevTurn=null;
   episodeIdx=0;
   for(let i=0;i<NEPI;i++){threadAct[i]=0;dirtyThread[i]=true;}
   bootWords();
   syncNeuronAttrs();rebuildVisFromNet();
+  chunkDirty=true;
   log('SYS','memória apagada — cérebro de volta ao estado de nascença');
 }
 function exportBrain(){
@@ -1042,7 +1078,7 @@ function exportBrain(){
   const blob=new Blob([JSON.stringify(obj)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='cerebro-tabula.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS',`exportado: ${obj.words.length-2} palavras · ${obj.trans.length} rotas · ${obj.epi.flat().length?obj.epi.filter(e=>e.length).length:0} fios`);
+  log('SYS',`exportado: ${obj.words.length-2} palavras · ${obj.trans.length} rotas · ${obj.epi.filter(e=>e.length).length} fios`);
 }
 function importBrain(file){
   const rd=new FileReader();
@@ -1074,10 +1110,12 @@ function importBrain(file){
  $('btnExport').addEventListener('click',exportBrain);
  $('btnImport').addEventListener('click',()=>$('fileIn').click());
  $('fileIn').addEventListener('change',e=>{if(e.target.files[0])importBrain(e.target.files[0]);e.target.value='';});
- $('btnThread').addEventListener('click',()=>{threadsGroup.visible=!threadsGroup.visible;
-  $('btnThread').classList.toggle('on',threadsGroup.visible);});
- $('btnChunk').addEventListener('click',()=>{if(chunkLine)chunkLine.visible=!chunkLine.visible;
-  $('btnChunk').classList.toggle('on',!chunkLine||chunkLine.visible);});
+ $('btnThread').addEventListener('click',()=>{showThread=!showThread;
+  if(threadsGroup)threadsGroup.visible=showThread;
+  $('btnThread').classList.toggle('on',showThread);});
+ $('btnChunk').addEventListener('click',()=>{showChunk=!showChunk;
+  if(chunkLine)chunkLine.visible=showChunk;
+  $('btnChunk').classList.toggle('on',showChunk);});
  $('rngTemp').addEventListener('input',()=>$('vTemp').textContent=parseFloat($('rngTemp').value).toFixed(2));
 let camA=null;const CAMS={front:{p:[0,.3,8.5],t:[0,-.4,-.2]},top:{p:[.01,8.6,-.2],t:[0,0,-.2]},hipo:{p:[.4,.2,-6.6],t:[0,-.2,-1.6]}};
 document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click',()=>{
@@ -1113,14 +1151,13 @@ function frame(now){
     pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;pAct[i]=(1-k)*p.s;}
   pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aCol.needsUpdate=true;
   pGeo.attributes.aAct.needsUpdate=true;
-  /* fios por linha: reconstruir, brilho, pulsos fluindo */
   if(posDirty)for(let i=0;i<NEPI;i++)dirtyThread[i]=true;
   for(let i=0;i<NEPI;i++){
     if(dirtyThread[i])rebuildThread(i);
     threadAct[i]*=Math.exp(-rdt/6);
     const ep=epiData[i];
     threadLines[i].material.opacity=ep.epi.length?(.07+clamp(threadAct[i],0,1)*.55):0;
-    if(threadsGroup.visible&&threadAct[i]>.25&&ep.epi.length>=2&&RNG()<rdt*5*threadAct[i]){
+    if(showThread&&threadAct[i]>.25&&ep.epi.length>=2&&RNG()<rdt*5*threadAct[i]){
       const k=(RNG()*(ep.epi.length-1))|0;
       const ha=hubPos(ep.epi[k]),hb=hubPos(ep.epi[k+1]);
       pulseAt(ha[0],ha[1],ha[2],hb[0],hb[1],hb[2],.6,TPAL[i]);
@@ -1163,8 +1200,8 @@ window.addEventListener('resize',resize);
 
 /* ================= 12 · boot ================= */
 function bootWords(){
-  registerWord('·início','start');words[0].io=true;
-  registerWord('·fim','end');words[1].io=true;
+  registerWord('·início','start');
+  registerWord('·fim','end');
   buildModules();
   buildChunks();
   resetEdgesAll();
