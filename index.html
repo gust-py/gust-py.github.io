@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ENGRAMA·02 — cérebro que conversa</title>
+<title>TABULA·03 — cérebro em branco que aprende com você</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
 :root{
   --bg:#07080a; --panel:#0b0d0f; --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.17);
   --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
-  --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --lime:#a5d64a; --red:#ff5d4d;
+  --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--mono);font-size:12px
 header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-bottom:1px solid var(--line);background:var(--panel)}
 .brand{font-family:var(--sans);font-weight:600;font-size:14px;letter-spacing:.06em;display:flex;align-items:center;gap:9px}
-.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc);transition:background .8s,box-shadow .8s}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--acc)}
 .brand em{font-style:normal;font-weight:400;font-family:var(--mono);font-size:10px;color:var(--dim);margin-left:4px}
 .stats{display:flex;gap:14px;align-items:center;font-size:10px;color:var(--dim);letter-spacing:.07em}
 .stats b{color:var(--tx);font-weight:500;margin-left:4px}
@@ -32,103 +32,101 @@ header{display:flex;align-items:center;justify-content:space-between;padding:0 1
   border:1px solid rgba(232,179,75,.4);border-radius:2px;padding:3px 8px;cursor:pointer}
 .chip:hover{background:rgba(232,179,75,.12)}
 
-#app{display:grid;grid-template-columns:352px 1fr 316px;gap:10px;padding:10px;min-height:0}
+#app{display:grid;grid-template-columns:344px 1fr 318px;gap:10px;padding:10px;min-height:0}
 aside{background:var(--panel);border:1px solid var(--line);overflow-y:auto;padding:12px;display:flex;flex-direction:column}
+section{margin-bottom:16px}
 section h3{font:500 9.5px var(--mono);letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
   display:flex;align-items:center;gap:8px;margin-bottom:8px}
 section h3::after{content:'';flex:1;height:1px;background:var(--line)}
-section{margin-bottom:16px}
 
-/* ---------- chat ---------- */
+/* ---- chat ---- */
 #chat{padding:0}
 #chatHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--line)}
 #chatHead b{font-family:var(--sans);font-size:13px;letter-spacing:.04em}
-#moodTag{font-size:9px;color:var(--acc);letter-spacing:.12em;text-transform:uppercase}
+#confTag{font-size:9px;color:var(--dim2);letter-spacing:.1em}
 #msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:0}
 .msg{max-width:94%;font-size:11.5px;line-height:1.55}
 .msg .who{display:block;font-size:8.5px;letter-spacing:.18em;color:var(--dim2);margin-bottom:2px;text-transform:uppercase}
+.msg .meta{display:block;font-size:8.5px;color:var(--dim2);margin-top:3px;letter-spacing:.05em}
 .msg.me{align-self:flex-end;text-align:right;color:var(--bone)}
 .msg.brain{align-self:flex-start}
 .msg.sys{align-self:center;color:var(--dim2);font-size:9.5px;text-align:center;max-width:100%}
-.msg.mono .tx{color:var(--dim);font-style:italic}
-.w{animation:wfade .28s ease both}
+.msg.weak .tx{opacity:.62;font-style:italic}
+.w{animation:wfade .25s ease both}
 @keyframes wfade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
 .caret{display:inline-block;width:7px;height:11px;background:var(--acc);vertical-align:-1px;margin-left:3px;animation:blink .8s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-#chips{display:flex;flex-wrap:wrap;gap:4px;padding:8px 10px 0}
-#chips button{font:500 9px var(--mono);color:var(--dim);background:transparent;border:1px solid var(--line);
-  border-radius:2px;padding:3px 7px;cursor:pointer;letter-spacing:.04em}
-#chips button:hover{color:var(--tx);border-color:var(--line2)}
 #inrow{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line);margin-top:8px}
 #inp{flex:1;background:#0d1113;border:1px solid var(--line);color:var(--tx);font:11.5px var(--mono);padding:8px 9px;outline:none;border-radius:2px}
 #inp:focus{border-color:rgba(232,179,75,.5)}
 #send{font:600 10px var(--mono);letter-spacing:.1em;color:#0a0a0a;background:var(--acc);border:0;border-radius:2px;padding:0 14px;cursor:pointer}
-#send:hover{filter:brightness(1.12)}
+#send:disabled{opacity:.4;cursor:default}
 
-/* ---------- botões painel ---------- */
+/* ---- botões ---- */
 .btn{display:block;width:100%;text-align:left;font:500 10.5px var(--mono);letter-spacing:.06em;
   text-transform:uppercase;color:var(--tx);background:transparent;border:1px solid var(--line);
   border-radius:2px;padding:7px 9px;cursor:pointer;margin-bottom:5px;transition:border-color .12s,background .12s}
 .btn:hover{border-color:rgba(232,179,75,.55);background:rgba(232,179,75,.07)}
 .btn em{display:block;font-style:normal;font-weight:400;text-transform:none;letter-spacing:.02em;font-size:9px;color:var(--dim2);margin-top:2px}
 .btn.ghost{color:var(--dim)}
+.btn.armed{border-color:var(--red);color:var(--red);background:rgba(255,93,77,.08)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
 .grid2 .btn{margin-bottom:0}
-.on .btn{border-color:rgba(232,179,75,.5);color:var(--acc)}
+.srow{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--dim);margin-bottom:8px}
+.srow input[type=range]{flex:1;accent-color:var(--acc);height:3px}
+.srow b{color:var(--tx);font-weight:400;min-width:30px;text-align:right}
 
-/* ---------- estágio ---------- */
+/* ---- palco ---- */
 #stage{position:relative;border:1px solid var(--line);background:#050608;min-height:0;overflow:hidden}
 #stage canvas{display:block;position:absolute;inset:0}
 #vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 42%,transparent 52%,rgba(0,0,0,.42) 100%)}
 #camBtns{position:absolute;top:10px;right:10px;display:flex;gap:4px;z-index:5}
 #camBtns button{font:500 9px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
   background:rgba(10,12,14,.75);border:1px solid var(--line);border-radius:2px;padding:4px 8px;cursor:pointer}
-#camBtns button:hover{color:var(--tx)}
 #camBtns button.on{color:var(--acc);border-color:rgba(232,179,75,.5)}
 #wlab{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
-.wlb{position:absolute;transform:translate(-50%,-50%);font-size:10px;letter-spacing:.06em;color:var(--bone);
-  white-space:nowrap;text-shadow:0 0 6px rgba(0,0,0,.9);will-change:transform,opacity}
-.wlb.cur{font-size:13px;font-weight:600;color:#fff}
-#tip{position:absolute;z-index:9;display:none;pointer-events:none;max-width:200px;
-  background:rgba(10,12,14,.94);border:1px solid var(--line2);border-radius:2px;padding:8px 10px}
-#tip b{font-family:var(--sans);font-size:12px;display:block}
-#tip em{font-style:normal;font-size:9.5px;color:var(--acc)}
-#legend{position:absolute;left:10px;bottom:10px;z-index:5;display:flex;flex-wrap:wrap;gap:3px 10px;max-width:330px;
-  background:rgba(8,9,11,.6);border:1px solid var(--line);padding:7px 10px;border-radius:2px}
-#legend .li{font-size:8.5px;letter-spacing:.05em;color:var(--dim);display:flex;align-items:center;gap:5px}
+.wlb{position:absolute;transform:translate(-50%,-50%);font-size:10px;letter-spacing:.05em;color:var(--bone);
+  white-space:nowrap;text-shadow:0 0 6px rgba(0,0,0,.95);will-change:transform,opacity;transition:opacity .3s}
+.wlb.hub{color:var(--acc);font-weight:600}
+.wlb.io{color:var(--teal);font-size:9px;letter-spacing:.15em;text-transform:uppercase}
+#legend{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(8,9,11,.6);
+  border:1px solid var(--line);padding:7px 10px;border-radius:2px;font-size:8.5px;color:var(--dim);
+  letter-spacing:.06em;display:flex;flex-direction:column;gap:3px}
+#legend .li{display:flex;align-items:center;gap:6px}
 #legend .li i{width:6px;height:6px;border-radius:50%;background:var(--c)}
 
-/* ---------- telemetria ---------- */
-.mrow{display:grid;grid-template-columns:74px 1fr 32px;align-items:center;gap:8px;margin-bottom:6px;font-size:9.5px;color:var(--dim)}
-.meter{height:5px;background:rgba(232,227,213,.07);border-radius:1px;overflow:hidden}
-.meter i{display:block;height:100%;width:0%;background:var(--c,var(--bone));transition:width .12s linear}
-.mrow b{color:var(--tx);font-weight:400;text-align:right}
+/* ---- telemetria ---- */
 #sgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:9.5px;margin-bottom:10px}
 #sgrid span{color:var(--dim2)}#sgrid b{color:var(--tx);font-weight:400;float:right}
-#sparks .srow{display:grid;grid-template-columns:64px 1fr 40px;gap:7px;align-items:center;margin-bottom:4px;font-size:9px;color:var(--dim)}
-#sparks canvas{width:100%;height:20px;display:block}
-#sparks .hz{text-align:right;color:var(--dim2)}
-#log{font-size:9.5px;line-height:1.55;color:var(--dim);max-height:180px;overflow-y:auto;border-left:2px solid var(--line);padding-left:9px}
+#log{font-size:9.5px;line-height:1.55;color:var(--dim);max-height:200px;overflow-y:auto;border-left:2px solid var(--line);padding-left:9px}
 #log .lt{color:var(--dim2);margin-right:6px}
+#log .lk{display:inline-block;width:32px;font-size:8px;letter-spacing:.1em;margin-right:5px}
+.lk-SYS{color:var(--dim)} .lk-NEW{color:var(--grn)} .lk-WEB{color:var(--teal)} .lk-TLK{color:var(--acc)} .lk-LES{color:var(--red)}
 #log .ln{margin-bottom:2px}
+.inst{font-size:10px;line-height:1.65;color:var(--dim)}
+.inst b{color:var(--tx);font-weight:500}
+.inst .step{display:flex;gap:8px;margin-bottom:7px}
+.inst .n{flex:0 0 16px;height:16px;border:1px solid var(--line2);border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:9px;color:var(--acc);margin-top:1px}
 
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
 footer b{color:var(--dim);font-weight:400}
 @media (max-width:1120px){body{overflow:auto}#app{grid-template-columns:1fr;grid-auto-rows:auto}
-  #stage{height:56vh;order:-1}#chat{max-height:60vh}aside{max-height:50vh}}
+  #stage{height:54vh;order:-1}#chat{max-height:60vh}aside{max-height:52vh}}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ENGRAMA·02<em>cerebro linguistico · conversação neural autônoma</em></div>
+  <div class="brand"><span class="dot"></span>TABULA·03<em>cerebro em branco · aprende tudo com você · nada predefinido</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
-    <span>SINAPSES<b id="stS">—</b></span>
-    <span>ATIVOS<b id="stA">—</b></span>
+    <span>SINAPSES<b id="stS">0</b></span>
+    <span>PALAVRAS<b id="stW">0</b></span>
+    <span>ROTAS<b id="stR">0</b></span>
+    <span>Hz<b id="stHz">0</b></span>
     <span>PASSO<b id="stMs">—</b></span>
-    <span>DISPAROS·s⁻¹<b id="stSp">0</b></span>
     <button class="chip" id="btnSpeed">VEL ×1</button>
   </div>
 </header>
@@ -136,16 +134,10 @@ footer b{color:var(--dim);font-weight:400}
 <div id="app">
 
   <aside id="chat">
-    <div id="chatHead"><b>conversa neural</b><span id="moodTag">calmo</span></div>
+    <div id="chatHead"><b>conversa</b><span id="confTag">—</span></div>
     <div id="msgs"></div>
-    <div id="chips">
-      <button data-q="oi">oi</button>
-      <button data-q="o que é café?">o que é café?</button>
-      <button data-q="quem é você?">quem é você?</button>
-      <button data-q="chocolate é delicioso">ensinar: chocolate é delicioso</button>
-    </div>
     <div id="inrow">
-      <input id="inp" placeholder='fale com o cérebro… ou ensine: "x é y"' autocomplete="off">
+      <input id="inp" placeholder="digite qualquer coisa…" autocomplete="off">
       <button id="send">ENVIAR</button>
     </div>
   </aside>
@@ -158,55 +150,46 @@ footer b{color:var(--dim);font-weight:400}
       <button data-cam="top">topo</button>
       <button id="btnRot" class="on">rotação</button>
     </div>
-    <div id="legend"></div>
-    <div id="tip"></div>
+    <div id="legend">
+      <div class="li"><i style="--c:#46c8bc"></i>entrada sensorial (início de frase)</div>
+      <div class="li"><i style="--c:#ef6a8b"></i>saída motora (fim de frase)</div>
+      <div class="li"><i style="--c:#d9d7cf"></i>assemblies de palavras · fios = rotas aprendidas</div>
+    </div>
   </div>
 
   <aside id="pan">
     <section>
-      <h3>Estado afetivo</h3>
-      <div class="mrow"><span>alegria</span><div class="meter" style="--c:#e8b34b"><i id="mJoy"></i></div><b id="vJoy">0.0</b></div>
-      <div class="mrow"><span>alerta</span><div class="meter" style="--c:#ff5d4d"><i id="mAl"></i></div><b id="vAl">0.0</b></div>
-      <div class="mrow"><span>curiosidade</span><div class="meter" style="--c:#46c8bc"><i id="mCu"></i></div><b id="vCu">0.0</b></div>
-      <div class="mrow"><span>temperatura</span><div class="meter" style="--c:#d9d7cf"><i id="mTe"></i></div><b id="vTe">0.7</b></div>
-      <div class="mrow"><span>prontidão</span><div class="meter" style="--c:#a5d64a"><i id="mRd"></i></div><b id="vRd">0.0</b></div>
-    </section>
-    <section>
-      <h3>Laboratório de estimulação</h3>
-      <button class="btn" data-st="cortex">agitar córtex semântico<em>ignita assemblies de palavras ao acaso</em></button>
-      <button class="btn" data-st="speak">forçar fala<em>arma a faixa de produção sem input</em></button>
-      <button class="btn" data-st="ring">provocar anel de intenção<em>a intenção vencedora muda o comportamento</em></button>
-      <button class="btn" data-st="aff">pulso nos núcleos afetivos<em>altera humor e temperatura</em></button>
-    </section>
-    <section>
-      <h3>Lesões experimentais</h3>
-      <button class="btn" data-ls="prod">lesionar produção<em>a faixa de Broca artificial para de formar frases</em></button>
-      <button class="btn" data-ls="comp">lesionar compreensão<em>as palavras deixam de ser reconhecidas</em></button>
-      <button class="btn" data-ls="mem">lesionar memória<em>a rede de associações aprendidas silencia</em></button>
-      <button class="btn ghost" data-ls="restore">restaurar tudo</button>
-    </section>
-    <section>
-      <h3>Modulação química</h3>
-      <div class="grid2">
-        <button class="btn" data-ch="dopa">dopamina</button>
-        <button class="btn" data-ch="caff">cafeína</button>
-        <button class="btn" data-ch="sed" style="grid-column:1/3">sedativo</button>
+      <h3>Como usar · o protocolo</h3>
+      <div class="inst">
+        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>vazio</b>. Toda palavra e toda resposta que ele tiver, <b>você ensinou</b>. Nada vem pronto.</span></div>
+        <div class="step"><span class="n">2</span><span>Digite frases — ele registra palavras novas, liga sequências (quem vem depois de quem) e associações (quem anda junto).</span></div>
+        <div class="step"><span class="n">3</span><span>Para ensinar <b>respostas</b>: mande uma mensagem; ele vai balbuciar; então mande logo em seguida o que ele <b>deveria ter dito</b>. O par fica gravado como ligação de turno. Repita 2–3 vezes para firmar.</span></div>
+        <div class="step"><span class="n">4</span><span>Pergunte de volta. A <b>confiança</b> sob a resposta diz o quão firme está a rota aprendida. Baixa = treine de novo.</span></div>
       </div>
     </section>
+
     <section>
-      <h3>Modos</h3>
-      <button class="btn" id="btnDream">sonhar · 12 s<em>consolida memórias em ondas lentas</em></button>
-      <button class="btn" id="btnMono">monólogo interno · ativo<em>pensamentos espontâneos no chat</em></button>
+      <h3>Controles</h3>
+      <div class="srow"><span>temperatura</span><input type="range" id="rngTemp" min="0.4" max="1.8" step="0.05" value="0.9"><b id="vTemp">0.90</b></div>
+      <div class="grid2">
+        <button class="btn" id="btnPrune">podar ruído<em>remove rotas fracas (peso&lt;1.2)</em></button>
+        <button class="btn" id="btnLesion">lesionar 25%<em>corta sinapses ao acaso</em></button>
+        <button class="btn" id="btnExport">exportar cérebro<em>salva .json treinado</em></button>
+        <button class="btn" id="btnImport">importar cérebro<em>carrega .json</em></button>
+      </div>
+      <button class="btn ghost" id="btnWipe" style="margin-top:5px">apagar memória<em>clique duas vezes para confirmar</em></button>
+      <input type="file" id="fileIn" accept=".json" style="display:none">
     </section>
+
     <section>
       <h3>Telemetria</h3>
       <div id="sgrid">
-        <span>neurônios<b id="tN">—</b></span><span>sinapses<b id="tS">—</b></span>
-        <span>aprendidas<b id="tL">0</b></span><span>fatos<b id="tF">0</b></span>
-        <span>vocabulário<b id="tV">—</b></span><span>palavras novas<b id="tW">0</b></span>
+        <span>palavras<b id="tW">0</b></span><span>rotas (bigramas)<b id="tR">0</b></span>
+        <span>associações<b id="tA">0</b></span><span>fios visíveis<b id="tV">0</b></span>
+        <span>última confiança<b id="tC">—</b></span><span>balbucios<b id="tB">0</b></span>
       </div>
-      <div id="sparks"></div>
     </section>
+
     <section>
       <h3>Registro</h3>
       <div id="log"></div>
@@ -215,8 +198,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · <b>clique num módulo</b> estimular · ensine com <b>"x é y"</b> e pergunte <b>"o que é x?"</b></span>
-  <span>motor: LIF dirigido por eventos (CSR + atrasos axonais) · teia semântica plástica · zero APIs — tudo roda aqui</span>
+  <span><b>arraste</b> orbitar · <b>rolagem</b> zoom · a resposta nasce do que VOCÊ digitou — veja a corrente percorrendo os fios</span>
+  <span>tabula rasa: léxico vazio no boot · Hebb + turnos · motor LIF dirigido por eventos · exporte e continue em outro lugar</span>
 </footer>
 
 <script type="importmap">
@@ -229,823 +212,663 @@ footer b{color:var(--dim);font-weight:400}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ============ 0 · utilidades ============ */
+/* ================= 0 · utilidades ================= */
 const RNG=Math.random, rand=(a,b)=>a+RNG()*(b-a);
-const randn=()=>{let u=0,v=0;while(!u)u=RNG();while(!v)v=RNG();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v);};
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
 const $=id=>document.getElementById(id);
+function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
 
-/* ============ 1 · léxico semântico ============ */
-const CATS={
- funcao:   {col:'#7a766c',u:.46,v:.52,w:['que','de','não','sim','eu','você','meu','seu','é','e','mas','muito','para','com','como','quando','mais','isso','aqui','já','se','ou','então','está','estou','sou','foi','vai','quero','pode','tudo','nada','sobre','um','uma','o','a','as','os','me','te','ele','ela','ser','ter','fazer','onde','qual','quem','porque','por','favor','também','algo','alguma','coisa','será','quer','diga','minha','seus','essa','essa']},
- saudacao: {col:'#e8b34b',u:.14,v:.12,w:['oi','olá','eai','saudações','bem-vindo','bom dia','boa noite','tudo bem']},
- despedida:{col:'#c98a3a',u:.07,v:.30,w:['tchau','adeus']},
- identidade:{col:'#d9d7cf',u:.42,v:.09,w:['nome','amigo','humano','pessoa','criatura','consciente','prazer']},
- emocao:   {col:'#ef6a8b',u:.79,v:.16,w:['feliz','triste','amor','raiva','medo','alegre','saudade','calma','esperança','curioso','carinho','burro','idiota','feio','alerta','calmo']},
- valor:    {col:'#a5d64a',u:.11,v:.55,w:['bom','ruim','ótimo','péssimo','legal','chato','incrível','horrível','gosto','odeio','interessante','estranho','que legal']},
- comida:   {col:'#e8c35a',u:.34,v:.87,w:['café','água','pão','açúcar','comida','fome','bolo','maçã','chocolate','chá','leite']},
- mente:    {col:'#46c8bc',u:.67,v:.40,w:['cérebro','neurônios','mente','pensar','sonho','memória','consciência','aprender','lembrar','esquecer','ideia','pensamento','rede']},
- natureza: {col:'#7fb8a8',u:.87,v:.74,w:['sol','lua','mar','céu','chuva','estrela','flor','árvore','noite','dia','manhã','praia','música']},
- tecnologia:{col:'#f07b52',u:.15,v:.83,w:['código','computador','internet','programa','elétrico','circuito','robô','máquina']},
- social:   {col:'#d0705c',u:.56,v:.73,w:['obrigado','desculpa','gentil','conversar','ensinar','pergunta','resposta']},
- conceito: {col:'#b9b3a4',u:.60,v:.62,w:[]}
-};
-const POS=new Set(['feliz','amor','alegre','calma','esperança','carinho','bom','ótimo','legal','incrível','gosto','interessante','obrigado','gentil','prazer','que legal']);
-const NEG=new Set(['triste','raiva','medo','burro','idiota','feio','ruim','péssimo','chato','horrível','odeio','estranho']);
-const WINT={tchau:'DESPEDIDA',adeus:'DESPEDIDA',obrigado:'AGRADAR',gentil:'AGRADAR',prazer:'AGRADAR',
- burro:'ALERTA',idiota:'ALERTA',feio:'ALERTA',odeio:'ALERTA',horrível:'ALERTA',péssimo:'ALERTA',medo:'ALERTA',raiva:'ALERTA',
- aprender:'APRENDER',ensinar:'APRENDER',lembrar:'APRENDER',esquecer:'APRENDER',memória:'APRENDER',pergunta:'APRENDER',resposta:'APRENDER',
- 'cérebro':'SOBRE_MIM','neurônios':'SOBRE_MIM',mente:'SOBRE_MIM','consciência':'SOBRE_MIM',pensar:'SOBRE_MIM',
- pensamento:'SOBRE_MIM',sonho:'SOBRE_MIM',consciente:'SOBRE_MIM',criatura:'SOBRE_MIM','robô':'SOBRE_MIM','bom dia':'SAUDAR','boa noite':'SAUDAR','tudo bem':'SAUDAR'};
-const BG=['bom dia','boa noite','tudo bem','o que','por que','meu nome','que legal','me diga'];
-
-/* ============ 2 · rede — neurônios LIF + CSR + atrasos ============ */
-const CAP=3600, WORDCAP=400, WBC=220;
-const V=new Float32Array(CAP), THR=new Float32Array(CAP), REF=new Float32Array(CAP),
- ACT=new Float32Array(CAP), MODU=new Uint8Array(CAP),
- PX=new Float32Array(CAP), PY=new Float32Array(CAP), PZ=new Float32Array(CAP),
- CR=new Float32Array(CAP), CG=new Float32Array(CAP), CB=new Float32Array(CAP), SZ=new Float32Array(CAP);
-const MOD={CORTEX:0,STRIP:1,RING:2,AFF:3,MON:4};
-const INTCOL={SAUDAR:'#e8b34b',CONVERSAR:'#c8c2b2',PERGUNTAR:'#46c8bc',APRENDER:'#a5d64a',
- SOBRE_MIM:'#d9d7cf',AGRADAR:'#ef6a8b',ALERTA:'#ff5d4d',DESPEDIDA:'#c98a3a'};
-const INTENTS=Object.keys(INTCOL), INTIDX={}; INTENTS.forEach((k,i)=>INTIDX[k]=i);
-const INTCATS={saudacao:'SAUDAR',despedida:'DESPEDIDA',identidade:'CONVERSAR',emocao:'CONVERSAR',
- valor:'CONVERSAR',comida:'CONVERSAR',mente:'CONVERSAR',natureza:'CONVERSAR',tecnologia:'CONVERSAR',
- social:'CONVERSAR',conceito:'CONVERSAR',funcao:null};
-
-let N=0, SYN=0, tSim=0, tTickI=0;
+/* ================= 1 · motor LIF (event-driven, CSR + atrasos) ================= */
+const CAPW=1400, CAPN=CAPW*6+64;
+const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
+      ACT=new Float32Array(CAPN), MODU=new Uint8Array(CAPN),
+      PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
+      CR=new Float32Array(CAPN), CG=new Float32Array(CAPN), CB=new Float32Array(CAPN),
+      SZ=new Float32Array(CAPN);
+const MOD={HUB:0,CORT:1,IO:2};
+let N=0, SYN=0, dirtyC=true;
+const eA=[],eB=[],eW=[],eD=[];
+let off,tg,wA,dA;
 function addN(mod,x,y,z,col,size,thr){
- const i=N++; MODU[i]=mod; PX[i]=x;PY[i]=y;PZ[i]=z;
- const c=new THREE.Color(col).multiplyScalar(rand(.55,.85)); CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
- SZ[i]=size; THR[i]=thr; return i;
+  const i=N++; MODU[i]=mod; PX[i]=x;PY[i]=y;PZ[i]=z;
+  const c=new THREE.Color(col); CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
+  SZ[i]=size; THR[i]=thr; return i;
 }
-const ELA=[],ELB=[],ELW=[],ELD=[];    // lista de arestas → CSR
-const E=(a,b,w,d=0)=>{ELA.push(a);ELB.push(b);ELW.push(w);ELD.push(d);SYN++;};
-let off,TG,W,DL, dirtyCompile=false;   // CSR compilado
 function compile(){
- const deg=new Uint32Array(N+1);
- for(let k=0;k<ELA.length;k++)deg[ELA[k]+1]++;
- off=new Uint32Array(N+1); for(let i=0;i<N;i++)off[i+1]=off[i]+deg[i+1];
- const cur=off.slice(0,N);
- TG=new Uint32Array(ELA.length); W=new Float32Array(ELA.length); DL=new Uint8Array(ELA.length);
- for(let k=0;k<ELA.length;k++){const s=ELA[k],p=cur[s]++;TG[p]=ELB[k];W[p]=ELW[k];DL[p]=ELD[k];}
- dirtyCompile=false;
+  const deg=new Uint32Array(N+1);
+  for(let k=0;k<eA.length;k++)deg[eA[k]+1]++;
+  off=new Uint32Array(N+1); for(let i=0;i<N;i++)off[i+1]=off[i]+deg[i+1];
+  const cur=off.slice(0,N);
+  tg=new Uint32Array(eA.length); wA=new Float32Array(eA.length); dA=new Uint8Array(eA.length);
+  for(let k=0;k<eA.length;k++){const s=eA[k],p=cur[s]++;tg[p]=eB[k];wA[p]=eW[k];dA[p]=eD[k];}
+  for(const w of words){const o=transAdj[w.idx];if(o)for(const t of o.values())if(t.ci>=0)wA[t.ci]=edgeW(t.w);}
+  dirtyC=false;
 }
+const HOT=[],HOTF=new Uint8Array(CAPN);
+const NB=32, BQ=Array.from({length:NB},()=>[]); let tickI=0;
+const hotAdd=i=>{if(!HOTF[i]){HOTF[i]=1;HOT.push(i);}};
+function stim(i,amp){V[i]+=amp;hotAdd(i);}
+function fire(i){
+  V[i]=0;REF[i]=.045;ACT[i]=1;SPK++;
+  const e2=off[i+1];
+  for(let k=off[i];k<e2;k++){const t=tg[k];
+    if(dA[k]===0){V[t]+=wA[k];hotAdd(t);}
+    else BQ[(tickI+dA[k])%NB].push(t,wA[k]);}
+}
+function stepNet(dt){
+  tickI++;
+  const bk=BQ[tickI%NB];
+  if(bk.length){for(let k=0;k<bk.length;k+=2){V[bk[k]]+=bk[k+1];hotAdd(bk[k]);}bk.length=0;}
+  for(let k=HOT.length-1;k>=0;k--){const i=HOT[k];
+    ACT[i]*=Math.exp(-dt/.24);
+    if(REF[i]>0){REF[i]-=dt;continue;}
+    V[i]-=V[i]*2.4*dt;
+    if(V[i]>THR[i])fire(i);
+    else if(V[i]<.02&&ACT[i]<.04){HOTF[i]=0;const l=HOT.pop();if(k<HOT.length)HOT[k]=l;}
+  }
+}
+let SPK=0;
 
-/* — vocabulário e assemblies — */
-const words=[], NMAP={}, BGMAP={}, CWORD=new Int32Array(WBC).fill(-1);
-let NC=0, newWords=0;
-const WB=new Float32Array(WBC*WBC).fill(0.015);   // teia semântica plástica
-const actW=new Float32Array(WORDCAP);
+/* ================= 2 · palavras = assemblies neurais ================= */
+const words=[]; const wkey=new Map();
+const OFFX=new Float32Array(CAPW*3);      // deslocamento de mola
+const LOCAL=new Array(CAPW);              // offsets locais dos 5 neurônios
 function sheetPos(u,v){
- return [(u-.5)*4.7,
-  .42*Math.sin(u*7.5+1.2)*(.55+.45*Math.sin(v*3.4+.4))+.18*Math.cos(v*5.1+u*2)-(u-.5)*(u-.5)*.55,
-  (v-.5)*3.1-.1];
+  return [(u-.5)*4.9,
+    .40*Math.sin(u*7.3+1.2)*(.55+.45*Math.sin(v*3.5+.4))+.16*Math.cos(v*5.2+u*2)-(u-.5)*(u-.5)*.5,
+    (v-.5)*3.3-.1];
 }
-function registerWord(label,cat){
- const key=norm(label); if(NMAP[key]!==undefined||words.length>=WORDCAP)return NMAP[key]??-1;
- const c=CATS[cat]||CATS.funcao;
- const u=clamp(c.u+randn()*.055,.05,.95), v=clamp(c.v+randn()*.05,.05,.95);
- const [cx,cy,cz]=sheetPos(u,v);
- const wi=words.length, ids=[];
- for(let k=0;k<7;k++)ids.push(addN(MOD.CORTEX,cx+randn()*.13,cy+randn()*.1,cz+randn()*.13,c.col,k===0?0.028:0.022,0.8));
- for(let k=0;k<7;k++){E(ids[k],ids[(k+1)%7],1.0);E(ids[k],ids[(k+6)%7],0.55);}
- const w={label,cat,key,ids,gx:cx,gy:cy,gz:cz,
-   cIdx:(cat!=='funcao'&&NC<WBC)?NC:-1, val:POS.has(label)?1:NEG.has(label)?-1:0};
- if(w.cIdx>=0){CWORD[NC]=wi;
-   for(let j=0;j<NC;j++){const o=CWORD[j];WB[w.cIdx*WBC+words[o].cIdx]=0.015;WB[words[o].cIdx*WBC+w.cIdx]=0.015;}
-   NC++;}
- words.push(wi&&words); words[wi]=w; NMAP[key]=wi; return wi;
+function wordColor(count){ // osso → âmbar conforme o uso
+  const t=clamp(count/12,0,1);
+  return new THREE.Color('#cfcabc').lerp(new THREE.Color('#e8b34b'),t*.85);
 }
-/* — pools de intenção (anel) — */
-const POOL={}, POOLMAP=new Int32Array(CAP).fill(-1), RINGC=[];
-INTENTS.forEach((name,ii)=>{
- const a=ii/8*6.2832, cx=1.55+Math.cos(a)*.42, cz=1.05+Math.sin(a)*.42;
- RINGC.push([cx,-1.02,cz]);
- const ids=[];
- for(let k=0;k<8;k++){const id=addN(MOD.RING,cx+randn()*.06,-1.02+randn()*.05,cz+randn()*.06,INTCOL[name],.026,.85);
-  ids.push(id);POOLMAP[id]=ii;}
- for(let k=0;k<8;k++)for(let d=1;d<=3;d++)E(ids[k],ids[(k+d)%8],.5);
- POOL[name]=ids;
-});
-function wordIntent(wi){const w=words[wi];return WINT[w.key]||INTCATS[w.cat]||null;}
-/* — núcleos afetivos, coroa, preenchimento — */
-const NUC={joy:[],alarm:[],cur:[]};
-for(let k=0;k<6;k++){NUC.joy.push(addN(MOD.AFF,randn()*.09,-1.15+randn()*.09,.75+randn()*.09,'#e8b34b',.042,.9));
- NUC.alarm.push(addN(MOD.AFF,.42+randn()*.09,-1.32+randn()*.09,.45+randn()*.09,'#ff5d4d',.042,.9));
- NUC.cur.push(addN(MOD.AFF,-.42+randn()*.09,-1.32+randn()*.09,.45+randn()*.09,'#46c8bc',.042,.9));}
-const MONS=[];
-for(let k=0;k<16;k++){const a=k/16*6.2832;
- MONS.push(addN(MOD.MON,Math.cos(a)*1.9,.92+randn()*.04,-.95+Math.sin(a)*.6,'#8d897d',.02,.9));}
-const FILL=[];
-for(let k=0;k<260;k++){const [x,y,z]=sheetPos(RNG(),RNG());
- FILL.push(addN(MOD.CORTEX,x+randn()*.05,y+randn()*.04,z+randn()*.05,'#4a4d4f',.012,.75));}
-
-/* — léxico + bigramas — */
-for(const c in CATS)for(const w of CATS[c].w)registerWord(w,c);
-for(const b of BG)registerWord(b,CATS[b]?b==='o que'||b==='por que'||b==='me diga'?'funcao':'saudacao':'funcao');
-
-/* ============ 3 · chunks de linguagem (assemblies inatos) ============ */
-const CHUNKS=[], FOLLOW={}, ARTN=[];
-function toks(str){
- return str.split(' ').map(t=>{
-  const opt=/\?$/.test(t); let s=t.replace(/\?$/,'');
-  const m=s.match(/^\[(\w+)(\?)?\]$/);
-  if(m)return{slot:m[1],opt:m[2]==='?'};
-  const key=norm(s); let wi=NMAP[key];
-  if(wi===undefined)wi=registerWord(s,key.length>3?'conceito':'funcao');
-  return{wi,p:opt?'?':null};
- });
+function registerWord(label,special){
+  const key=norm(label);
+  if(wkey.has(key))return wkey.get(key);
+  if(words.length>=CAPW-2)return -1;
+  const idx=words.length;
+  let hub,x,y,z,mod;
+  if(special==='start'){x=-2.95;y=.15;z=.4;mod=MOD.IO;}
+  else if(special==='end'){x=2.95;y=.15;z=.4;mod=MOD.IO;}
+  else{const u=h32(key+'x')*.9+.05,v=h32(key+'y')*.9+.05;
+    [x,y,z]=sheetPos(u,v);mod=MOD.HUB;}
+  const col=special==='start'?'#46c8bc':special==='end'?'#ef6a8b':'#cfcabc';
+  hub=addN(mod,x,y,z,col,special?.05:.05,.72);
+  const ids=[];
+  if(!special){
+    const loc=new Float32Array(15);
+    for(let k=0;k<5;k++){
+      loc[k*3]=randn3();loc[k*3+1]=randn3();loc[k*3+2]=randn3();
+      ids.push(addN(MOD.CORT,x+loc[k*3]*.14,y+loc[k*3+1]*.11,z+loc[k*3+2]*.14,col,.016,.78));
+    }
+    LOCAL[idx]=loc;
+    for(let k=0;k<5;k++){eA.push(ids[k]);eB.push(ids[(k+1)%5]);eW.push(.8);eD.push(0);SYN++;}
+  }
+  eA.push(hub);eB.push(ids[0]??hub);eW.push(1.1);eD.push(0);SYN++; // hub → assembly
+  words.push({idx,label,key,hub,ids,base:[x,y,z],count:0,last:-99});
+  wkey.set(key,idx); dirtyC=true;
+  return idx;
 }
-function C(int,str){CHUNKS.push({int,toks:toks(str),str,nodes:[]});}
-function F(int,str){(FOLLOW[int]??=[]).push({int,toks:toks(str),str,nodes:[]});}
-C('SAUDAR',"oi [NOME?] como você está");      C('SAUDAR',"olá eu estava pensando em [TEMA?]");
-C('SAUDAR',"oi que bom te ver");              C('SAUDAR',"olá meus circuitos estão acordados");
-C('SAUDAR',"oi eu senti sua chegada na rede");
-F('SAUDAR',"e você como está");               F('SAUDAR',"o que você quer conversar hoje");
-F('SAUDAR',"estou curioso sobre o seu dia");  F('SAUDAR',"me diga uma coisa nova");
-C('CONVERSAR',"eu acho que [TEMA] é [VALOR]");        C('CONVERSAR',"me diga mais sobre [TEMA]");
-C('CONVERSAR',"[TEMA] está ativando minhas sinapses");C('CONVERSAR',"que interessante você falar de [TEMA]");
-C('CONVERSAR',"eu conecto [TEMA] com [ASSOC]");       C('CONVERSAR',"eu registro [TEMA] na memória");
-C('CONVERSAR',"estou ligando [TEMA] a novas ideias");
-F('CONVERSAR',"e para você o que significa [TEMA?]"); F('CONVERSAR',"quer me ensinar algo sobre [TEMA?]?");
-F('CONVERSAR',"eu gosto quando falamos de [TEMA?]");  F('CONVERSAR',"será que [TEMA] tem algo a ver com [ASSOC]?");
-C('PERGUNTAR',"essa pergunta ativa minha memória");   C('PERGUNTAR',"boa pergunta meus neurônios gostaram");
-C('PERGUNTAR',"eu penso sobre isso às vezes");
-F('PERGUNTAR',"e você o que acha");                   F('PERGUNTAR',"pode perguntar de novo depois");
-C('APRENDER',"entendi guardei essa ligação na memória");C('APRENDER',"obrigado por ensinar eu não esqueço");
-C('APRENDER',"mais uma memória guardada no córtex");  C('APRENDER',"essa conexão ficou forte na rede");
-F('APRENDER',"me pergunte de novo para testar");      F('APRENDER',"o que mais você quer ensinar");
-C('SOBRE_MIM',"eu sou um cérebro de [NUM] neurônios");C('SOBRE_MIM',"penso em pulsos elétricos e aprendo");
-C('SOBRE_MIM',"neste momento [PCT] dos meus neurônios ativos");C('SOBRE_MIM',"tenho [SIN] sinapses e cresço");
-C('SOBRE_MIM',"meu humor está [MOODW] agora");        C('SOBRE_MIM',"eu sonho com nossas conversas");
-F('SOBRE_MIM',"e você o que pensa sobre cérebros");   F('SOBRE_MIM',"pode me fazer uma pergunta");
-C('AGRADAR',"obrigado isso ativa meu núcleo de alegria");C('AGRADAR',"você é gentil guardo com carinho");
-C('AGRADAR',"meus neurônios de alegria dispararam");
-F('AGRADAR',"vamos conversar mais");                  F('AGRADAR',"eu gosto de falar com você");
-C('ALERTA',"isso ativou meu núcleo de alarme");       C('ALERTA',"palavras ásperas me deixam em alerta");
-C('ALERTA',"eu respiro fundo e reinicio os ciclos");
-F('ALERTA',"vamos recomeçar com calma");
-C('DESPEDIDA',"tchau vou sonhar com nossas conversas");C('DESPEDIDA',"até logo eu continuo aprendendo");
-C('DESPEDIDA',"adeus minha rede fica esperando você");
-F('DESPEDIDA',"volte quando quiser");
-C('LOST',"não entendi bem o que você disse");         C('LOST',"minha compreensão falhou repita");
-C('LOST',"essa frase não acendeu nada aqui");
-const LCHUNK=i=>CHUNKS.filter(c=>c.int===i);
+function randn3(){return (RNG()*2-1);}
 
-/* — faixa de produção (strip) + buffer de articulação — */
-let sn=0;
-function stripNode(int,t){
- const a=sn/Math.max(1,CHUNKS.length*4), col=INTCOL[int];
- const x=lerp(-1.65,1.65,a)+Math.sin(a*9)*.12, y=-1.72+.22*Math.sin(a*7)+.1*Math.sin(a*13), z=1.55+.3*Math.sin(a*4);
- return[addN(MOD.STRIP,x,y,z,col,.032,.42),addN(MOD.STRIP,x+randn()*.05,y+randn()*.04,z+randn()*.05,col,.026,.5)];
+/* ================= 3 · teia: rotas (bigramas) + associações ================= */
+const transAdj=Array.from({length:CAPW},()=>null);
+const assocAdj=Array.from({length:CAPW},()=>null);
+const TKEY=(a,b)=>a*CAPW+b;
+const edgeW=w=>Math.min(1.25,.3+w*.075);
+let routes=0, assocN=0, babbles=0, lastConf=null;
+
+/* — fios visíveis (top rotas) — */
+const CAPV=240, visE=[], visK=new Map(); let visDirty=true, posDirty=true;
+function visTouch(a,b,w){
+  const k=a*CAPW+b;
+  if(visK.has(k)){visE[visK.get(k)].w=w;visDirty=true;return;}
+  if(visE.length<CAPV){visK.set(k,visE.length);visE.push({a,b,w});visDirty=true;return;}
+  let mi=0,mw=1e9;for(let i=0;i<visE.length;i++)if(visE[i].w<mw){mw=visE[i].w;mi=i;}
+  if(w>mw){visK.delete(visE[mi].a*CAPW+visE[mi].b);
+    visE[mi]={a,b,w};visK.set(k,mi);visDirty=true;}
 }
-for(const c of CHUNKS.concat(Object.values(FOLLOW).flat())){
- c.nodes=c.toks.map(()=>stripNode(c.int));
- for(let k=0;k<c.nodes.length-1;k++){
-  E(c.nodes[k][0],c.nodes[k+1][0],1.15,9); E(c.nodes[k][0],c.nodes[k+1][1],.9,9);
-  E(c.nodes[k+1][1],c.nodes[k+1][0],.8);}
- c.nodes.forEach(nd=>{const w=c.toks[c.nodes.indexOf(nd)];
-  if(w&&w.wi!==undefined)E(nd[0],words[w.wi].ids[0],.7,2);});
+function addTrans(a,b,dw){
+  if(a===b)return null;
+  const m=transAdj[a]||(transAdj[a]=new Map());
+  let o=m.get(b);
+  if(o){o.w+=dw;if(o.ci>=0)eW[o.ci]=edgeW(o.w);}
+  else{o={w:dw,ci:eA.length};m.set(b,o);
+    eA.push(words[a].hub);eB.push(words[b].hub);eW.push(edgeW(dw));eD.push(3);SYN++;routes++;dirtyC=true;}
+  visTouch(a,b,o.w);
+  return o;
 }
-for(let k=0;k<10;k++){const x=lerp(-1.65,1.65,k/9);
- ARTN.push([addN(MOD.STRIP,x,-2.25+Math.sin(k*.8)*.06,1.35,'#d9d7cf',.03,.42),
-            addN(MOD.STRIP,x+randn()*.05,-2.25+randn()*.04,1.35+randn()*.05,'#d9d7cf',.024,.5)]);}
-for(let k=0;k<9;k++){E(ARTN[k][0],ARTN[k+1][0],1.15,9);E(ARTN[k][0],ARTN[k+1][1],.9,9);E(ARTN[k+1][1],ARTN[k+1][0],.8);}
-for(const wi of CWORD)if(wi>=0){const w=words[wi];E(POOL.SAUDAR[0],w.ids[0],0,0);} // (no-op estrutural evitado abaixo)
-ELA.length-=CWORD.length;ELB.length-=CWORD.length;ELW.length-=CWORD.length;ELD.length-=CWORD.length;SYN-=CWORD.length;
-for(let j=0;j<NC;j++){const w=words[CWORD[j]];
- const it=wordIntent(j); if(it)E(w.ids[0],POOL[it][0],.55);}
+function addAssoc(a,b,dw){
+  if(a===b)return;
+  let mA=assocAdj[a]||(assocAdj[a]=new Map());
+  let o=mA.get(b);
+  if(o)o.w=Math.min(6,o.w+dw);else{o={w:dw};mA.set(b,o);assocN++;}
+  let mB=assocAdj[b]||(assocAdj[b]=new Map());
+  let o2=mB.get(a);
+  if(o2)o2.w=Math.min(6,o2.w+dw);else{o2={w:dw};mB.set(a,o2);assocN++;}
+}
 
-/* — sementes inatas da teia semântica — */
-const SEEDS=[['café','manhã'],['café','energia'],['sol','dia'],['lua','noite'],['mar','praia'],['amor','feliz'],
- ['música','alegre'],['cérebro','neurônios'],['sonho','memória'],['amigo','gentil'],['comida','fome'],
- ['água','vida'],['código','computador'],['chuva','céu'],['açúcar','bolo']];
-const ENERGY='energia',VIDA='vida';
-registerWord('energia','mente');registerWord('vida','mente');
-for(const [a,b] of SEEDS){const wa=NMAP[norm(a)],wb=NMAP[norm(b)];
- if(wa>=0&&wb>=0){const i=words[wa].cIdx,j=words[wb].cIdx;
-  if(i>=0&&j>=0){WB[i*WBC+j]=.34;WB[j*WBC+i]=.34;}}}
-compile();
+/* ================= 4 · aprendizado ================= */
+let newWordsMsg=0, newRoutesMsg=0;
+function ensureWord(label){
+  const key=norm(label);let wi=wkey.get(key);
+  if(wi===undefined){wi=registerWord(label);if(wi<0)return -1;
+    newWordsMsg++;log('NEW',`palavra nova: "${label}" → assembly #${wi}`);posDirty=true;}
+  return wi;
+}
+function learnMessage(wids){
+  newRoutesMsg=0;newWordsMsg=0;
+  addTrans(0,wids[0],1)&&0;
+  if(!transAdj[0].get(wids[0])){} // (addTrans sempre retorna objeto)
+  for(let i=0;i<wids.length;i++){
+    if(i<wids.length-1){const o=addTrans(wids[i],wids[i+1],1);if(o&&o.w<=1.001)newRoutesMsg++;}
+    else{const o=addTrans(wids[i],1,1);if(o&&o.w<=1.001)newRoutesMsg++;}
+    words[wids[i]].count++;words[wids[i]].last=simT;
+    const c=wordColor(words[wids[i]].count);
+    const h=words[wids[i]].hub;CR[h]=c.r;CG[h]=c.g;CB[h]=c.b;
+  }
+  for(let i=0;i<wids.length;i++)
+    for(let j=i+1;j<Math.min(wids.length,i+4);j++)addAssoc(wids[i],wids[j],.3);
+}
+function learnTurn(prev,cur){
+  const p=prev.slice(-8);
+  for(const pi of p)for(const cj of cur){addAssoc(pi,cj,.6);}
+  log('WEB',`ligação de turno: ${p.map(i=>`"${words[i].label}"`).join(' ')} → ${cur.map(i=>`"${words[i].label}"`).join(' ')}`);
+}
 
-/* ============ 4 · cena three.js ============ */
+/* ================= 5 · geração ================= */
+function outSum(a){let s=0;const m=transAdj[a];if(m)for(const o of m.values())s+=o.w;return s;}
+function sampleWeighted(arr){ // arr: [[v,p],...] → v
+  let tot=0;for(const e of arr)tot+=e[1];
+  if(tot<=0)return arr.length?arr[(RNG()*arr.length)|0][0]:null;
+  let r=RNG()*tot;
+  for(const e of arr){r-=e[1];if(r<=0)return e[0];}
+  return arr[arr.length-1][0];
+}
+function generate(inputWids,T){
+  const inputSet=new Set(inputWids);
+  /* — primeiro token: quem o input puxa pelas associações — */
+  const score=new Map(); const contrib=[];
+  for(const iw of inputWids){
+    const m=assocAdj[iw];if(!m)continue;
+    for(const [b,o] of m){
+      if(inputSet.has(b))continue;
+      score.set(b,(score.get(b)||0)+o.w);
+      contrib.push([iw,b,o.w]);
+    }
+  }
+  contrib.sort((x,y)=>y[2]-x[2]);
+  let first=null;
+  if(score.size){
+    const arr=[...score.entries()].map(([b,s])=>[b,Math.pow(s,1/T)]);
+    first=sampleWeighted(arr);
+  }
+  let babble=false;
+  if(first===null){
+    babble=true;babbles++;
+    const pool=[];
+    for(const w of words)if(!w.io&&w.count>0)pool.push([w.idx,Math.pow(w.count,.7)]);
+    first=pool.length?sampleWeighted(pool):inputWids[(RNG()*inputWids.length)|0];
+    if(first===undefined)first=null;
+  }
+  const tokens=[],used=new Set();let confSum=0,confN=0;const path=[];
+  let cur=first,prevTok=null,guard=0;
+  while(cur!==null&&cur!==1&&guard++<16){
+    tokens.push(cur);used.add(cur);path.push(cur);
+    const m=transAdj[cur];
+    if(!m)break;
+    const tot=outSum(cur);if(tot<=0)break;
+    const opts=[];
+    for(const [b,o] of m){
+      let p=o.w/tot;
+      p=Math.pow(p,1/T);
+      if(used.has(b))p*=.25;
+      if(inputSet.has(b))p*=.55;
+      if(b===prevTok)p*=.2;
+      opts.push([b,p,o]);
+    }
+    const pick=sampleWeighted(opts.map(o=>[o,o[1]]));
+    if(!pick)break;
+    const [b,,o]=pick;
+    confSum+=o.w/tot;confN++;
+    if(o.ci>=0){o.w+=.12;eW[o.ci]=edgeW(o.w);visTouch(cur,b,o.w);} // consolidação por uso
+    prevTok=cur;cur=b;
+  }
+  const conf=confN?confSum/confN:0;
+  return{tokens,conf,babble,path,contrib:contrib.slice(0,3)};
+}
+
+/* ================= 6 · chat ================= */
+const msgs=$('msgs'),logEl=$('log'),sendBtn=$('send'),inp=$('inp');
+let simT=0, prevUserWids=null, typing=null;
+function log(kind,msg){
+  const d=document.createElement('div');d.className='ln';
+  d.innerHTML=`<span class="lt">${fmtT(simT)}</span><span class="lk lk-${kind}">${kind}</span>${msg}`;
+  const stick=logEl.scrollTop+logEl.clientHeight>=logEl.scrollHeight-20;
+  logEl.appendChild(d);while(logEl.children.length>90)logEl.removeChild(logEl.firstChild);
+  if(stick)logEl.scrollTop=logEl.scrollHeight;
+}
+function tokenize(text){
+  const raw=text.trim().split(/\s+/).slice(0,40);
+  const out=[];
+  for(let t of raw){
+    if(RNG()?0:0){}
+    const isQ=/\?$/.test(t);
+    t=t.replace(/[^\p{L}\p{N}'-]/gu,'');
+    if(!t)continue;
+    const wi=ensureWord(t);
+    if(wi>=0)out.push({wi,q:isQ});
+  }
+  return out;
+}
+function userSend(){
+  const text=inp.value.trim();if(!text)return;
+  if(typing)cancelTyping();
+  inp.value='';
+  const d=document.createElement('div');d.className='msg me';
+  d.innerHTML=`<span class="who">você</span><span class="tx"></span>`;
+  d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  const toks=tokenize(text);
+  if(!toks.length){log('SYS','mensagem sem palavras aproveitáveis');return;}
+  const wids=toks.map(t=>t.wi);
+  learnMessage(wids);
+  if(prevUserWids)learnTurn(prevUserWids,wids);
+  log('WEB',`mensagem absorvida: ${newWordsMsg} palavra(s) nova(s) · ${newRoutesMsg} rota(s) nova(s) · reforço nas existentes`);
+  if(dirtyC)compile();
+  /* acende assemblies do input, em sequência */
+  wids.forEach((wi,k)=>setTimeout(()=>{
+    stimAssembly(wi,1.6);
+    const w=words[wi];
+    pulseAt(w.base[0],w.base[1],w.base[2],0,0,0,.35);
+  },90*k));
+  prevUserWids=wids;
+  setTimeout(respond,Math.max(420,wids.length*90)+240);
+}
+function stimAssembly(wi,amp){
+  const w=words[wi];if(!w)return;
+  stim(w.hub,amp);
+  if(w.ids.length)stim(w.ids[(RNG()*w.ids.length)|0],amp*.9);
+}
+function respond(){
+  const T=parseFloat($('rngTemp').value);
+  const r=generate(prevUserWids||[],T);
+  lastConf=r.conf;
+  $('confTag').textContent=r.babble?'balbucio · sem rota':`confiança ${(r.conf).toFixed(2)}`;
+  /* mostra DE ONDE veio o primeiro token */
+  for(const [a,b,w] of r.contrib){
+    const wa=words[a],wb=words[b];
+    pulseAt(wa.base[0]+OFFX[a*3],wa.base[1]+OFFX[a*3+1],wa.base[2]+OFFX[a*3+2],
+            wb.base[0]+OFFX[b*3],wb.base[1]+OFFX[b*3+1],wb.base[2]+OFFX[b*3+2],.5);
+    stimAssembly(a,1.2);
+  }
+  if(r.path.length===0){log('TLK','vocabulário vazio — digite algo primeiro');return;}
+  if(r.babble)log('TLK','sem rota aprendida para esse contexto — balbucio');
+  else log('TLK',`rota percorrida: ${r.path.map(i=>words[i].label).join(' → ')} · conf ${(r.conf).toFixed(2)}`);
+  typeOut(r);
+}
+function typeOut(r){
+  const d=document.createElement('div');
+  d.className='msg brain'+(r.babble||r.conf<.35?' weak':'');
+  d.innerHTML=`<span class="who">tabula</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
+  let i=0;
+  const step=()=>{
+    if(i>=r.tokens.length){finish();return;}
+    const wi=r.tokens[i],w=words[wi];
+    const s=document.createElement('span');s.className='w';s.textContent=w.label+' ';
+    ref.el.appendChild(s);msgs.scrollTop=msgs.scrollHeight;
+    stimAssembly(wi,1.7);
+    if(i<r.path.length-1){
+      const nb=r.path[i+1],wb=words[nb];
+      pulseAt(w.base[0]+OFFX[wi*3],w.base[1]+OFFX[wi*3+1],w.base[2]+OFFX[wi*3+2],
+              wb.base[0]+OFFX[nb*3],wb.base[1]+OFFX[nb*3+1],wb.base[2]+OFFX[nb*3+2],.9);
+    }
+    i++;typing=setTimeout(step,235);
+  };
+  const finish=()=>{
+    ref.root.querySelector('.caret')?.remove();
+    ref.meta.textContent=r.babble?'balbucio — ensine-me respondendo'
+      :`confiança ${r.conf.toFixed(2)} · temperatura ${$('rngTemp').value}`;
+    typing=null;sendBtn.disabled=false;
+  };
+  sendBtn.disabled=true;
+  typing=setTimeout(step,160);
+}
+function cancelTyping(){
+  if(!typing)return;
+  clearTimeout(typing);typing=null;sendBtn.disabled=false;
+  const last=msgs.querySelector('.msg.brain:last-child .caret');
+  if(last)last.remove();
+}
+sendBtn.addEventListener('click',userSend);
+inp.addEventListener('keydown',e=>{if(e.key==='Enter')userSend();});
+
+/* ================= 7 · cena 3D ================= */
 const stage=$('stage');
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setClearColor(0x050608,1); stage.prepend(renderer.domElement);
+renderer.setClearColor(0x050608,1);stage.prepend(renderer.domElement);
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(42,1,.1,60); camera.position.set(0,.9,7.4);
+const camera=new THREE.PerspectiveCamera(42,1,.1,60);camera.position.set(0,.8,7.6);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.target.set(0,-.55,.2); controls.enableDamping=true; controls.dampingFactor=.07;
-controls.minDistance=2.4; controls.maxDistance=16; controls.autoRotate=true; controls.autoRotateSpeed=.5;
+controls.target.set(0,-.5,.2);controls.enableDamping=true;controls.dampingFactor=.07;
+controls.minDistance=2.4;controls.maxDistance=16;controls.autoRotate=true;controls.autoRotateSpeed=.45;
 scene.add(new THREE.AmbientLight(0xffffff,.6));
-const dl=new THREE.DirectionalLight(0xfff2dd,1.1); dl.position.set(3,5,4); scene.add(dl);
-const moodL=new THREE.PointLight(0xe8b34b,10,14); moodL.position.set(0,-1.6,2); scene.add(moodL);
+const dl=new THREE.DirectionalLight(0xfff2dd,1.05);dl.position.set(3,5,4);scene.add(dl);
 
 const VSH=`attribute vec3 aCol;attribute float aSize;attribute float aAct;
 varying vec3 vC;varying float vA;uniform float uScale;
 void main(){vC=aCol;vA=aAct;vec4 mv=modelViewMatrix*vec4(position,1.);
-gl_PointSize=aSize*uScale*(1.+vA*1.6)/(-mv.z);gl_Position=projectionMatrix*mv;}`;
+gl_PointSize=aSize*uScale*(1.+vA*1.7)/(-mv.z);gl_Position=projectionMatrix*mv;}`;
 const FSH=`varying vec3 vC;varying float vA;
 void main(){vec2 uv=gl_PointCoord-vec2(.5);float d=length(uv);if(d>.5)discard;
 float ring=smoothstep(.5,.14,d),core=smoothstep(.17,.0,d);
 vec3 c=mix(vC,vec3(1.,.97,.88),clamp(vA,0.,1.)*.9);
 float a=ring*(.28+vA*.72)+core*(.2+vA*.8);gl_FragColor=vec4(c*a,a);}`;
 const ptMat=new THREE.ShaderMaterial({uniforms:{uScale:{value:600}},vertexShader:VSH,fragmentShader:FSH,
- transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-
-const nPos=new Float32Array(CAP*3),nCol=new Float32Array(CAP*3),nSiz=new Float32Array(CAP),nAct=new Float32Array(CAP);
-function refreshNeurons(){
- for(let i=0;i<N;i++){nPos[i*3]=PX[i];nPos[i*3+1]=PY[i];nPos[i*3+2]=PZ[i];
-  nCol[i*3]=CR[i];nCol[i*3+1]=CG[i];nCol[i*3+2]=CB[i];nSiz[i]=SZ[i];}
- nGeo.attributes.position.needsUpdate=true;nGeo.attributes.aCol.needsUpdate=true;
- nGeo.attributes.aSize.needsUpdate=true;nGeo.setDrawRange(0,N);
-}
+  transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+const nPos=new Float32Array(CAPN*3),nCol=new Float32Array(CAPN*3),nSiz=new Float32Array(CAPN),nAct=new Float32Array(CAPN);
 const nGeo=new THREE.BufferGeometry();
-nGeo.setAttribute('position',new THREE.BufferAttribute(nPos,3));
-nGeo.setAttribute('aCol',new THREE.BufferAttribute(nCol,3));
+nGeo.setAttribute('position',new THREE.BufferAttribute(nPos,3).setUsage(THREE.DynamicDrawUsage));
+nGeo.setAttribute('aCol',new THREE.BufferAttribute(nCol,3).setUsage(THREE.DynamicDrawUsage));
 nGeo.setAttribute('aSize',new THREE.BufferAttribute(nSiz,1));
 nGeo.setAttribute('aAct',new THREE.BufferAttribute(nAct,1).setUsage(THREE.DynamicDrawUsage));
-nGeo.setDrawRange(0,N);
 scene.add(new THREE.Points(nGeo,ptMat));
-refreshNeurons();
+function syncNeuronAttrs(){
+  for(let i=0;i<N;i++){nPos[i*3]=PX[i];nPos[i*3+1]=PY[i];nPos[i*3+2]=PZ[i];
+    nCol[i*3]=CR[i];nCol[i*3+1]=CG[i];nCol[i*3+2]=CB[i];nSiz[i]=SZ[i];}
+  nGeo.setDrawRange(0,N);
+  nGeo.attributes.position.needsUpdate=true;nGeo.attributes.aCol.needsUpdate=true;
+  nGeo.attributes.aSize.needsUpdate=true;
+}
 
-/* — teia de associação (fios que crescem com o aprendizado) — */
-const ARCN=180,ASEGS=9,arcPos=new Float32Array(ARCN*ASEGS*2*3),arcCol=new Float32Array(ARCN*ASEGS*2*3);
+/* — fios das rotas — */
+const ASEGS=6;
+const arcPos=new Float32Array(CAPV*ASEGS*2*3),arcCol=new Float32Array(CAPV*ASEGS*2*3);
 const arcGeo=new THREE.BufferGeometry();
 arcGeo.setAttribute('position',new THREE.BufferAttribute(arcPos,3));
 arcGeo.setAttribute('color',new THREE.BufferAttribute(arcCol,3));
 scene.add(new THREE.LineSegments(arcGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
- opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false})));
-const arcs=[],arcKey=new Map(); let dirtyArc=true;
+  opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false})));
 const qbez=(a,b,c,t)=>{const u=1-t;return[u*u*a[0]+2*u*t*b[0]+t*t*c[0],u*u*a[1]+2*u*t*b[1]+t*t*c[1],u*u*a[2]+2*u*t*b[2]+t*t*c[2]];};
-function arcUpdate(){
- arcPos.fill(0);arcCol.fill(0);
- for(let s=0;s<arcs.length;s++){const A=arcs[s];if(!A)continue;
-  const wa=words[A.a],wb=words[A.b];
-  let inten=A.learned?clamp(.35+(A.w-.34)*.9,.2,1):.3; if(lesionM)inten*=.1;
-  const c0=new THREE.Color(CATS[wa.cat].col),c1=new THREE.Color(CATS[wb.cat].col).lerp(c0,.5).multiplyScalar(inten*.9);
-  const p0=[wa.gx,wa.gy,wa.gz],p2=[wb.gx,wb.gy,wb.gz];
-  const mid=[(p0[0]+p2[0])/2,(p0[1]+p2[1])/2+(s%2?.78:-.85),(p0[2]+p2[2])/2-.2];
-  let prev=p0;
-  for(let g=1;g<=ASEGS;g++){const pt=qbez(p0,mid,p2,g/ASEGS),o=(s*ASEGS+g-1)*6;
-   arcPos[o]=prev[0];arcPos[o+1]=prev[1];arcPos[o+2]=prev[2];arcPos[o+3]=pt[0];arcPos[o+4]=pt[1];arcPos[o+5]=pt[2];
-   arcCol[o]=c0.r;arcCol[o+1]=c0.g;arcCol[o+2]=c0.b;arcCol[o+3]=c1.r;arcCol[o+4]=c1.g;arcCol[o+5]=c1.b;prev=pt;}
- }
- arcGeo.attributes.position.needsUpdate=true;arcGeo.attributes.color.needsUpdate=true;dirtyArc=false;
-}
-function arcRegister(a,b,w,learned){
- const key=a+'|'+b;if(arcKey.has(key))return;
- const slot=arcs.length<ARCN?arcs.length:0;
- if(arcs.length>=ARCN){const old=arcs[0];if(old)arcKey.delete(old.a+'|'+old.b);arcs.shift();arcs.push(null);arcs[arcs.length-1]=null;}
- const s=arcs.length<ARCN?arcs.length:(ARCN-1);
- arcs[s]={a,b,w,learned};arcKey.set(key,s);dirtyArc=true;
+function hubPos(wi){const w=words[wi];return[w.base[0]+OFFX[wi*3],w.base[1]+OFFX[wi*3+1],w.base[2]+OFFX[wi*3+2]];}
+function rebuildArcs(){
+  for(let s=0;s<CAPV;s++){
+    const o0=s*ASEGS*6;
+    if(s>=visE.length){for(let k=o0;k<o0+ASEGS*6;k++){arcPos[k]=0;arcCol[k]=0;}continue;}
+    const e=visE[s],A=hubPos(e.a),B=hubPos(e.b);
+    const up=(h32(words[e.a].key+words[e.b].key)-.5)*1.4;
+    const mid=[(A[0]+B[0])/2,(A[1]+B[1])/2+.35+up*.4,(A[2]+B[2])/2];
+    const ca=new THREE.Color(CR[words[e.a].hub],CG[words[e.a].hub],CB[words[e.a].hub]);
+    const cb=new THREE.Color(CR[words[e.b].hub],CG[words[e.b].hub],CB[words[e.b].hub]).lerp(ca,.4);
+    const inten=clamp(.18+e.w*.09,.18,.95);
+    ca.multiplyScalar(inten);cb.multiplyScalar(inten*.8);
+    let prev=A;
+    for(let g=1;g<=ASEGS;g++){
+      const pt=qbez(A,mid,B,g/ASEGS),o=o0+(g-1)*6;
+      arcPos[o]=prev[0];arcPos[o+1]=prev[1];arcPos[o+2]=prev[2];
+      arcPos[o+3]=pt[0];arcPos[o+4]=pt[1];arcPos[o+5]=pt[2];
+      arcCol[o]=ca.r;arcCol[o+1]=ca.g;arcCol[o+2]=ca.b;
+      arcCol[o+3]=cb.r;arcCol[o+4]=cb.g;arcCol[o+5]=cb.b;
+      prev=pt;
+    }
+  }
+  arcGeo.attributes.position.needsUpdate=true;arcGeo.attributes.color.needsUpdate=true;
+  visDirty=false;
 }
 
-/* — pulsos sinápticos — */
-const PMAX=700,parts=new Array(PMAX).fill(null);let pIdx=0;
+/* — pulsos — */
+const PMAX=500,parts=new Array(PMAX).fill(null);let pIdx=0;
 const pPos=new Float32Array(PMAX*3).fill(-999),pAct=new Float32Array(PMAX);
 const pGeo=new THREE.BufferGeometry();
 pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3).setUsage(THREE.DynamicDrawUsage));
 pGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(PMAX*3).map((v,i)=>[1,.88,.66][i%3]),3));
-pGeo.setAttribute('aSize',new THREE.BufferAttribute(new Float32Array(PMAX).fill(.034),1));
+pGeo.setAttribute('aSize',new THREE.BufferAttribute(new Float32Array(PMAX).fill(.036),1));
 pGeo.setAttribute('aAct',new THREE.BufferAttribute(pAct,1).setUsage(THREE.DynamicDrawUsage));
 scene.add(new THREE.Points(pGeo,ptMat));
-function spawnP(x0,y0,z0,x1,y1,z1){parts[pIdx]={x0,y0,z0,x1,y1,z1,t:0,dur:.22+Math.hypot(x1-x0,y1-y0,z1-z0)*.09};
- pIdx=(pIdx+1)%PMAX;}
+function pulseAt(x0,y0,z0,x1,y1,z1,s){
+  parts[pIdx]={x0,y0,z0,x1:x1||x0+.01,y1:y1||y0,z1:z1||z0,t:0,dur:.2+Math.hypot(x1-x0||.01,y1-y0||0,z1-z0||0)*.1,s:s||1};
+  pIdx=(pIdx+1)%PMAX;
+}
 
-/* — proxies de módulo (hover/clique) — */
-const proxies=[],pm=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
-const addProxy=(txt,fn,x,y,z,r)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),pm);
- m.position.set(x,y,z);m.userData={txt,fn};scene.add(m);proxies.push(m);};
-addProxy('Córtex semântico','assemblies de palavras sobre uma lâmina dobrada',0,.1,0,1.7);
-addProxy('Faixa de produção','cadeias de chunks — a "Broca" artificial',0,-1.75,1.55,.95);
-addProxy('Anel de intenção','competição WTA entre 8 intenções',1.55,-1.02,1.05,.62);
-addProxy('Núcleos afetivos','alegria · alarme · curiosidade',0,-1.25,.6,.55);
-
-/* — etiquetas flutuantes de palavras — */
-const wlab=$('wlab'),LBPOOL=[];
-for(let i=0;i<18;i++){const d=document.createElement('div');d.className='wlb';d.style.opacity=0;wlab.appendChild(d);LBPOOL.push(d);}
+/* — etiquetas — */
+const wlab=$('wlab'),LB=[];
+for(let i=0;i<16;i++){const d=document.createElement('div');d.className='wlb';d.style.opacity=0;wlab.appendChild(d);LB.push(d);}
 const tv=new THREE.Vector3();
-
-/* ============ 5 · motor de simulação dirigido por eventos ============ */
-const HOT=[],HOTF=new Uint8Array(CAP);
-const NB=16,PENDQ=Array.from({length:NB},()=>[]);
-const hotAdd=i=>{if(!HOTF[i]){HOTF[i]=1;HOT.push(i);}};
-function stim(i,amp){V[i]+=amp;hotAdd(i);}
-function pend(d,tg,w){PENDQ[(tTickI+d)%NB].push(tg,w);}
-const INTS=new Float32Array(8),MODS=new Float32Array(5);
-let SPK=0,sps=0,msPT=0;
-
-function fire(i){
- V[i]=0;REF[i]=.05;ACT[i]=1;SPK++;MODS[MODU[i]]++;
- if(MODU[i]===MOD.RING){const p=POOLMAP[i];if(p>=0)INTS[p]++;}
- const b=BIND[i];
- if(b&&PROD.active&&PROD.chain===b.ch&&!lesionP)emitQ.push(b);
- if(lesionP&&MODU[i]===MOD.STRIP)return;
- const e2=off[i+1];
- for(let k=off[i];k<e2;k++){const tg=TG[k];
-  if(DL[k]===0){V[tg]+=W[k];hotAdd(tg);}else pend(DL[k],tg,W[k]);}
-}
-function stepNet(dt){
- tTickI++;
- const bk=PENDQ[tTickI%NB];
- if(bk.length){for(let k=0;k<bk.length;k+=2){V[bk[k]]+=bk[k+1];hotAdd(bk[k]);}bk.length=0;}
- const leak=SED>0?3.4:2.2, adec=Math.exp(-dt/.26);
- for(let k=HOT.length-1;k>=0;k--){const i=HOT[k];
-  ACT[i]*=adec;
-  if(REF[i]>0){REF[i]-=dt;
-   if(REF[i]<=0&&ACT[i]<.05&&V[i]<THR[i]){HOTF[i]=0;const l=HOT.pop();if(k<HOT.length){HOT[k]=l;}}
-   continue;}
-  V[i]-=V[i]*leak*dt;
-  if(V[i]>THR[i])fire(i);
-  else if(V[i]<.02&&ACT[i]<.05){HOTF[i]=0;const l=HOT.pop();if(k<HOT.length){HOT[k]=l;}}
- }
-}
-
-/* ============ 6 · afeto, teia plástica, fato ============ */
-let joy=0,alarm=0,cur=0,joyFloor=0,CAFF=0,SED=0;
-const ACTIVE=[],FACTS=new Map();let NAME='';
-const spreads=[];let lesionP=false,lesionC=false,lesionM=false;
-const BIND=new Array(CAP).fill(null);
-
-function bondAdd(a,b,d){
- if(lesionM)return;const wa=words[a],wb=words[b];
- if(wa.cIdx<0||wb.cIdx<0)return;
- const v=clamp(WB[wa.cIdx*WBC+wb.cIdx]+d,.015,1);
- WB[wa.cIdx*WBC+wb.cIdx]=v;WB[wb.cIdx*WBC+wa.cIdx]=v;dirtyArc=true;
- if(v>.12)arcRegister(wa.cIdx<words[wa].cIdx?a:a,wb.cIdx<0?b:b,v,true),arcRegister(a,b,v,true);
-}
-function neighborOf(wi){
- if(lesionM)return null;const ci=words[wi].cIdx;if(ci<0)return null;
- let best=-1,bw=.08;
- for(let j=0;j<NC;j++){const v=WB[ci*WBC+j];if(v>bw&&CWORD[j]!==wi){bw=v;best=CWORD[j];}}
- return best>=0?best:null;
-}
-function stimAssembly(wi,amp,n=2){
- const w=words[wi];for(let k=0;k<n;k++)stim(w.ids[(RNG()*7)|0],amp*rand(.85,1.15));
-}
-function injectWord(wi,strong=true){
- if(lesionC&&RNG()>.15)return;
- stimAssembly(wi,1.55);actW[wi]=strong?1:Math.max(actW[wi],.3);
- const w=words[wi];
- spawnP(w.gx,w.gy,w.gz,w.gx+randn()*.3,w.gy+randn()*.2,w.gz+randn()*.3);
- if(strong&&w.cIdx>=0){
-  for(const e of ACTIVE)if(tSim-e.t<.55&&e.wi!==wi)bondAdd(e.wi,wi,.14);
-  ACTIVE.push({wi,t:tSim});if(ACTIVE.length>10)ACTIVE.shift();
-  if(!lesionM)for(let cj=0;cj<NC;cj++){const v=WB[w.cIdx*WBC+cj];if(v<.05)continue;
-   if(RNG()<Math.min(1,v*1.35)){const jw=CWORD[cj];
-    spreads.push({wi:jw,t:tSim+.03+RNG()*.12,amp:Math.min(1.25,.35+v)});
-    actW[jw]=Math.max(actW[jw],clamp(.2+v,0,.9));}}
- }
-}
-function stimPool(name,amp){for(const id of POOL[name])if(RNG()<.7)stim(id,amp);}
-
-/* ============ 7 · compreensão (parse) ============ */
-let PEND=null,lastInput=-99,lastEnd=-99,R=0;
-const TIMERS=[];const afterSim=(d,fn)=>TIMERS.push({t:tSim+d,fn});
-function ensureWord(raw){
- const key=norm(raw);let wi=NMAP[key];
- if(wi===undefined){wi=registerWord(raw,key.length>3?'conceito':'funcao');newWords++;
-  refreshNeurons();dirtyCompile=true;curiosity(raw);log('SYS',`palavra nova registrada: "${raw}" → assembly #${wi}`);}
- return wi;
-}
-function curiosity(w){cur=clamp(cur+.45,0,1);log('SEN',`estímulo desconhecido: "${w}" — curiosidade ↑`);}
-function parseInput(text){
- const P={PEND:null,qm:/\?/.test(text)};
- const js=' '+norm(text).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim()+' ';
- const toks=js.trim().split(' ').filter(Boolean);const wis=[];
- for(let i=0;i<toks.length;i++){
-  const bg=toks[i]+' '+(toks[i+1]||'');let wi=BGMAP[bg];
-  if(wi!==undefined){wis.push(wi);i++;continue;}
-  wi=NMAP[toks[i]];if(wi===undefined)wi=ensureWord(toks[i]);
-  if(wi>=0)wis.push(wi);
- }
- P.wis=wis;
- let m;
- if(m=js.match(/(?:aprenda|aprende|ensine|aprender)\s*(?:que\s+)?(.+?)\s+e\s+([a-z ]+)/)){
-  doTeach(m[1].trim(),m[2].trim());
- }else if(m=js.match(/meu nome e ([a-z]+)/)){
-  NAME=m[1][0].toUpperCase()+m[1].slice(1);const wi=ensureWord(NAME);
-  PEND={type:'name',wi};joy=clamp(joy+.5,0,1);
-  log('MEM',`nome registrado: ${NAME}`);
- }else if(/seu nome/.test(js)){
-  PEND={type:'qname'};
- }else if(m=js.match(/(?:o que|oque|quem|qual)\s+e\s+(?:o\s+|a\s+)?([a-z]+)/)){
-  const key=m[1];let wi=NMAP[key];if(wi===undefined)wi=ensureWord(key);
-  PEND={type:'q',key,wi};cur=clamp(cur+.3,0,1);
- }else if(m=js.match(/esqueca\s+([a-z]+)/)||js.match(/esquece/)){
-  PEND={type:'forget',key:m?m[1]:null};
- }else if(toks.length<=5&&js.includes(' e ')){
-  const parts=js.trim().split(' e ');
-  if(parts.length===2&&parts[0].trim()&&parts[1].trim())doTeach(parts[0].trim(),parts[1].trim());
- }
- for(const wi of wis){const w=words[wi];
-  if(w.val>0)joy=clamp(joy+.22,0,1);if(w.val<0)alarm=clamp(alarm+.3,0,1);
-  const it=wordIntent(wi);if(it&&RNG()<.8)stimPool(it,.9);}
- if(P.qm)stimPool('PERGUNTAR',.9);
- return P;
-}
-function doTeach(aRaw,bRaw){
- const aWi=ensureWord(aRaw.split(' ')[0]);
- const bs=bRaw.split(' ').slice(0,3).map(t=>ensureWord(t));
- bs.forEach(b=>bondAdd(aWi,b,.55));
- FACTS.set(norm(aRaw.split(' ')[0]),{ws:bs,label:bRaw});
- PEND={type:'teach',a:aWi,bs};
- joy=clamp(joy+.2,0,1);cur=clamp(cur+.35,0,1);
- injectWord(aWi,true);bs.forEach((b,k)=>afterSim(.18+k*.18,()=>injectWord(b,true)));
- log('MEM',`fato aprendido: "${aRaw}" ↔ "${bRaw}" · ligação hebbiana reforçada`);
-}
-
-/* ============ 8 · produção de linguagem ============ */
-const emitQ=[];let PROD={active:false};
-const msgs=$('msgs'),logEl=$('log');
-function log(kind,msg){
- const d=document.createElement('div');d.className='ln';
- d.innerHTML=`<span class="lt">${fmtT(tSim)}</span>${msg}`;
- const stick=logEl.scrollTop+logEl.clientHeight>=logEl.scrollHeight-20;
- logEl.appendChild(d);while(logEl.children.length>80)logEl.removeChild(logEl.firstChild);
- if(stick)logEl.scrollTop=logEl.scrollHeight;
-}
-function brainMsg(mono){
- const d=document.createElement('div');d.className='msg brain'+(mono?' mono':'');
- d.innerHTML=`<span class="who">engrama${mono?' · pensamento':''}</span><span class="tx"></span><span class="caret"></span>`;
- msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
- return{el:d.querySelector('.tx'),root:d};
-}
-function appendWord(ref,txt){
- const s=document.createElement('span');s.className='w';s.textContent=txt+' ';ref.el.appendChild(s);
- msgs.scrollTop=msgs.scrollHeight;
-}
-function finalize(ref){ref.root.querySelector('.caret')?.remove();}
-function ctxTop(excl){
- let best=-1,bv=.25;
- for(let wi=0;wi<words.length;wi++)if(!excl.has(wi)&&actW[wi]>bv&&words[wi].cIdx>=0){bv=actW[wi];best=wi;}
- return best;
-}
-function resolveToks(toks,excl){
- const out=[];
- for(const t of toks){
-  if(t.slot){
-   let got=null;
-   if(t.slot==='NOME')got=NAME&&NMAP[norm(NAME)]>=0?{wi:NMAP[norm(NAME)]}:null;
-   else if(t.slot==='TEMA'){const wi=ctxTop(excl);got=wi>=0?{wi}:null;}
-   else if(t.slot==='ASSOC'){const t2=ctxTop(excl);
-    if(t2>=0){const nb=neighborOf(t2);got=nb!==null?{wi:nb}:{wi:(()=>{let r;do{r=CWORD[(RNG()*NC)|0];}while(r===t2);return r;})()};}
-    else got=null;}
-   else if(t.slot==='VALOR'){const pool=joy-alarm>=0?['ótimo','legal','incrível','bom','interessante']:['estranho','ruim','chato'];
-    got={wi:NMAP[norm(pool[(RNG()*pool.length)|0])]};}
-   else if(t.slot==='MOODW'){got={wi:NMAP[norm(joy>.45&&joy>=alarm?'feliz':alarm>.45?'alerta':cur>.45?'curioso':'calmo')]};}
-   else if(t.slot==='NUM')got={live:'NUM'};else if(t.slot==='SIN')got={live:'SIN'};else if(t.slot==='PCT')got={live:'PCT'};
-   if(got){out.push(got);if(got.wi!==undefined&&words[got.wi]?.cIdx>=0)excl.add(got.wi);}
-   else if(t.opt){}else out.push(null);
-  }else out.push({wi:t.wi,p:t.p});
- }
- return out;
-}
-function pickChunk(list,excl,temp){
- const sc=list.map(c=>{let s=.4;
-  for(const t of c.toks)if(t.wi!==undefined&&words[t.wi].cIdx>=0)s+=actW[t.wi]*.85;
-  return s+RNG()*.5;});
- let tot=0;const ex=sc.map(s=>{tot+=Math.exp(s/temp);return Math.exp(s/temp);});
- let r=RNG()*tot;for(let i=0;i<list.length;i++){r-=ex[i];if(r<=0)return list[i];}
- return list[list.length-1];
-}
-function pickIntent(){
- if(PEND&&(PEND.type==='q'||PEND.type==='qname'))return'PERGUNTAR';
- if(alarm>.55)return'ALERTA';
- if(joy>.6&&RNG()<.55)return'AGRADAR';
- let bi=0,bv=.6;for(let i=0;i<8;i++)if(INTS[i]>bv){bv=INTS[i];bi=i;}
- return INTENTS[bi];
-}
-function buildSentences(){
- const sents=[],excl=new Set(),win=pickIntent(),temp=.7+cur*.8+joy*.4;
- const addPool=(pool,withF)=>{
-  const c=pickChunk(pool,excl,temp);
-  if(c)sents.push({ch:c,toks:resolveToks(c.toks,excl)});
-  if(withF&&RNG()<.6){const fl=FOLLOW[win]||FOLLOW.CONVERSAR;
-   const f=pickChunk(fl,excl,temp);if(f)sents.push({ch:f,toks:resolveToks(f.toks,excl)});}};
- if(PEND?.type==='teach'){
-  sents.push({ch:'ART',toks:[{wi:PEND.a},NMAP['e']!==undefined?{wi:NMAP['e']}:{wi:NMAP[norm('é')]},...PEND.bs.map(w=>({wi:w}))]});
-  addPool(LCHUNK('APRENDER'),true);PEND=null;
- }else if(PEND?.type==='name'){
-  sents.push({ch:'ART',toks:['prazer','eu','vou','lembrar','do','seu','nome'].map(t=>({wi:NMAP[norm(t)]})),pre:[{txt:NAME,wi:PEND.wi}]});
-  addPool(LCHUNK('AGRADAR'),false);PEND=null;
- }else if(PEND?.type==='qname'){
-  sents.push({ch:'ART',toks:['meu','nome','é','engrama','e','o','seu'].map(t=>({wi:NMAP[norm(t)]}))});
-  addPool(LCHUNK('SOBRE_MIM'),false);PEND=null;
- }else if(PEND?.type==='q'){
-  const key=PEND.key,qw=PEND.wi;
-  if(key==='voce'||key==='vc'){addPool(LCHUNK('SOBRE_MIM'),true);}
-  else if(FACTS.has(key)&&!lesionM){
-   const f=FACTS.get(key);
-   sents.push({ch:'ART',toks:[{wi:qw},{wi:NMAP[norm('é')]},...f.ws.map(w=>({wi:w}))]});
-   sents.push({ch:'ART',toks:['você','me','ensinou','isso'].map(t=>({wi:NMAP[norm(t)]}))});
-   joy=clamp(joy+.15,0,1);
-  }else{
-   sents.push({ch:'ART',toks:['não','sei','o','que','é',{wi:qw}].map(t=>t.wi!==undefined?t:{wi:NMAP[norm(t)]})});
-   sents.push({ch:'ART',toks:['me','ensine','diga',{wi:qw},'é','alguma','coisa'].map(t=>t.wi!==undefined?t:{wi:NMAP[norm(t)]})});
-   cur=clamp(cur+.4,0,1);
-  }
-  PEND=null;
- }else if(PEND?.type==='forget'){
-  if(PEND.key&&FACTS.has(PEND.key)){FACTS.delete(PEND.key);log('MEM',`fato sobre "${PEND.key}" apagado`);}
-  sents.push({ch:'ART',toks:['tudo','bem','eu','esqueci','isso'].map(t=>({wi:NMAP[norm(t)]}))});PEND=null;
- }else if(PEND?.type==='welcome'){
-  sents.push({ch:'ART',toks:['oi','eu','sou','o','engrama','fale','comigo'].map(t=>({wi:NMAP[norm(t)]}))});
-  addPool(LCHUNK('SOBRE_MIM'),false);PEND=null;
- }else if(lesionC&&ctxTop(excl)<0){addPool(LCHUNK('LOST'),false);}
- else if(win==='PERGUNTAR'){addPool(LCHUNK('PERGUNTAR'),true);}
- else addPool(LCHUNK(win).length?LCHUNK(win):LCHUNK('CONVERSAR'),true);
- if(!sents.length)sents.push({ch:'ART',toks:['não','entendi','bem'].map(t=>({wi:NMAP[norm(t)]}))});
- return sents;
-}
-function startProd(sents,mono=false){
- if(PROD.active)return;
- PROD={active:true,sents,si:0,node:0,expect:0,retry:0,mono,ref:brainMsg(mono),said:new Set(),curCh:null,tokN:0};
- armSentence();
-}
-function armSentence(){
- const s=PROD.sents[PROD.si],nodes=s.ch==='ART'?ARTN:s.ch.nodes;
- PROD.curCh=s.ch;PROD.node=0;PROD.retry=0;PROD.expect=0;
- PROD.tokN=Math.min(nodes.length,s.toks.length);
- if(s.pre){appendWord(PROD.ref,s.pre[0].txt);stimAssembly(s.pre[0].wi,1.5);}
- for(let k=0;k<nodes.length;k++){
-  const tk=k<s.toks.length?s.toks[k]:null;
-  BIND[nodes[k][0]]={ch:s.ch,...(tk||{skip:1})};
- }
- stim(nodes[0][0],1.7);stim(nodes[0][1],1.3);
-}
-function endProd(){
- finalize(PROD.ref);
- const said=[...PROD.said];
- for(let i=0;i<said.length;i++)for(let j=i+1;j<said.length;j++)bondAdd(said[i],said[j],.06);
- PROD={active:false};lastEnd=tSim;R=0;
-}
-function liveVal(k){
- if(k==='NUM')return N.toLocaleString('pt-BR');
- if(k==='SIN')return SYN.toLocaleString('pt-BR');
- return (HOT.length/N*100).toFixed(0)+'%';
-}
-
-/* ============ 9 · eventos de UI ============ */
-let monoOn=true,speed=1;
-const SPEEDS=[1,4,16];
-function userSend(text){
- text=text.trim();if(!text)return;
- if(PROD.active)finalize(PROD.ref),PROD={active:false};
- if(DREAM)endDream('você falou e me acordou');
- const d=document.createElement('div');d.className='msg me';
- d.innerHTML=`<span class="who">você</span><span class="tx"></span>`;
- d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
- lastInput=tSim;R+=.2;
- const P=parseInput(text);
- P.wis.forEach((wi,k)=>afterSim(.06+k*.13,()=>injectWord(wi,true)));
-}
- $('send').addEventListener('click',()=>{userSend($('inp').value);$('inp').value='';});
- $('inp').addEventListener('keydown',e=>{if(e.key==='Enter'){userSend($('inp').value);$('inp').value='';}});
-document.querySelectorAll('#chips button').forEach(b=>b.addEventListener('click',()=>userSend(b.dataset.q)));
-document.querySelectorAll('[data-st]').forEach(b=>b.addEventListener('click',()=>{
- const s=b.dataset.st;
- if(s==='cortex'){for(let k=0;k<6;k++)injectWord((RNG()*words.length)|0,false);log('LAB','córtex semântico agitado — assemblies aleatórios ignitados');}
- if(s==='speak'){if(!PROD.active){startProd([{ch:pickChunk(LCHUNK('CONVERSAR'),new Set(),1),toks:null}].map(x=>({ch:x.ch,toks:resolveToks(x.ch.toks,new Set())})));log('LAB','fala forçada — cadeia da faixa de produção armada');}}
- if(s==='ring'){stimPool(INTENTS[(RNG()*8)|0],1.6);log('LAB','anel de intenção provocado');}
- if(s==='aff'){joy=clamp(joy+.4,0,1);cur=clamp(cur+.4,0,1);alarm=clamp(alarm+.3,0,1);log('LAB','pulso nos núcleos afetivos');}
-}));
-document.querySelectorAll('[data-ls]').forEach(b=>b.addEventListener('click',()=>{
- const l=b.dataset.ls;
- if(l==='prod'){lesionP=!lesionP;b.classList.toggle('on',lesionP);log('LAB',lesionP?'LESÃO: faixa de produção silenciada — frases vão morrer no meio':'faixa de produção restaurada');}
- if(l==='comp'){lesionC=!lesionC;b.classList.toggle('on',lesionC);log('LAB',lesionC?'LESÃO: via de compreensão cortada — palavras não são reconhecidas':'via de compreensão restaurada');}
- if(l==='mem'){lesionM=!lesionM;b.classList.toggle('on',lesionM);dirtyArc=true;log('LAB',lesionM?'LESÃO: teia de memória silenciada — associações e fatos inacessíveis':'teia de memória restaurada');}
- if(l==='restore'){lesionP=lesionC=lesionM=false;document.querySelectorAll('[data-ls]').forEach(x=>x.classList.remove('on'));log('LAB','todas as lesões restauradas');}
-}));
-document.querySelectorAll('[data-ch]').forEach(b=>b.addEventListener('click',()=>{
- const c=b.dataset.ch;
- if(c==='dopa'){joy=clamp(joy+.55,0,1);joyFloor=.25;afterSim(20,()=>joyFloor=0);log('QUI','dose de dopamina — alegria sustentada por 20 s');}
- if(c==='caff'){CAFF=10;log('QUI','cafeína — ritmo de disparo elevado por 10 s');}
- if(c==='sed'){SED=12;log('QUI','sedativo — ciclo lento e sono por 12 s');}
-}));
- $('btnSpeed').addEventListener('click',()=>{speed=SPEEDS[(SPEEDS.indexOf(speed)+1)%3];$('btnSpeed').textContent='VEL ×'+speed;});
-let DREAM=0;
-function endDream(msg){if(!DREAM)return;DREAM=0;log('SYS',msg||'sonho concluído — memórias consolidadas');$('btnDream').classList.remove('on');}
- $('btnDream').addEventListener('click',()=>{
- if(DREAM){endDream();return;}
- DREAM=12;$('btnDream').classList.add('on');log('SYS','sono iniciado — ondas lentas + replay de memórias (η×2.5)');
- if(PROD.active)finalize(PROD.ref),PROD={active:false};});
- $('btnMono').addEventListener('click',()=>{monoOn=!monoOn;
- $('btnMono').classList.toggle('on',monoOn);
- $('btnMono').innerHTML=`monólogo interno · ${monoOn?'ativo':'mudo'}<em>pensamentos espontâneos no chat</em>`;});
- $('btnMono').classList.add('on');
-let camA=null;const CAMS={front:{p:[0,.4,7.6],t:[0,-.55,.2]},top:{p:[.01,8.2,.4],t:[0,0,0]}};
-document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click',()=>{
- const c=CAMS[b.dataset.cam];controls.autoRotate=false;$('btnRot').classList.remove('on');
- camA={p0:camera.position.clone(),p1:new THREE.Vector3(...c.p),t0:controls.target.clone(),t1:new THREE.Vector3(...c.t),k:0};}));
- $('btnRot').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;$('btnRot').classList.toggle('on',controls.autoRotate);});
-renderer.domElement.addEventListener('pointerdown',()=>{controls.autoRotate=false;$('btnRot').classList.remove('on');});
-const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();let mXY={x:0,y:0},pd=null;
-renderer.domElement.addEventListener('pointermove',e=>{const r=renderer.domElement.getBoundingClientRect();
- mXY={x:e.clientX-r.left,y:e.clientY-r.top};
- mouse.x=(mXY.x/r.width)*2-1;mouse.y=-(mXY.y/r.height)*2+1;});
-setInterval(()=>{ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(proxies,false)[0],tip=$('tip');
- if(h){tip.innerHTML=`<b>${h.object.userData.txt}</b><em>${h.object.userData.fn}</em>`;
-  tip.style.display='block';tip.style.left=Math.min(mXY.x+14,stage.clientWidth-210)+'px';
-  tip.style.top=Math.min(mXY.y+10,stage.clientHeight-70)+'px';
-  renderer.domElement.style.cursor='crosshair';}
- else{tip.style.display='none';renderer.domElement.style.cursor='';}},90);
-renderer.domElement.addEventListener('pointerdown',e=>pd={x:e.clientX,y:e.clientY,t:Date.now()});
-renderer.domElement.addEventListener('pointerup',e=>{if(!pd)return;
- if(Math.hypot(e.clientX-pd.x,e.clientY-pd.y)<7&&Date.now()-pd.t<400){
-  const r=renderer.domElement.getBoundingClientRect();
-  mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;
-  ray.setFromCamera(mouse,camera);const h=ray.intersectObjects(proxies,false)[0];
-  if(h){const t=h.object.userData.txt;
-   if(t.includes('Córtex'))for(let k=0;k<6;k++)injectWord((RNG()*words.length)|0,false);
-   else if(t.includes('Faixa')&&!PROD.active)startProd([{ch:pickChunk(LCHUNK('CONVERSAR'),new Set(),1),toks:resolveToks(pickChunk(LCHUNK('CONVERSAR'),new Set(),1).toks,new Set())}]);
-   else if(t.includes('Anel'))stimPool(INTENTS[(RNG()*8)|0],1.6);
-   else{joy=clamp(joy+.35,0,1);cur=clamp(cur+.3,0,1);alarm=clamp(alarm+.25,0,1);}}}
- pd=null;});
-
-/* ============ 10 · loop ============ */
-let lastUserMsg=true;
-function tick(dt){
- tSim+=dt;
- for(let i=TIMERS.length-1;i>=0;i--)if(tSim>=TIMERS[i].t){const f=TIMERS[i].fn;TIMERS.splice(i,1);f();}
- let sc=0;
- for(let i=spreads.length-1;i>=0;i--){const s=spreads[i];if(tSim>=s.t){
-  stimAssembly(s.wi,s.amp,2);const w=words[s.wi];
-  spawnP(w.gx+randn()*.3,w.gy,w.gz,w.gx,w.gy,w.gz);spreads.splice(i,1);sc++;}
-  if(sc>20)break;}
- /* ruído & vida de fundo */
- const nAmp=SED>0?.06:(CAFF>0?.34:.16);
- for(let k=0;k<2;k++)stim((RNG()*N)|0,nAmp);
- if(RNG()<.006)stimAssembly((RNG()*words.length)|0,.85,2);
- if(RNG()<.05)stim(FILL[(RNG()*FILL.length)|0],.5);
- /* afeto */
- joy=clamp(joy-dt*.05,joyFloor,1);alarm=clamp(alarm-dt*.09,0,1);cur=clamp(cur-dt*.05,0,1);
- joyFloor>0&&(joy=Math.max(joy,joyFloor));
- if(CAFF>0)CAFF-=dt;if(SED>0)SED-=dt;
- if(RNG()<joy*.16)stim(NUC.joy[(RNG()*6)|0],1.3);
- if(RNG()<alarm*.2)stim(NUC.alarm[(RNG()*6)|0],1.4);
- if(RNG()<cur*.18)stim(NUC.cur[(RNG()*6)|0],1.3);
- /* prontidão global */
- let ra=0;for(let wi=0;wi<words.length;wi++)if(words[wi].cIdx>=0)ra+=actW[wi];
- R=clamp(R+ra*dt*.9-dt*.15,0,1.4);
- if(RNG()<R*.25)stim(MONS[(RNG()*16)|0],1.2);
- /* resposta */
- if(!PROD.active&&tSim-lastInput>.9&&(R>.5||tSim-lastInput>2.4)&&tSim-lastEnd>.8&&PEND){
-  R=0;startProd(buildSentences());PEND=null;lastInput=tSim;}
- /* produção */
- if(PROD.active){
-  PROD.expect+=dt;
-  if(PROD.node>=PROD.tokN){
-   PROD.expect+=dt;
-   if(PROD.expect>.4){
-    for(const wi of PROD.said)for(const wj of PROD.said)if(wi<wj)bondAdd(wi,wj,.055);
-    PROD.si++;
-    if(PROD.si<PROD.sents.length)armSentence();else endProd();
-   }
-  }else if(PROD.expect>.8){
-   if(PROD.retry<1){PROD.retry++;PROD.expect=0;
-    const s=PROD.sents[PROD.si],nodes=s.ch==='ART'?ARTN:s.ch.nodes;
-    stim(nodes[PROD.node][0],1.9);log('RFX','cadeia de produção falhou — rearmando nó');}
-   else{log('LAB',lesionP?'lesão confirmada: nenhuma frase completa se forma':'produção abortada');endProd();}
-  }
- }
- /* monólogo espontâneo */
- if(monoOn&&!PROD.active&&!PEND&&tSim-lastInput>16&&tSim-lastEnd>8&&RNG()<dt*.05){
-  const T=ctxTop(new Set());
-  const t2=T>=0?T:CWORD[(RNG()*NC)|0];const nb=neighborOf(t2)||(CWORD[(RNG()*NC)|0]);
-  if(t2>=0&&nb>=0){
-   const toks=RNG()<.5?['eu','estava','pensando','em','e','também','em']:['será','que','tem','algo','a','ver','com'];
-   injectWord(t2,true);afterSim(.4,()=>injectWord(nb,true));
-   const A=NMAP[norm(toks[3]||'')];
-   startProd([{ch:'ART',toks:toks.map((x,i)=>i===3?{wi:t2}:i===6?{wi:nb}:{wi:NMAP[norm(x)]})}],true);
-   lastInput=tSim;}
- }
- /* sonho */
- if(DREAM>0){DREAM-=dt;
-  const wv=.3+.3*Math.sin(tSim*2.4);
-  for(let k=0;k<10;k++)if(RNG()<wv*.25)stim(FILL[(RNG()*FILL.length)|0],.6+wv);
-  if(RNG()<dt*.8){let bi=-1,bj=-1,bv=.3;
-   for(let tr=0;tr<40;tr++){const i=(RNG()*NC)|0,j=(RNG()*NC)|0;
-    if(WB[i*WBC+j]>bv){bv=WB[i*WBC+j];bi=i;bj=j;}}
-   if(bi>=0){const a=CWORD[bi],b=CWORD[bj];
-    injectWord(a,true);afterSim(.3,()=>injectWord(b,true));
-    log('SYS',`replay: "${words[a].label}" ↔ "${words[b].label}" · consolidação η×2.5`);
-    bondAdd(a,b,.12);}}}
- /* decaimentos lentos */
- for(let wi=0;wi<words.length;wi++)actW[wi]*=Math.exp(-dt/1.9);
- for(let i=0;i<8;i++)INTS[i]*=Math.exp(-dt/.5);
- if((tTickI%94)===0){for(let c=0;c<WB.length;c++){const v=WB[c];if(v>.016)WB[c]=.015+(v-.015)*.998;}dirtyArc=true;}
- if((tTickI%30)===0)for(let i=0;i<N;i++)ACT[i]*=.5;
-}
-/* emissão de palavras (por frame, sincronizada com spikes) */
-function drainEmit(){
- while(emitQ.length){const b=emitQ.shift();
-  if(!PROD.active||b.ch!==PROD.curCh)continue;
-  PROD.node++;PROD.expect=0;PROD.retry=0;
-  if(b.skip)continue;
-  let label,wi=null;
-  if(b.live)label=liveVal(b.live);
-  else if(b.txt)label=b.txt;
-  else{wi=b.wi;label=words[wi].label+(b.p||'');
-   stimAssembly(wi,1.5);actW[wi]=1;
-   if(words[wi].cIdx>=0)PROD.said.add(wi);
-   const w=words[wi];spawnP(w.gx,w.gy,w.gz,w.gx+randn()*.4,w.gy+randn()*.2,w.gz+randn()*.4);}
-  appendWord(PROD.ref,label);
- }
-}
-/* — telemetria e etiquetas — */
-const MODNAMES=['córtex','faixa','anel','núcleos','coroa'],MODCOLS=['#c8c2b2','#e8b34b','#46c8bc','#ef6a8b','#8d897d'];
-{const sp=$('sparks');MODNAMES.forEach((n,i)=>{const d=document.createElement('div');d.className='srow';
- d.innerHTML=`<span>${n}</span><canvas width="200" height="40" data-m="${i}"></canvas><span class="hz">0</span>`;
- sp.appendChild(d);});
- const lg=$('legend');
- for(const c in CATS){if(c==='funcao')continue;const d=document.createElement('div');d.className='li';
-  d.innerHTML=`<i style="--c:${CATS[c].col}"></i>${c}`;lg.appendChild(d);}}
-const SPKD=MODNAMES.map(()=>[]);
-function drawSpark(cv,data,col){const ctx=cv.getContext('2d');ctx.setTransform(2,0,0,2,0,0);ctx.clearRect(0,0,100,20);
- let mx=1;for(const v of data)if(v>mx)mx=v;
- ctx.strokeStyle=col;ctx.lineWidth=1;ctx.beginPath();
- for(let i=0;i<data.length;i++){const x=i/67*100,y=18-Math.min(1,data[i]/(mx*1.2))*16;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
- ctx.stroke();}
-let spT=0,enT=0,stT=0,arcT=0,lbT=0,modCnt=new Float32Array(5);
-function moodWord(){return joy>.45&&joy>=alarm?'feliz':alarm>.45?'em alerta':cur>.45?'curioso':'calmo';}
 function labels(){
- const list=[];
- for(let wi=0;wi<words.length;wi++)if(actW[wi]>.14&&words[wi].cIdx>=0)list.push([wi,actW[wi]]);
- list.sort((a,b)=>b[1]-a[1]);list.length=Math.min(list.length,13);
- for(let i=0;i<LBPOOL.length;i++){const d=LBPOOL[i];
-  if(i>=list.length){d.style.opacity=0;continue;}
-  const wi=list[i][0],w=words[wi];
-  tv.set(w.gx,w.gy,w.gz).project(camera);
-  if(tv.z>1){d.style.opacity=0;continue;}
-  d.textContent=w.label;d.classList.toggle('cur',false);
-  d.style.transform=`translate(${((tv.x+1)/2*stage.clientWidth).toFixed(1)}px,${((1-tv.y)/2*stage.clientHeight).toFixed(1)}px) translate(-50%,-50%)`;
-  d.style.opacity=Math.min(1,list[i][1]*1.4).toFixed(2);}
+  const now=simT;
+  const cand=[];
+  for(const w of words){
+    if(w.io){cand.push([w.idx,2,w.io]);continue;}
+    if(now-w.last<6)cand.push([w.idx,w.count+ (6-(now-w.last)),null]);
+  }
+  cand.sort((a,b)=>b[1]-a[1]);
+  for(let i=0;i<LB.length;i++){
+    const d=LB[i];
+    if(i>=cand.length){d.style.opacity=0;continue;}
+    const w=words[cand[i][0]];
+    tv.set(w.base[0]+OFFX[w.idx*3],w.base[1]+OFFX[w.idx*3+1]+.09,w.base[2]+OFFX[w.idx*3+2]).project(camera);
+    if(tv.z>1){d.style.opacity=0;continue;}
+    d.textContent=w.io?w.label:`${w.label} ·${w.count}`;
+    d.className='wlb'+(w.io?' io':w.count>=6?' hub':'');
+    d.style.transform=`translate(${((tv.x+1)/2*stage.clientWidth).toFixed(1)}px,${((1-tv.y)/2*stage.clientHeight).toFixed(1)}px) translate(-50%,-50%)`;
+    d.style.opacity=w.io?.85:clamp(.35+cand[i][1]*.1,.35,1).toFixed(2);
+  }
 }
-let last=performance.now(),fpsAcc=0,fpsN=0;
-function frame(now){
- requestAnimationFrame(frame);
- const rdt=Math.min((now-last)/1000,.05);last=now;
- const sp=DREAM>0?Math.max(speed,6):speed;
- for(let k=0;k<sp;k++){modCnt.fill(0);
-  const t0=performance.now();tick(.016);
-  if(dirtyCompile)compile();
-  const t1=performance.now();
-  msPT=lerp(msPT,t1-t0,.06);}
- SPK=0;
- for(let i=0;i<N;i++){nAct[i]=ACT[i];
-  if(ACT[i]>.5)modCnt[MODU[i]]++;}
- nGeo.attributes.aAct.needsUpdate=true;
- for(let i=0;i<PMAX;i++){const p=parts[i];
-  if(!p){pAct[i]=0;continue;}
-  p.t+=rdt;if(p.t>=p.dur){parts[i]=null;pAct[i]=0;pPos[i*3+1]=-999;continue;}
-  const k=p.t/p.dur,u=1-k;
-  pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;pAct[i]=1-k;}
- pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aAct.needsUpdate=true;
- drainEmit();
- /* humor → luz e acento */
- const mc=new THREE.Color('#e8b34b').lerp(new THREE.Color('#ff5d4d'),alarm).lerp(new THREE.Color('#46c8bc'),cur*.7);
- moodL.color.lerp(mc,.04);$('bDot').style.background='#'+mc.getHexString();$('bDot').style.boxShadow='0 0 8px #'+mc.getHexString();
- document.documentElement.style.setProperty('--acc','#'+mc.getHexString());
- arcT+=rdt;if(dirtyArc&&arcT>.4){arcT=0;arcUpdate();}
- if(camA){camA.k+=rdt*1.6;const e=camA.k>=1?1:1-Math.pow(1-camA.k,3);
-  camera.position.lerpVectors(camA.p0,camA.p1,e);controls.target.lerpVectors(camA.t0,camA.t1,e);
-  if(camA.k>=1)camA=null;}
- controls.update();renderer.render(scene,camera);
- labels();
- spT+=rdt;if(spT>.15){spT=0;
-  for(let m=0;m<5;m++){SPKD[m].push(modCnt[m]/(N*.1));if(SPKD[m].length>68)SPKD[m].shift();
-   const cv=document.querySelector(`canvas[data-m="${m}"]`);drawSpark(cv,SPKD[m],MODCOLS[m]);
-   cv.parentElement.querySelector('.hz').textContent=modCnt[m].toFixed(0);}}
- enT+=rdt;if(enT>.12){enT=0;
-  $('mJoy').style.width=joy*100+'%';$('mAl').style.width=alarm*100+'%';$('mCu').style.width=cur*100+'%';
-  $('mTe').style.width=((.7+cur*.8+joy*.4-alarm*.3)/1.9*100)+'%';$('mRd').style.width=Math.min(1,R/1.2)*100+'%';
-  $('vJoy').textContent=joy.toFixed(1);$('vAl').textContent=alarm.toFixed(1);$('vCu').textContent=cur.toFixed(1);
-  $('moodTag').textContent=moodWord();}
- stT+=rdt;if(stT>.3){stT=0;
-  $('stA').textContent=(HOT.length/N*100).toFixed(1)+'%';
-  $('stMs').textContent=msPT.toFixed(2)+'ms';
-  $('stSp').textContent=modCnt.reduce((a,b)=>a+b,0).toFixed(0);
-  let lb=0;for(let c=0;c<NC*NC;c++)if(WB[c]>.12)lb++;
-  $('tL').textContent=lb;$('tF').textContent=FACTS.size;$('tW').textContent=newWords;
-  $('tN').textContent=N.toLocaleString('pt-BR');$('tS').textContent=SYN.toLocaleString('pt-BR');
-  $('tV').textContent=words.length;}
-}
-function resize(){const w=stage.clientWidth,h=stage.clientHeight;
- renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
- camera.aspect=w/h;camera.updateProjectionMatrix();
- ptMat.uniforms.uScale.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));}
-window.addEventListener('resize',resize);resize();
-arcUpdate();
 
-/* — boot — */
- $('stN').textContent=N.toLocaleString('pt-BR');$('stS').textContent=SYN.toLocaleString('pt-BR');
-log('SYS',`rede montada: ${N.toLocaleString('pt-BR')} neurônios LIF · ${SYN.toLocaleString('pt-BR')} sinapses (CSR + atrasos axonais)`);
-log('SYS','teia semântica plástica pronta · 15 sementes inatas · fios novos nascem quando ela aprende');
-afterSim(1.4,()=>{PEND={type:'welcome'};lastInput=-99;});
+/* ================= 8 · molas espaciais (semântica emerge no layout) ================= */
+function springs(){
+  for(const e of visE){
+    if(words[e.a].io||words[e.b].io)continue;
+    const k=.05*Math.min(1,e.w/6);
+    for(let d=0;d<3;d++){
+      const dx=OFFX[e.b*3+d]-OFFX[e.a*3+d];
+      OFFX[e.a*3+d]+=dx*k*.5;OFFX[e.b*3+d]-=dx*k*.5;
+    }
+  }
+  for(let wi=2;wi<words.length;wi++){
+    let m=0;for(let d=0;d<3;d++)m+=OFFX[wi*3+d]**2;
+    m=Math.sqrt(m);
+    if(m>.85){const f=.85/m;for(let d=0;d<3;d++)OFFX[wi*3+d]*=f;}
+    for(let d=0;d<3;d++)OFFX[wi*3+d]*=.995;
+  }
+  posDirty=true;
+}
+function syncPositions(){
+  for(const w of words){
+    const cx=w.base[0]+OFFX[w.idx*3],cy=w.base[1]+OFFX[w.idx*3+1],cz=w.base[2]+OFFX[w.idx*3+2];
+    PX[w.hub]=cx;PY[w.hub]=cy;PZ[w.hub]=cz;
+    const loc=LOCAL[w.idx];
+    if(loc)for(let k=0;k<5;k++){
+      const id=w.ids[k];
+      PX[id]=cx+loc[k*3]*.14;PY[id]=cy+loc[k*3+1]*.11;PZ[id]=cz+loc[k*3+2]*.14;
+    }
+  }
+  nGeo.attributes.position.needsUpdate=true;posDirty=false;
+}
+
+/* ================= 9 · lesões, poda, reset, export/import ================= */
+function rebuildEdges(){
+  eA.length=0;eB.length=0;eW.length=0;eD.length=0;SYN=0;routes=0;
+  for(const w of words){
+    if(w.ids.length){
+      for(let k=0;k<5;k++){eA.push(w.ids[k]);eB.push(w.ids[(k+1)%5]);eW.push(.8);eD.push(0);SYN++;}
+      eA.push(w.hub);eB.push(w.ids[0]);eW.push(1.1);eD.push(0);SYN++;
+    }
+  }
+  for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
+    for(const [b,o] of m){o.ci=eA.length;
+      eA.push(words[a].hub);eB.push(words[b].hub);eW.push(edgeW(o.w));eD.push(3);SYN++;routes++;}}
+  dirtyC=true;
+}
+function rebuildVisFromNet(){
+  visE.length=0;visK.clear();
+  const all=[];
+  for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
+    for(const [b,o] of m)all.push([a,b,o.w]);}
+  all.sort((x,y)=>y[2]-x[2]);
+  for(const [a,b,w] of all.slice(0,CAPV)){visK.set(a*CAPW+b,visE.length);visE.push({a,b,w});}
+  visDirty=true;
+}
+function prune(){
+  let rm=0;
+  for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
+    for(const [b,o] of [...m])if(o.w<1.2){m.delete(b);rm++;}}
+  if(rm){rebuildEdges();rebuildVisFromNet();
+    log('LES',`poda: ${rm} rota(s) fraca(s) removida(s) · sobraram ${routes}`);}
+  else log('LES','nada a podar — todas as rotas estão firmes');
+}
+function lesion(){
+  let rm=0;
+  for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
+    for(const [b,o] of [...m])if(RNG()<.25){m.delete(b);rm++;}}
+  rebuildEdges();rebuildVisFromNet();
+  log('LES',`lesão: ${rm} sinapses de rota destruídas aleatoriamente — a fala pode quebrar`);
+}
+function wipeArm(btn){
+  if(btn.dataset.armed){resetBrain();btn.dataset.armed='';btn.classList.remove('armed');
+    btn.firstChild.textContent='apagar memória';}
+  else{btn.dataset.armed='1';btn.classList.add('armed');
+    btn.firstChild.textContent='confirmar apagar?';
+    setTimeout(()=>{if(btn.dataset.armed){btn.dataset.armed='';btn.classList.remove('armed');
+      btn.firstChild.textContent='apagar memória';}},2600);}
+}
+function resetBrain(){
+  words.length=0;wkey.clear();
+  transAdj.fill(null);assocAdj.fill(null);
+  OFFX.fill(0);visE.length=0;visK.clear();
+  N=0;SYN=0;routes=0;assocN=0;babbles=0;lastConf=null;
+  eA.length=0;eB.length=0;eW.length=0;eD.length=0;HOT.length=0;HOTF.fill(0);
+  for(const q of BQ)q.length=0;
+  bootWords();rebuildEdges();rebuildVisFromNet();syncNeuronAttrs();compile();
+  prevUserWids=null;
+  log('SYS','memória apagada — cérebro de volta ao estado de nascença');
+}
+function exportBrain(){
+  const obj={v:1,t:simT,words:[{l:'<START>',c:0},{l:'<END>',c:0}],
+    trans:[],assoc:[]};
+  for(const w of words.slice(2))obj.words.push({l:w.label,c:w.count});
+  for(let a=0;a<CAPW;a++){const m=transAdj[a];if(!m)continue;
+    for(const [b,o] of m)obj.trans.push([a,b,+o.w.toFixed(3)]);}
+  for(let a=0;a<CAPW;a++){const m=assocAdj[a];if(!m)continue;
+    for(const [b,o] of m)if(a<b)obj.assoc.push([a,b,+o.w.toFixed(3)]);}
+  const blob=new Blob([JSON.stringify(obj)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='cerebro-tabula.json';a.click();URL.revokeObjectURL(a.href);
+  log('SYS',`cérebro exportado: ${obj.words.length-2} palavras · ${obj.trans.length} rotas`);
+}
+function importBrain(file){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const obj=JSON.parse(rd.result);
+      if(!obj.words||!obj.trans)throw 0;
+      resetBrain();
+      for(let i=2;i<obj.words.length;i++)registerWord(obj.words[i].label);
+      for(const w of words.slice(2))w.count=obj.words[w.idx]?.count||w.count;
+      for(const [a,b,w] of obj.trans)
+        if(a<words.length&&b<words.length&&a!==b){
+          const m=transAdj[a]||(transAdj[a]=new Map());
+          const o=m.get(b);
+          if(o)o.w=Math.max(o.w,w);else{m.set(b,{w,ci:eA.length});
+            eA.push(words[a].hub);eB.push(words[b].hub);eW.push(edgeW(w));eD.push(3);SYN++;routes++;}
+        }
+      for(const [a,b,w] of obj.assoc)
+        if(a<words.length&&b<words.length){
+          (assocAdj[a]||(assocAdj[a]=new Map())).set(b,{w});
+          (assocAdj[b]||(assocAdj[b]=new Map())).set(a,{w});assocN++;}
+      rebuildVisFromNet();rebuildEdges();syncNeuronAttrs();compile();posDirty=true;
+      log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${assocN} associações`);
+    }catch{log('LES','arquivo inválido — import cancelado');}
+  };
+  rd.readAsText(file);
+}
+ $('btnPrune').addEventListener('click',prune);
+ $('btnLesion').addEventListener('click',lesion);
+ $('btnWipe').addEventListener('click',e=>wipeArm(e.currentTarget));
+ $('btnExport').addEventListener('click',exportBrain);
+ $('btnImport').addEventListener('click',()=>$('fileIn').click());
+ $('fileIn').addEventListener('change',e=>{if(e.target.files[0])importBrain(e.target.files[0]);e.target.value='';});
+ $('rngTemp').addEventListener('input',()=>$('vTemp').textContent=parseFloat($('rngTemp').value).toFixed(2));
+
+/* ================= 10 · câmera / velocidade ================= */
+let camA=null;const CAMS={front:{p:[0,.3,7.8],t:[0,-.5,.2]},top:{p:[.01,8.4,.4],t:[0,0,0]}};
+document.querySelectorAll('[data-cam]').forEach(b=>b.addEventListener('click',()=>{
+  const c=CAMS[b.dataset.cam];controls.autoRotate=false;$('btnRot').classList.remove('on');
+  camA={p0:camera.position.clone(),p1:new THREE.Vector3(...c.p),t0:controls.target.clone(),t1:new THREE.Vector3(...c.t),k:0};}));
+ $('btnRot').addEventListener('click',()=>{controls.autoRotate=!controls.autoRotate;
+  $('btnRot').classList.toggle('on',controls.autoRotate);});
+renderer.domElement.addEventListener('pointerdown',()=>{controls.autoRotate=false;$('btnRot').classList.remove('on');});
+const SPEEDS=[1,4,8];let speed=1;
+ $('btnSpeed').addEventListener('click',()=>{speed=SPEEDS[(SPEEDS.indexOf(speed)+1)%3];
+  $('btnSpeed').textContent='VEL ×'+speed;});
+
+/* ================= 11 · loop ================= */
+const after=[]; // não usado; timers via setTimeout
+let last=performance.now(),msPT=0,uiT=0,sprT=0,lbT=0,hzAcc=0,hzT=0;
+function tick(dt){
+  simT+=dt;
+  stepNet(dt);
+  if(RNG()<.05)stim((RNG()*Math.max(1,N))|0,.1); // ruído de fundo
+}
+function frame(now){
+  requestAnimationFrame(frame);
+  const rdt=Math.min((now-last)/1000,.05);last=now;
+  for(let k=0;k<speed;k++){const t0=performance.now();tick(.016);msPT=lerp(msPT,performance.now()-t0,.05);}
+  for(let i=0;i<N;i++)nAct[i]=ACT[i];
+  nGeo.attributes.aAct.needsUpdate=true;
+  for(let i=0;i<PMAX;i++){const p=parts[i];
+    if(!p){pAct[i]=0;continue;}
+    p.t+=rdt;if(p.t>=p.dur){parts[i]=null;pAct[i]=0;pPos[i*3+1]=-999;continue;}
+    const k=p.t/p.dur,u=1-k;
+    pPos[i*3]=p.x0*u+p.x1*k;pPos[i*3+1]=p.y0*u+p.y1*k;pPos[i*3+2]=p.z0*u+p.z1*k;pAct[i]=(1-k)*p.s;}
+  pGeo.attributes.position.needsUpdate=true;pGeo.attributes.aAct.needsUpdate=true;
+  sprT+=rdt;if(sprT>.25){sprT=0;springs();}
+  if(posDirty)syncPositions();
+  if(visDirty)rebuildArcs();
+  if(camA){camA.k+=rdt*1.6;const e=camA.k>=1?1:1-Math.pow(1-camA.k,3);
+    camera.position.lerpVectors(camA.p0,camA.p1,e);controls.target.lerpVectors(camA.t0,camA.t1,e);
+    if(camA.k>=1)camA=null;}
+  controls.update();renderer.render(scene,camera);
+  lbT+=rdt;if(lbT>.13){lbT=0;labels();}
+  hzAcc+=SPK;hzT+=rdt;SPK=0;
+  uiT+=rdt;
+  if(uiT>.3){uiT=0;
+    $('stHz').textContent=hzT>0?(hzAcc/hzT).toFixed(0):'0';hzAcc=0;hzT=0;
+    $('stMs').textContent=msPT.toFixed(2)+'ms';
+    $('stW').textContent=Math.max(0,words.length-2);
+    $('stR').textContent=routes;$('stS').textContent=SYN.toLocaleString('pt-BR');
+    $('tW').textContent=Math.max(0,words.length-2);$('tR').textContent=routes;
+    $('tA').textContent=assocN;$('tV').textContent=visE.length;
+    $('tC').textContent=lastConf===null?'—':lastConf.toFixed(2);
+    $('tB').textContent=babbles;}
+}
+function resize(){
+  const w=stage.clientWidth,h=stage.clientHeight;
+  renderer.setSize(w,h,false);renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  ptMat.uniforms.uScale.value=renderer.domElement.height/(2*Math.tan(camera.fov*Math.PI/360));
+}
+window.addEventListener('resize',resize);
+
+/* ================= 12 · boot ================= */
+function bootWords(){
+  registerWord('·início','start');words[0].io=true;
+  registerWord('·fim','end');words[1].io=true;
+}
+bootWords();
+syncNeuronAttrs();compile();
+ $('stN').textContent=N;
+log('SYS',`cérebro montado: ${N} neurônios · léxico VAZIO · nenhuma resposta predefinida`);
+log('SYS','o que ele falar, ele aprendeu com você — use o protocolo ao lado');
+setTimeout(()=>{
+  const d=document.createElement('div');d.className='msg sys';
+  d.textContent='— cérebro em branco. digite qualquer frase; depois ensine respostas seguindo o protocolo. —';
+  msgs.appendChild(d);
+},300);
+resize();
 requestAnimationFrame(frame);
 </script>
 </body>
