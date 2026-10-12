@@ -1839,21 +1839,9 @@ function buildHulls(){
       Math.sin(a)*(RMAX+.05)*.62-.3));
   }
   mk(crown2,'#e8b34b',.5);
-  /* GÂNGLIOS: anel espiral simples (versão original) */
-  const st=[];for(let i=0;i<=48;i++){const [x,y,z]=striatumPos(0,i/48);st.push(new THREE.Vector3(x,y,z));}
-  mk(st,'#f0a63c',.16);
-  /* LOBO FRONTAL: casca dupla + cintura + tronco para a parada */
-  const fShell=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
-    fShell.push(new THREE.Vector3(4.1+Math.cos(a)*.55,1.55+Math.sin(a)*.42,-.9+Math.sin(a*2)*.18));}
-  mk(fShell,'#b9c4e8',.3);
-  const fShell2=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
-    fShell2.push(new THREE.Vector3(4.1+Math.cos(a)*.34,1.55+Math.sin(a)*.26,-.9+Math.sin(a*3)*.1));}
-  mk(fShell2,'#b9c4e8',.22);
-  const fBelt=[];for(let i=0;i<=16;i++){const a=i/16*6.283;
-    fBelt.push(new THREE.Vector3(4.1+Math.cos(a)*.6,1.55+Math.sin(a)*.1,-.9+Math.sin(a)*.1));}
-  mk(fBelt,'#8f9ec4',.3);
-  mk([new THREE.Vector3(4.4,.95,-.25),new THREE.Vector3(4.25,1.2,-.55),
-      new THREE.Vector3(4.1,1.55,-.9)],'#b9c4e8',.3);
+  /* GÂNGLIOS: anel espiral simples, fechado redondo */
+  const st=[];for(let i=0;i<=384;i++){const [x,y,z]=striatumPos(0,i/384);st.push(new THREE.Vector3(x,y,z));}
+  mk(st,'#f0a63c',.18);
   /* AMÍGDALA: amêndoa dupla entrelaçada + núcleo */
   const am=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     am.push(new THREE.Vector3(3.38+Math.cos(a)*.42,-1.68+Math.sin(a)*.34,.85));}
