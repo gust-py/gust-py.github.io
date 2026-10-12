@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 100000 neurônios · ondas circulares · coroa amarela · wikipedia · qwen3-32b</title>
+<title>ATLAS — 100000 neurônios · ondas circulares · coroa amarela · qwen3-32b</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -102,7 +102,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
 .lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff} .lk-MOR{color:#7fe0c8}
-.lk-WIK{color:var(--wik)}
+.lk-WIK{color:var(--wik)} .lk-THK{color:#c9b6ff}
 #log .ln{margin-bottom:2px}
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
@@ -114,7 +114,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>100000 neurônios · ondas circulares · coroa amarela · qwen3-32b</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>100000 neurônios · ondas circulares · coroa amarela · qwen3-32b pensante</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -148,11 +148,11 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#6e6a5e"></i>ondas circulares — 58 anéis ondulados concêntricos, 116 fileiras de 25 neurônios cada</div>
-      <div class="li"><i class="th" style="--c:#f0a63c"></i>coroa amarela — na borda externa, abraçando o último anel de neurônios</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>ondas circulares — 58 anéis ondulados, 116 fileiras de 25 neurônios cada (97000 córtex)</div>
+      <div class="li"><i class="th" style="--c:#f0a63c"></i>coroa amarela dupla na borda externa — faísca orbitando</div>
+      <div class="li"><i style="--c:#c9b6ff"></i>mente IA gpt-oss-20b pensante — gerencia plano, confiança e sinapses</div>
       <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância</div>
       <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · ≠ (laranja) · ou (verde) · família ≈ (verde-água) · ℘ wiki (amarelo)</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>mente IA qwen3-32b — corrige TODO turno · nunca ecoa</div>
       <div class="li"><i style="--c:#f0a63c"></i>gânglios — anel espiral · 2525 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — casca dupla</div>
       <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b"></i>amígdala · <i style="--c:#46c8bc"></i>tálamo (3 cascas) · <i style="--c:#ff5d4d"></i>VTA (hélice)</div>
     </div>
@@ -184,6 +184,7 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Telemetria</h3>
       <div id="sgrid">
+        <span>conf IA<b id="tAic">—</b></span><span>plano IA<b id="tAip">—</b></span>
         <span>palavras<b id="tW">0</b></span><span>entendidas<b id="tU">0</b></span>
         <span>wiki<b id="tWk">0</b></span><span>famílias<b id="tMo">0</b></span>
         <span>quem<b id="tQ">0</b></span><span>ações<b id="tV">0</b></span>
@@ -206,7 +207,7 @@ footer b{color:var(--dim);font-weight:400}
 
 <footer>
   <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>100000 neurônios · 58 ondas circulares · coroa amarela na borda · wikipedia · qwen3-32b</span>
+  <span>100000 neurônios · gpt-oss-20b pensante gerencia plano, confiança e sinapses · wikipedia</span>
 </footer>
 
 <script type="importmap">
@@ -395,7 +396,7 @@ function buildModules(){
       for(let k=0;k<NPER;k++){
         let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
         const L=Math.hypot(dx,dy,dz)||1,rr=Math.cbrt(RNG())*.11+.025;
-        ids.push(addN(bx+dx/L*rr,by+dy/L*rr*.8,bz+dz/L*rr,'#b8b4a8',.0075,.78));
+        ids.push(addN(bx+dx/L*rr,by+dy/L*rr*.8,bz+dz/L*rr,'#b8b4a8',.011,.78));
       }
       for(let k=0;k<ids.length;k++){
         if(k+1<ids.length)pushE(ids[k],ids[k+1],.9,0);
@@ -419,7 +420,7 @@ function buildChunks(){
   chunkIds=[];chunkFree=[];
   for(let i=0;i<NCHUNK;i++){
     const [x,y,z]=striatumPos(i,i/(NCHUNK-1));
-    chunkIds.push(addN(x,y,z,'#f0a63c',.02,.68));
+    chunkIds.push(addN(x,y,z,'#f0a63c',.026,.68));
     chunkFree.push(i);
   }
 }
@@ -798,6 +799,7 @@ const ACTNAME={greet:'saudação',bye:'despedida',thanks:'agradecimento'};
 
 /* ================= 7 · lobo frontal + geração ================= */
 let frontalPlan='—', arousal=0;
+let aiPlanBias=null, aiConf=null;
 const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc', sintaxe:'#d8a8ff'};
 function bumpArousal(v){
   const old=arousal;
@@ -837,6 +839,10 @@ function frontalDecide(inputWids,qa){
   const epiS=recentEpisodes().length?1.15:.15;
   const synS=frames.length?frames.reduce((s,f)=>s+f.use,0)*.55+.7:0;
   const opts=[['cadeia',chainS+.12],['inversa',invS+.12],['lembrança',epiS],['sintaxe',synS]];
+  if(aiPlanBias){
+    const i=opts.findIndex(([n])=>n===aiPlanBias);
+    if(i>=0)opts[i][1]*=3.2;
+  }
   return sampleWeighted(opts.map(([n,s])=>[n,Math.pow(Math.max(.01,s),1.1)]))||'cadeia';
 }
 function generate(inputWids,T,qa,plan,learn,qtype,act){
@@ -1061,10 +1067,10 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   return r;
 }
 
-/* ================= 8.5 · IA qwen3-32b — corrige TODO turno ================= */
+/* ================= 8.5 · IA gpt-oss-20b PENSANTE — gerente do cérebro ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL='qwen/qwen3-32b';
+const GROQ_MODEL='openai/gpt-oss-20b';
 let aiOn=true;
 let wikiOn=true;
 const history=[];
@@ -1109,24 +1115,34 @@ function knownRels(){
   }
   return out.slice(0,30).join(' · ');
 }
+function brainReport(){
+  const alive=words.filter(w=>!w.dead&&!w.io&&w.count>0);
+  const top=alive.sort((a,b)=>b.count-a.count).slice(0,8).map(w=>w.label).join(', ');
+  return `neuronios=${N} palavras=${alive.length} rotas=${routes} habitos=${chunkMap.size}/${NCHUNK} `+
+    `plano_atual=${frontalPlan} arousal=${arousal.toFixed(2)} `+
+    `palavras_mais_usadas=[${top||'nenhuma'}]`;
+}
 function cleanAI(t){
   t=(t||'').replace(/\s+/g,' ').trim();
-  t=t.replace(/^(resposta|frase|correção)\s*:\s*/i,'').replace(/^["'“”«]+|["'“”»]+$/g,'').trim();
+  t=t.replace(/^(frase|resposta|correção)\s*:\s*/i,'').replace(/^["'“”«]+|["'“”»]+$/g,'').trim();
   t=t.replace(/[.!?…]+$/,'').trim();
   const w=t.split(' ').filter(Boolean).slice(0,6).join(' ');
   return w||'';
 }
-async function groqChat(sys,usr,maxTokens=80,temp=.5){
+async function groqChat(sys,usr,maxTokens=120,temp=.5,extra=null){
+  const body={model:GROQ_MODEL,
+    messages:[{role:'system',content:sys},{role:'user',content:usr}],
+    temperature:temp,max_tokens:maxTokens,stream:false};
+  if(extra)Object.assign(body,extra);
   const res=await fetch(GROQ_URL,{method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
-    body:JSON.stringify({model:GROQ_MODEL,
-      messages:[{role:'system',content:sys},{role:'user',content:usr}],
-      temperature:temp,max_tokens:maxTokens,stream:false})});
+    body:JSON.stringify(body)});
   if(!res.ok)throw new Error('HTTP '+res.status);
   const j=await res.json();
-  return (j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'')||'';
+  const msg=j.choices&&j.choices[0]?j.choices[0].message:null;
+  return{content:(msg&&msg.content)||'',reasoning:(msg&&(msg.reasoning||msg.reasoning_content))||''};
 }
-async function groqRepair(userText,draftText,qtype,act){
+async function groqManage(userText,draftText,qtype,act,flu){
   const hist=history.slice(-2).map(h=>`- usuário: "${h.u}" | atlas: "${h.b}"`).join('\n');
   const rels=knownRels();
   const qline=qtype?`tipo de pergunta detectado: ${qtype} — a resposta DEVE preencher esse papel`+
@@ -1136,32 +1152,67 @@ async function groqRepair(userText,draftText,qtype,act){
      ' (conter um modificador: sim, não, bem, mal…)')+'\n':'';
   const aline=act?`ato de fala detectado: ${ACTNAME[act]} — responda no tom desse ato\n`:'';
   const sys=[
-    'Você é a MENTE FALANTE do ATLAS: um cérebro artificial minúsculo que SÓ consegue falar com as palavras que já tem.',
-    'Sua única função: ler a mensagem do usuário e devolver UMA resposta curta, com sentido completo, feita APENAS com o vocabulário disponível.',
+    'Você é a MENTE AUXILIAR do ATLAS: um cérebro forte acoplado a um cérebro minúsculo de associações.',
+    'O cérebro pequeno gera rascunhos; você EDITA esse rascunho, dá contexto lógico aceitável e ENTENDÍVEL,',
+    'e depois GERENCIA o cérebro: decreta o plano do lobo frontal, calibra a confiança da resposta e diz',
+    'quais conceitos devem ser reforçados nas sinapses.',
     '',
-    'PRINCÍPIOS OBRIGATÓRIOS (sem exceção):',
-    '1. SENTIDO ANTES DE TUDO — a resposta tem que ser uma frase que um humano entende na hora. Rascunho sem sentido: IGNORE e construa você.',
-    '2. VOCABULÁRIO FECHADO — só palavras da lista (exceção: regra 7).',
-    '3. ESTRUTURA DE FRASE — prefira SUJEITO + VERBO (+ OBJETO), nessa ordem. "eu quero gato", "você gosta", "gato bom". Uma palavra só vale para pergunta fechada (sim/não) ou saudação.',
-    '4. CONCORDÂNCIA — "eu quero", "você quer", "ele quer". Faça o verbo combinar com o sujeito.',
+    'PRINCÍPIOS OBRIGATÓRIOS:',
+    '1. SENTIDO ANTES DE TUDO — a frase final tem que ser entendível na hora. Rascunho sem sentido: IGNORE e construa você.',
+    '2. VOCABULÁRIO FECHADO — só palavras da lista (exceção: regra 8, máx 2 palavras novas).',
+    '3. ESTRUTURA — SUJEITO + VERBO (+ OBJETO), nessa ordem, quando couber. "eu quero gato", "você gosta".',
+    '4. CONCORDÂNCIA — verbo casa com o sujeito ("eu quero", "você quer").',
     '5. CURTA — no máximo 6 palavras.',
-    '6. LEIA A INTENÇÃO: pergunta → responda direto; opostos na mensagem → escolha UM lado; escolha exclusiva → escolha uma opção; positivo → tom positivo; negativo → tom negativo; saudação → devolva; despedida → despeça; agradecimento → acene.',
-    '7. NUNCA antônimos juntos na mesma resposta.',
-    '8. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
-    '9. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas, sem explicação.',
-    '10. Use as relações lógicas conhecidas para decidir o lado em contradições e escolhas.',
-    '11. NUNCA repita a mensagem do usuário — responda com conteúdo NOVO.',
+    '6. INTENÇÃO: pergunta → responda direto; opostos na mensagem → escolha UM lado; escolha exclusiva → escolha uma opção; positivo → tom positivo; negativo → tom negativo; saudação → devolva; despedida → despeça; agradecimento → acene.',
+    '7. NUNCA antônimos juntos; NUNCA repita a mensagem do usuário.',
+    '8. Se impossível com o vocabulário, no máximo 2 palavras novas simples.',
+    '9. Saída da frase limpa — minúscula, sem pontuação final, sem emoji, sem aspas.',
     '',
-    'Responda SOMENTE com a frase final.'
+    'GERÊNCIA (obrigatória):',
+    '• conf — sua confiança de 0.0 a 1.0 nesta resposta. Seja honesto: resposta frágil = conf baixa.',
+    '• plano — decreta o plano do lobo frontal para o próximo turno: cadeia, sintaxe ou lembranca. Teia rica → sintaxe; memórias fortes → lembranca; teia jovem → cadeia.',
+    '• reforco — palavras do vocabulário (2 a 4, separadas por espaço) que sua resposta VALIDOU e devem ter sinapses reforçadas.',
+    '',
+    'FORMATO EXATO DA SAÍDA (4 linhas):',
+    'frase: a resposta final',
+    'conf: 0.0a1.0',
+    'plano: cadeia ou sintaxe ou lembranca',
+    'reforco: palavra1 palavra2 palavra3'
   ].join('\n');
-  const usr='vocabulário do cérebro (única fonte permitida): ['+knownVocabList()+']\n'+
+  const usr='estado do cérebro: '+brainReport()+'\n'+
     (rels?'relações lógicas conhecidas: '+rels+'\n':'')+
     (hist?'conversa recente:\n'+hist+'\n':'')+
     qline+aline+
     'mensagem do usuário: "'+userText+'"\n'+
-    'rascunho interno do cérebro (corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
-    'frase final (só a frase):';
-  return cleanAI(await groqChat(sys,usr,60,.15));
+    'rascunho do cérebro pequeno (fluência local '+flu.toFixed(2)+', corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
+    'veredito (frase/conf/plano/reforco):';
+  /* MODO PENSAMENTO: reasoning_effort ativa o raciocínio interno do gpt-oss */
+  const{content,reasoning}=await groqChat(sys,usr,200,.15,{
+    reasoning_effort:'medium',include_reasoning:true});
+  if(reasoning){
+    const ex=reasoning.replace(/\s+/g,' ').trim().slice(0,110);
+    if(ex)log('THK','pensou: "'+ex+(reasoning.length>110?'…':'')+'"');
+  }
+  let fixed='',conf=-1,plano=null,reforco=[];
+  for(const raw of content.split(/\n+/)){
+    const l=raw.trim();
+    if(!l)continue;
+    let m;
+    if((m=l.match(/^(?:frase|resposta)\s*[:\-–]\s*(.+)$/i))){if(!fixed)fixed=m[1];continue;}
+    if((m=l.match(/^conf(?:ianca|iança)?\s*[:\-–]\s*([\d.,]+)\s*$/i))){conf=clamp(parseFloat(m[1].replace(',','.'))||0,0,1);continue;}
+    if((m=l.match(/^plano\s*[:\-–]\s*(\S+)\s*$/i))){
+      const p=norm(m[1]);
+      if(p==='cadeia'||p==='sintaxe'||p==='lembranca'||p==='lembrança')plano=p==='lembrança'?'lembranca':p;
+      continue;
+    }
+    if((m=l.match(/^reforc[oa]\s*[:\-–]\s*(.+)$/i))){
+      reforco=m[1].split(/[\s,;]+/).map(s=>norm(s)).filter(s=>s.length>=2).slice(0,4);
+      continue;
+    }
+    if(!fixed)fixed=l;
+  }
+  if(plano!==null&&plano!=='cadeia'&&plano!=='sintaxe'&&plano!=='lembranca')plano=null;
+  return{fixed:cleanAI(fixed),conf:(conf>=0?conf:null),plano,reforco};
 }
 
 async function groqLabel(labels){
@@ -1174,7 +1225,7 @@ async function groqLabel(labels){
     'Formato exato, UMA linha por palavra:\npalavra: papel\n'+
     'Sem explicação, sem markdown. Só as linhas. Se couber em dois papéis, escolha o mais comum em frases simples.';
   const usr='palavras: '+labels.join(', ')+'\n\nlinhas:';
-  const txt=await groqChat(sys,usr,300,.1);
+  const{content:txt}=await groqChat(sys,usr,300,.1);
   const map=new Map();
   for(const raw of txt.split(/\n+/)){
     const m=raw.match(/^\s*(?:[-*•\d.)\s]*)("?)([\p{L}\p{N}'-]+)\1\s*[:\-–]\s*([\p{L}]+)\s*$/u);
@@ -1295,7 +1346,7 @@ async function groqValidate(labels,ctx,wikiMap){
     'frase onde apareceram: "'+ctx+'"\n'+
     (wikiCtx?wikiCtx+'\n':'')+
     'vocabulário conhecido: '+(vocab.join(', ')||'(nenhum ainda)')+'\n\nlinhas:';
-  const txt=await groqChat(sys,usr,380,.2);
+  const{content:txt}=await groqChat(sys,usr,380,.2);
   const map=new Map();
   const get=k=>{
     if(!map.has(k))map.set(k,{ok:true,concepts:[],ant:[],xor:[],forms:[]});
@@ -1533,7 +1584,7 @@ async function respond(qa){
     stim(planN,1.5);
     const pc=PLANCOL[frontalPlan]||'#b9c4e8';
     pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.7,pc);
-    log('FRO',`plano = ${frontalPlan}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
+    log('FRO',`plano = ${frontalPlan}${aiPlanBias?` (viés IA)`:''}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
     let r=reviseAndSpeak(q,T,qa,frontalPlan,qtype,lastUserAct);
     r.tokens=r.tokens.filter(wi=>words[wi]&&!words[wi].dead);
     r.path=r.path.filter(wi=>words[wi]&&!words[wi].dead);
@@ -1541,15 +1592,16 @@ async function respond(qa){
     if(r.syn){
       synGenCount++;lastSynGen=r.frame.sig;
       log('SYN',`frase por molde <b>${r.frame.sig}</b>: ${r.roles.map((ro,i)=>`${ro}="${words[r.tokens[i]].label}"`).join(' · ')}`);
-      pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
     if(aiOn){
-      log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
-      $('confTag').textContent='mente IA · corrigindo…';
-      let fixed='';
-      try{fixed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
+      log('AI',`mente auxiliar analisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)}) — ${GROQ_MODEL} pensa…`);
+      pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
+      $('confTag').textContent='mente IA · pensando…';
+      let v={fixed:'',conf:null,plano:null,reforco:[]};
+      try{v=await groqManage(lastUserText,draftText,qtype,lastUserAct,r.flu);}
       catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — modo local');}
+      let fixed=v.fixed;
       if(fixed){
         if(norm(fixed)===norm(lastUserText)){log('AI','IA ecoou a mensagem — descartado');fixed='';}
       }
@@ -1562,27 +1614,63 @@ async function respond(qa){
         if(useToks.length){
           aiUsed=true;
           newWordsMsg=0;
-          learnMessage(useToks,1.6);
+          /* GESTÃO 1 — confiança escala o aprendizado */
+          const aiConf=(v.conf!=null)?v.conf:.75;
+          aiConfGlobal=aiConf;
+          learnMessage(useToks,1.0+aiConf*1.2);
           learnDialogue(prevTurn,useToks);
           if(lastUserAct)useToks.forEach(wi=>ACTW[lastUserAct].add(wi));
+          /* GESTÃO 2 — reforço sináptico declarado */
+          let nRef=0;
+          const refWids=[...new Set(v.reforco)].map(k=>wkey.get(k)).filter(x=>x!==undefined&&words[x]&&!words[x].dead);
+          for(const wi of refWids){
+            const w=words[wi];
+            const m=transAdj[wi];
+            if(m)for(const o of m.values())o.w=Math.min(1.25,o.w+.12*aiConf);
+            w.count=Math.max(w.count,2);w.last=simT;paintWord(w);
+            w.act=1.4;
+            pulseAt(2.55,1.15,-.55,w.base[0],w.base[1],w.base[2],.7,'#8fd0ff');
+            nRef++;
+          }
+          /* GESTÃO 3 — plano decretado */
+          if(v.plano){
+            if(v.plano!==frontalPlan){
+              log('FRO',`mente IA decretou plano: ${v.plano} (antes: ${frontalPlan})`);
+              aiPlanBias=v.plano;
+            }
+            frontalPlan=v.plano;
+            const pc2=PLANCOL[frontalPlan]||'#b9c4e8';
+            stim(planN,1.4);
+            pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.8,pc2);
+          }
+          /* GESTÃO 4 — arousal segue a confiança */
+          bumpArousal(aiConf>.7?.14:aiConf<.4?-.05:.06);
           if(r.syn&&r.tokens.length===useToks.length&&
              r.tokens.every((wi,i)=>useToks[i]===wi)){
             r.frame.hit+=1;
           }
           if(dirtyC)compile();
-          stim(vtaA,1.1);bumpArousal(.12);
-          fireSweep();
-          log('AI',`corrigido: "${draftText||'—'}" ⇢ "<b>${fixed}</b>"`+
+          stim(vtaA,1.1);fireSweep();
+          showTrace(useToks);
+          for(const wi of useToks.slice(0,4)){
+            const w=words[wi];if(!w||w.dead)continue;
+            pulseAt(2.55,1.15,-.55,w.base[0],w.base[1],w.base[2],.75,'#c9b6ff');
+            stimAssembly(wi,1.2);
+          }
+          log('AI',`gerência: "${draftText||'—'}" ⇢ "<b>${fixed}</b>"`+
             (knownToks.length
               ?(novelN?` · ${novelN} nova(s) pro aprendizado`:' · só vocabulário do cérebro')
               :' · vocabulário insuficiente — resposta vira ensino'));
+          log('AI',`gestão: conf ${aiConf.toFixed(2)} · plano ${v.plano||'mantido'} · reforço em ${nRef} conceito(s)`);
           const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
           if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
           const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
           if(unlab.length)queueLabel(unlab.slice(0,6));
-          r={tokens:useToks,path:useToks.slice(),conf:.95,babble:false,jumps:0,
+          r={tokens:useToks,path:useToks.slice(),
+             conf:aiConf,babble:false,jumps:0,
              contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
-             flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
+             flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI,
+             aiConf};
         }
       }
     }
@@ -1616,10 +1704,10 @@ async function respond(qa){
     history.push({u:lastUserText,b:r.tokens.map(i=>words[i].label).join(' ')});
     if(history.length>4)history.shift();
     log('REV',`revisor: ${r.candN} rascunho(s) · fluência ${r.flu.toFixed(2)} · `+
-      (r.mode==='IA'?'fala final pela IA (corrigida)':
+      (r.mode==='IA'?'fala final gerida pela mente IA':
        r.mode==='lembrança'?`lembrança (linha ${r.slot+1})`:
        (r.syn?'venceu o MOLDE sintático':'venceu o rascunho local #'+r.candI)));
-    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)}`+
+    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)} · conf ${lastConf.toFixed(2)}`+
       (r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:'');
     for(const [b,s,src,slot] of r.contrib){
       const wb=words[b];if(!wb||wb.dead)continue;
@@ -1631,7 +1719,7 @@ async function respond(qa){
     }
     if(!r.tokens.length){sendBtn.disabled=false;return;}
     if(r.mode==='lembrança')log('TLK',`resposta por lembrança: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
-    else if(r.mode==='IA')log('TLK',`resposta corrigida: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
+    else if(r.mode==='IA')log('TLK',`resposta gerida pela IA: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
     else if(r.syn)log('TLK',`frase gerada: "${r.tokens.map(i=>words[i].label).join(' ')}" · molde ${r.frame.sig}`);
     else log('TLK',`rota: ${r.path.slice(0,10).map(i=>words[i].label).join(' → ')}${r.path.length>10?'…':''} · conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}`);
     typeOut(r);
@@ -1681,7 +1769,7 @@ function typeOut(r){
       +(r.mode==='lembrança'
         ?`lembrança (linha ${r.slot+1}) · fluência ${r.flu.toFixed(2)}`
         :r.mode==='IA'
-        ?`mente IA · corrigida · ${r.candN} rascunho(s) avaliado(s)`
+        ?`mente IA · gerida · conf ${lastConf.toFixed(2)} · ${r.candN} rascunho(s) avaliado(s)`
         :r.syn
         ?`sintaxe generativa · molde ${r.frame.sig} · confiança ${r.conf.toFixed(2)}`
         :`fluência ${r.flu.toFixed(2)} · rascunho ${r.candI}/${r.candN} · confiança ${r.conf.toFixed(2)}`);
@@ -1711,7 +1799,7 @@ controls.minDistance=2.6;controls.maxDistance=24;controls.autoRotate=true;contro
 scene.add(new THREE.AmbientLight(0xffffff,.6));
 const dl=new THREE.DirectionalLight(0xfff2dd,1.05);dl.position.set(3,5,4);scene.add(dl);
 
-const sharedU={uScale:{value:600},uTime:{value:0},uSweep:{value:-1},uSweepAmp:{value:0}};
+const sharedU={uScale:{value:900},uTime:{value:0},uSweep:{value:-1},uSweepAmp:{value:0}};
 const VSH=`attribute vec3 aCol;attribute float aSize;attribute float aAct;
 attribute float aSeed;attribute float aOrd;
 uniform float uScale,uTime,uSweep,uSweepAmp;
@@ -1773,7 +1861,7 @@ function syncConcepts(){
     const sc=w.syn&&w.syn!=='-'?SYNCOL[w.syn]:null;
     const mix=sc?c.clone().lerp(sc,.45):c;
     cCol[n*3]=mix.r;cCol[n*3+1]=mix.g;cCol[n*3+2]=mix.b;
-    cSiz[n]=w.wiki?.065:.05;
+    cSiz[n]=w.wiki?.08:.062;
     cSeed[n]=h32(w.key+'s');
     cOrd[n]=words.length>1?w.idx/(words.length-1):0;
     cAct[n]=w.act;w.cslot=n;n++;
@@ -1797,7 +1885,7 @@ function buildHulls(){
     const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op,
       blending:THREE.AdditiveBlending,depthWrite:false}));
     scene.add(l);hulls.push(l);};
-  /* OS 58 ANÉIS ONDULADOS circulares do córtex */
+  /* OS 58 ANÉIS ONDULADOS circulares do córtex — engrossados */
   const NP=72;
   for(let r=0;r<NRINGS;r++){
     const phase=h32('ring'+r)*6.283;
@@ -1815,9 +1903,9 @@ function buildHulls(){
         .1+wave,
         Math.sin(ang)*rad*.62-.3));
     }
-    mk(ringPts,'#6e6a5e',.18);
+    mk(ringPts,'#8a867a',.3);
   }
-  /* COROA AMARELA na BORDA — abraçando o último anel de neurônios */
+  /* COROA AMARELA dupla na BORDA externa */
   const RMAX=.35+3.4;
   const crown=[];
   for(let i=0;i<=96;i++){
@@ -1828,7 +1916,7 @@ function buildHulls(){
       .1+wave,
       Math.sin(a)*(RMAX+.18)*.62-.3));
   }
-  mk(crown,'#f0a63c',.75);
+  mk(crown,'#f0a63c',.85);
   const crown2=[];
   for(let i=0;i<=96;i++){
     const a=i/96*6.283;
@@ -1838,67 +1926,67 @@ function buildHulls(){
       .1+wave+.05,
       Math.sin(a)*(RMAX+.05)*.62-.3));
   }
-  mk(crown2,'#e8b34b',.5);
-  /* GÂNGLIOS: anel espiral simples, fechado redondo */
+  mk(crown2,'#e8b34b',.6);
+  /* GÂNGLIOS: anel espiral simples, fechado redondo, engrossado */
   const st=[];for(let i=0;i<=384;i++){const [x,y,z]=striatumPos(0,i/384);st.push(new THREE.Vector3(x,y,z));}
-  mk(st,'#f0a63c',.18);
-  /* LOBO FRONTAL: casca dupla + cintura + tronco para a parada */
+  mk(st,'#f0a63c',.3);
+  /* LOBO FRONTAL: casca dupla + cintura + tronco */
   const fShell=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     fShell.push(new THREE.Vector3(4.1+Math.cos(a)*.55,1.55+Math.sin(a)*.42,-.9+Math.sin(a*2)*.18));}
-  mk(fShell,'#b9c4e8',.3);
+  mk(fShell,'#b9c4e8',.34);
   const fShell2=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     fShell2.push(new THREE.Vector3(4.1+Math.cos(a)*.34,1.55+Math.sin(a)*.26,-.9+Math.sin(a*3)*.1));}
-  mk(fShell2,'#b9c4e8',.22);
+  mk(fShell2,'#b9c4e8',.25);
   const fBelt=[];for(let i=0;i<=16;i++){const a=i/16*6.283;
     fBelt.push(new THREE.Vector3(4.1+Math.cos(a)*.6,1.55+Math.sin(a)*.1,-.9+Math.sin(a)*.1));}
-  mk(fBelt,'#8f9ec4',.3);
+  mk(fBelt,'#8f9ec4',.35);
   mk([new THREE.Vector3(4.4,.95,-.25),new THREE.Vector3(4.25,1.2,-.55),
-      new THREE.Vector3(4.1,1.55,-.9)],'#b9c4e8',.3);
-  /* AMÍGDALA: amêndoa dupla entrelaçada + núcleo */
+      new THREE.Vector3(4.1,1.55,-.9)],'#b9c4e8',.32);
+  /* AMÍGDALA: amêndoa dupla + núcleo */
   const am=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     am.push(new THREE.Vector3(3.38+Math.cos(a)*.42,-1.68+Math.sin(a)*.34,.85));}
-  mk(am,'#ef6a8b',.3);
+  mk(am,'#ef6a8b',.34);
   const am2=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     am2.push(new THREE.Vector3(3.38+Math.cos(a+.8)*.32,-1.68+Math.sin(a+.8)*.42,.85+Math.sin(a)*.08));}
-  mk(am2,'#ef6a8b',.25);
+  mk(am2,'#ef6a8b',.28);
   const amN=[];for(let i=0;i<=16;i++){const a=i/16*6.283;
     amN.push(new THREE.Vector3(3.38+Math.cos(a)*.14,-1.68+Math.sin(a)*.12,.85));}
-  mk(amN,'#ff9a8b',.4);
+  mk(amN,'#ff9a8b',.45);
   /* VTA: hélice dupla */
   const vh=[];for(let i=0;i<=48;i++){const t=i/48;
     vh.push(new THREE.Vector3(.75+Math.cos(t*6.283*1.5)*.28,-2.9+t*.5,-.8+Math.sin(t*6.283*1.5)*.22));}
-  mk(vh,'#ff5d4d',.35);
+  mk(vh,'#ff5d4d',.4);
   const vh2=[];for(let i=0;i<=48;i++){const t=i/48;
     vh2.push(new THREE.Vector3(1.12+Math.cos(t*6.283*1.5+3.14)*.24,-2.65+t*.5,-.45+Math.sin(t*6.283*1.5+3.14)*.2));}
-  mk(vh2,'#ff5d4d',.3);
+  mk(vh2,'#ff5d4d',.34);
   /* TÁLAMO: cebola de 3 cascas */
   const th=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     th.push(new THREE.Vector3(Math.cos(a)*.5,2.7+Math.sin(a)*.3,-.3));}
-  mk(th,'#46c8bc',.35);
+  mk(th,'#46c8bc',.4);
   const th2=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     th2.push(new THREE.Vector3(Math.cos(a)*.34,2.7+Math.sin(a)*.2,-.3+Math.cos(a)*.06));}
-  mk(th2,'#46c8bc',.25);
+  mk(th2,'#46c8bc',.3);
   const th3=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     th3.push(new THREE.Vector3(Math.cos(a)*.18,2.7+Math.sin(a)*.11,-.3+Math.sin(a)*.08));}
-  mk(th3,'#7fdcd2',.35);
+  mk(th3,'#7fdcd2',.42);
   /* MENTE IA: prisma hexagonal de 3 camadas */
   for(let layer=0;layer<3;layer++){
     const rr=.34+layer*.06, yoff=1.15-layer*.04;
     const hx=[];for(let i=0;i<=6;i++){const a=i/6*6.283+layer*.35;
       hx.push(new THREE.Vector3(2.55+Math.cos(a)*rr,yoff+Math.sin(a)*rr,-.55));}
-    mk(hx,['#c8b6e8','#a99bd4','#8d80b8'][layer],.35-layer*.06);
+    mk(hx,['#c8b6e8','#a99bd4','#8d80b8'][layer],.42-layer*.06);
   }
   /* CÓRTEX SINTÁTICO: cúpula com meridianos */
   const sy=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     sy.push(new THREE.Vector3(Math.cos(a)*4.9,.55+Math.sin(a*2)*.12,-.3+Math.sin(a)*2.5));}
-  mk(sy,'#d8a8ff',.2);
+  mk(sy,'#d8a8ff',.26);
   for(let m=0;m<4;m++){
     const mer=[];
     const amg2=m/4*6.283;
     for(let i=0;i<=24;i++){const t=i/24;
       const rad=1.2+t*3.8;
       mer.push(new THREE.Vector3(Math.cos(amg2)*rad,.5+Math.sin(t*3.14)*.25,-.3+Math.sin(amg2)*rad*.62));}
-    mk(mer,'#d8a8ff',.12);
+    mk(mer,'#d8a8ff',.16);
   }
 }
 let ringLine=null;
@@ -1914,7 +2002,7 @@ function buildRing(){
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
   g.setAttribute('color',new THREE.BufferAttribute(col,3));
   ringLine=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
-    opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
+    opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(ringLine);
 }
 const TPAL=['#e8b34b','#46c8bc','#ef6a8b','#a5d64a','#e8c35a','#7fb8a8','#d0705c','#9fb8c8',
@@ -1963,7 +2051,7 @@ function showTrace(wids){
   const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',.5);
   traceLine=new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(curve.getPoints(Math.min(300,pts.length*10))),
-    new THREE.LineBasicMaterial({color:'#e8d8ff',transparent:true,opacity:.8,
+    new THREE.LineBasicMaterial({color:'#e8d8ff',transparent:true,opacity:.85,
       blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(traceLine);traceOp=1;
 }
@@ -1973,7 +2061,7 @@ const arcGeo=new THREE.BufferGeometry();
 arcGeo.setAttribute('position',new THREE.BufferAttribute(arcPos,3));
 arcGeo.setAttribute('color',new THREE.BufferAttribute(arcCol,3));
 scene.add(new THREE.LineSegments(arcGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
-  opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false})));
+  opacity:.65,blending:THREE.AdditiveBlending,depthWrite:false})));
 const visE=[],visK=new Map();let visDirty=true;
 const qbez=(a,b,c,t)=>{const u=1-t;return[u*u*a[0]+2*u*t*b[0]+t*t*c[0],u*u*a[1]+2*u*t*b[1]+t*t*c[1],u*u*a[2]+2*u*t*b[2]+t*t*c[2]];};
 function rebuildArcs(){
@@ -1992,9 +2080,9 @@ function rebuildArcs(){
     const cb=ca.clone();
     if(wb2.hub>=0)cb.set(CR[wb2.hub],CG[wb2.hub],CB[wb2.hub]).lerp(ca,.4);
     else cb.copy(wordColor(wb2.count)).lerp(ca,.4);
-    let inten=clamp(.08+e.w*.07,.07,.7);
-    if(e.kind==='r'){inten*=.75;ca.lerp(new THREE.Color('#46c8bc'),.4);cb.lerp(new THREE.Color('#46c8bc'),.4);}
-    if(e.kind==='a')inten*=.35;
+    let inten=clamp(.1+e.w*.08,.09,.8);
+    if(e.kind==='r'){inten*=.78;ca.lerp(new THREE.Color('#46c8bc'),.4);cb.lerp(new THREE.Color('#46c8bc'),.4);}
+    if(e.kind==='a')inten*=.4;
     ca.multiplyScalar(inten);cb.multiplyScalar(inten*.8);
     let prev=A;
     for(let g=1;g<=ASEGS;g++){
@@ -2063,12 +2151,12 @@ function rebuildGroundLines(){
     const g=new THREE.BufferGeometry().setFromPoints(pts);
     g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(cols),3));
     relLine=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
-      opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false}));
+      opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));
     scene.add(relLine);
   }
 }
 let chunkLine=null,showChunk=true;
-const chunkMat=new THREE.LineBasicMaterial({color:'#f0a63c',transparent:true,opacity:.45,
+const chunkMat=new THREE.LineBasicMaterial({color:'#f0a63c',transparent:true,opacity:.5,
   blending:THREE.AdditiveBlending,depthWrite:false});
 function rebuildChunkArcs(){
   const pts=[];
@@ -2096,7 +2184,7 @@ const pulGeo=new THREE.BufferGeometry();
 pulGeo.setAttribute('position',new THREE.BufferAttribute(pulPos,3).setUsage(THREE.DynamicDrawUsage));
 pulGeo.setAttribute('color',new THREE.BufferAttribute(pulCol,3).setUsage(THREE.DynamicDrawUsage));
 scene.add(new THREE.LineSegments(pulGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,
-  opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false})));
+  opacity:.95,blending:THREE.AdditiveBlending,depthWrite:false})));
 const pulses=[];
 function pulseAt(ax,ay,az,bx,by,bz,amp=1,col='#e8e4d8'){
   if(pulses.length>=CAPP)pulses.shift();
@@ -2204,6 +2292,7 @@ function updateLabels(){
 
 /* ================= 13 · telemetria ================= */
 let hzVal=0;
+let aiConfGlobal=null;
 function updateStats(){
   const syn=routes+revN+assocN+chunkMap.size*2+
     epiData.reduce((s,e)=>s+(e.epi?e.epi.length:0),0);
@@ -2213,6 +2302,8 @@ function updateStats(){
     .sort((a,b)=>b[1]-a[1]).slice(0,3).map(([wi])=>words[wi].label);
   $('stN').textContent=N;$('stS').textContent=syn;$('stW').textContent=alive.length;
   $('stR').textContent=routes;$('stK').textContent=chunkMap.size+'/'+NCHUNK;$('stHz').textContent=hzVal;
+  $('tAic').textContent=aiConfGlobal!=null?aiConfGlobal.toFixed(2):'—';
+  $('tAip').textContent=aiPlanBias||'—';
   $('tW').textContent=alive.length;$('tU').textContent=alive.filter(w=>w.grounded).length;
   $('tWk').textContent=alive.filter(w=>w.wiki).length;
   $('tQ').textContent=cnt('quem');$('tV').textContent=cnt('acao');
@@ -2328,13 +2419,14 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:23,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:25,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined,k:w.wiki?1:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
     frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
     acts:Object.fromEntries(Object.entries(ACTW).map(([k,v])=>[k,[...v]])),
+    aiPlan:aiPlanBias,
     episodes:epiData.map(e=>e.epi.slice()),episodeIdx,plan:frontalPlan};
   for(let a=0;a<words.length;a++){
     if(!words[a]||words[a].dead)continue;
@@ -2367,6 +2459,7 @@ function wipeNet(){
   topicCtx=new Map();turnCount=0;lastUserAct=null;
   lastResponses.length=0;
   Object.values(ACTW).forEach(s=>s.clear());
+  aiPlanBias=null;aiConf=null;aiConfGlobal=null;
   frontalPlan='—';arousal=0;prevTurn=null;lastBrainWids=null;history.length=0;
   msgs.innerHTML='';
   buildModules();buildChunks();
@@ -2408,6 +2501,7 @@ function importBrain(d){
       if(ACTW[k])arr.forEach(wi=>{if(words[wi]&&!words[wi].dead)ACTW[k].add(wi);});
     for(const ep of d.episodes||[])if(Array.isArray(ep)&&ep.length)writeEpisode(ep,true);
     if(d.episodeIdx)episodeIdx=d.episodeIdx%NEPI;
+    if(d.aiPlan&&['cadeia','sintaxe','lembranca'].includes(d.aiPlan))aiPlanBias=d.aiPlan;
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
@@ -2457,7 +2551,7 @@ let wipeArm=0;
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
-  log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno':'desligada — cérebro 100% cru'));
+  log('AI','mente IA '+(aiOn?'ligada — gerencia plano, confiança e sinapses':'desligada — cérebro 100% cru'));
 });
  $('btnWiki').addEventListener('click',function(){
   wikiOn=!wikiOn;this.classList.toggle('on',wikiOn);
@@ -2547,9 +2641,8 @@ buildModLabels();
 wipeNet();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 2525 gânglios (anel espiral fechado) + 97000 córtex em 58 ondas circulares (58 × 116 colunas × 25)`);
-log('SYS','coroa amarela dupla na borda externa · faísca luminosa orbitando continuamente');
-log('SYS',`mente: ${GROQ_MODEL} — corrige TODO turno · anti-eco ativo · wikipedia ligada`);
+log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 2525 gânglios (anel fechado) + 97000 córtex em 58 ondas circulares`);
+log('SYS',`mente: ${GROQ_MODEL} com MODO PENSAMENTO — edita · decreta plano · calibra confiança · reforça sinapses`);
 setTimeout(fireSweep,900);
 animate();
 </script>
