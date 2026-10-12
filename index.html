@@ -1839,18 +1839,9 @@ function buildHulls(){
       Math.sin(a)*(RMAX+.05)*.62-.3));
   }
   mk(crown2,'#e8b34b',.5);
-  /* GÂNGLIOS: toro espiralado triplo + núcleo interno */
-  const st=[];for(let i=0;i<=96;i++){const [x,y,z]=striatumPos(0,i/96);st.push(new THREE.Vector3(x,y,z));}
-  mk(st,'#f0a63c',.3);
-  const st2=[];for(let i=0;i<=96;i++){const [x,y,z]=striatumPos(0,i/96);
-    st2.push(new THREE.Vector3(x*.82,y*.82+.06,z+.04));}
-  mk(st2,'#f0a63c',.22);
-  const st3=[];for(let i=0;i<=96;i++){const [x,y,z]=striatumPos(0,i/96);
-    st3.push(new THREE.Vector3(x*1.16,y*1.16-.05,z-.04));}
-  mk(st3,'#f0a63c',.14);
-  const stc=[];for(let i=0;i<=24;i++){const a=i/24*6.283;
-    stc.push(new THREE.Vector3(STC.cx+Math.cos(a)*.3,STC.cy+Math.sin(a)*.16,STC.cz));}
-  mk(stc,'#e8b34b',.35);
+  /* GÂNGLIOS: anel espiral simples (versão original) */
+  const st=[];for(let i=0;i<=48;i++){const [x,y,z]=striatumPos(0,i/48);st.push(new THREE.Vector3(x,y,z));}
+  mk(st,'#f0a63c',.16);
   /* LOBO FRONTAL: casca dupla + cintura + tronco para a parada */
   const fShell=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     fShell.push(new THREE.Vector3(4.1+Math.cos(a)*.55,1.55+Math.sin(a)*.42,-.9+Math.sin(a*2)*.18));}
