@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TABULA·07 — 6000 neurônios · sintaxe generativa · IA corrige tudo</title>
+<title>TABULA·07 — 25000 neurônios · sintaxe + pergunta + morfologia + semântica + tópico + emoção</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -89,7 +89,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .wlb.mod{font-size:10px;font-weight:500;letter-spacing:.28em;text-transform:uppercase}
 #legend{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(8,9,11,.6);
   border:1px solid var(--line);padding:8px 11px;border-radius:2px;font-size:8.5px;color:var(--dim);
-  letter-spacing:.06em;display:flex;flex-direction:column;gap:4px;max-width:400px}
+  letter-spacing:.06em;display:flex;flex-direction:column;gap:4px;max-width:410px}
 #legend .li{display:flex;align-items:center;gap:6px}
 #legend .li i{width:6px;height:6px;border-radius:50%;background:var(--c)}
 #legend .li i.th{height:2px;border-radius:1px;width:14px}
@@ -101,7 +101,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-SYS{color:var(--dim)} .lk-NEW{color:var(--grn)} .lk-WEB{color:var(--teal)} .lk-TLK{color:var(--acc)}
 .lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
-.lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff}
+.lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff} .lk-MOR{color:#7fe0c8}
 #log .ln{margin-bottom:2px}
 .inst{font-size:10px;line-height:1.7;color:var(--dim)}
 .inst b{color:var(--tx);font-weight:500}
@@ -118,7 +118,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>6000 neurônios · sintaxe generativa (quem·ação·o quê) · IA corrige tudo</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>25000 neurônios · sintaxe + pergunta + morfologia + semântica + tópico + emoção</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -152,12 +152,14 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 5400 neurônios (216 colunas × 25) = o mar de hardware</div>
-      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — rótulos quem · ação · o quê · como: a frase é montada por ESTRUTURA antes da cadeia</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 575 hábitos · <i style="--c:#8fd0ff;margin-left:4px"></i>conceitos + fios de sentido (azul), ≠ (laranja), ou (verde)</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — corrige TODA resposta; lê intenção; fala o vocabulário do cérebro</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 16 episódios · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor local (6 rascunhos)</div>
-      <div class="li"><i style="--c:#ef6a8b"></i>amígdala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA — emoção, atenção e dopamina modulam tudo</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 23500 neurônios (940 colunas × 25) + 1467 gânglios + 33 módulos = 25000 fixos</div>
+      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância (quero/quer) por morfologia</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · contradição ≠ (laranja) · alternativa ou (verde)</div>
+      <div class="li"><i style="--c:#7fe0c8"></i>checagem semântica — ação só aceita objeto da categoria certa (comer ⇢ comida)</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — professor: só entra quando a voz própria falha; valida, rotula, corrige</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 1467 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano (cadeia/sintaxe) · parada · revisor</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção colore a fala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#5d5a52"></i>esquecimento suave — rotas fracas decaem; sono consolida; tópico vivo por ~5 trocas</div>
     </div>
   </div>
 
@@ -165,10 +167,10 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Como usar · o protocolo</h3>
       <div class="inst">
-        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>100% vazio</b>: <b>6000 neurônios fixos</b>, <b>8000 palavras</b>, 575 hábitos, 16 fios de linha. Quem fala primeiro é a mente IA.</span></div>
-        <div class="step"><span class="n">2</span><span><b>SINTAXE GENERATIVA</b>: cada palavra ganha um papel — <b>quem</b> (eu, você, gato), <b>ação</b> (quero, gosto), <b>o quê</b> (gato, comida), <b>como</b> (bem, muito). O gerador monta a frase <b>por estrutura</b>: sorteia um esqueleto (ex.: <b>sujeito → ação → o quê</b>), preenche cada slot pelos papéis — e pode falar frases que você nunca disse.</span></div>
-        <div class="step"><span class="n">3</span><span>Treine frases completas de padrões diferentes e repita 2–3×: <b>eu quero gato</b> · <b>você gosta</b> · <b>gato bom</b>. Cada padrão vira molde na sintaxe dele. O revisor reprova frase quebra-estrutura; a IA ancora os papéis junto do sentido.</span></div>
-        <div class="step"><span class="n">4</span><span>Botão <b>rotular</b> manda a IA re-classificar os papéis de todo o vocabulário. Botão <b>ia</b> desliga a muleta pra testá-lo cru.</span></div>
+        <div class="step"><span class="n">1</span><span><b>25000 neurônios fixos</b> · <b>20000 palavras</b> · 1467 hábitos · 24 fios de linha. Nasce vazio; a mente IA fala até o treino pegar.</span></div>
+        <div class="step"><span class="n">2</span><span><b>PERGUNTAS</b>: quem? o quê? como? sim ou não? — o tipo é detectado e a resposta preenche o papel certo. <b>MORFOLOGIA</b>: a IA liga quero/quer e gato/gatos como a mesma palavra — ele responde "eu quero" e "você quer" com a forma certa.</span></div>
+        <div class="step"><span class="n">3</span><span><b>SEMÂNTICA NOS SLOTS</b>: comer só aceita objeto comestível; a categoria vem dos fios de sentido. <b>TÓPICO</b>: as últimas ~5 trocas ficam vivas — ele não perde o fio. <b>EMOÇÃO</b>: arousal alto puxa palavras de valência forte.</span></div>
+        <div class="step"><span class="n">4</span><span><b>VOZ PRÓPRIA</b>: rascunho local com fluência ≥ 0.9 é falado sem IA — ela vira professora que só aparece na falha. <b>ATOS DE FALA</b>: saudação, despedida e agradecimento têm repertório próprio. <b>ESQUECIMENTO</b>: rotas fracas apodrecem devagar; treino forte fica.</span></div>
       </div>
     </section>
 
@@ -176,7 +178,7 @@ footer b{color:var(--dim);font-weight:400}
       <h3>Controles</h3>
       <div class="srow"><span>temperatura</span><input type="range" id="rngTemp" min="0.4" max="1.8" step="0.05" value="0.9"><b id="vTemp">0.90</b></div>
       <div class="grid2">
-        <button class="btn" id="btnSleep">dormir<em>replay dos fios + atalhos</em></button>
+        <button class="btn" id="btnSleep">dormir<em>replay + consolida moldes</em></button>
         <button class="btn" id="btnPrune">podar ruído<em>rotas fracas fora</em></button>
         <button class="btn" id="btnLesion">lesionar 25%<em>amígdala em alarme</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json</em></button>
@@ -199,8 +201,10 @@ footer b{color:var(--dim);font-weight:400}
         <span>palavras<b id="tW">0</b></span><span>entendidas<b id="tU">0</b></span>
         <span>quem<b id="tQ">0</b></span><span>ações<b id="tV">0</b></span>
         <span>o quê<b id="tO">0</b></span><span>como<b id="tH">0</b></span>
-        <span>rotas<b id="tR">0</b></span><span>hábitos<b id="tK">0</b></span>
-        <span>molde<br>gerado<b id="tSyn">—</b></span><span>arousal<b id="tAr">0.00</b></span>
+        <span>famílias<b id="tMo">0</b></span><span>molde gerado<b id="tSyn">—</b></span>
+        <span>tópico<b id="tTp">—</b></span><span>humor<b id="tHu">calmo</b></span>
+        <span>ato<b id="tAc">—</b></span><span>rotas<b id="tR">0</b></span>
+        <span>hábitos<b id="tK">0</b></span><span>arousal<b id="tAr">0.00</b></span>
         <span>fluência<b id="tF">—</b></span><span>modo<b id="tM">—</b></span>
         <span>confiança<b id="tC">—</b></span><span>balbucios<b id="tB">0</b></span>
       </div>
@@ -214,8 +218,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · frases montadas por estrutura: quem → ação → o quê · treine padrões diferentes pra criar moldes</span>
-  <span>6000 neurônios · 8000 palavras · sintaxe generativa: poucas frases treinadas, milhões possíveis</span>
+  <span><b>arraste</b> orbitar · pergunta → resposta no papel certo · concordância por família · voz própria fala sozinha quando boa</span>
+  <span>25000 neurônios · 20000 palavras · 1467 hábitos · semântica nos slots · tópico de 5 trocas · emoção colore</span>
 </footer>
 
 <script type="importmap">
@@ -245,8 +249,9 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — 6000 neurônios fixos ================= */
-const CAPW=8000, NCOLS=216, NPER=25, NCHUNK=575, NEPI=16, CAPN=6000;
+/* ================= 1 · motor LIF — hardware FIXO de 25000 neurônios =================
+   31 módulos + 2 marcadores + 1467 gânglios + 23500 córtex (940 colunas × 25) = 25000. */
+const CAPW=20000, NCOLS=940, NPER=25, NCHUNK=1467, NEPI=24, CAPN=25000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -311,9 +316,7 @@ function recover(){
 }
 let SPK=0;
 
-/* ================= 2 · córtex semântico + papel sintático =================
-   syn: papel sintático da palavra. '—' = sem papel.
-   quem (sujeito) · acao (verbo) · oque (objeto) · como (modificador). */
+/* ================= 2 · córtex semântico + papéis ================= */
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);
 const SYNALL=['quem','acao','oque','como'];
@@ -356,7 +359,7 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia + córtex dormente ================= */
+/* ================= 3 · anatomia + córtex dormente (940 colunas) ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
 let planN=-1,stopN=-1;
 let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
@@ -377,8 +380,9 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
+  /* córtex dormente: 940 colunas × 25 = 23500 numa grade 47×20 */
   dormantIds=[];
-  const GX=18,GY=12;
+  const GX=47,GY=20;
   for(let c=0;c<NCOLS;c++){
     const gx=c%GX, gy=(c/GX)|0;
     const u=(gx+.5)/GX+(h32('jx'+c)-.5)*.7/GX;
@@ -387,8 +391,8 @@ function buildModules(){
     const ids=[];
     for(let k=0;k<NPER;k++){
       let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
-      const L=Math.hypot(dx,dy,dz)||1,r=Math.cbrt(RNG())*.15+.035;
-      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.011,.78));
+      const L=Math.hypot(dx,dy,dz)||1,r=Math.cbrt(RNG())*.13+.03;
+      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.0085,.78));
     }
     for(let k=0;k<ids.length;k++){
       if(k+1<ids.length)pushE(ids[k],ids[k+1],.9,0);
@@ -410,12 +414,12 @@ function buildChunks(){
   chunkIds=[];chunkFree=[];
   for(let i=0;i<NCHUNK;i++){
     const [x,y,z]=striatumPos(i,i/(NCHUNK-1));
-    chunkIds.push(addN(x,y,z,'#f0a63c',.024,.68));
+    chunkIds.push(addN(x,y,z,'#f0a63c',.022,.68));
     chunkFree.push(i);
   }
 }
 
-/* ================= 4 · teia + relações lógicas ================= */
+/* ================= 4 · teia + lógica ================= */
 const transAdj=Array.from({length:CAPW},()=>null);
 const revAdj=Array.from({length:CAPW},()=>null);
 const assocAdj=Array.from({length:CAPW},()=>null);
@@ -488,13 +492,8 @@ function addAssoc(a,b,dw){
 }
 const sal=wi=>1/Math.sqrt(1+Math.max(0,words[wi].count));
 
-/* ================= 4.5 · MÓDULO SINTÁTICO =================
-   Moldes (frames) aprendidos com as frases que você ensina:
-   "eu quero gato" → [quem,acao,oque]. O gerador sorteia um molde,
-   preenche cada slot com palavras do papel certo (por associação
-   ao contexto), respeitando hábito/ant/xor. Reinforcement: molde
-   usado numa resposta boa ganha peso; reprovado, perde. */
-const frames=[]; /* {slots:['quem','acao','oque'], use:0, hit:0} */
+/* ================= 4.5 · SINTAXE GENERATIVA ================= */
+const frames=[];
 let synGenCount=0, lastSynGen=null;
 function learnFrame(wids){
   const slots=wids.map(wi=>words[wi].syn).filter(s=>s&&s!=='-');
@@ -504,39 +503,110 @@ function learnFrame(wids){
   frames.push({sig,slots:slots.slice(),use:1,hit:0});
   log('SYN',`molde novo: <b>${sig}</b> (frames: ${frames.length})`);
 }
-function framePool(role,ctxArr,inputSet,used){
-  /* palavras do papel certo, ordenadas por associação ao contexto */
+/* concordância morfológica: quero/quer/gatos… ligados por família */
+const morphOf=new Map();   /* widx → {root, tag} */
+const morphForms=new Map();/* rootwidx → [{wid,tag}] */
+const MTAGS=new Set(['eu','voce','ele','plural','singular']);
+function addMorph(wi,rootWi,tag){
+  if(!words[wi]||!words[rootWi]||!MTAGS.has(tag))return;
+  morphOf.set(wi,{root:rootWi,tag});
+  let arr=morphForms.get(rootWi);
+  if(!arr){arr=[];morphForms.set(rootWi,arr);}
+  if(!arr.some(x=>x.wid===wi))arr.push({wid:wi,tag});
+  addAssoc(wi,rootWi,1.2);
+}
+function subjTagFor(subjWid){
+  const w=words[subjWid];if(!w)return null;
+  const k=w.key;
+  if(k==='eu')return 'eu';
+  if(k==='voce'||k==='você')return 'voce';
+  if(k==='ele'||k==='ela')return 'ele';
+  const mo=morphOf.get(subjWid);
+  return mo?mo.tag:null;
+}
+/* afinidade semântica ação↔objeto, via associações (categorias vêm dos fios de sentido) */
+function semAffinity(a,b){
+  if(a==null||b==null||!words[a]||!words[b])return .75;
+  const ma=assocAdj[a];
+  if(ma){const o=ma.get(b);if(o&&o.w>=.6)return 1.0;}
+  const mb=assocAdj[b];
+  if(ma&&mb){
+    let common=0;
+    for(const [c,o] of ma){if(o.w>1){const ob=mb.get(c);if(ob&&ob.w>1)common++;if(common>=1)break;}}
+    if(common>=1)return .85;
+  }
+  return .55;
+}
+function framePool(role,ctxArr,inputSet,used,opts={}){
   const pool=[];
+  const {subjWid=null,actWid=null,qtypeRole=null,actSet=null}=opts;
+  const sTag=subjWid!=null?subjTagFor(subjWid):null;
   for(const w of words){
     if(w.dead||w.io||w.count<=0||w.syn!==role)continue;
     if(used.has(w.idx)||inputSet.has(w.idx))continue;
-    let att=0;
+    let p=1;
     const m=assocAdj[w.idx];
-    if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)att+=o.w*wt;}
-    pool.push([w.idx,1+att]);
+    if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)p+=o.w*wt;}
+    /* afinidade semântica: o quê tem que combinar com a ação */
+    if(role==='oque'&&actWid!=null)p*=(0.55+semAffinity(actWid,w.idx));
+    /* concordância: verbo casa com o sujeito pela família */
+    if(role==='acao'&&sTag){
+      const mo=morphOf.get(w.idx);
+      if(mo){
+        if(mo.tag===sTag)p*=6;
+        else p*=.15;
+      }else{
+        /* verbo sem forma marcada: neutro */
+        const fam=morphForms.get(w.idx);
+        if(fam&&fam.some(x=>x.tag===sTag)){
+          const me=fam.find(x=>x.tag===sTag);
+          if(me&&words[me.wid]&&!words[me.wid].dead&&!used.has(me.wid)&&!inputSet.has(me.wid))p*=.2;
+        }
+      }
+    }
+    /* plural do objeto se o sujeito é plural */
+    if(role==='oque'&&sTag==='plural'){
+      const mo=morphOf.get(w.idx);
+      if(mo){if(mo.tag==='plural')p*=4;else if(mo.tag==='singular')p*=.8;}
+    }
+    /* pergunta: o papel perguntado é muito desejado */
+    if(qtypeRole&&role===qtypeRole)p*=2.8;
+    /* emoção colore: valência forte com arousal alto */
+    if(arousal>.45)p*=valenceBoost(w.idx);
+    /* atos de fala: repertório do ato atual */
+    if(actSet&&actSet.has(w.idx))p*=3.2;
+    pool.push([w.idx,p]);
   }
   return pool;
 }
-function generateByFrame(inputWids,T,qa,plan){
+function generateByFrame(inputWids,T,qa,plan,qtype,act){
   if(!frames.length)return null;
+  const qtypeRole=qtype==='quem'?'quem':qtype==='oque'?'oque':qtype==='como'?'como':qtype==='simnao'?'como':null;
+  const actSet=act&&ACTW[act]?ACTW[act]:null;
   const ctx=new Map();
-  for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2);
-  if(lastBrainWids)for(const wi of lastBrainWids.slice(0,6))if(!ctx.has(wi)&&words[wi]&&!words[wi].dead)ctx.set(wi,sal(wi)*.4);
+  for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2.5);
+  for(const [wi,w] of topicCtx)if(!ctx.has(wi)&&words[wi]&&!words[wi].dead)ctx.set(wi,w*.7);
   const ctxArr=[...ctx.entries()];
   const inputSet=new Set(inputWids);
-  /* sorteia molde: uso recente pesa; arousal favorece moldes mais longos */
-  const wArr=frames.map(f=>[f,(f.hit+.5)/(f.use+2)]);
+  const wArr=frames.map(f=>{
+    let w=(f.hit+.5)/(f.use+2);
+    if(qtypeRole&&f.slots.includes(qtypeRole))w*=3;
+    return [f,w];
+  });
   const frame=sampleWeighted(wArr);
   if(!frame)return null;
   const used=new Set();const toks=[];const roles=[];
-  for(const role of frame.slots){
-    const pool=framePool(role,ctxArr,inputSet,used);
-    if(!pool.length)return null; /* molde não preenchível */
+  let subjWid=null,actWid=null;
+  for(let si=0;si<frame.slots.length;si++){
+    const role=frame.slots[si];
+    const pool=framePool(role,ctxArr,inputSet,used,{subjWid,actWid,qtypeRole,actSet});
+    if(!pool.length)return null;
     const wi=sampleWeighted(pool);
     if(wi===null)return null;
     toks.push(wi);used.add(wi);roles.push(role);
+    if(role==='quem'&&subjWid===null)subjWid=wi;
+    if(role==='acao'&&actWid===null)actWid=wi;
   }
-  /* confiança: média das forças de associação ao contexto */
   let conf=0,n=0;
   for(const wi of toks){
     const m=assocAdj[wi];let att=0;
@@ -548,7 +618,6 @@ function generateByFrame(inputWids,T,qa,plan){
          contrib:toks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
          flu:0,syn:true,frame,roles,cand:1};
 }
-/* papéis padrão heurísticos: usados quando a IA ainda não rotulou */
 const HINT_SYN=[
   [/^(eu|voce|ele|ela|nos|eles|gato|cachorro|comida|tabula|pessoa|bicho)$/,'quem'],
   [/^(quero|gosto|tenho|vou|falo|como|ando|vejo|amo|odeio|preciso|queres?|gosta|e|sou|vai|da|deixa|sabe|pode|faz|queria)$/,'acao'],
@@ -589,18 +658,17 @@ function recentEpisodes(){
   return out;
 }
 
-/* ================= 6 · aprendizado + esquecimento ================= */
+/* ================= 6 · aprendizado + esquecimento + tópico ================= */
 let newWordsMsg=0,newRoutesMsg=0;
 const newWordList=[];
 function ensureWord(label){
   const key=norm(label);let wi=wkey.get(key);
   if(wi===undefined){wi=registerWord(label);if(wi<0)return -1;
     newWordsMsg++;newWordList.push(wi);stim(vtaA,.8);
-    /* papel sintático heurístico imediato (IA refina depois) */
     const w=words[wi];
     const hint=heuristicSyn(label);
     if(hint){w.syn=hint;w.synConf=.35;}
-    log('NEW',`palavra nova: "${label}"${hint?` · papel inicial: ${hint}`:' · papel aguardando IA'}`);
+    log('NEW',`palavra nova: "${label}"${hint?` · papel inicial: ${hint}`:''}`);
     const ww=words[wi];pulseAt(ww.base[0],ww.base[1],ww.base[2],PX[vtaA],PY[vtaA],PZ[vtaA],.6,'#ff5d4d');}
   return wi;
 }
@@ -615,6 +683,11 @@ function learnMessage(wids,eta){
   }
   for(let i=0;i<wids.length;i++)
     for(let j=i+1;j<Math.min(wids.length,i+5);j++)addAssoc(wids[i],wids[j],.3);
+  /* morfologia reforça o laço com a raiz a cada uso */
+  for(const wi of wids){
+    const mo=morphOf.get(wi);
+    if(mo&&words[mo.root]&&!words[mo.root].dead)addAssoc(wi,mo.root,.3);
+  }
   learnFrame(wids);
   const epiI=writeEpisode(wids);
   log('EPI',`fio da linha ${epiI+1} gravado (${Math.min(wids.length,30)} palavras) · η ${eta.toFixed(2)}`);
@@ -638,7 +711,7 @@ function forgetWord(wi,reason){
   if(mr){revN-=mr.size;revAdj[wi]=null;}
   const ma=assocAdj[wi];
   if(ma){for(const [b] of ma){const mb=assocAdj[b];if(mb&&mb.has(wi)){mb.delete(wi);assocN--;}}assocAdj[wi]=null;}
-  antAdj[wi]=null;xorAdj[wi]=null;
+  antAdj[wi]=null;xorAdj[wi]=null;morphOf.delete(wi);morphForms.delete(wi);
   for(let a=0;a<words.length;a++){
     if(a===wi||!words[a]||words[a].dead)continue;
     const ta=transAdj[a];
@@ -650,6 +723,8 @@ function forgetWord(wi,reason){
     const qa=antAdj[a];if(qa&&qa.has(wi))qa.delete(wi);
     const qx=xorAdj[a];if(qx&&qx.has(wi))qx.delete(wi);
   }
+  for(const [k,mo] of [...morphOf])if(mo.root===wi)morphOf.delete(k);
+  for(const [k,arr] of [...morphForms])morphForms.set(k,arr.filter(x=>x.wid!==wi));
   epiData.forEach((ep,i)=>{
     if(ep.epi&&ep.epi.includes(wi)){
       ep.epi=ep.epi.filter(x=>x!==wi);
@@ -663,6 +738,8 @@ function forgetWord(wi,reason){
     const a=Math.floor(k/CAPW),b=k%CAPW;
     if(a===wi||b===wi)epiPair.delete(k);
   }
+  for(const act of Object.values(ACTW))act.delete(wi);
+  topicCtx.delete(wi);
   if(prevTurn){
     if(prevTurn.q)prevTurn.q=prevTurn.q.filter(x=>x!==wi);
     if(prevTurn.a)prevTurn.a=prevTurn.a.filter(x=>x!==wi);
@@ -674,8 +751,61 @@ function forgetWord(wi,reason){
   log('FGT',`esquecida: "<b>${lbl}</b>" — ${reason}`);
   pulseAt(w.base[0],w.base[1],w.base[2],PX[amgA],PY[amgA],PZ[amgA],.7,'#ff9a8b');
 }
+/* esquecimento suave: a cada 3 turnos, rotas fracas apodrecem; fortes ficam */
+let turnCount=0;
+function decayNet(){
+  let decayed=0;
+  for(let a=0;a<CAPW;a++){
+    const w=words[a];if(!w||w.dead)continue;
+    const mt=transAdj[a];
+    if(mt)for(const o of mt.values()){
+      const before=o.w;
+      if(o.w<1.0)o.w*=.994;else if(o.w<2.2)o.w*=.998;
+      if(before>=.55&&o.w<.55)decayed++;
+    }
+    const mr=revAdj[a];
+    if(mr)for(const o of mr.values())if(o.w<.6)o.w*=.995;
+  }
+  if(decayed>0){
+    /* hábitos cuja rota apodreceu são liberados */
+    for(const [key,ch] of [...chunkMap]){
+      const a=Math.floor(key/CAPW),b=key%CAPW;
+      const m=transAdj[a];const o=m&&m.get(b);
+      if(!o||o.w<.55)freeChunk(ch.ci);
+    }
+    compile();
+    log('SYS',`esquecimento suave: ${decayed} rota(s) fraca(s) apodreceram desde a última checagem`);
+  }
+}
+/* memória de tópico: ~5 trocas vivas com decaimento */
+let topicCtx=new Map();
+function pushTopic(wids,amt){
+  for(const wi of wids)topicCtx.set(wi,(topicCtx.get(wi)||0)+amt);
+  if(topicCtx.size>48){
+    const keep=[...topicCtx.entries()].sort((a,b)=>b[1]-a[1]).slice(0,48);
+    topicCtx=new Map(keep);
+  }
+}
+function ageTopic(){
+  for(const [k,v] of [...topicCtx]){const nv=v*.62;nv<.12?topicCtx.delete(k):topicCtx.set(k,nv);}
+}
+/* atos de fala: repertórios por ato */
+const ACTW={greet:new Set(),bye:new Set(),thanks:new Set()};
+const ACTRE={
+  greet:/^(oi|ola|eae|e ai|fala|bom dia|boa tarde|boa noite|salve|opa|tudo bem)/,
+  bye:/(tchau|adeus|ate mais|ate logo|falou|ate amanha)/,
+  thanks:/(obrigado|obrigada|brigado|valeu|gratidao)/
+};
+function detectAct(text){
+  const t=norm(text.trim());
+  if(ACTRE.greet.test(t))return 'greet';
+  if(ACTRE.thanks.test(t))return 'thanks';
+  if(ACTRE.bye.test(t))return 'bye';
+  return null;
+}
+const ACTNAME={greet:'saudação',bye:'despedida',thanks:'agradecimento'};
 
-/* ================= 7 · lobo frontal + geração (cadeia OU molde) ================= */
+/* ================= 7 · lobo frontal + geração ================= */
 let frontalPlan='—', arousal=0;
 const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc', sintaxe:'#d8a8ff'};
 function bumpArousal(v){
@@ -685,6 +815,20 @@ function bumpArousal(v){
     pulseAt(PX[amgA],PY[amgA],PZ[amgA],PX[thalN],PY[thalN],PZ[thalN],.7,'#ef6a8b');
     stim(amgA,1.2);stim(amgB,1.0);
   }
+}
+function moodName(){return arousal>.7?'tenso':arousal>.5?'animado':arousal>.3?'alerta':'calmo';}
+/* polaridade: polos positivo/negativo na teia */
+let polarWids=new Set();
+function refreshPolar(){
+  polarWids.clear();
+  for(const w of words)if(!w.dead&&(w.key==='positivo'||w.key==='negativo'))polarWids.add(w.idx);
+}
+function valenceBoost(wi){
+  if(arousal<=.45||!polarWids.size)return 1;
+  const m=assocAdj[wi];
+  if(!m)return 1;
+  for(const pw of polarWids){const o=m.get(pw);if(o&&o.w>1)return 1+arousal*.6;}
+  return 1;
 }
 function outSum(a){let s=0;const m=transAdj[a];if(m)for(const o of m.values())s+=o.w;return s;}
 function sampleWeighted(arr){
@@ -702,16 +846,17 @@ function frontalDecide(inputWids,qa){
   if(top!==undefined&&revAdj[top])for(const o of revAdj[top].values())invS+=o.w;
   if(qa)invS*=1.6;
   const epiS=recentEpisodes().length?1.15:.15;
-  /* novo plano: sintaxe — disponível quando há moldes aprendidos */
   const synS=frames.length?frames.reduce((s,f)=>s+f.use,0)*.35+.4:0;
   const opts=[['cadeia',chainS+.12],['inversa',invS+.12],['lembrança',epiS],['sintaxe',synS]];
   return sampleWeighted(opts.map(([n,s])=>[n,Math.pow(Math.max(.01,s),1.1)]))||'cadeia';
 }
-function generate(inputWids,T,qa,plan,learn){
+function generate(inputWids,T,qa,plan,learn,qtype,act){
   const inputSet=new Set(inputWids);
+  const qtypeRole=qtype==='quem'?'quem':qtype==='oque'?'oque':(qtype==='como'||qtype==='simnao')?'como':null;
+  const actSet=act&&ACTW[act]?ACTW[act]:null;
   const ctx=new Map();
-  for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2);
-  if(lastBrainWids)for(const wi of lastBrainWids.slice(0,6))if(!ctx.has(wi)&&words[wi]&&!words[wi].dead)ctx.set(wi,sal(wi)*.5);
+  for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2.5);
+  for(const [wi,w] of topicCtx)if(!ctx.has(wi)&&words[wi]&&!words[wi].dead)ctx.set(wi,w*.7);
   const ctxArr=[...ctx.entries()];
   const ctxNorm=ctxArr.reduce((s,[,w])=>s+w,0)||1;
   const arBoost=1+.4*arousal;
@@ -724,6 +869,9 @@ function generate(inputWids,T,qa,plan,learn){
     if(b===0||b===1)return;
     if(!words[b]||words[b].dead)return;
     if(antHit(b,inputSet))s*=.15;
+    if(qtypeRole&&words[b].syn===qtypeRole)s*=2.6;
+    if(actSet&&actSet.has(b))s*=3.2;
+    if(arousal>.45)s*=valenceBoost(b);
     score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src,slot]);};
   for(const [cw,wt] of ctxArr){const m=assocAdj[cw];
     if(m)for(const [b,o] of m)addC(b,wt*o.w*.5,'assoc');}
@@ -779,6 +927,9 @@ function generate(inputWids,T,qa,plan,learn){
       if(inputSet.has(b)&&b!==0)p*=(b===inputWids[0]?.9:.6);
       if(lastBrainWids&&lastBrainWids.includes(b)&&!inputSet.has(b))p*=.45;
       if(b===prevTok)p*=.2;
+      if(qtypeRole&&words[b].syn===qtypeRole)p*=2.2;
+      if(actSet&&actSet.has(b))p*=3.0;
+      if(arousal>.45)p*=valenceBoost(b);
       opts.push([b,p,o]);
     }
     const pick=sampleWeighted(opts.map(o=>[o,o[1]]));
@@ -793,7 +944,7 @@ function generate(inputWids,T,qa,plan,learn){
   return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),epi:[...epiSlots]};
 }
 
-/* ================= 8 · REVISOR local (sintaxe entra no concurso) ================= */
+/* ================= 8 · REVISOR local ================= */
 let revOn=true;
 function pairSupport(a,b){
   const m=transAdj[a];if(!m)return 0;
@@ -836,7 +987,6 @@ function scoreFluency(toks){
   if(quoteBoost(toks))s+=1.0;
   return clamp(s,0,1.35);
 }
-/* bônus de estrutura: pares de papéis que fluem bem somam; quebra subtrai */
 const GOODPAIR=new Set(['quem>acao','acao>oque','quem>acao>oque','oque>como','como>oque','quem>como','acao>como']);
 function synBonus(toks){
   if(toks.length<2)return 0;
@@ -848,21 +998,19 @@ function synBonus(toks){
     else if(r1==='quem'&&r2==='quem')b-=.25;
     else if(r1==='acao'&&r2==='acao')b-=.2;
   }
-  /* começa com quem ou ação = frase canônica */
   const r0=words[toks[0]].syn;
   if(r0==='quem'||r0==='acao')b+=.15;
   return b;
 }
-function bestOfN(inputWids,T,qa,plan,n=6){
+function bestOfN(inputWids,T,qa,plan,qtype,act,n=6){
   const temps=[T*.7,T,T*1.25,T*.85,T*1.4,T*.6];
   const cands=[];
   for(let i=0;i<n;i++){
-    cands.push(generate(inputWids,temps[i%temps.length],qa,plan,false));
+    cands.push(generate(inputWids,temps[i%temps.length],qa,plan,false,qtype,act));
   }
-  /* dois rascunhos do concurso vêm do gerador por molde */
   if(frames.length){
     for(let i=0;i<2;i++){
-      const fr=generateByFrame(inputWids,T,qa,plan);
+      const fr=generateByFrame(inputWids,T,qa,plan,qtype,act);
       if(fr&&fr.tokens.length>=2)cands.push(fr);
     }
   }
@@ -892,21 +1040,21 @@ function recallEpisode(inputWids){
   if(best<0||bs<.6)return null;
   return{slot:best,tokens:epiData[best].epi.slice(),score:bs};
 }
-function reviseAndSpeak(inputWids,T,qa,plan){
+function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   let r,candN=1,candI=1,rec=null;
   if(revOn){
-    r=bestOfN(inputWids,T,qa,plan,6);
+    r=bestOfN(inputWids,T,qa,plan,qtype,act,6);
     candN=r.candN;candI=r.cand;
     if(r.flu<.62)rec=recallEpisode(inputWids);
   }else{
-    r=generate(inputWids,T,qa,plan,true);
+    r=generate(inputWids,T,qa,plan,true,qtype,act);
     r.flu=scoreFluency(r.tokens);
   }
   r.mode='gerado';r.candN=candN;r.candI=candI;r.recall=rec;
   return r;
 }
 
-/* ================= 8.5 · IA groq — mente falante + rotulador sintático ================= */
+/* ================= 8.5 · IA groq — professora + mente de reserva ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL='openai/gpt-oss-120b';
@@ -947,39 +1095,42 @@ async function groqChat(sys,usr,maxTokens=80,temp=.5){
   const j=await res.json();
   return (j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'')||'';
 }
-async function groqRepair(userText,draftText){
+async function groqRepair(userText,draftText,qtype,act){
   const hist=history.slice(-2).map(h=>`- usuário: "${h.u}" | tabula: "${h.b}"`).join('\n');
   const rels=knownRels();
+  const qline=qtype?`tipo de pergunta detectado: ${qtype} — a resposta DEVE preencher esse papel`+
+    (qtype==='quem'?' (começar ou conter um sujeito: eu/você/nome)':
+     qtype==='oque'?' (conter o objeto perguntado)':
+     qtype==='acao'?' (conter a ação)':
+     ' (conter um modificador: sim, não, bem, mal…)')+'\n':'';
+  const aline=act?`ato de fala detectado: ${ACTNAME[act]} — responda no tom desse ato\n`:'';
   const sys=[
     'Você é a MENTE FALANTE da TABULA: um cérebro artificial minúsculo que SÓ consegue falar com as palavras que já tem.',
     'Sua única função: ler a mensagem do usuário e devolver UMA resposta curta, com sentido completo, feita APENAS com o vocabulário disponível.',
     '',
     'PRINCÍPIOS OBRIGATÓRIOS (sem exceção):',
-    '1. SENTIDO ANTES DE TUDO — a resposta final tem que ser uma frase que um humano entende na hora. Se o rascunho for sem sentido, IGNORE-O e construa a resposta você mesmo.',
-    '2. VOCABULÁRIO FECHADO — use SOMENTE palavras da lista. Palavra fora é proibida (única exceção: regra 6).',
-    '3. ESTRUTURA DE FRASE — prefira respostas com SUJEITO + VERBO (+ OBJETO), nessa ordem, quando o sentido permitir. Exemplos: "eu quero gato", "você gosta", "gato bom". Frase de uma palavra só é válida quando a pergunta é fechada (sim/não) ou saudação.',
-    '4. CURTA — no máximo 6 palavras.',
-    '5. LEIA A INTENÇÃO:',
-    '   • PERGUNTA ("?") → responda diretamente;',
-    '   • PAR DE OPOSTOS na mensagem → escolha UM lado coerente;',
-    '   • ESCOLHA EXCLUSIVA ("X ou Y?") → escolha uma opção;',
-    '   • afirmação positiva → tom positivo; negativa → tom negativo;',
-    '   • saudação → devolva; despedida → despeça.',
-    '6. NUNCA ponha antônimos na mesma resposta.',
-    '7. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
-    '8. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas, sem explicação.',
-    '9. Use as relações lógicas conhecidas para decidir o lado da resposta.'
+    '1. SENTIDO ANTES DE TUDO — a resposta tem que ser uma frase que um humano entende na hora. Rascunho sem sentido: IGNORE e construa você.',
+    '2. VOCABULÁRIO FECHADO — só palavras da lista (exceção: regra 7).',
+    '3. ESTRUTURA DE FRASE — prefira SUJEITO + VERBO (+ OBJETO), nessa ordem. "eu quero gato", "você gosta", "gato bom". Uma palavra só vale para pergunta fechada (sim/não) ou saudação.',
+    '4. CONCORDÂNCIA — "eu quero", "você quer", "ele quer". Faça o verbo combinar com o sujeito.',
+    '5. CURTA — no máximo 6 palavras.',
+    '6. LEIA A INTENÇÃO: pergunta → responda direto; opostos na mensagem → escolha UM lado; escolha exclusiva → escolha uma opção; positivo → tom positivo; negativo → tom negativo; saudação → devolva; despedida → despeça; agradecimento → acene.',
+    '7. NUNCA antônimos juntos na mesma resposta.',
+    '8. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
+    '9. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas.',
+    '10. Use as relações lógicas conhecidas para decidir o lado em contradições e escolhas.'
   ].join('\n');
   const usr='vocabulário do cérebro (única fonte permitida): ['+knownVocabList()+']\n'+
     (rels?'relações lógicas conhecidas: '+rels+'\n':'')+
     (hist?'conversa recente:\n'+hist+'\n':'')+
+    qline+aline+
     'mensagem do usuário: "'+userText+'"\n'+
     'rascunho interno do cérebro (corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
     'frase final (só a frase):';
   return cleanAI(await groqChat(sys,usr,60,.15));
 }
 
-/* ---------- rotulador sintático: papel de cada palavra ---------- */
+/* ---------- rotulador sintático ---------- */
 async function groqLabel(labels){
   const sys='Você rotula palavras do português do Brasil com UM papel sintático cada, para um cérebro artificial. '+
     'Papéis possíveis:\n'+
@@ -988,7 +1139,7 @@ async function groqLabel(labels){
     'oque = objeto/coisa concreta (gato, pizza, bola, casa, nome)\n'+
     'como = modificador/advérbio/resposta curta (bem, mal, muito, bom, ruim, sim, não, hoje)\n'+
     'Formato exato, UMA linha por palavra:\npalavra: papel\n'+
-    'Sem explicação, sem markdown. Só as linhas. Se uma palavra couber em dois papéis, escolha o mais comum em frases simples.';
+    'Sem explicação, sem markdown. Só as linhas. Se couber em dois papéis, escolha o mais comum em frases simples.';
   const usr='palavras: '+labels.join(', ')+'\n\nlinhas:';
   const txt=await groqChat(sys,usr,300,.1);
   const map=new Map();
@@ -1028,15 +1179,15 @@ async function pumpLabel(){
           const w=words[wi];w.act=Math.max(w.act,1.2);
           pulseAt(w.base[0],w.base[1],w.base[2],PX[planN],PY[planN],PZ[planN],.5,'#d8a8ff');}
       }
-      if(n)log('SYN',`${n} palavra(s) com papel: ${batch.slice(0,4).map(wi=>words[wi].syn&&words[wi].syn!=='-'?`${words[wi].label}(${words[wi].syn})`:null).filter(Boolean).join(', ')}…`);
+      if(n)log('SYN',`${n} papel(is) gravado(s)`);
     }catch(e){log('SYN','rotulagem falhou ('+(e.message||'erro')+')');}
-    await new Promise(r=>setTimeout(r,800));
+    await new Promise(r=>setTimeout(r,700));
   }
   updateStats();
   labelBusy=false;
 }
 
-/* ---------- fila de validação de palavras ---------- */
+/* ---------- validação de palavras (sentido + ≠ + ou + forma) ---------- */
 const groundQ=[]; let groundBusy=false;
 function queueGround(wis,ctx){
   if(!aiOn||!wis||!wis.length)return;
@@ -1052,7 +1203,7 @@ async function pumpGround(){
     const wis=[...new Set(job.wis)].filter(wi=>words[wi]&&!words[wi].dead&&!words[wi].grounded&&!words[wi].io&&wi>1);
     if(!wis.length)continue;
     wis.forEach(wi=>words[wi].groundTries++);
-    log('AI',`validando: ${wis.map(wi=>`"${words[wi].label}"`).join(', ')} — sentido, ≠ e ou (${GROQ_MODEL})`);
+    log('AI',`validando: ${wis.map(wi=>`"${words[wi].label}"`).join(', ')} — sentido, ≠, ou, forma (${GROQ_MODEL})`);
     try{
       const map=await groqValidate(wis.map(wi=>words[wi].label),job.ctx);
       let nOK=0,nFGT=0;
@@ -1060,15 +1211,15 @@ async function pumpGround(){
         const v=map.get(norm(words[wi].label));
         if(!v){words[wi].groundTries=Math.min(words[wi].groundTries,1);continue;}
         if(v.ok){
-          if(v.concepts.length||v.ant.length||v.xor.length){applyGrounding(wi,v.concepts,v.ant,v.xor);nOK++;}
+          if(v.concepts.length||v.ant.length||v.xor.length||v.forms.length){applyGrounding(wi,v.concepts,v.ant,v.xor,v.forms);nOK++;}
           else words[wi].groundTries=Math.min(words[wi].groundTries,1);
         }else{
           forgetWord(wi,'IA rejeitou: erro de digitação ou sem sentido');nFGT++;
         }
       }
       if(nOK||nFGT)log('AI',`veredito: ${nOK} entendida(s) · ${nFGT} esquecida(s)`);
-    }catch(e){log('AI','validação falhou ('+(e.message||'erro')+') — palavras seguem pendentes');}
-    await new Promise(r=>setTimeout(r,800));
+    }catch(e){log('AI','validação falhou ('+(e.message||'erro')+')');}
+    await new Promise(r=>setTimeout(r,700));
   }
   groundBusy=false;
 }
@@ -1078,38 +1229,50 @@ async function groqValidate(labels,ctx){
   const sys='Você é o validador semântico de um cérebro artificial que aprende português do Brasil DO ZERO. '+
     'Para cada palavra nova, decida se é REAL (qualquer classe gramatical) ou ERRO DE DIGITAÇÃO / palavra inventada. '+
     'Se for real, ancore pelo SIGNIFICADO com até 3 conceitos, nesta ordem de prioridade:\n'+
-    '1. POLARIDADE — valência positiva/afirmativa liga a "positivo"; negativa liga a "negativo". '+
-    'Exemplos exatos: bem: sim, positivo, bom | mal: sim, negativo, ruim | sim: sim, positivo | nao: sim, negativo | '+
-    'otimo: sim, positivo, bom | gosto: sim, positivo | odeio: sim, negativo\n'+
-    '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | casa: sim, lugar, morar\n'+
+    '1. POLARIDADE — valência positiva liga a "positivo"; negativa a "negativo". '+
+    'Exemplos exatos: bem: sim, positivo, bom | mal: sim, negativo, ruim | sim: sim, positivo | nao: sim, negativo\n'+
+    '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | pizza: sim, comida, comer | casa: sim, lugar, morar\n'+
     '3. USO — papel gramatical: eu: sim, pessoa | de: sim, ligacao\n'+
-    'ALÉM da linha principal, quando existir, acrescente linhas extras (uma por relação):\n'+
-    'palavra -contraria: oposto direto (antônimo). Exemplos: bem -contraria: mal | sim -contraria: nao\n'+
-    'palavra -outra: alternativa exclusiva "ou". Exemplos: sim -outra: nao\n'+
+    'ALÉM da linha principal, acrescente linhas extras quando existirem (uma por relação):\n'+
+    'palavra -contraria: oposto direto. Ex.: bem -contraria: mal | sim -contraria: nao\n'+
+    'palavra -outra: alternativa exclusiva "ou". Ex.: sim -outra: nao\n'+
+    'palavra -forma: raiz,tag — se a palavra é variação (conjugação/plural) de outra: '+
+    'quero -forma: quer,eu | quer -forma: quer,voce | gatos -forma: gato,plural | gato -forma: gato,singular | '+
+    'comemos -forma: comer,plural\n'+
+    'tags válidas de -forma: eu, voce, ele, plural, singular. '+
+    'Regras das linhas extras: no máximo UMA palavra por linha; só relações claras e diretas. '+
     'Formato das linhas principais:\n'+
     'palavra: sim, conceito1, conceito2, conceito3\n'+
     'palavra: nao\n'+
-    'Sem frases, sem explicação, sem numeração, sem markdown. Apenas as linhas.';
+    'Sem frases, sem explicação, sem markdown. Apenas as linhas.';
   const usr='palavras novas: '+labels.join(', ')+'\n'+
     'frase onde apareceram: "'+ctx+'"\n'+
     'vocabulário conhecido: '+(vocab.join(', ')||'(nenhum ainda)')+'\n\nlinhas:';
-  const txt=await groqChat(sys,usr,320,.2);
+  const txt=await groqChat(sys,usr,360,.2);
   const map=new Map();
   const get=k=>{
-    if(!map.has(k))map.set(k,{ok:true,concepts:[],ant:[],xor:[]});
+    if(!map.has(k))map.set(k,{ok:true,concepts:[],ant:[],xor:[],forms:[]});
     return map.get(k);
   };
-  const relRe=/^\s*(?:[-*•\d.)\s]*)("?)([\p{L}\p{N}'-]+)\1\s+(-contraria|-outra)\s*[:\-–]\s*("?)([\p{L}\p{N}'-]+)\4/u;
+  const relRe=/^\s*(?:[-*•\d.)\s]*)("?)([\p{L}\p{N}'-]+)\1\s+(-contraria|-outra|-forma)\s*[:\-–]\s*(.+)$/u;
   for(const raw of txt.split(/\n+/)){
     const rm=raw.match(relRe);
     if(rm){
       let k=norm(rm[2]);
-      const kind=rm[3]==='-contraria'?'ant':'xor';
-      const val=norm(rm[5]);
-      if(!k||!val||k===val)continue;
+      const kind=rm[3];
+      const val=rm[4].trim();
+      if(!k)continue;
       const e=get(k);
-      if(kind==='ant'){if(!e.ant.includes(val))e.ant.push(val);}
-      else{if(!e.xor.includes(val))e.xor.push(val);}
+      if(kind==='-forma'){
+        const parts=val.split(/,|;/).map(s=>norm(s).replace(/[^a-z ]/g,'').trim());
+        const root=parts[0]||'';const tag=parts[1]||'';
+        if(root&&MTAGS.has(tag)&&root!==k)e.forms.push({root,tag});
+      }else{
+        const v2=norm(val).replace(/[^a-z ]/g,'').trim().split(/[\s,;]/)[0]||'';
+        if(!v2||v2===k)continue;
+        if(kind==='-contraria'){if(!e.ant.includes(v2))e.ant.push(v2);}
+        else{if(!e.xor.includes(v2))e.xor.push(v2);}
+      }
       continue;
     }
     const m=raw.match(/^\s*(?:[-*•\d.)\s]*)("?)([\p{L}\p{N}'-]+)\1\s*[:\-–]\s*(.+)$/u);
@@ -1118,8 +1281,15 @@ async function groqValidate(labels,ctx){
     let relSuffix=null;
     if(/-?contraria$/.test(k)){relSuffix='ant';k=k.replace(/-?contraria$/,'');}
     else if(/-?outra$/.test(k)){relSuffix='xor';k=k.replace(/-?outra$/,'');}
+    else if(/-?forma$/.test(k)){relSuffix='forma';k=k.replace(/-?forma$/,'');}
     if(!k)continue;
     const rest=m[3].trim();
+    if(relSuffix==='forma'){
+      const parts=rest.split(/,|;/).map(s=>norm(s).replace(/[^a-z ]/g,'').trim());
+      const root=parts[0]||'';const tag=parts[1]||'';
+      if(root&&MTAGS.has(tag)&&root!==k){const e=get(k);e.forms.push({root,tag});}
+      continue;
+    }
     if(relSuffix){
       const val=norm(rest).replace(/[^a-z ]/g,'').trim().split(/[\s,;]/)[0]||'';
       if(val&&val!==k){const e=get(k);e[relSuffix].push(val);}
@@ -1130,19 +1300,19 @@ async function groqValidate(labels,ctx){
     const yes=/^(sim|s|ok|valida|real|verdadeira|si|yes|y)/.test(first);
     const no=/^(nao|n|no|invalida|falsa|x|descarta)/.test(first);
     if(!yes&&!no)continue;
-    if(no){map.set(k,{ok:false,concepts:[],ant:[],xor:[]});continue;}
+    if(no){map.set(k,{ok:false,concepts:[],ant:[],xor:[],forms:[]});continue;}
     const concepts=rest.split(/,|;/)
       .slice(1)
       .map(s=>norm(s).replace(/[^a-z0-9 ]/g,'').trim().split(/\s+/)[0])
       .filter(s=>s&&s.length>=2&&s.length<=18&&s!==k&&!labels.map(norm).includes(s))
       .slice(0,3);
-    map.set(k,{ok:true,concepts,ant:[],xor:[]});
+    map.set(k,{ok:true,concepts,ant:[],xor:[],forms:[]});
   }
   return map;
 }
-function applyGrounding(wi,labels,antL,xorL){
+function applyGrounding(wi,labels,antL,xorL,formsL){
   const w=words[wi];
-  antL=antL||[];xorL=xorL||[];
+  antL=antL||[];xorL=xorL||[];formsL=formsL||[];
   const awids=[];
   for(const lb of labels.slice(0,3)){
     const awi=ensureWord(lb);
@@ -1151,7 +1321,7 @@ function applyGrounding(wi,labels,antL,xorL){
       awids.push(awi);
     }
   }
-  let nRel=0;
+  let nRel=0,nForm=0;
   for(const lb of antL.slice(0,1)){
     const awi=ensureWord(lb);
     if(awi>=0&&awi!==wi&&!words[awi].dead){addAnt(wi,awi);nRel++;}
@@ -1160,7 +1330,11 @@ function applyGrounding(wi,labels,antL,xorL){
     const awi=ensureWord(lb);
     if(awi>=0&&awi!==wi&&!words[awi].dead){addXor(wi,awi);nRel++;}
   }
-  if(!awids.length&&!nRel){w.groundTries=Math.min(w.groundTries,1);return;}
+  for(const f of formsL.slice(0,2)){
+    const rwi=ensureWord(f.root);
+    if(rwi>=0&&rwi!==wi&&!words[rwi].dead){addMorph(wi,rwi,f.tag);nForm++;}
+  }
+  if(!awids.length&&!nRel&&!nForm){w.groundTries=Math.min(w.groundTries,1);return;}
   w.grounded=true;w.groundTries=0;w.ground=awids.slice(0,3);
   if(awids.length){addTrans(wi,awids[0],.9);addRev(awids[0],wi,.8);}
   w.act=1.6;stim(vtaA,.9);
@@ -1168,11 +1342,17 @@ function applyGrounding(wi,labels,antL,xorL){
     const a=words[awi];a.act=Math.max(a.act,1.0);
     pulseAt(w.base[0],w.base[1],w.base[2],a.base[0],a.base[1],a.base[2],.85,'#8fd0ff');
   }
+  if(nForm){
+    const mo=morphOf.get(wi);
+    log('MOR',`família: "<b>${w.label}</b>" é forma ${mo.tag} de "${words[mo.root].label}"`);
+    pulseAt(w.base[0],w.base[1],w.base[2],words[mo.root].base[0],words[mo.root].base[1],words[mo.root].base[2],.6,'#7fe0c8');
+  }
   log('GND',`fio de sentido: "<b>${w.label}</b>" ⇢ `+
     (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)'));
   if(dirtyC)compile();
   rebuildVisFromNet();
   rebuildGroundLines();
+  refreshPolar();
   updateStats();
   const relWids=[];
   for(const lb of [...antL,...xorL]){const a2=wkey.get(norm(lb));if(a2!==undefined)relWids.push(a2);}
@@ -1183,13 +1363,22 @@ function applyGrounding(wi,labels,antL,xorL){
 /* ================= 9 · chat ================= */
 const msgs=$('msgs'),logEl=$('log'),sendBtn=$('send'),inp=$('inp');
 let simT=0, prevTurn=null, typing=null, lastBrainWids=null, lastUserText='';
-let lastFlu=null,lastMode=null;
+let lastFlu=null,lastMode=null,lastUserAct=null;
 function log(kind,msg){
   const d=document.createElement('div');d.className='ln';
   d.innerHTML=`<span class="lt">${fmtT(simT)}</span><span class="lk lk-${kind}">${kind}</span>${msg}`;
   const stick=logEl.scrollTop+logEl.clientHeight>=logEl.scrollHeight-20;
   logEl.appendChild(d);while(logEl.children.length>90)logEl.removeChild(logEl.firstChild);
   if(stick)logEl.scrollTop=logEl.scrollHeight;
+}
+function detectQType(text,wids){
+  const isQ=/\?|？/.test(text);
+  const k=wids.map(wi=>words[wi].key);
+  if(k.includes('quem'))return 'quem';
+  if(isQ&&k.includes('como'))return 'como';
+  if(k.includes('que'))return 'oque';
+  if(isQ)return 'simnao';
+  return null;
 }
 function tokenize(text){
   const raw=text.trim().split(/\s+/).slice(0,40),out=[];
@@ -1209,13 +1398,21 @@ function userSend(){
   inp.value='';sendBtn.disabled=true;
   lastUserText=text;
   const hadQ=/\?|？/.test(text);
+  const act=detectAct(text);
+  lastUserAct=act;
   const d=document.createElement('div');d.className='msg me';
-  d.innerHTML=`<span class="who">você${hadQ?' · pergunta':''}</span><span class="tx"></span>`;
+  d.innerHTML=`<span class="who">você${hadQ?' · pergunta':''}${act?` · ${ACTNAME[act]}`:''}</span><span class="tx"></span>`;
   d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   fireSweep();
+  /* tópico envelhece; novo input entra */
+  ageTopic();
   newWordsMsg=0;newWordList.length=0;
   const wids=tokenize(text).filter(wi=>words[wi]&&!words[wi].dead);
   if(!wids.length){log('SYS','mensagem sem palavras aproveitáveis');sendBtn.disabled=false;return;}
+  pushTopic(wids,2.0);
+  if(act)wids.forEach(wi=>ACTW[act].add(wi));
+  turnCount++;
+  if(turnCount%3===0)decayNet();
   let sur=0;
   for(let i=0;i<wids.length-1;i++)
     if(!(transAdj[wids[i]]&&transAdj[wids[i]].get(wids[i+1])))sur++;
@@ -1226,8 +1423,7 @@ function userSend(){
   pulseAt(PX[vtaA],PY[vtaA],PZ[vtaA],PX[thalN],PY[thalN],PZ[thalN],.6,'#ff5d4d');
   learnMessage(wids,eta);
   learnDialogue(prevTurn,wids);
-  log('WEB',`absorvido: ${newWordsMsg} palavra(s) nova(s) · ${newRoutesMsg} sinapse(s) nova(s) · surpresa ${(surprise*100)|0}%`);
-  /* palavras sem papel vão pra fila de rotulagem */
+  log('WEB',`absorvido: ${newWordsMsg} palavra(s) nova(s) · ${newRoutesMsg} sinapse(s) · surpresa ${(surprise*100)|0}%${act?` · ato: ${ACTNAME[act]}`:''}`);
   const toLabel=wids.filter(wi=>words[wi]&&!words[wi].dead&&!words[wi].io&&wi>1&&
     (words[wi].syn==='-'||words[wi].synConf<.5)&&words[wi].synTries<3);
   if(toLabel.length)queueLabel(toLabel.slice(0,8));
@@ -1256,7 +1452,7 @@ function userSend(){
     }
     prevW=wi;
   },(90*k/SIMSPEED)|0));
-  prevTurn={q:wids,a:null,qa:hadQ};
+  prevTurn={q:wids,a:null,qa:hadQ,qtype:detectQType(text,wids)};
   setTimeout(()=>respond(hadQ),Math.max(420,wids.length*90)/SIMSPEED+240);
 }
 function stimAssembly(wi,amp){
@@ -1270,58 +1466,65 @@ async function respond(qa){
   try{
     const T=parseFloat($('rngTemp').value);
     const q=prevTurn?prevTurn.q.filter(wi=>words[wi]&&!words[wi].dead):[];
+    const qtype=prevTurn?prevTurn.qtype:null;
     frontalPlan=frontalDecide(q,qa);
     stim(planN,1.5);
     const pc=PLANCOL[frontalPlan]||'#b9c4e8';
     pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.7,pc);
-    log('FRO',`plano = ${frontalPlan}${arousal>.5?` · arousal ${arousal.toFixed(2)}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
-    let r=reviseAndSpeak(q,T,qa,frontalPlan);
+    log('FRO',`plano = ${frontalPlan} · humor ${moodName()}${arousal>.5?` (${arousal.toFixed(2)})`:''}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
+    let r=reviseAndSpeak(q,T,qa,frontalPlan,qtype,lastUserAct);
     r.tokens=r.tokens.filter(wi=>words[wi]&&!words[wi].dead);
     r.path=r.path.filter(wi=>words[wi]&&!words[wi].dead);
     const draftText=r.tokens.map(i=>words[i].label).join(' ');
-    /* se o plano foi sintaxe e o vencedor veio de molde, registra */
     if(r.syn){
       synGenCount++;lastSynGen=r.frame.sig;
       log('SYN',`frase por molde <b>${r.frame.sig}</b>: ${r.roles.map((ro,i)=>`${ro}="${words[r.tokens[i]].label}"`).join(' · ')}`);
       pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
+    /* VOZ PRÓPRIA: resposta local forte é falada sem IA */
     if(aiOn){
-      log('AI',`mente falante revisando (rascunho local: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
-      pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
-      $('confTag').textContent='mente IA · corrigindo…';
-      let fixed='';
-      try{fixed=await groqRepair(lastUserText,draftText);}
-      catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — caindo pro modo local');}
-      if(fixed){
-        const knownKeys=new Set(words.filter(w=>!w.dead&&!w.io&&w.count>0).map(w=>w.key));
-        const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
-        const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
-        const novelN=rawToks.length-knownToks.length;
-        const useToks=knownToks.length?knownToks:rawToks.slice(0,6);
-        if(useToks.length){
-          aiUsed=true;
-          newWordsMsg=0;
-          learnMessage(useToks,1.4);
-          learnDialogue(prevTurn,useToks);
-          /* recompensa o molde se a resposta IA casou com um; senão aprende o da frase corrigida */
-          if(r.syn&&fixed.replace(/\s+/g,' ')===r.tokens.map(i=>words[i].label).join(' ')+' '){
-            r.frame.hit+=1;
+      const strong=r.flu>=0.9&&r.tokens.length>=2&&!r.babble;
+      if(strong){
+        log('AI',`voz própria forte (flu ${r.flu.toFixed(2)}) — IA poupa a vez`);
+      }else{
+        log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
+        pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
+        $('confTag').textContent='mente IA · corrigindo…';
+        let fixed='';
+        try{fixed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
+        catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — modo local');}
+        if(fixed){
+          const knownKeys=new Set(words.filter(w=>!w.dead&&!w.io&&w.count>0).map(w=>w.key));
+          const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
+          const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
+          const novelN=rawToks.length-knownToks.length;
+          const useToks=knownToks.length?knownToks:rawToks.slice(0,6);
+          if(useToks.length){
+            aiUsed=true;
+            newWordsMsg=0;
+            learnMessage(useToks,1.6);
+            learnDialogue(prevTurn,useToks);
+            if(lastUserAct)useToks.forEach(wi=>ACTW[lastUserAct].add(wi));
+            if(r.syn&&r.tokens.length===useToks.length&&
+               r.tokens.every((wi,i)=>useToks[i]===wi)){
+              r.frame.hit+=1;
+            }
+            if(dirtyC)compile();
+            stim(vtaA,1.1);bumpArousal(.12);
+            fireSweep();
+            log('AI',`corrigido: "${draftText||'—'}" ⇢ "<b>${fixed}</b>"`+
+              (knownToks.length
+                ?(novelN?` · ${novelN} nova(s) pro aprendizado`:' · só vocabulário do cérebro')
+                :' · vocabulário insuficiente — resposta vira ensino'));
+            const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
+            if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
+            const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
+            if(unlab.length)queueLabel(unlab.slice(0,6));
+            r={tokens:useToks,path:useToks.slice(),conf:.95,babble:false,jumps:0,
+               contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
+               flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
           }
-          if(dirtyC)compile();
-          stim(vtaA,1.1);bumpArousal(.12);
-          fireSweep();
-          log('AI',`corrigido: "${draftText||'—'}" ⇢ "<b>${fixed}</b>"`+
-            (knownToks.length
-              ?(novelN?` · ${novelN} palavra(s) nova(s) entrou(m) pro aprendizado`:' · só vocabulário do cérebro')
-              :' · vocabulário insuficiente — resposta vira ensino'));
-          const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
-          if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
-          const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
-          if(unlab.length)queueLabel(unlab.slice(0,6));
-          r={tokens:useToks,path:useToks.slice(),conf:.95,babble:false,jumps:0,
-             contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
-             flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
         }
       }
     }
@@ -1334,7 +1537,6 @@ async function respond(qa){
            epi:[rec.slot],flu:scoreFluency(toks),mode:'lembrança',candN:r.candN,candI:0,slot:rec.slot};
       }
     }
-    /* reforço do molde: resposta final boa (fluência alta) e veio de molde */
     if(r.syn&&r.flu>=.8)r.frame.hit+=1;
     if(r.mode!=='IA'){
       for(let i=0;i+1<r.tokens.length;i++){
@@ -1344,14 +1546,15 @@ async function respond(qa){
       }
     }
     lastConf=r.conf;lastBrainWids=r.tokens;lastFlu=r.flu;lastMode=r.mode;
+    pushTopic(r.tokens,.8);
     if(prevTurn)prevTurn.a=r.tokens;
     history.push({u:lastUserText,b:r.tokens.map(i=>words[i].label).join(' ')});
     if(history.length>4)history.shift();
-    log('REV',`revisor: ${r.candN} rascunho(s) local(is) · fluência ${r.flu.toFixed(2)} · `+
-      (r.mode==='IA'?'fala final pela IA (corrigida)':
+    log('REV',`revisor: ${r.candN} rascunho(s) · fluência ${r.flu.toFixed(2)} · `+
+      (r.mode==='IA'?'fala final pela IA (professora)':
        r.mode==='lembrança'?`lembrança literal (linha ${r.slot+1})`:
        (r.syn?'venceu o MOLDE sintático':'venceu o rascunho local #'+r.candI)));
-    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)}`+
+    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)} · ${moodName()}`+
       (r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:'');
     for(const [b,s,src,slot] of r.contrib){
       const wb=words[b];if(!wb||wb.dead)continue;
@@ -1375,7 +1578,7 @@ async function respond(qa){
 function typeOut(r){
   const d=document.createElement('div');
   d.className='msg brain'+((r.mode==='gerado'&&r.flu<.3)?' weak':'');
-  d.innerHTML=`<span class="who">tabula${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  d.innerHTML=`<span class="who">tabula${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}${arousal>.6?` · ${moodName()}`:''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
   let i=0,stopped=false;
@@ -1451,7 +1654,7 @@ varying vec3 vC;varying float vA;
 void main(){
   vC=aCol;
   float tw=.06+.05*sin(uTime*(1.1+aSeed*1.3)+aSeed*6.2831)+.035*sin(uTime*2.7+aSeed*11.0);
-  float sw=uSweepAmp*smoothstep(.07,.0,abs(aOrd-uSweep));
+  float sw=uSweepAmp*smoothstep(.05,.0,abs(aOrd-uSweep));
   vA=clamp(aAct+tw+sw,0.,1.3);
   vec4 mv=modelViewMatrix*vec4(position,1.);
   gl_PointSize=aSize*uScale*(1.+vA*1.9)/(-mv.z);
@@ -1501,7 +1704,6 @@ function syncConcepts(){
   for(const w of words){
     if(w.dead||!w.ghost){if(w&&!w.dead)w.cslot=-1;continue;}
     cPos[n*3]=w.base[0];cPos[n*3+1]=w.base[1];cPos[n*3+2]=w.base[2];
-    /* conceito com papel sintático ganha a cor do papel misturada */
     const c=wordColor(w.count);
     const sc=w.syn&&w.syn!=='-'?SYNCOL[w.syn]:null;
     const mix=sc?c.clone().lerp(sc,.45):c;
@@ -1546,7 +1748,6 @@ function buildHulls(){
   const rv=[];for(let i=0;i<=6;i++){const a=i/6*6.283;
     rv.push(new THREE.Vector3(2.55+Math.cos(a)*.34,1.15+Math.sin(a)*.34,-.55));}
   mk(rv,'#c8b6e8',.24);
-  /* halo do córtex sintático (roxo) envolvendo o plano */
   const sy=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     sy.push(new THREE.Vector3(Math.cos(a)*4.9,.55+Math.sin(a*2)*.12,-.3+Math.sin(a)*2.5));}
   mk(sy,'#d8a8ff',.14);
@@ -1568,7 +1769,8 @@ function buildRing(){
   scene.add(ringLine);
 }
 const TPAL=['#e8b34b','#46c8bc','#ef6a8b','#a5d64a','#e8c35a','#7fb8a8','#d0705c','#9fb8c8',
-            '#c98a3a','#6ea8d8','#b8c46a','#d88a6a','#8fd0ff','#c8b6e8','#a0d0a0','#e0a0c0'];
+            '#c98a3a','#6ea8d8','#b8c46a','#d88a6a','#8fd0ff','#c8b6e8','#a0d0a0','#e0a0c0',
+            '#ff9a8b','#7fe0c8','#d8a8ff','#f0d060','#60d0f0','#e080b0','#a0e878','#c8a0e8'];
 let threadsGroup=null,threadLines=[],showThread=true;
 function buildThreads(){
   if(threadsGroup)scene.remove(threadsGroup);
@@ -1674,7 +1876,7 @@ function rebuildVisFromNet(){
   for(const e of as.slice(0,CAPV-visE.length))visE.push(e);
   visDirty=true;
 }
-const C_SENSE=new THREE.Color('#8fd0ff'), C_ANT=new THREE.Color('#ff8a5c'), C_XOR=new THREE.Color('#d0e86a');
+const C_SENSE=new THREE.Color('#8fd0ff'), C_ANT=new THREE.Color('#ff8a5c'), C_XOR=new THREE.Color('#d0e86a'), C_MOR=new THREE.Color('#7fe0c8');
 let relLine=null;
 function rebuildGroundLines(){
   if(relLine){scene.remove(relLine);relLine.geometry.dispose();relLine=null;}
@@ -1701,6 +1903,11 @@ function rebuildGroundLines(){
     if(xm)for(const b of xm.keys()){
       const aw=words[b];if(!aw||aw.dead||w.idx>b)continue;
       addRel(w.base,aw.base,C_XOR,.06,w.key,aw.key+'x');
+    }
+    const mo=morphOf.get(w.idx);
+    if(mo&&words[mo.root]&&!words[mo.root].dead&&w.idx<mo.root){
+      const aw=words[mo.root];
+      addRel(w.base,aw.base,C_MOR,.15,w.key,aw.key+'m');
     }
   }
   if(pts.length){
@@ -1733,7 +1940,7 @@ function rebuildChunkArcs(){
   chunkDirty=false;
 }
 
-/* ================= 11 · pulsos transitórios ================= */
+/* ================= 11 · pulsos ================= */
 const CAPP=100;
 const pulPos=new Float32Array(CAPP*ASEGS*2*3),pulCol=new Float32Array(CAPP*ASEGS*2*3);
 const pulGeo=new THREE.BufferGeometry();
@@ -1818,12 +2025,14 @@ function rebuildWordLabels(){
     const am=antAdj[w.idx],xm=xorAdj[w.idx];
     let tag='';
     if(w.syn&&w.syn!=='-')tag=' '+SYN_TAG[w.syn];
+    const mo=morphOf.get(w.idx);
+    if(mo)tag+=' ≈'+words[mo.root].label;
     if(am&&am.size)tag+=' ≠'+[...am.keys()].map(i=>words[i]?words[i].label:'').filter(Boolean).slice(0,1);
     if(xm&&xm.size)tag+=' ou'+[...xm.keys()].map(i=>words[i]?words[i].label:'').filter(Boolean).slice(0,1);
     el.textContent=w.io?(w.idx===0?'início':'fim'):w.label+(w.grounded?' ✓':'')+tag;
     el._o=w.io?1:clamp(.4+w.count*.07,.4,.95);
     if(w.grounded&&!w.io)el.style.color='#8fd0ff';
-    if(w.syn&&w.syn!=='-'&&!w.io){el.style.color='#d8a8ff';}
+    if(w.syn&&w.syn!=='-'&&!w.io)el.style.color='#d8a8ff';
     if(POLAR.has(w.key)&&!w.io)el.style.color='#d0a8ff';
     wlab.appendChild(el);wordLabels.push({el,w});
   }
@@ -1850,18 +2059,25 @@ function updateStats(){
     epiData.reduce((s,e)=>s+(e.epi?e.epi.length:0),0);
   const alive=words.filter(w=>!w.dead&&!w.io);
   const cnt=r=>alive.filter(w=>w.syn===r).length;
+  const tp=[...topicCtx.entries()].filter(([wi])=>words[wi]&&!words[wi].dead)
+    .sort((a,b)=>b[1]-a[1]).slice(0,3).map(([wi])=>words[wi].label);
   $('stN').textContent=N;$('stS').textContent=syn;$('stW').textContent=alive.length;
   $('stR').textContent=routes;$('stK').textContent=chunkMap.size+'/'+NCHUNK;$('stHz').textContent=hzVal;
   $('tW').textContent=alive.length;$('tU').textContent=alive.filter(w=>w.grounded).length;
   $('tQ').textContent=cnt('quem');$('tV').textContent=cnt('acao');
   $('tO').textContent=cnt('oque');$('tH').textContent=cnt('como');
-  $('tR').textContent=routes;$('tK').textContent=chunkMap.size+'/'+NCHUNK;
+  $('tMo').textContent=morphForms.size;
   $('tSyn').textContent=lastSynGen||'—';
+  $('tTp').textContent=tp.length?tp.join(' '):'—';
+  $('tHu').textContent=moodName();
+  $('tAc').textContent=lastUserAct?ACTNAME[lastUserAct]:'—';
+  $('tR').textContent=routes;$('tK').textContent=chunkMap.size+'/'+NCHUNK;
   $('tAr').textContent=arousal.toFixed(2);
   $('tF').textContent=lastFlu==null?'—':lastFlu.toFixed(2);
   $('tM').textContent=lastMode||'—';
   $('tC').textContent=lastConf==null?'—':lastConf.toFixed(2);
   $('tB').textContent=babbles;
+  refreshPolar();
   rebuildWordLabels();
   syncConcepts();
 }
@@ -1875,7 +2091,7 @@ const SPEEDS=[1,2,4,8];let speedI=0,SIMSPEED=1;
 let SLEEP=false,sleepTimer=null;
 function startSleep(){
   if(SLEEP)return;SLEEP=true;$('btnSleep').classList.add('on');
-  log('SLP','sono iniciado — replay dos fios + consolidação de sinapses + moldes');
+  log('SLP','sono iniciado — replay dos fios + consolidação de moldes + reversão do esquecimento');
   const slots=epiData.map((e,i)=>i).filter(i=>epiData[i].epi.length);
   let k=0;
   const step=()=>{
@@ -1887,7 +2103,6 @@ function startSleep(){
       const m=transAdj[epi[j]];const o=m&&m.get(epi[j+1]);
       if(o){o.w+=.08;}
     }
-    /* reforça o molde do episódio durante o sono */
     const slotsArr=epi.map(wi=>words[wi]&&words[wi].syn!=='-'?words[wi].syn:null).filter(Boolean);
     if(slotsArr.length>=2){
       const sig=slotsArr.join('+');
@@ -1923,7 +2138,7 @@ function prune(){
     if(ma)for(const [b,o] of [...ma])if(o.w<1.1){ma.delete(b);const mb=assocAdj[b];if(mb&&mb.has(a)){mb.delete(a);assocN--;}cut++;}
   }
   compile();rebuildVisFromNet();updateStats();
-  log('SYS',`poda: ${cut} sinapses fracas removidas — fios e moldes preservados`);
+  log('SYS',`poda: ${cut} sinapses fracas removidas — fios, moldes e famílias preservados`);
 }
  $('btnPrune').addEventListener('click',prune);
 function lesion(){
@@ -1948,26 +2163,29 @@ function lesion(){
       const qx=xorAdj[a];if(qx&&qx.has(i))qx.delete(i);
     }
     w.grounded=false;w.ground=null;
-    w.syn='-';w.synConf=0; /* o papel sintático também é ferido */
+    w.syn='-';w.synConf=0;
   }
   rebuildGroundLines();
   bumpArousal(1);stim(amgA,1.7);stim(amgB,1.5);
   pulseAt(PX[amgA],PY[amgA],PZ[amgA],PX[thalN],PY[thalN],PZ[thalN],1,'#ef6a8b');
-  log('LES',`lesão: ${hit} conceitos silenciados · papéis e lógica rompidos · amígdala em alarme`);
+  log('LES',`lesão: ${hit} conceitos silenciados · papéis, famílias e lógica rompidos · amígdala em alarme`);
   compile();syncNeuronAttrs();rebuildVisFromNet();updateStats();
 }
  $('btnLesion').addEventListener('click',lesion);
 function exportBrain(){
-  const ants=[],xors=[];
+  const ants=[],xors=[],morph=[];
   for(let a=0;a<CAPW;a++){
     const ma=antAdj[a];if(ma)for(const b of ma.keys())if(a<b)ants.push([a,b]);
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
-  const data={v:11,model:'tabula-07',capn:CAPN,nchunk:NCHUNK,
+  for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
+  const data={v:12,model:'tabula-07',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined})),
-    trans:[],rev:[],assoc:[],ants,xors,frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
+    trans:[],rev:[],assoc:[],ants,xors,morph,
+    frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
+    acts:Object.fromEntries(Object.entries(ACTW).map(([k,v])=>[k,[...v]])),
     episodes:epiData.map(e=>e.epi.slice()),episodeIdx,plan:frontalPlan};
   for(let a=0;a<words.length;a++){
     if(!words[a]||words[a].dead)continue;
@@ -1978,7 +2196,7 @@ function exportBrain(){
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='tabula07-cerebro.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS','cérebro exportado (papéis, moldes, sentido, ≠, ou)');
+  log('SYS','cérebro exportado (papéis, moldes, famílias, atos, lógica)');
 }
  $('btnExport').addEventListener('click',exportBrain);
 function wipeNet(){
@@ -1996,6 +2214,9 @@ function wipeNet(){
   threadAct.fill(0);dirtyThread.fill(true);
   groundQ.length=0;labelQ.length=0;newWordList.length=0;
   frames.length=0;synGenCount=0;lastSynGen=null;
+  morphOf.clear();morphForms.clear();
+  topicCtx=new Map();turnCount=0;lastUserAct=null;
+  Object.values(ACTW).forEach(s=>s.clear());
   frontalPlan='—';arousal=0;prevTurn=null;lastBrainWids=null;history.length=0;
   msgs.innerHTML='';
   buildModules();buildChunks();
@@ -2026,16 +2247,20 @@ function importBrain(d){
     }
     for(const [a,b] of d.ants||[])addAnt(a,b);
     for(const [a,b] of d.xors||[])addXor(a,b);
+    for(const [wi,root,tag] of d.morph||[])
+      if(words[wi]&&!words[wi].dead&&words[root]&&!words[root].dead)addMorph(wi,root,tag);
     for(const f of d.frames||[]){
       if(f&&Array.isArray(f.slots)&&f.slots.length>=2)
         frames.push({sig:f.slots.join('+'),slots:f.slots.slice(),use:f.use||1,hit:f.hit||0});
     }
+    for(const [k,arr] of Object.entries(d.acts||{}))
+      if(ACTW[k])arr.forEach(wi=>{if(words[wi]&&!words[wi].dead)ACTW[k].add(wi);});
     for(const ep of d.episodes||[])if(Array.isArray(ep)&&ep.length)writeEpisode(ep,true);
     if(d.episodeIdx)episodeIdx=d.episodeIdx%NEPI;
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
-    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s) · lógica restaurada`);
+    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s) · ${morphForms.size} família(s)`);
   }catch(e){log('SYS','falha ao importar: '+e.message);}
 }
  $('btnImport').addEventListener('click',()=>$('fileIn').click());
@@ -2045,17 +2270,14 @@ function importBrain(d){
   rd.onload=()=>{try{importBrain(JSON.parse(rd.result));}catch(e){log('SYS','arquivo inválido: '+e.message);}};
   rd.readAsText(f);ev.target.value='';
 });
-/* rotular: manda a IA re-classificar os papéis de todo o vocabulário */
  $('btnReval').addEventListener('click',()=>{
   if(!aiOn){log('SYN','ligue a IA para rotular');return;}
   const list=words.filter(w=>!w.dead&&!w.io&&w.idx>1&&w.count>0).map(w=>w.idx);
   if(!list.length){log('SYN','nada para rotular — cérebro vazio');return;}
   for(const wi of list){words[wi].synTries=0;}
   labelQ.push(...list);
-  log('SYN',`rotulagem completa: ${list.length} palavra(s) na fila — a IA vai dar o papel de cada uma`);
+  log('SYN',`rotulagem completa: ${list.length} palavra(s) na fila`);
   pumpLabel();
-  /* também refaz fios de sentido */
-  for(const wi of list){words[wi].groundTries=0;}
 });
 let wipeArm=0;
  $('btnWipe').addEventListener('click',()=>{
@@ -2063,7 +2285,7 @@ let wipeArm=0;
   if(Date.now()-wipeArm<2600){
     wipeNet();
     b.classList.remove('armed');
-    log('SYS','memória apagada — cérebro volta ao vazio (6000 neurônios, zero palavras)');
+    log('SYS','memória apagada — cérebro volta ao vazio (25000 neurônios, zero palavras)');
   }else{
     wipeArm=Date.now();b.classList.add('armed');
     setTimeout(()=>b.classList.remove('armed'),2600);
@@ -2084,7 +2306,7 @@ let wipeArm=0;
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
-  log('AI','mente IA '+(aiOn?'ligada — corrige tudo e rotula papéis':'desligada — cérebro fala os rascunhos crus'));
+  log('AI','mente IA '+(aiOn?'ligada — professora na falha da voz própria':'desligada — cérebro 100% cru'));
 });
 
 /* ================= 15 · loop + boot ================= */
@@ -2105,7 +2327,7 @@ function animate(){
     noiseT=.05+RNG()*.15;
     const id=dormantIds[(RNG()*dormantIds.length)|0];
     if(RNG()<.6)stim(id,.55+RNG()*.5);
-    if(RNG()<.25){
+    if(RNG()<.3){
       const id2=dormantIds[(RNG()*dormantIds.length)|0];
       stim(id2,.4+RNG()*.4);
     }
@@ -2149,10 +2371,11 @@ buildModLabels();
 wipeNet();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 575 gânglios + 5400 córtex dormente (216 colunas × 25)`);
-log('SYS','SINTAXE GENERATIVA: palavras ganham papéis (quem·ação·o quê·como) — frases montadas por estrutura');
-log('SYS','treine frases de padrões diferentes (eu quero gato · você gosta · gato bom) para criar moldes');
-log('SYS','o lobo frontal agora tem o plano "sintaxe": sorteia molde, preenche slots, o revisor valida');
+log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 1467 gânglios + 23500 córtex dormente (940 colunas × 25)`);
+log('SYS','capacidade: 20000 palavras · 1467 hábitos · 24 fios de linha · zero palavras no boot');
+log('SYS','perguntas (quem/o quê/como/sim-não) → resposta no papel certo · concordância por famílias morfológicas');
+log('SYS','checagem semântica nos slots · tópico vivo por ~5 trocas · emoção colore a fala · esquecimento suave');
+log('SYS','voz própria: fluência ≥ 0.9 é falada sem IA · IA vira professora só na falha');
 log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · ${GROQ_MODEL}`);
 setTimeout(fireSweep,700);
 animate();
