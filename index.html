@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 50000 neurônios</title>
+<title>ATLAS — 500000 neurônios · wikipedia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   --bg:#07080a; --panel:#0b0d0f; --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.17);
   --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
   --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a; --fro:#b9c4e8; --rev:#c8b6e8;
-  --ai:#8fd0ff; --ant:#ff8a5c; --xor:#d0e86a; --syn:#d8a8ff;
+  --ai:#8fd0ff; --ant:#ff8a5c; --xor:#d0e86a; --syn:#d8a8ff; --wik:#f2e14c;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -69,8 +69,8 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .btn.on{border-color:rgba(200,182,232,.6);color:var(--rev)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .grid2 .btn{margin-bottom:0}
-.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
-.grid6 .btn{margin-bottom:0;text-align:center;padding:7px 2px;font-size:8px;letter-spacing:.02em}
+.grid7{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:6px}
+.grid7 .btn{margin-bottom:0;text-align:center;padding:7px 2px;font-size:8px;letter-spacing:.02em}
 .srow{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--dim);margin-bottom:9px}
 .srow input[type=range]{flex:1;accent-color:var(--acc);height:3px}
 .srow b{color:var(--tx);font-weight:400;min-width:30px;text-align:right}
@@ -89,7 +89,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .wlb.mod{font-size:10px;font-weight:500;letter-spacing:.28em;text-transform:uppercase}
 #legend{position:absolute;left:10px;bottom:10px;z-index:5;background:rgba(8,9,11,.6);
   border:1px solid var(--line);padding:8px 11px;border-radius:2px;font-size:8.5px;color:var(--dim);
-  letter-spacing:.06em;display:flex;flex-direction:column;gap:4px;max-width:410px}
+  letter-spacing:.06em;display:flex;flex-direction:column;gap:4px;max-width:420px}
 #legend .li{display:flex;align-items:center;gap:6px}
 #legend .li i{width:6px;height:6px;border-radius:50%;background:var(--c)}
 #legend .li i.th{height:2px;border-radius:1px;width:14px}
@@ -102,6 +102,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
 .lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff} .lk-MOR{color:#7fe0c8}
+.lk-WIK{color:var(--wik)}
 #log .ln{margin-bottom:2px}
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
@@ -113,7 +114,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>50000 neurônios · IA corrige toda resposta · anti-eco</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>500000 neurônios · wikipedia · IA corrige todo turno · anti-eco</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -147,12 +148,13 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 47000 neurônios (1880 colunas × 25) + 2967 gânglios + 33 módulos = 50000 fixos</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 494000 neurônios (19760 colunas × 25) + 5967 gânglios + 33 módulos = 500000 fixos</div>
       <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância por morfologia</div>
       <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · contradição ≠ (laranja) · alternativa ou (verde) · família ≈ (verde-água)</div>
+      <div class="li"><i style="--c:#f2e14c"></i>wikipedia — conceitos com artigo real: o significado vem da enciclopédia</div>
       <div class="li"><i style="--c:#8fd0ff"></i>mente IA — corrige TODO turno; nunca ecoa; valida, rotula, ancora</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 2967 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor anti-eco</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção colore a fala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 5967 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor anti-eco</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
     </div>
   </div>
 
@@ -166,9 +168,10 @@ footer b{color:var(--dim);font-weight:400}
         <button class="btn" id="btnLesion">lesionar 25%<em>amígdala em alarme</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json</em></button>
       </div>
-      <div class="grid6">
+      <div class="grid7">
         <button class="btn" id="btnImport">importar</button>
         <button class="btn" id="btnReval">rotular</button>
+        <button class="btn on" id="btnWiki">wiki</button>
         <button class="btn on" id="btnThread">fios</button>
         <button class="btn on" id="btnChunk">hábitos</button>
         <button class="btn on" id="btnRev">revisor</button>
@@ -182,14 +185,15 @@ footer b{color:var(--dim);font-weight:400}
       <h3>Telemetria</h3>
       <div id="sgrid">
         <span>palavras<b id="tW">0</b></span><span>entendidas<b id="tU">0</b></span>
+        <span>wiki<b id="tWk">0</b></span><span>famílias<b id="tMo">0</b></span>
         <span>quem<b id="tQ">0</b></span><span>ações<b id="tV">0</b></span>
         <span>o quê<b id="tO">0</b></span><span>como<b id="tH">0</b></span>
-        <span>famílias<b id="tMo">0</b></span><span>molde gerado<b id="tSyn">—</b></span>
-        <span>tópico<b id="tTp">—</b></span><span>humor<b id="tHu">calmo</b></span>
-        <span>ato<b id="tAc">—</b></span><span>rotas<b id="tR">0</b></span>
-        <span>hábitos<b id="tK">0</b></span><span>arousal<b id="tAr">0.00</b></span>
-        <span>fluência<b id="tF">—</b></span><span>modo<b id="tM">—</b></span>
-        <span>confiança<b id="tC">—</b></span><span>balbucios<b id="tB">0</b></span>
+        <span>molde gerado<b id="tSyn">—</b></span><span>tópico<b id="tTp">—</b></span>
+        <span>humor<b id="tHu">calmo</b></span><span>ato<b id="tAc">—</b></span>
+        <span>rotas<b id="tR">0</b></span><span>hábitos<b id="tK">0</b></span>
+        <span>arousal<b id="tAr">0.00</b></span><span>fluência<b id="tF">—</b></span>
+        <span>modo<b id="tM">—</b></span><span>confiança<b id="tC">—</b></span>
+        <span>balbucios<b id="tB">0</b></span>
       </div>
     </section>
 
@@ -203,7 +207,7 @@ footer b{color:var(--dim);font-weight:400}
 
 <footer>
   <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>50000 neurônios · 20000 palavras · 2967 hábitos · anti-eco: nunca repete você nem a si mesmo</span>
+  <span>500000 neurônios · wikipedia real nos conceitos · IA corrige todo turno</span>
 </footer>
 
 <script type="importmap">
@@ -233,19 +237,22 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 50000 neurônios =================
-   31 módulos + 2 marcadores + 2967 gânglios + 47000 córtex (1880 colunas × 25) = 50000. */
-const CAPW=20000, NCOLS=1880, NPER=25, NCHUNK=2967, NEPI=24, CAPN=50000;
+/* ================= 1 · motor LIF — hardware FIXO de 500000 neurônios =================
+   31 módulos + 2 marcadores + 5967 gânglios + 494000 córtex (19760 colunas × 25) = 500000. */
+const CAPW=25000, NCOLS=19760, NPER=25, NCHUNK=5967, NEPI=24, CAPN=500000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
       CR=new Float32Array(CAPN), CG=new Float32Array(CAPN), CB=new Float32Array(CAPN),
       SZ=new Float32Array(CAPN);
 let N=0, dirtyC=true;
+const CCACHE={};
 function addN(x,y,z,col,size,thr){
   if(N>=CAPN)return CAPN-1;
   const i=N++; PX[i]=x;PY[i]=y;PZ[i]=z;
-  const c=new THREE.Color(col); CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
+  let c=CCACHE[col];
+  if(!c)c=CCACHE[col]=new THREE.Color(col);
+  CR[i]=c.r;CG[i]=c.g;CB[i]=c.b;
   SZ[i]=size; THR[i]=thr; return i;
 }
 let EDGES=[];
@@ -335,7 +342,7 @@ function registerWord(label,special){
     hub=addN(x,y,z,col,.058,.72);
   }
   const w={idx,label,key,hub,ids:[],base:[x,y,z],count:0,last:-99,io:!!special,ghost,act:0,
-           grounded:false,ground:null,groundTries:0,dead:false,
+           grounded:false,ground:null,groundTries:0,dead:false,wiki:false,
            syn:'-',synConf:0,synTries:0};
   words.push(w);wkey.set(key,idx);
   dirtyC=true;
@@ -343,7 +350,7 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia + córtex dormente (1880 colunas) ================= */
+/* ================= 3 · anatomia + córtex dormente (19760 colunas) ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
 let planN=-1,stopN=-1;
 let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
@@ -365,7 +372,7 @@ function buildModules(){
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
   dormantIds=[];
-  const GX=47,GY=40;
+  const GX=152,GY=130;
   for(let c=0;c<NCOLS;c++){
     const gx=c%GX, gy=(c/GX)|0;
     const u=(gx+.5)/GX+(h32('jx'+c)-.5)*.7/GX;
@@ -375,7 +382,7 @@ function buildModules(){
     for(let k=0;k<NPER;k++){
       let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
       const L=Math.hypot(dx,dy,dz)||1,r=Math.cbrt(RNG())*.13+.03;
-      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.008,.78));
+      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.0075,.78));
     }
     for(let k=0;k<ids.length;k++){
       if(k+1<ids.length)pushE(ids[k],ids[k+1],.9,0);
@@ -718,7 +725,7 @@ function forgetWord(wi,reason){
     if(prevTurn.a)prevTurn.a=prevTurn.a.filter(x=>x!==wi);
   }
   if(lastBrainWids)lastBrainWids=lastBrainWids.filter(x=>x!==wi);
-  w.dead=true;w.grounded=false;w.ground=null;w.act=0;
+  w.dead=true;w.grounded=false;w.ground=null;w.act=0;w.wiki=false;
   wkey.delete(w.key);
   compile();syncNeuronAttrs();rebuildVisFromNet();rebuildGroundLines();updateStats();
   log('FGT',`esquecida: "<b>${lbl}</b>" — ${reason}`);
@@ -745,7 +752,7 @@ function decayNet(){
       if(!o||o.w<.55)freeChunk(ch.ci);
     }
     compile();
-    log('SYS',`esquecimento suave: ${decayed} rota(s) fraca(s) apodreceram desde a última checagem`);
+    log('SYS',`esquecimento suave: ${decayed} rota(s) fraca(s) apodreceram`);
   }
 }
 let topicCtx=new Map();
@@ -913,7 +920,7 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
   return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),epi:[...epiSlots]};
 }
 
-/* ================= 8 · REVISOR local (anti-eco, anti-repetição, anti-déjà-vu) ================= */
+/* ================= 8 · REVISOR local (anti-eco) ================= */
 let revOn=true;
 const lastResponses=[];
 function pairSupport(a,b){
@@ -992,16 +999,13 @@ function bestOfN(inputWids,T,qa,plan,qtype,act,n=6){
     if(r.tokens.length<1)continue;
     let flu=r.syn?clamp(scoreFluency(r.tokens)*.65+synBonus(r.tokens)+.55,0,1.35)
                  :clamp(scoreFluency(r.tokens)+(r.tokens.length>=3?synBonus(r.tokens)*.5:0),0,1.35);
-    /* ANTI-ECO: resposta que repete demais as palavras do usuário cai no concurso */
     let echo=0;
     for(const wi of r.tokens)if(inputSet.has(wi))echo++;
     const echoRatio=echo/r.tokens.length;
     if(echoRatio>.34)flu-=(echoRatio-.34)*1.8;
-    /* ANTI-REPETIÇÃO: mesma palavra 3+ vezes na frase */
     const cnt={};let rep=0;
     for(const wi of r.tokens){cnt[wi]=(cnt[wi]||0)+1;if(cnt[wi]===3)rep++;}
     if(rep)flu-=rep*.45;
-    /* DÉJÀ-VU: igual a uma resposta recente dele mesmo */
     if(lastResponses.some(p=>p.length===r.tokens.length&&p.every((w,i)=>w===r.tokens[i])))flu-=.9;
     r.flu=clamp(flu,0,1.35);
     r.cand=cands.indexOf(r)+1;
@@ -1020,7 +1024,7 @@ function recallEpisode(inputWids){
     let ov=0;
     for(const wi of set)if(qset.has(wi))ov++;
     const denom=Math.max(1,set.size);
-    if(ov/denom>.45)return; /* episódio ≈ eco da mensagem: inútil */
+    if(ov/denom>.45)return;
     let sc=0;
     for(const wi of inputWids)if(set.has(wi)&&words[wi]&&!words[wi].dead)sc+=sal(wi)+words[wi].count*.02;
     sc*=(1-ov/denom);
@@ -1043,13 +1047,38 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   return r;
 }
 
-/* ================= 8.5 · IA groq — corrige TODO turno ================= */
-const GROQ_KEY='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';
+/* ================= 8.5 · IA groq + WIKIPEDIA ================= */
+const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL='qwen/qwen3.8-27b';
+const GROQ_MODEL='openai/gpt-oss-120b';
 let aiOn=true;
+let wikiOn=true;
 const history=[];
 const POLAR=new Set(['positivo','negativo']);
+
+/* ---- WIKIPEDIA: conhecimento real, API livre, sem key ---- */
+async function wikiFetch(term){
+  try{
+    const url='https://pt.wikipedia.org/w/api.php?action=query&format=json&origin=*'+
+      '&prop=extracts&exintro=1&explaintext=1&redirects=1&titles='+encodeURIComponent(term);
+    const r=await fetch(url);
+    if(!r.ok)return null;
+    const j=await r.json();
+    const pages=j&&j.query&&j.query.pages;
+    if(!pages)return null;
+    const p=Object.values(pages)[0];
+    if(!p||p.missing!==undefined||!p.extract)return null;
+    return p.extract.replace(/\s+/g,' ').trim().slice(0,420);
+  }catch(e){return null;}
+}
+async function wikiBatch(labels){
+  const out=new Map();
+  const results=await Promise.all(labels.map(l=>wikiFetch(l)));
+  labels.forEach((l,i)=>{
+    if(results[i])out.set(norm(l),results[i]);
+  });
+  return out;
+}
 function knownVocabList(){
   const l=words.filter(w=>!w.io&&!w.dead&&w.count>0)
     .sort((a,b)=>b.count-a.count).slice(0,300)
@@ -1108,7 +1137,7 @@ async function groqRepair(userText,draftText,qtype,act){
     '8. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
     '9. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas.',
     '10. Use as relações lógicas conhecidas para decidir o lado em contradições e escolhas.',
-    '11. NUNCA repita a mensagem do usuário — ela já é conhecida; responda com conteúdo NOVO (reagir, confirmar, negar, ampliar).'
+    '11. NUNCA repita a mensagem do usuário — responda com conteúdo NOVO.'
   ].join('\n');
   const usr='vocabulário do cérebro (única fonte permitida): ['+knownVocabList()+']\n'+
     (rels?'relações lógicas conhecidas: '+rels+'\n':'')+
@@ -1177,7 +1206,7 @@ async function pumpLabel(){
   labelBusy=false;
 }
 
-/* ---------- validação de palavras ---------- */
+/* ---------- validação de palavras (+ wikipedia como fonte real) ---------- */
 const groundQ=[]; let groundBusy=false;
 function queueGround(wis,ctx){
   if(!aiOn||!wis||!wis.length)return;
@@ -1193,15 +1222,27 @@ async function pumpGround(){
     const wis=[...new Set(job.wis)].filter(wi=>words[wi]&&!words[wi].dead&&!words[wi].grounded&&!words[wi].io&&wi>1);
     if(!wis.length)continue;
     wis.forEach(wi=>words[wi].groundTries++);
-    log('AI',`validando: ${wis.map(wi=>`"${words[wi].label}"`).join(', ')} — sentido, ≠, ou, forma (${GROQ_MODEL})`);
+    const labels=wis.map(wi=>words[wi].label);
+    /* consulta a wikipedia ANTES da validação: contexto real */
+    let wikiMap=new Map();
+    if(wikiOn){
+      wikiMap=await wikiBatch(labels);
+      const found=[...wikiMap.keys()];
+      if(found.length)log('WIK',`wikipedia: artigo(s) encontrado(s) para ${found.map(k=>`"${k}"`).join(', ')} — contexto real alimentando a validação`);
+      else if(labels.length)log('WIK',`wikipedia: nenhum artigo para ${labels.map(l=>`"${l}"`).join(', ')} — só IA decide`);
+    }
+    log('AI',`validando: ${labels.map(l=>`"${l}"`).join(', ')} — sentido, ≠, ou, forma (${GROQ_MODEL})`);
     try{
-      const map=await groqValidate(wis.map(wi=>words[wi].label),job.ctx);
+      const map=await groqValidate(labels,job.ctx,wikiMap);
       let nOK=0,nFGT=0;
       for(const wi of wis){
         const v=map.get(norm(words[wi].label));
         if(!v){words[wi].groundTries=Math.min(words[wi].groundTries,1);continue;}
         if(v.ok){
-          if(v.concepts.length||v.ant.length||v.xor.length||v.forms.length){applyGrounding(wi,v.concepts,v.ant,v.xor,v.forms);nOK++;}
+          if(v.concepts.length||v.ant.length||v.xor.length||v.forms.length){
+            applyGrounding(wi,v.concepts,v.ant,v.xor,v.forms,wikiMap.get(norm(words[wi].label))||null);
+            nOK++;
+          }
           else words[wi].groundTries=Math.min(words[wi].groundTries,1);
         }else{
           forgetWord(wi,'IA rejeitou: erro de digitação ou sem sentido');nFGT++;
@@ -1213,9 +1254,14 @@ async function pumpGround(){
   }
   groundBusy=false;
 }
-async function groqValidate(labels,ctx){
+async function groqValidate(labels,ctx,wikiMap){
   const vocab=words.filter(w=>!w.io&&!w.dead&&w.count>0)
     .sort((a,b)=>b.count-a.count).slice(0,90).map(w=>w.label);
+  let wikiCtx='';
+  if(wikiMap&&wikiMap.size){
+    wikiCtx='o que a WIKIPEDIA diz (contexto real, use para ancorar melhor):\n'+
+      [...wikiMap.entries()].map(([k,v])=>k+': '+v.slice(0,180)).join('\n')+'\n';
+  }
   const sys='Você é o validador semântico de um cérebro artificial que aprende português do Brasil DO ZERO. '+
     'Para cada palavra nova, decida se é REAL (qualquer classe gramatical) ou ERRO DE DIGITAÇÃO / palavra inventada. '+
     'Se for real, ancore pelo SIGNIFICADO com até 3 conceitos, nesta ordem de prioridade:\n'+
@@ -1223,6 +1269,7 @@ async function groqValidate(labels,ctx){
     'Exemplos exatos: bem: sim, positivo, bom | mal: sim, negativo, ruim | sim: sim, positivo | nao: sim, negativo\n'+
     '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | pizza: sim, comida, comer | casa: sim, lugar, morar\n'+
     '3. USO — papel gramatical: eu: sim, pessoa | de: sim, ligacao\n'+
+    'Se houver contexto da Wikipedia para a palavra, PRIORIZE conceitos coerentes com o artigo real.\n'+
     'ALÉM da linha principal, acrescente linhas extras quando existirem (uma por relação):\n'+
     'palavra -contraria: oposto direto. Ex.: bem -contraria: mal | sim -contraria: nao\n'+
     'palavra -outra: alternativa exclusiva "ou". Ex.: sim -outra: nao\n'+
@@ -1237,8 +1284,9 @@ async function groqValidate(labels,ctx){
     'Sem frases, sem explicação, sem markdown. Apenas as linhas.';
   const usr='palavras novas: '+labels.join(', ')+'\n'+
     'frase onde apareceram: "'+ctx+'"\n'+
+    (wikiCtx?wikiCtx+'\n':'')+
     'vocabulário conhecido: '+(vocab.join(', ')||'(nenhum ainda)')+'\n\nlinhas:';
-  const txt=await groqChat(sys,usr,360,.2);
+  const txt=await groqChat(sys,usr,380,.2);
   const map=new Map();
   const get=k=>{
     if(!map.has(k))map.set(k,{ok:true,concepts:[],ant:[],xor:[],forms:[]});
@@ -1300,7 +1348,7 @@ async function groqValidate(labels,ctx){
   }
   return map;
 }
-function applyGrounding(wi,labels,antL,xorL,formsL){
+function applyGrounding(wi,labels,antL,xorL,formsL,wikiText){
   const w=words[wi];
   antL=antL||[];xorL=xorL||[];formsL=formsL||[];
   const awids=[];
@@ -1324,7 +1372,25 @@ function applyGrounding(wi,labels,antL,xorL,formsL){
     const rwi=ensureWord(f.root);
     if(rwi>=0&&rwi!==wi&&!words[rwi].dead){addMorph(wi,rwi,f.tag);nForm++;}
   }
-  if(!awids.length&&!nRel&&!nForm){w.groundTries=Math.min(w.groundTries,1);return;}
+  /* WIKIPEDIA: ancora associações com conceitos que aparecem no artigo REAL */
+  let nWiki=0;
+  if(wikiText){
+    w.wiki=true;
+    const toks=wikiText.toLowerCase().replace(/[^\p{L}\s-]/gu,' ').split(/\s+/);
+    const seen=new Set([wi]);
+    for(const t of toks){
+      if(t.length<3)continue;
+      const a2=wkey.get(norm(t));
+      if(a2!==undefined&&!seen.has(a2)&&words[a2]&&!words[a2].dead&&!words[a2].io&&words[a2].count>0){
+        addAssoc(wi,a2,.95);
+        seen.add(a2);nWiki++;
+        if(nWiki>=8)break;
+      }
+    }
+    if(nWiki)log('WIK',`ancorado no artigo: "<b>${w.label}</b>" ⇢ ${nWiki} conceito(s) do texto real da wikipedia`);
+    pulseAt(w.base[0],w.base[1],w.base[2],PX[thalN],PY[thalN],PZ[thalN],.5,'#f2e14c');
+  }
+  if(!awids.length&&!nRel&&!nForm&&!nWiki){w.groundTries=Math.min(w.groundTries,1);return;}
   w.grounded=true;w.groundTries=0;w.ground=awids.slice(0,3);
   if(awids.length){addTrans(wi,awids[0],.9);addRev(awids[0],wi,.8);}
   w.act=1.6;stim(vtaA,.9);
@@ -1338,7 +1404,8 @@ function applyGrounding(wi,labels,antL,xorL,formsL){
     pulseAt(w.base[0],w.base[1],w.base[2],words[mo.root].base[0],words[mo.root].base[1],words[mo.root].base[2],.6,'#7fe0c8');
   }
   log('GND',`fio de sentido: "<b>${w.label}</b>" ⇢ `+
-    (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)'));
+    (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)')+
+    (w.wiki?' · <b style="color:#f2e14c">wiki ✓</b>':''));
   if(dirtyC)compile();
   rebuildVisFromNet();
   rebuildGroundLines();
@@ -1471,7 +1538,6 @@ async function respond(qa){
       pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
-    /* IA corrige TODO turno — sempre */
     if(aiOn){
       log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
       pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
@@ -1702,7 +1768,8 @@ function syncConcepts(){
     const sc=w.syn&&w.syn!=='-'?SYNCOL[w.syn]:null;
     const mix=sc?c.clone().lerp(sc,.45):c;
     cCol[n*3]=mix.r;cCol[n*3+1]=mix.g;cCol[n*3+2]=mix.b;
-    cSiz[n]=.05;cSeed[n]=h32(w.key+'s');
+    cSiz[n]=w.wiki?.065:.05;
+    cSeed[n]=h32(w.key+'s');
     cOrd[n]=words.length>1?w.idx/(words.length-1):0;
     cAct[n]=w.act;w.cslot=n;n++;
   }
@@ -2021,12 +2088,14 @@ function rebuildWordLabels(){
     if(w.syn&&w.syn!=='-')tag=' '+SYN_TAG[w.syn];
     const mo=morphOf.get(w.idx);
     if(mo)tag+=' ≈'+words[mo.root].label;
+    if(w.wiki)tag+=' ℘';
     if(am&&am.size)tag+=' ≠'+[...am.keys()].map(i=>words[i]?words[i].label:'').filter(Boolean).slice(0,1);
     if(xm&&xm.size)tag+=' ou'+[...xm.keys()].map(i=>words[i]?words[i].label:'').filter(Boolean).slice(0,1);
     el.textContent=w.io?(w.idx===0?'início':'fim'):w.label+(w.grounded?' ✓':'')+tag;
     el._o=w.io?1:clamp(.4+w.count*.07,.4,.95);
-    if(w.grounded&&!w.io)el.style.color='#8fd0ff';
-    if(w.syn&&w.syn!=='-'&&!w.io)el.style.color='#d8a8ff';
+    if(w.wiki&&!w.io)el.style.color='#f2e14c';
+    else if(w.grounded&&!w.io)el.style.color='#8fd0ff';
+    if(w.syn&&w.syn!=='-'&&!w.io&&w.wiki)el.style.color='#f2e14c';
     if(POLAR.has(w.key)&&!w.io)el.style.color='#d0a8ff';
     wlab.appendChild(el);wordLabels.push({el,w});
   }
@@ -2058,6 +2127,7 @@ function updateStats(){
   $('stN').textContent=N;$('stS').textContent=syn;$('stW').textContent=alive.length;
   $('stR').textContent=routes;$('stK').textContent=chunkMap.size+'/'+NCHUNK;$('stHz').textContent=hzVal;
   $('tW').textContent=alive.length;$('tU').textContent=alive.filter(w=>w.grounded).length;
+  $('tWk').textContent=alive.filter(w=>w.wiki).length;
   $('tQ').textContent=cnt('quem');$('tV').textContent=cnt('acao');
   $('tO').textContent=cnt('oque');$('tH').textContent=cnt('como');
   $('tMo').textContent=morphForms.size;
@@ -2132,7 +2202,7 @@ function prune(){
     if(ma)for(const [b,o] of [...ma])if(o.w<1.1){ma.delete(b);const mb=assocAdj[b];if(mb&&mb.has(a)){mb.delete(a);assocN--;}cut++;}
   }
   compile();rebuildVisFromNet();updateStats();
-  log('SYS',`poda: ${cut} sinapses fracas removidas — fios, moldes e famílias preservados`);
+  log('SYS',`poda: ${cut} sinapses fracas removidas`);
 }
  $('btnPrune').addEventListener('click',prune);
 function lesion(){
@@ -2162,7 +2232,7 @@ function lesion(){
   rebuildGroundLines();
   bumpArousal(1);stim(amgA,1.7);stim(amgB,1.5);
   pulseAt(PX[amgA],PY[amgA],PZ[amgA],PX[thalN],PY[thalN],PZ[thalN],1,'#ef6a8b');
-  log('LES',`lesão: ${hit} conceitos silenciados · papéis, famílias e lógica rompidos · amígdala em alarme`);
+  log('LES',`lesão: ${hit} conceitos silenciados · amígdala em alarme`);
   compile();syncNeuronAttrs();rebuildVisFromNet();updateStats();
 }
  $('btnLesion').addEventListener('click',lesion);
@@ -2173,9 +2243,9 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:15,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:16,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
-      s:w.syn&&w.syn!=='-'?w.syn:undefined})),
+      s:w.syn&&w.syn!=='-'?w.syn:undefined,k:w.wiki?1:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
     frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
@@ -2228,6 +2298,7 @@ function importBrain(d){
       const wi=registerWord(w.l,w.io||undefined);
       if(wi>=0){words[wi].count=w.c||0;
         if(w.s&&SYNALL.includes(w.s)){words[wi].syn=w.s;words[wi].synConf=.9;}
+        if(w.k)words[wi].wiki=true;
         paintWord(words[wi]);}
     }
     for(const [a,b,w] of d.trans||[])addTrans(a,b,w);
@@ -2303,6 +2374,10 @@ let wipeArm=0;
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
   log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno':'desligada — cérebro 100% cru'));
 });
+ $('btnWiki').addEventListener('click',function(){
+  wikiOn=!wikiOn;this.classList.toggle('on',wikiOn);
+  log('WIK','wikipedia '+(wikiOn?'ligada — palavras novas buscam artigo real':'desligada'));
+});
 
 /* ================= 15 · loop + boot ================= */
 function resize(){
@@ -2312,6 +2387,10 @@ function resize(){
 new ResizeObserver(resize).observe(stage);
 const clock=new THREE.Clock();
 let lastSpk=0,hzAcc=0,statAcc=0,noiseT=0;
+/* atualização da atividade em fatias rotativas: com 500k neurônios,
+   atualizar tudo todo frame custaria caro — 100k por frame é invisível a olho nu */
+let actCursor=0;
+const ACTCHUNK=100000;
 function animate(){
   requestAnimationFrame(animate);
   const rdt=Math.min(.05,clock.getDelta());
@@ -2333,7 +2412,12 @@ function animate(){
     sharedU.uSweep.value=-.08+sweepT;
     sharedU.uSweepAmp.value=sweepT<1.15?1:clamp(1-(sweepT-1.15)*4,0,1);
   }else sharedU.uSweepAmp.value=0;
-  for(let i=0;i<N;i++)nAct[i]=Math.min(1.25,ACT[i]);
+  let left=ACTCHUNK;
+  while(left>0){
+    if(actCursor>=N){actCursor=0;break;}
+    nAct[actCursor]=Math.min(1.25,ACT[actCursor]);
+    actCursor++;left--;
+  }
   nGeo.attributes.aAct.needsUpdate=true;
   for(const w of words)if(!w.dead&&w.ghost){
     w.act*=Math.exp(-rdt*2.2);
@@ -2360,16 +2444,19 @@ function animate(){
   if(statAcc>=.5){statAcc=0;updateStats();}
   renderer.render(scene,camera);
 }
+log('SYS','montando 500000 neurônios — um instante...');
 buildHulls();
 buildRing();
 buildModLabels();
 wipeNet();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 2967 gânglios + 47000 córtex dormente (1880 colunas × 25)`);
-log('SYS','anti-eco: revisor reprova eco da sua frase, repetição e déjà-vu · IA corrige TODO turno');
-log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · ${GROQ_MODEL}`);
-setTimeout(fireSweep,700);
+log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 5967 gânglios + 494000 córtex dormente (19760 colunas × 25)`);
+log('SYS','capacidade: 25000 palavras · 5967 hábitos · 24 fios de linha · zero palavras no boot');
+log('SYS','wikipedia: palavras novas buscam artigo real na Wikipédia PT — o significado vem da enciclopédia');
+log('SYS','anti-eco ativo · IA corrige TODO turno · rotulagem e validação com contexto da wikipedia');
+log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · wiki ${wikiOn?'on':'off'} · ${GROQ_MODEL}`);
+setTimeout(fireSweep,900);
 animate();
 </script>
 </body>
