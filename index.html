@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 250000 neurônios · emoções · qwen3-32b</title>
+<title>ATLAS — 250000 neurônios · ondas circulares · coroa amarela · wikipedia · qwen3-32b</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,6 @@
   --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
   --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a; --fro:#b9c4e8; --rev:#c8b6e8;
   --ai:#8fd0ff; --ant:#ff8a5c; --xor:#d0e86a; --syn:#d8a8ff; --wik:#f2e14c;
-  --joy:#f2d24c; --sad:#5c8fd0; --ang:#e85c3c; --fear:#9a6ce0;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -43,15 +42,11 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 #chatHead b{font-family:var(--sans);font-size:13px;letter-spacing:.04em}
 #confTag{font-size:9px;color:var(--dim2);letter-spacing:.1em;text-align:right}
 #msgs{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:11px;min-height:0}
-.msg{max-width:94%;font-size:11.5px;line-height:1.55;position:relative}
+.msg{max-width:94%;font-size:11.5px;line-height:1.55}
 .msg .who{display:block;font-size:8.5px;letter-spacing:.18em;color:var(--dim2);margin-bottom:2px;text-transform:uppercase}
 .msg .meta{display:block;font-size:8.5px;color:var(--dim2);margin-top:3px;letter-spacing:.05em}
 .msg.me{align-self:flex-end;text-align:right;color:var(--bone)}
-.msg.brain{align-self:flex-start;padding-left:10px;border-left:2px solid var(--dim2)}
-.msg.brain.em-alegria{border-left-color:var(--joy)}
-.msg.brain.em-tristeza{border-left-color:var(--sad)}
-.msg.brain.em-raiva{border-left-color:var(--ang)}
-.msg.brain.em-medo{border-left-color:var(--fear)}
+.msg.brain{align-self:flex-start}
 .msg.sys{align-self:center;color:var(--dim2);font-size:9.5px;text-align:center;max-width:100%}
 .msg.err{align-self:center;color:var(--red);font-size:9.5px;text-align:center;max-width:100%}
 .msg.weak .tx{opacity:.62;font-style:italic}
@@ -107,7 +102,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
 .lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff} .lk-MOR{color:#7fe0c8}
-.lk-WIK{color:var(--wik)} .lk-EMO{color:var(--joy)}
+.lk-WIK{color:var(--wik)}
 #log .ln{margin-bottom:2px}
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
@@ -119,7 +114,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>250000 neurônios · emoções reais · wikipedia · qwen3-32b</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>250000 neurônios · ondas circulares + coroa amarela · qwen3-32b</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -153,13 +148,13 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 247000 neurônios (9880 colunas × 25) + 2967 gânglios + 33 módulos = 250000 fixos</div>
+      <div class="li"><i style="--c:#6e6a5e"></i>ondas circulares — 58 anéis ondulados concêntricos, 170 fileiras de 25 neurônios cada</div>
+      <div class="li"><i class="th" style="--c:#f0a63c"></i>coroa amarela — na borda externa, abraçando o último anel de neurônios</div>
       <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância</div>
-      <div class="li"><i style="--c:#f2d24c"></i>emoções — 4 núcleos: alegria · tristeza · raiva · medo — colorem a fala</div>
       <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · ≠ (laranja) · ou (verde) · família ≈ (verde-água) · ℘ wiki (amarelo)</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>mente IA qwen3-32b — corrige TODO turno · decide a emoção da resposta</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — 2967 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor anti-eco</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — arousal · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>mente IA qwen3-32b — corrige TODO turno · nunca ecoa</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — toro espiral 2975 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — casca dupla</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b"></i>amígdala · <i style="--c:#46c8bc"></i>tálamo (3 cascas) · <i style="--c:#ff5d4d"></i>VTA (hélice)</div>
     </div>
   </div>
 
@@ -170,7 +165,7 @@ footer b{color:var(--dim);font-weight:400}
       <div class="grid2">
         <button class="btn" id="btnSleep">dormir<em>replay + consolida moldes</em></button>
         <button class="btn" id="btnPrune">podar ruído<em>rotas fracas fora</em></button>
-        <button class="btn" id="btnLesion">lesionar 25%<em>dispara medo e raiva</em></button>
+        <button class="btn" id="btnLesion">lesionar 25%<em>amígdala em alarme</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json</em></button>
       </div>
       <div class="grid7">
@@ -189,7 +184,6 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Telemetria</h3>
       <div id="sgrid">
-        <span>emoção<b id="tEmo">neutro</b></span><span>intensidade<b id="tEmv">0.00</b></span>
         <span>palavras<b id="tW">0</b></span><span>entendidas<b id="tU">0</b></span>
         <span>wiki<b id="tWk">0</b></span><span>famílias<b id="tMo">0</b></span>
         <span>quem<b id="tQ">0</b></span><span>ações<b id="tV">0</b></span>
@@ -212,7 +206,7 @@ footer b{color:var(--dim);font-weight:400}
 
 <footer>
   <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>250000 neurônios · 4 emoções · wikipedia · qwen/qwen3-32b corrige tudo</span>
+  <span>250000 neurônios · 58 ondas circulares · coroa amarela na borda · wikipedia · qwen3-32b</span>
 </footer>
 
 <script type="importmap">
@@ -230,7 +224,6 @@ const RNG=Math.random;
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
-/* CORREÇÃO: $ blindado — elemento faltante vira boneco silencioso, script nunca morre */
 const DUMMY={textContent:'',innerHTML:'',style:{},classList:{add(){},remove(){},toggle(){}},
   addEventListener(){},appendChild(){},remove(){},prepend(){},click(){},
   querySelector(){return null},querySelectorAll(){return[]},
@@ -248,8 +241,9 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 250000 neurônios ================= */
-const CAPW=25000, NCOLS=9880, NPER=25, NCHUNK=2967, NEPI=24, CAPN=250000;
+/* ================= 1 · motor LIF — hardware FIXO de 250000 neurônios =================
+   23 módulos + 2 marcadores + 2975 gânglios + 246980 córtex (58 anéis × 170 colunas × 25) = 250000. */
+const CAPW=25000, NRINGS=58, PERCOL=170, NPER=25, NCHUNK=2975, NEPI=24, CAPN=250000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -321,11 +315,6 @@ let SPK=0;
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);
 const SYNALL=['quem','acao','oque','como'];
-function sheetPos(u,v){
-  return [(u-.5)*7.4,
-    .17*Math.sin(u*5.2+1.1)+.09*Math.cos(v*3.8+.5)-(u-.5)*(u-.5)*.3,
-    (v-.5)*4.4-.3];
-}
 function wordColor(count){return new THREE.Color('#cfcabc').lerp(new THREE.Color('#e8b34b'),clamp(count/12,0,1)*.85);}
 const SYNCOL={quem:new THREE.Color('#b0e0ff'),acao:new THREE.Color('#e0b0ff'),oque:new THREE.Color('#ffe0b0'),como:new THREE.Color('#c8ffd0')};
 function paintWord(w){
@@ -345,7 +334,11 @@ function registerWord(label,special){
   let x,y,z,ghost=true;
   if(special==='start'){x=-4.15;y=.1;z=.8;ghost=false;}
   else if(special==='end'){x=4.15;y=.1;z=.8;ghost=false;}
-  else{const u=h32(key+'x')*.9+.05,v=h32(key+'y')*.9+.05;[x,y,z]=sheetPos(u,v);}
+  else{
+    const u=h32(key+'x')*.8+.1, v=h32(key+'y')*.8+.1;
+    const rad=.4+u*3.3, ang=v*6.283;
+    x=Math.cos(ang)*rad; y=.1; z=Math.sin(ang)*rad*.62-.3;
+  }
   const col=special==='start'?'#46c8bc':special==='end'?'#ef6a8b':'#cfcabc';
   let hub=-1;
   if(!ghost){
@@ -360,20 +353,14 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia: módulos + NÚCLEOS EMOCIONAIS ================= */
+/* ================= 3 · anatomia: módulos + córtex em ONDAS CIRCULARES ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
 let planN=-1,stopN=-1;
 let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
-const EMO={alegria:{a:-1,b:-1,lvl:0},tristeza:{a:-1,b:-1,lvl:0},raiva:{a:-1,b:-1,lvl:0},medo:{a:-1,b:-1,lvl:0}};
-const EMODEF={
-  alegria:{col:'#f2d24c',pos:[1.6,2.5,.8]},
-  tristeza:{col:'#5c8fd0',pos:[-1.7,-2.9,-.6]},
-  raiva:{col:'#e85c3c',pos:[4.6,-1.2,.5]},
-  medo:{col:'#9a6ce0',pos:[-4.5,1.6,-.5]}
-};
 let chunkIds=[],chunkFree=[];
 const chunkMap=new Map();
 let dormantIds=[];
+let colAnchors=[];
 function buildModules(){
   epiIds=[];epiData=[];
   for(let i=0;i<NEPI;i++){
@@ -388,32 +375,35 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
-  EMO.alegria.a=addN(EMODEF.alegria.pos[0],EMODEF.alegria.pos[1],EMODEF.alegria.pos[2],EMODEF.alegria.col,.06,.72);
-  EMO.alegria.b=addN(EMODEF.alegria.pos[0]+.35,EMODEF.alegria.pos[1]-.25,EMODEF.alegria.pos[2],EMODEF.alegria.col,.045,.74);
-  EMO.tristeza.a=addN(EMODEF.tristeza.pos[0],EMODEF.tristeza.pos[1],EMODEF.tristeza.pos[2],EMODEF.tristeza.col,.06,.72);
-  EMO.tristeza.b=addN(EMODEF.tristeza.pos[0]-.3,EMODEF.tristeza.pos[1]+.2,EMODEF.tristeza.pos[2],EMODEF.tristeza.col,.045,.74);
-  EMO.raiva.a=addN(EMODEF.raiva.pos[0],EMODEF.raiva.pos[1],EMODEF.raiva.pos[2],EMODEF.raiva.col,.06,.72);
-  EMO.raiva.b=addN(EMODEF.raiva.pos[0]-.3,EMODEF.raiva.pos[1]+.25,EMODEF.raiva.pos[2],EMODEF.raiva.col,.045,.74);
-  EMO.medo.a=addN(EMODEF.medo.pos[0],EMODEF.medo.pos[1],EMODEF.medo.pos[2],EMODEF.medo.col,.06,.72);
-  EMO.medo.b=addN(EMODEF.medo.pos[0]+.3,EMODEF.medo.pos[1]-.2,EMODEF.medo.pos[2],EMODEF.medo.col,.045,.74);
+  /* córtex em ONDAS CIRCULARES concêntricas */
   dormantIds=[];
-  const GX=152,GY=65;
-  for(let c=0;c<NCOLS;c++){
-    const gx=c%GX, gy=(c/GX)|0;
-    const u=(gx+.5)/GX+(h32('jx'+c)-.5)*.7/GX;
-    const v=(gy+.5)/GY+(h32('jy'+c)-.5)*.7/GY;
-    const [bx,by,bz]=sheetPos(clamp(u,.02,.98),clamp(v,.02,.98));
-    const ids=[];
-    for(let k=0;k<NPER;k++){
-      let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
-      const L=Math.hypot(dx,dy,dz)||1,r=Math.cbrt(RNG())*.13+.03;
-      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.0075,.78));
+  colAnchors=[];
+  for(let r=0;r<NRINGS;r++){
+    const phase=h32('ring'+r)*6.283;
+    const amp=.08+h32('ra'+r)*.08;
+    const wob=1.0+h32('rb'+r)*.8;
+    const rad=.35+(r+.5)/NRINGS*3.4;
+    const angOff=h32('ang'+r)*6.283;
+    for(let c=0;c<PERCOL;c++){
+      const u=(c+.5)/PERCOL;
+      const ang=angOff+u*6.283;
+      const wave=Math.sin(phase+u*10*wob)*amp;
+      const bx=Math.cos(ang)*rad;
+      const bz=Math.sin(ang)*rad*.62-.3;
+      const by=.1+wave;
+      const ids=[];
+      for(let k=0;k<NPER;k++){
+        let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
+        const L=Math.hypot(dx,dy,dz)||1,rr=Math.cbrt(RNG())*.11+.025;
+        ids.push(addN(bx+dx/L*rr,by+dy/L*rr*.8,bz+dz/L*rr,'#b8b4a8',.0075,.78));
+      }
+      for(let k=0;k<ids.length;k++){
+        if(k+1<ids.length)pushE(ids[k],ids[k+1],.9,0);
+        if(k+4<ids.length)pushE(ids[k],ids[k+4],.85,0);
+      }
+      dormantIds.push(...ids);
+      colAnchors.push({ids,phase,amp,wob,ang,rad,by});
     }
-    for(let k=0;k<ids.length;k++){
-      if(k+1<ids.length)pushE(ids[k],ids[k+1],.9,0);
-      if(k+4<ids.length)pushE(ids[k],ids[k+4],.85,0);
-    }
-    dormantIds.push(...ids);
   }
 }
 const STC={cx:-2.35,cy:-1.75,cz:.55,r:1.42};
@@ -806,74 +796,7 @@ function detectAct(text){
 }
 const ACTNAME={greet:'saudação',bye:'despedida',thanks:'agradecimento'};
 
-/* ================= 7 · EMOÇÕES DISCRETAS ================= */
-const EMOKEYS=['alegria','tristeza','raiva','medo'];
-const EMONAME={alegria:'😊 alegria',tristeza:'😢 tristeza',raiva:'😠 raiva',medo:'😨 medo'};
-let curEmotion=null;
-let emoWords={};
-function refreshEmoWords(){
-  emoWords={};
-  for(const k of EMOKEYS)emoWords[k]=new Set();
-  for(const w of words){
-    if(w.dead||w.io||w.count<=0)continue;
-    const m=assocAdj[w.idx];
-    if(!m)continue;
-    for(const k of EMOKEYS){
-      const wi=wkey.get(k);
-      if(wi!==undefined&&m.has(wi)&&m.get(wi).w>=.8)emoWords[k].add(w.idx);
-    }
-  }
-}
-function dominantEmotion(){
-  let best=null,bv=.22;
-  for(const k of EMOKEYS){
-    if(!EMO[k])continue;
-    if(EMO[k].lvl>bv){bv=EMO[k].lvl;best=k;}
-  }
-  return best;
-}
-function emoBoost(wi){
-  if(!curEmotion)return 1;
-  const set=emoWords[curEmotion];
-  if(set&&set.has(wi))return 1+EMO[curEmotion].lvl*1.4;
-  return 1;
-}
-function setEmotion(name,strength){
-  if(!EMODEF[name])return;
-  if(!EMO[name]){curEmotion=null;return;}
-  for(const k of EMOKEYS){
-    if(!EMO[k])continue;
-    const target=(k===name)?strength:0;
-    EMO[k].lvl=Math.max(EMO[k].lvl,target*.7);
-  }
-  EMO[name].lvl=strength;
-  if(EMO[name].a>=0)stim(EMO[name].a,1.4);
-  if(EMO[name].b>=0)stim(EMO[name].b,1.1);
-  const p=EMODEF[name].pos;
-  pulseAt(p[0],p[1],p[2],PX[thalN],PY[thalN],PZ[thalN],.8,EMODEF[name].col);
-  curEmotion=dominantEmotion();
-  log('EMO',`emoção: <b style="color:${EMODEF[name].col}">${EMONAME[name]}</b> · intensidade ${strength.toFixed(2)}`);
-}
-function decayEmotions(rdt){
-  let any=false;
-  for(const k of EMOKEYS){
-    if(!EMO[k])continue;
-    const before=EMO[k].lvl;
-    EMO[k].lvl=Math.max(0,EMO[k].lvl-rdt*.035);
-    if(EMO[k].lvl<.05&&before>=.05)any=true;
-  }
-  const d=dominantEmotion();
-  if(d!==curEmotion){
-    curEmotion=d;
-    if(d)log('EMO',`humor dominante: <b style="color:${EMODEF[d].col}">${EMONAME[d]}</b> (${EMO[d].lvl.toFixed(2)})`);
-    else if(any)log('EMO','humor: neutro — emoções esfriaram');
-  }
-}
-function emoLabel(){
-  return curEmotion?EMONAME[curEmotion]:'neutro';
-}
-
-/* ================= 7.5 · lobo frontal + geração ================= */
+/* ================= 7 · lobo frontal + geração ================= */
 let frontalPlan='—', arousal=0;
 const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc', sintaxe:'#d8a8ff'};
 function bumpArousal(v){
@@ -939,7 +862,6 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
     if(qtypeRole&&words[b].syn===qtypeRole)s*=2.6;
     if(actSet&&actSet.has(b))s*=3.2;
     if(arousal>.45)s*=valenceBoost(b);
-    s*=emoBoost(b);
     score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src,slot]);};
   for(const [cw,wt] of ctxArr){const m=assocAdj[cw];
     if(m)for(const [b,o] of m)addC(b,wt*o.w*.5,'assoc');}
@@ -998,7 +920,6 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
       if(qtypeRole&&words[b].syn===qtypeRole)p*=2.2;
       if(actSet&&actSet.has(b))p*=3.0;
       if(arousal>.45)p*=valenceBoost(b);
-      p*=emoBoost(b);
       opts.push([b,p,o]);
     }
     const pick=sampleWeighted(opts.map(o=>[o,o[1]]));
@@ -1140,10 +1061,10 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   return r;
 }
 
-/* ================= 8.5 · IA qwen3-32b — mente emocional ================= */
+/* ================= 8.5 · IA qwen3-32b — corrige TODO turno ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL='qwen/qwen3.8-27b';
+const GROQ_MODEL='qwen/qwen3-32b';
 let aiOn=true;
 let wikiOn=true;
 const history=[];
@@ -1227,14 +1148,11 @@ async function groqRepair(userText,draftText,qtype,act){
     '6. LEIA A INTENÇÃO: pergunta → responda direto; opostos na mensagem → escolha UM lado; escolha exclusiva → escolha uma opção; positivo → tom positivo; negativo → tom negativo; saudação → devolva; despedida → despeça; agradecimento → acene.',
     '7. NUNCA antônimos juntos na mesma resposta.',
     '8. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
-    '9. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas.',
+    '9. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas, sem explicação.',
     '10. Use as relações lógicas conhecidas para decidir o lado em contradições e escolhas.',
     '11. NUNCA repita a mensagem do usuário — responda com conteúdo NOVO.',
-    '12. EMOCIONE — no final, em linha separada, escreva a emoção da sua resposta, UMA destas palavras exatas: alegria, tristeza, raiva, medo, neutro. Escolha o que a resposta transmite.',
     '',
-    'FORMATO EXATO DA SAÍDA (2 linhas):',
-    'a frase da resposta',
-    'a emoção'
+    'Responda SOMENTE com a frase final.'
   ].join('\n');
   const usr='vocabulário do cérebro (única fonte permitida): ['+knownVocabList()+']\n'+
     (rels?'relações lógicas conhecidas: '+rels+'\n':'')+
@@ -1242,19 +1160,8 @@ async function groqRepair(userText,draftText,qtype,act){
     qline+aline+
     'mensagem do usuário: "'+userText+'"\n'+
     'rascunho interno do cérebro (corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
-    'resposta (frase + emoção):';
-  const raw=await groqChat(sys,usr,80,.15);
-  const lines=raw.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-  let emo='neutro';
-  let fixed='';
-  for(const l of lines){
-    const ln=norm(l);
-    if(EMOKEYS.some(k=>ln===k)||ln==='neutro'){emo=ln==='neutro'?'neutro':ln;continue;}
-    if(/^(emoc|emo|sentimento)/.test(ln)){const m2=l.split(/[:\-–]/);if(m2[1]){const e=norm(m2[1]);if(EMOKEYS.includes(e)||e==='neutro'){emo=e;continue;}}}
-    if(!fixed)fixed=l;
-  }
-  if(!EMOKEYS.includes(emo)&&emo!=='neutro')emo='neutro';
-  return{fixed:cleanAI(fixed),emo};
+    'frase final (só a frase):';
+  return cleanAI(await groqChat(sys,usr,60,.15));
 }
 
 async function groqLabel(labels){
@@ -1374,8 +1281,6 @@ async function groqValidate(labels,ctx,wikiMap){
     'Exemplos exatos: bem: sim, positivo, bom | mal: sim, negativo, ruim | sim: sim, positivo | nao: sim, negativo\n'+
     '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | pizza: sim, comida, comer | casa: sim, lugar, morar\n'+
     '3. USO — papel gramatical: eu: sim, pessoa | de: sim, ligacao\n'+
-    '4. EMOÇÃO — se a palavra transmite uma emoção clara, ligue à palavra da emoção: '+
-    'feliz: sim, alegria, bom | triste: sim, tristeza | bravo: sim, raiva | medo: sim, medo, susto\n'+
     'Se houver contexto da Wikipedia, PRIORIZE conceitos coerentes com o artigo real.\n'+
     'ALÉM da linha principal, acrescente linhas extras quando existirem (uma por relação):\n'+
     'palavra -contraria: oposto direto. Ex.: bem -contraria: mal | sim -contraria: nao\n'+
@@ -1507,7 +1412,6 @@ function applyGrounding(wi,labels,antL,xorL,formsL,wikiText){
   log('GND',`fio de sentido: "<b>${w.label}</b>" ⇢ `+
     (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)')+
     (w.wiki?' · <b style="color:#f2e14c">wiki ✓</b>':''));
-  refreshEmoWords();
   if(dirtyC)compile();
   rebuildVisFromNet();
   rebuildGroundLines();
@@ -1629,7 +1533,7 @@ async function respond(qa){
     stim(planN,1.5);
     const pc=PLANCOL[frontalPlan]||'#b9c4e8';
     pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.7,pc);
-    log('FRO',`plano = ${frontalPlan} · humor: ${emoLabel()}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
+    log('FRO',`plano = ${frontalPlan}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
     let r=reviseAndSpeak(q,T,qa,frontalPlan,qtype,lastUserAct);
     r.tokens=r.tokens.filter(wi=>words[wi]&&!words[wi].dead);
     r.path=r.path.filter(wi=>words[wi]&&!words[wi].dead);
@@ -1637,24 +1541,19 @@ async function respond(qa){
     if(r.syn){
       synGenCount++;lastSynGen=r.frame.sig;
       log('SYN',`frase por molde <b>${r.frame.sig}</b>: ${r.roles.map((ro,i)=>`${ro}="${words[r.tokens[i]].label}"`).join(' · ')}`);
+      pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
-    let respEmotion=null;
     if(aiOn){
       log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
       $('confTag').textContent='mente IA · corrigindo…';
-      let parsed={fixed:'',emo:'neutro'};
-      try{parsed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
+      let fixed='';
+      try{fixed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
       catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — modo local');}
-      let fixed=parsed.fixed;
       if(fixed){
         if(norm(fixed)===norm(lastUserText)){log('AI','IA ecoou a mensagem — descartado');fixed='';}
       }
       if(fixed){
-        if(parsed.emo&&parsed.emo!=='neutro'&&EMODEF[parsed.emo]&&EMO[parsed.emo]){
-          setEmotion(parsed.emo,clamp(.45+RNG()*.35,.45,.8));
-          respEmotion=parsed.emo;
-        }
         const knownKeys=new Set(words.filter(w=>!w.dead&&!w.io&&w.count>0).map(w=>w.key));
         const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
         const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
@@ -1717,10 +1616,11 @@ async function respond(qa){
     history.push({u:lastUserText,b:r.tokens.map(i=>words[i].label).join(' ')});
     if(history.length>4)history.shift();
     log('REV',`revisor: ${r.candN} rascunho(s) · fluência ${r.flu.toFixed(2)} · `+
-      (r.mode==='IA'?'fala final pela IA':
+      (r.mode==='IA'?'fala final pela IA (corrigida)':
        r.mode==='lembrança'?`lembrança (linha ${r.slot+1})`:
        (r.syn?'venceu o MOLDE sintático':'venceu o rascunho local #'+r.candI)));
-    $('confTag').textContent=`${emoLabel()}${respEmotion?' (nova)':''} · ${r.mode} · flu ${r.flu.toFixed(2)}`;
+    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)}`+
+      (r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:'');
     for(const [b,s,src,slot] of r.contrib){
       const wb=words[b];if(!wb||wb.dead)continue;
       if(src==='episódio'&&slot!==undefined){
@@ -1734,21 +1634,16 @@ async function respond(qa){
     else if(r.mode==='IA')log('TLK',`resposta corrigida: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
     else if(r.syn)log('TLK',`frase gerada: "${r.tokens.map(i=>words[i].label).join(' ')}" · molde ${r.frame.sig}`);
     else log('TLK',`rota: ${r.path.slice(0,10).map(i=>words[i].label).join(' → ')}${r.path.length>10?'…':''} · conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}`);
-    typeOut(r,respEmotion);
+    typeOut(r);
   }catch(e){
     log('SYS','erro na resposta: '+(e.message||e));
     sendBtn.disabled=false;
   }
 }
-function typeOut(r,respEmotion){
+function typeOut(r){
   const d=document.createElement('div');
   d.className='msg brain'+((r.mode==='gerado'&&r.flu<.3)?' weak':'');
-  if(respEmotion&&EMODEF[respEmotion])d.classList.add('em-'+respEmotion);
-  else if(curEmotion&&EMO[curEmotion]&&EMO[curEmotion].lvl>.3)d.classList.add('em-'+curEmotion);
-  const emoTag=(curEmotion&&EMO[curEmotion]&&EMO[curEmotion].lvl>.2)
-    ?` · <span style="color:${EMODEF[curEmotion].col}">${EMONAME[curEmotion]}</span>`
-    :'';
-  d.innerHTML=`<span class="who">atlas${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}${emoTag}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  d.innerHTML=`<span class="who">atlas${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
   let i=0,stopped=false;
@@ -1760,7 +1655,7 @@ function typeOut(r,respEmotion){
       if(i>7&&RNG()<.07){
         stopped=true;stim(stopN,1.4);
         pulseAt(PX[stopN],PY[stopN],PZ[stopN],0,.1,.8,.6,'#b9c4e8');
-        log('FRO','parada inibitória — frase encerrada');
+        log('FRO','parada inibitória — frase encerrada pelo lobo frontal');
         finish();return;}
       const s=document.createElement('span');s.className='w';s.textContent=w.label+' ';
       ref.el.appendChild(s);msgs.scrollTop=msgs.scrollHeight;
@@ -1902,32 +1797,117 @@ function buildHulls(){
     const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op,
       blending:THREE.AdditiveBlending,depthWrite:false}));
     scene.add(l);hulls.push(l);};
-  const hp=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
-    hp.push(new THREE.Vector3(Math.cos(a)*2.6,-.2,-3.4+Math.sin(a)*1.0));}
-  mk(hp,'#a5d64a',.22);
-  const st=[];for(let i=0;i<=64;i++){const [x,y,z]=striatumPos(0,i/64);st.push(new THREE.Vector3(x,y,z));}
-  mk(st,'#f0a63c',.16);
-  mk([new THREE.Vector3(3.7,2.05,-.35),new THREE.Vector3(4.25,1.55,-.9),
-      new THREE.Vector3(4.55,.9,-.2),new THREE.Vector3(3.95,.6,.2),new THREE.Vector3(3.55,1.9,0)],
-     '#b9c4e8',.2);
+  /* OS 58 ANÉIS ONDULADOS circulares do córtex */
+  const NP=72;
+  for(let r=0;r<NRINGS;r++){
+    const phase=h32('ring'+r)*6.283;
+    const amp=.08+h32('ra'+r)*.08;
+    const wob=1.0+h32('rb'+r)*.8;
+    const rad=.35+(r+.5)/NRINGS*3.4;
+    const angOff=h32('ang'+r)*6.283;
+    const ringPts=[];
+    for(let i=0;i<=NP;i++){
+      const u=i/NP;
+      const ang=angOff+u*6.283;
+      const wave=Math.sin(phase+u*10*wob)*amp;
+      ringPts.push(new THREE.Vector3(
+        Math.cos(ang)*rad,
+        .1+wave,
+        Math.sin(ang)*rad*.62-.3));
+    }
+    mk(ringPts,'#6e6a5e',.18);
+  }
+  /* COROA AMARELA na BORDA — abraçando o último anel de neurônios */
+  const RMAX=.35+3.4;
+  const crown=[];
+  for(let i=0;i<=96;i++){
+    const a=i/96*6.283;
+    const wave=Math.sin(a*4)*.3+Math.sin(a*7+1.2)*.15;
+    crown.push(new THREE.Vector3(
+      Math.cos(a)*(RMAX+.18),
+      .1+wave,
+      Math.sin(a)*(RMAX+.18)*.62-.3));
+  }
+  mk(crown,'#f0a63c',.75);
+  const crown2=[];
+  for(let i=0;i<=96;i++){
+    const a=i/96*6.283;
+    const wave=Math.sin(a*4)*.3+Math.sin(a*7+1.2)*.15;
+    crown2.push(new THREE.Vector3(
+      Math.cos(a)*(RMAX+.05),
+      .1+wave+.05,
+      Math.sin(a)*(RMAX+.05)*.62-.3));
+  }
+  mk(crown2,'#e8b34b',.5);
+  /* GÂNGLIOS: toro espiralado triplo + núcleo interno */
+  const st=[];for(let i=0;i<=96;i++){const [x,y,z]=striatumPos(0,i/96);st.push(new THREE.Vector3(x,y,z));}
+  mk(st,'#f0a63c',.3);
+  const st2=[];for(let i=0;i<=96;i++){const [x,y,z]=striatumPos(0,i/96);
+    st2.push(new THREE.Vector3(x*.82,y*.82+.06,z+.04));}
+  mk(st2,'#f0a63c',.22);
+  const st3=[];for(let i=0;i<=96;i++){const [x,y,z]=striatumPos(0,i/96);
+    st3.push(new THREE.Vector3(x*1.16,y*1.16-.05,z-.04));}
+  mk(st3,'#f0a63c',.14);
+  const stc=[];for(let i=0;i<=24;i++){const a=i/24*6.283;
+    stc.push(new THREE.Vector3(STC.cx+Math.cos(a)*.3,STC.cy+Math.sin(a)*.16,STC.cz));}
+  mk(stc,'#e8b34b',.35);
+  /* LOBO FRONTAL: casca dupla + cintura + tronco para a parada */
+  const fShell=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+    fShell.push(new THREE.Vector3(4.1+Math.cos(a)*.55,1.55+Math.sin(a)*.42,-.9+Math.sin(a*2)*.18));}
+  mk(fShell,'#b9c4e8',.3);
+  const fShell2=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+    fShell2.push(new THREE.Vector3(4.1+Math.cos(a)*.34,1.55+Math.sin(a)*.26,-.9+Math.sin(a*3)*.1));}
+  mk(fShell2,'#b9c4e8',.22);
+  const fBelt=[];for(let i=0;i<=16;i++){const a=i/16*6.283;
+    fBelt.push(new THREE.Vector3(4.1+Math.cos(a)*.6,1.55+Math.sin(a)*.1,-.9+Math.sin(a)*.1));}
+  mk(fBelt,'#8f9ec4',.3);
+  mk([new THREE.Vector3(4.4,.95,-.25),new THREE.Vector3(4.25,1.2,-.55),
+      new THREE.Vector3(4.1,1.55,-.9)],'#b9c4e8',.3);
+  /* AMÍGDALA: amêndoa dupla entrelaçada + núcleo */
   const am=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     am.push(new THREE.Vector3(3.38+Math.cos(a)*.42,-1.68+Math.sin(a)*.34,.85));}
-  mk(am,'#ef6a8b',.2);
-  const th=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+  mk(am,'#ef6a8b',.3);
+  const am2=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+    am2.push(new THREE.Vector3(3.38+Math.cos(a+.8)*.32,-1.68+Math.sin(a+.8)*.42,.85+Math.sin(a)*.08));}
+  mk(am2,'#ef6a8b',.25);
+  const amN=[];for(let i=0;i<=16;i++){const a=i/16*6.283;
+    amN.push(new THREE.Vector3(3.38+Math.cos(a)*.14,-1.68+Math.sin(a)*.12,.85));}
+  mk(amN,'#ff9a8b',.4);
+  /* VTA: hélice dupla */
+  const vh=[];for(let i=0;i<=48;i++){const t=i/48;
+    vh.push(new THREE.Vector3(.75+Math.cos(t*6.283*1.5)*.28,-2.9+t*.5,-.8+Math.sin(t*6.283*1.5)*.22));}
+  mk(vh,'#ff5d4d',.35);
+  const vh2=[];for(let i=0;i<=48;i++){const t=i/48;
+    vh2.push(new THREE.Vector3(1.12+Math.cos(t*6.283*1.5+3.14)*.24,-2.65+t*.5,-.45+Math.sin(t*6.283*1.5+3.14)*.2));}
+  mk(vh2,'#ff5d4d',.3);
+  /* TÁLAMO: cebola de 3 cascas */
+  const th=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     th.push(new THREE.Vector3(Math.cos(a)*.5,2.7+Math.sin(a)*.3,-.3));}
-  mk(th,'#46c8bc',.25);
-  const rv=[];for(let i=0;i<=6;i++){const a=i/6*6.283;
-    rv.push(new THREE.Vector3(2.55+Math.cos(a)*.34,1.15+Math.sin(a)*.34,-.55));}
-  mk(rv,'#c8b6e8',.24);
+  mk(th,'#46c8bc',.35);
+  const th2=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
+    th2.push(new THREE.Vector3(Math.cos(a)*.34,2.7+Math.sin(a)*.2,-.3+Math.cos(a)*.06));}
+  mk(th2,'#46c8bc',.25);
+  const th3=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+    th3.push(new THREE.Vector3(Math.cos(a)*.18,2.7+Math.sin(a)*.11,-.3+Math.sin(a)*.08));}
+  mk(th3,'#7fdcd2',.35);
+  /* MENTE IA: prisma hexagonal de 3 camadas */
+  for(let layer=0;layer<3;layer++){
+    const rr=.34+layer*.06, yoff=1.15-layer*.04;
+    const hx=[];for(let i=0;i<=6;i++){const a=i/6*6.283+layer*.35;
+      hx.push(new THREE.Vector3(2.55+Math.cos(a)*rr,yoff+Math.sin(a)*rr,-.55));}
+    mk(hx,['#c8b6e8','#a99bd4','#8d80b8'][layer],.35-layer*.06);
+  }
+  /* CÓRTEX SINTÁTICO: cúpula com meridianos */
   const sy=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     sy.push(new THREE.Vector3(Math.cos(a)*4.9,.55+Math.sin(a*2)*.12,-.3+Math.sin(a)*2.5));}
-  mk(sy,'#d8a8ff',.14);
-  for(const k of EMOKEYS){
-    const p=EMODEF[k].pos;
-    const ring=[];
-    for(let i=0;i<=32;i++){const a=i/32*6.283;
-      ring.push(new THREE.Vector3(p[0]+Math.cos(a)*.55,p[1]+Math.sin(a)*.4,p[2]));}
-    mk(ring,EMODEF[k].col,.3);
+  mk(sy,'#d8a8ff',.2);
+  for(let m=0;m<4;m++){
+    const mer=[];
+    const amg2=m/4*6.283;
+    for(let i=0;i<=24;i++){const t=i/24;
+      const rad=1.2+t*3.8;
+      mer.push(new THREE.Vector3(Math.cos(amg2)*rad,.5+Math.sin(t*3.14)*.25,-.3+Math.sin(amg2)*rad*.62));}
+    mk(mer,'#d8a8ff',.12);
   }
 }
 let ringLine=null;
@@ -2178,17 +2158,13 @@ function buildModLabels(){
   const defs=[
     [()=>[PX[thalN],PY[thalN]+.42,PZ[thalN]],'tálamo','#46c8bc',.9],
     [()=>[PX[planN],PY[planN]+.34,PZ[planN]],'lobo frontal','#b9c4e8',.85],
+    [()=>[PX[stopN],PY[stopN]+.22,PZ[stopN]],'parada','#b9c4e8',.5],
     [()=>[3.38,-2.14,.85],'amígdala','#ef6a8b',.85],
     [()=>[.95,-3.06,-.6],'VTA','#ff5d4d',.85],
     [()=>[STC.cx,STC.cy-.7,STC.cz],'gânglios · hábitos','#f0a63c',.8],
     [()=>[0,-.88,-3.4],'hipocampo','#a5d64a',.8],
     [()=>[2.55,1.6,-.55],'mente · IA','#c8b6e8',.9],
-    [()=>[0,1.05,0],'córtex sintático','#d8a8ff',.85]
-  ];
-  for(const k of EMOKEYS){
-    const p=EMODEF[k].pos;
-    defs.push([()=>[p[0],p[1]+.65,p[2]],EMONAME[k],EMODEF[k].col,.85]);
-  }
+    [()=>[0,1.05,0],'córtex sintático','#d8a8ff',.85]];
   modLabels=defs.map(([p,t,c,o])=>{
     const el=document.createElement('div');el.className='wlb mod';
     el.textContent=t;el.style.color=c;el._o=o;
@@ -2246,10 +2222,6 @@ function updateStats(){
     .sort((a,b)=>b[1]-a[1]).slice(0,3).map(([wi])=>words[wi].label);
   $('stN').textContent=N;$('stS').textContent=syn;$('stW').textContent=alive.length;
   $('stR').textContent=routes;$('stK').textContent=chunkMap.size+'/'+NCHUNK;$('stHz').textContent=hzVal;
-  $('tEmo').textContent=emoLabel();
-  $('tEmv').textContent=(curEmotion&&EMO[curEmotion])?EMO[curEmotion].lvl.toFixed(2):'0.00';
-  if(curEmotion&&EMODEF[curEmotion])$('tEmo').style.color=EMODEF[curEmotion].col;
-  else $('tEmo').style.color='';
   $('tW').textContent=alive.length;$('tU').textContent=alive.filter(w=>w.grounded).length;
   $('tWk').textContent=alive.filter(w=>w.wiki).length;
   $('tQ').textContent=cnt('quem');$('tV').textContent=cnt('acao');
@@ -2353,10 +2325,8 @@ function lesion(){
   }
   rebuildGroundLines();
   bumpArousal(1);stim(amgA,1.7);stim(amgB,1.5);
-  setEmotion('medo',.9);
-  setEmotion('raiva',.6);
   pulseAt(PX[amgA],PY[amgA],PZ[amgA],PX[thalN],PY[thalN],PZ[thalN],1,'#ef6a8b');
-  log('LES',`lesão: ${hit} conceitos silenciados · medo e raiva disparados · amígdala em alarme`);
+  log('LES',`lesão: ${hit} conceitos silenciados · amígdala em alarme`);
   compile();syncNeuronAttrs();rebuildVisFromNet();updateStats();
 }
  $('btnLesion').addEventListener('click',lesion);
@@ -2367,14 +2337,13 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:18,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:22,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined,k:w.wiki?1:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
     frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
     acts:Object.fromEntries(Object.entries(ACTW).map(([k,v])=>[k,[...v]])),
-    emotion:curEmotion?{name:curEmotion,lvl:EMO[curEmotion].lvl}:null,
     episodes:epiData.map(e=>e.epi.slice()),episodeIdx,plan:frontalPlan};
   for(let a=0;a<words.length;a++){
     if(!words[a]||words[a].dead)continue;
@@ -2385,7 +2354,7 @@ function exportBrain(){
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='atlas-cerebro.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS','cérebro exportado (com humor)');
+  log('SYS','cérebro exportado');
 }
  $('btnExport').addEventListener('click',exportBrain);
 function wipeNet(){
@@ -2407,8 +2376,6 @@ function wipeNet(){
   topicCtx=new Map();turnCount=0;lastUserAct=null;
   lastResponses.length=0;
   Object.values(ACTW).forEach(s=>s.clear());
-  for(const k of EMOKEYS){if(EMO[k])EMO[k].lvl=0;}
-  curEmotion=null;
   frontalPlan='—';arousal=0;prevTurn=null;lastBrainWids=null;history.length=0;
   msgs.innerHTML='';
   buildModules();buildChunks();
@@ -2450,12 +2417,10 @@ function importBrain(d){
       if(ACTW[k])arr.forEach(wi=>{if(words[wi]&&!words[wi].dead)ACTW[k].add(wi);});
     for(const ep of d.episodes||[])if(Array.isArray(ep)&&ep.length)writeEpisode(ep,true);
     if(d.episodeIdx)episodeIdx=d.episodeIdx%NEPI;
-    if(d.emotion&&EMODEF[d.emotion.name])setEmotion(d.emotion.name,d.emotion.lvl);
-    refreshEmoWords();
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
-    log('SYS',`cérebro importado: ${words.length-2} palavras · ${frames.length} molde(s) · humor restaurado`);
+    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s)`);
   }catch(e){log('SYS','falha ao importar: '+e.message);}
 }
  $('btnImport').addEventListener('click',()=>$('fileIn').click());
@@ -2501,7 +2466,7 @@ let wipeArm=0;
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
-  log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno e emociona':'desligada — cérebro 100% cru'));
+  log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno':'desligada — cérebro 100% cru'));
 });
  $('btnWiki').addEventListener('click',function(){
   wikiOn=!wikiOn;this.classList.toggle('on',wikiOn);
@@ -2518,12 +2483,12 @@ const clock=new THREE.Clock();
 let lastSpk=0,hzAcc=0,statAcc=0,noiseT=0;
 let actCursor=0;
 const ACTCHUNK=125000;
+let ringT=0;   /* fase da faísca na coroa amarela */
 function animate(){
   requestAnimationFrame(animate);
   const rdt=Math.min(.05,clock.getDelta());
   const dt=rdt*SIMSPEED;
   stepNet(dt);recover();
-  decayEmotions(rdt);
   noiseT-=rdt;
   if(noiseT<=0&&dormantIds.length){
     noiseT=.05+RNG()*.15;
@@ -2535,6 +2500,18 @@ function animate(){
     }
   }
   sharedU.uTime.value+=rdt;
+  /* faísca viajando pela coroa amarela externa */
+  ringT=(ringT+rdt*.35)%1;
+  {
+    const a=ringT*6.283;
+    const wave=Math.sin(a*4)*.3+Math.sin(a*7+1.2)*.15;
+    const a2=a+.06;
+    const wave2=Math.sin(a2*4)*.3+Math.sin(a2*7+1.2)*.15;
+    const R2=3.93;
+    pulseAt(Math.cos(a)*R2,.15+wave,Math.sin(a)*R2*.62-.3,
+            Math.cos(a2)*R2,.15+wave2,Math.sin(a2)*R2*.62-.3,
+            .8,'#f0a63c');
+  }
   if(sweepT<1.4){
     sweepT+=rdt*1.1;
     sharedU.uSweep.value=-.08+sweepT;
@@ -2552,12 +2529,6 @@ function animate(){
     if(w.cslot>=0&&w.cslot<CAPW)cAct[w.cslot]=w.act;
   }
   cGeo.attributes.aAct.needsUpdate=true;
-  for(const k of EMOKEYS){
-    if(EMO[k]&&EMO[k].lvl>.05&&EMO[k].a>=0&&RNG()<.12){
-      stim(EMO[k].a,EMO[k].lvl*1.1);
-      if(EMO[k].b>=0&&RNG()<.4)stim(EMO[k].b,EMO[k].lvl*.7);
-    }
-  }
   controls.update();
   if(visDirty)rebuildArcs();
   if(chunkDirty&&showChunk)rebuildChunkArcs();
@@ -2578,18 +2549,16 @@ function animate(){
   if(statAcc>=.5){statAcc=0;updateStats();}
   renderer.render(scene,camera);
 }
-log('SYS','montando 250000 neurônios — um instante...');
+log('SYS','montando 250000 neurônios em 58 ondas circulares — um instante...');
 buildHulls();
 buildRing();
 buildModLabels();
 wipeNet();
-refreshEmoWords();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 4 núcleos emocionais + 2967 gânglios + 247000 córtex`);
-log('SYS',`mente: ${GROQ_MODEL} — corrige TODO turno e escolhe a emoção da resposta`);
-log('SYS','emoções: alegria · tristeza · raiva · medo — sobem com a conversa, esfriam com o tempo');
-log('SYS','wikipedia ligada: conceitos novos ancoram em artigos reais');
+log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 2975 gânglios (toro triplo) + 246980 córtex em 58 ondas circulares`);
+log('SYS','coroa amarela dupla na borda externa · faísca luminosa orbitando-a continuamente');
+log('SYS',`mente: ${GROQ_MODEL} — corrige TODO turno · anti-eco ativo · wikipedia ligada`);
 setTimeout(fireSweep,900);
 animate();
 </script>
