@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 100000 neurônios · ondas circulares · coroa amarela · qwen3-32b</title>
+<title>ATLAS — 100000 neurônios · ondas circulares · coroa amarela · gpt-oss-20b pensante</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -114,7 +114,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>100000 neurônios · ondas circulares · coroa amarela · qwen3-32b pensante</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>100000 neurônios · ondas circulares · coroa amarela · gpt-oss-20b pensante</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -225,6 +225,7 @@ const RNG=Math.random;
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
+/* $ blindado — elemento faltante vira boneco silencioso, script nunca morre */
 const DUMMY={textContent:'',innerHTML:'',style:{},classList:{add(){},remove(){},toggle(){}},
   addEventListener(){},appendChild(){},remove(){},prepend(){},click(){},
   querySelector(){return null},querySelectorAll(){return[]},
@@ -282,7 +283,7 @@ function compile(){
 const HOT=[],HOTF=new Uint8Array(CAPN);
 const NB=32, BQ=Array.from({length:NB},()=>[]); let tickI=0;
 const hotAdd=i=>{if(!HOTF[i]){HOTF[i]=1;HOT.push(i);}};
-function stim(i,amp){if(i===undefined||i<0||i>=N)return;V[i]+=amp;hotAdd(i);}
+function stim(i,amp){if(i===undefined||i===null||i<0||i>=N)return;V[i]+=amp;hotAdd(i);}
 function fire(i){
   V[i]=0;REF[i]=.045;ACT[i]=1;SPK++;
   const e2=off[i+1];
@@ -570,8 +571,10 @@ function framePool(role,ctxArr,inputSet,used,opts={}){
       if(mo){if(mo.tag==='plural')p*=4;else if(mo.tag==='singular')p*=.8;}
     }
     if(qtypeRole&&role===qtypeRole)p*=2.8;
+    else if(qtypeRole)p*=.8;
     if(arousal>.45)p*=valenceBoost(w.idx);
     if(actSet&&actSet.has(w.idx))p*=3.2;
+    else if(actSet&&act!=='thanks')p*=actSet.size>=3?.25:.6;
     pool.push([w.idx,p]);
   }
   return pool;
@@ -799,7 +802,7 @@ const ACTNAME={greet:'saudação',bye:'despedida',thanks:'agradecimento'};
 
 /* ================= 7 · lobo frontal + geração ================= */
 let frontalPlan='—', arousal=0;
-let aiPlanBias=null, aiConf=null;
+let aiPlanBias=null;
 const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc', sintaxe:'#d8a8ff'};
 function bumpArousal(v){
   const old=arousal;
@@ -866,7 +869,9 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
     if(antHit(b,inputSet))s*=.15;
     if(inputSet.has(b))s*=.45;
     if(qtypeRole&&words[b].syn===qtypeRole)s*=2.6;
+    else if(qtypeRole)s*=.8;
     if(actSet&&actSet.has(b))s*=3.2;
+    else if(actSet&&act!=='thanks')s*=actSet.size>=3?.25:.6;
     if(arousal>.45)s*=valenceBoost(b);
     score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src,slot]);};
   for(const [cw,wt] of ctxArr){const m=assocAdj[cw];
@@ -924,7 +929,9 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
       if(lastBrainWids&&lastBrainWids.includes(b)&&!inputSet.has(b))p*=.45;
       if(b===prevTok)p*=.2;
       if(qtypeRole&&words[b].syn===qtypeRole)p*=2.2;
+      else if(qtypeRole)p*=.8;
       if(actSet&&actSet.has(b))p*=3.0;
+      else if(actSet&&act!=='thanks')p*=actSet.size>=3?.3:.6;
       if(arousal>.45)p*=valenceBoost(b);
       opts.push([b,p,o]);
     }
@@ -1115,6 +1122,7 @@ function knownRels(){
   }
   return out.slice(0,30).join(' · ');
 }
+/* relatório do estado do cérebro — a IA gerencia com base nisso */
 function brainReport(){
   const alive=words.filter(w=>!w.dead&&!w.io&&w.count>0);
   const top=alive.sort((a,b)=>b.count-a.count).slice(0,8).map(w=>w.label).join(', ');
@@ -1142,6 +1150,8 @@ async function groqChat(sys,usr,maxTokens=120,temp=.5,extra=null){
   const msg=j.choices&&j.choices[0]?j.choices[0].message:null;
   return{content:(msg&&msg.content)||'',reasoning:(msg&&(msg.reasoning||msg.reasoning_content))||''};
 }
+function validPlan(p){return p==='cadeia'||p==='sintaxe'||p==='lembranca';}
+/* ---------- VEREDITO ESTRUTURADO: frase + conf + plano + reforço ---------- */
 async function groqManage(userText,draftText,qtype,act,flu){
   const hist=history.slice(-2).map(h=>`- usuário: "${h.u}" | atlas: "${h.b}"`).join('\n');
   const rels=knownRels();
@@ -1169,9 +1179,9 @@ async function groqManage(userText,draftText,qtype,act,flu){
     '9. Saída da frase limpa — minúscula, sem pontuação final, sem emoji, sem aspas.',
     '',
     'GERÊNCIA (obrigatória):',
-    '• conf — sua confiança de 0.0 a 1.0 nesta resposta. Seja honesto: resposta frágil = conf baixa.',
-    '• plano — decreta o plano do lobo frontal para o próximo turno: cadeia, sintaxe ou lembranca. Teia rica → sintaxe; memórias fortes → lembranca; teia jovem → cadeia.',
-    '• reforco — palavras do vocabulário (2 a 4, separadas por espaço) que sua resposta VALIDOU e devem ter sinapses reforçadas.',
+    '• conf — sua confiança de 0.0 a 1.0 nesta resposta. Seja honesto: resposta frágil = conf baixa (o cérebro vai reforçar menos as sinapses dela).',
+    '• plano — decrete o plano que o lobo frontal deve usar no próximo turno: cadeia, sintaxe ou lembranca. Baseie-se no estado do cérebro: teia rica → sintaxe; memórias fortes → lembranca; teia jovem → cadeia.',
+    '• reforco — as palavras do vocabulário (2 a 4, separadas por espaço) que sua resposta VALIDOU e devem ter sinapses reforçadas. Escolha as que carregam o sentido da resposta.',
     '',
     'FORMATO EXATO DA SAÍDA (4 linhas):',
     'frase: a resposta final',
@@ -1193,6 +1203,7 @@ async function groqManage(userText,draftText,qtype,act,flu){
     const ex=reasoning.replace(/\s+/g,' ').trim().slice(0,110);
     if(ex)log('THK','pensou: "'+ex+(reasoning.length>110?'…':'')+'"');
   }
+  /* parse das 4 linhas, tolerante */
   let fixed='',conf=-1,plano=null,reforco=[];
   for(const raw of content.split(/\n+/)){
     const l=raw.trim();
@@ -1202,7 +1213,7 @@ async function groqManage(userText,draftText,qtype,act,flu){
     if((m=l.match(/^conf(?:ianca|iança)?\s*[:\-–]\s*([\d.,]+)\s*$/i))){conf=clamp(parseFloat(m[1].replace(',','.'))||0,0,1);continue;}
     if((m=l.match(/^plano\s*[:\-–]\s*(\S+)\s*$/i))){
       const p=norm(m[1]);
-      if(p==='cadeia'||p==='sintaxe'||p==='lembranca'||p==='lembrança')plano=p==='lembrança'?'lembranca':p;
+      if(validPlan(p)||(p==='lembrança'))plano=p==='lembrança'?'lembranca':p;
       continue;
     }
     if((m=l.match(/^reforc[oa]\s*[:\-–]\s*(.+)$/i))){
@@ -1211,7 +1222,7 @@ async function groqManage(userText,draftText,qtype,act,flu){
     }
     if(!fixed)fixed=l;
   }
-  if(plano!==null&&plano!=='cadeia'&&plano!=='sintaxe'&&plano!=='lembranca')plano=null;
+  if(plano!==null&&!validPlan(plano))plano=null;
   return{fixed:cleanAI(fixed),conf:(conf>=0?conf:null),plano,reforco};
 }
 
@@ -1523,7 +1534,11 @@ function userSend(){
   const wids=tokenize(text).filter(wi=>words[wi]&&!words[wi].dead);
   if(!wids.length){log('SYS','mensagem sem palavras aproveitáveis');sendBtn.disabled=false;return;}
   pushTopic(wids,2.0);
-  if(act)wids.forEach(wi=>ACTW[act].add(wi));
+  if(act){
+    wids.forEach(wi=>ACTW[act].add(wi));
+    /* ATO DE FALA FECHA O TÓPICO: assunto velho não vaza pra saudação/despedida */
+    for(const [k,v] of [...topicCtx])topicCtx.set(k,v*.3);
+  }
   turnCount++;
   if(turnCount%3===0)decayNet();
   let sur=0;
@@ -1592,6 +1607,7 @@ async function respond(qa){
     if(r.syn){
       synGenCount++;lastSynGen=r.frame.sig;
       log('SYN',`frase por molde <b>${r.frame.sig}</b>: ${r.roles.map((ro,i)=>`${ro}="${words[r.tokens[i]].label}"`).join(' · ')}`);
+      pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
     if(aiOn){
@@ -1614,25 +1630,25 @@ async function respond(qa){
         if(useToks.length){
           aiUsed=true;
           newWordsMsg=0;
-          /* GESTÃO 1 — confiança escala o aprendizado */
-          const aiConf=(v.conf!=null)?v.conf:.75;
-          aiConfGlobal=aiConf;
-          learnMessage(useToks,1.0+aiConf*1.2);
+          /* GESTÃO 1 — confiança da IA escala o aprendizado (η 1.0..2.2) */
+          const aiC=(v.conf!=null)?v.conf:.75;
+          aiConfGlobal=aiC;
+          learnMessage(useToks,1.0+aiC*1.2);
           learnDialogue(prevTurn,useToks);
           if(lastUserAct)useToks.forEach(wi=>ACTW[lastUserAct].add(wi));
-          /* GESTÃO 2 — reforço sináptico declarado */
+          /* GESTÃO 2 — reforço sináptico declarado: conceitos validados pela IA */
           let nRef=0;
           const refWids=[...new Set(v.reforco)].map(k=>wkey.get(k)).filter(x=>x!==undefined&&words[x]&&!words[x].dead);
           for(const wi of refWids){
             const w=words[wi];
             const m=transAdj[wi];
-            if(m)for(const o of m.values())o.w=Math.min(1.25,o.w+.12*aiConf);
+            if(m)for(const o of m.values())o.w=Math.min(1.25,o.w+.12*aiC);
             w.count=Math.max(w.count,2);w.last=simT;paintWord(w);
             w.act=1.4;
             pulseAt(2.55,1.15,-.55,w.base[0],w.base[1],w.base[2],.7,'#8fd0ff');
             nRef++;
           }
-          /* GESTÃO 3 — plano decretado */
+          /* GESTÃO 3 — plano decretado pela mente IA */
           if(v.plano){
             if(v.plano!==frontalPlan){
               log('FRO',`mente IA decretou plano: ${v.plano} (antes: ${frontalPlan})`);
@@ -1644,13 +1660,14 @@ async function respond(qa){
             pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.8,pc2);
           }
           /* GESTÃO 4 — arousal segue a confiança */
-          bumpArousal(aiConf>.7?.14:aiConf<.4?-.05:.06);
+          bumpArousal(aiC>.7?.14:aiC<.4?-.05:.06);
           if(r.syn&&r.tokens.length===useToks.length&&
              r.tokens.every((wi,i)=>useToks[i]===wi)){
             r.frame.hit+=1;
           }
           if(dirtyC)compile();
           stim(vtaA,1.1);fireSweep();
+          /* INTEGRAÇÃO NEURONAL: o caminho da resposta acende no atlas */
           showTrace(useToks);
           for(const wi of useToks.slice(0,4)){
             const w=words[wi];if(!w||w.dead)continue;
@@ -1661,16 +1678,15 @@ async function respond(qa){
             (knownToks.length
               ?(novelN?` · ${novelN} nova(s) pro aprendizado`:' · só vocabulário do cérebro')
               :' · vocabulário insuficiente — resposta vira ensino'));
-          log('AI',`gestão: conf ${aiConf.toFixed(2)} · plano ${v.plano||'mantido'} · reforço em ${nRef} conceito(s)`);
+          log('AI',`gestão: conf ${aiC.toFixed(2)} · plano ${v.plano||'mantido'} · reforço em ${nRef} conceito(s)`);
           const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
           if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
           const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
           if(unlab.length)queueLabel(unlab.slice(0,6));
           r={tokens:useToks,path:useToks.slice(),
-             conf:aiConf,babble:false,jumps:0,
+             conf:aiC,babble:false,jumps:0,
              contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
-             flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI,
-             aiConf};
+             flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
         }
       }
     }
@@ -1885,7 +1901,7 @@ function buildHulls(){
     const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:op,
       blending:THREE.AdditiveBlending,depthWrite:false}));
     scene.add(l);hulls.push(l);};
-  /* OS 58 ANÉIS ONDULADOS circulares do córtex — engrossados */
+  /* OS 58 ANÉIS ONDULADOS circulares do córtex */
   const NP=72;
   for(let r=0;r<NRINGS;r++){
     const phase=h32('ring'+r)*6.283;
@@ -1927,7 +1943,7 @@ function buildHulls(){
       Math.sin(a)*(RMAX+.05)*.62-.3));
   }
   mk(crown2,'#e8b34b',.6);
-  /* GÂNGLIOS: anel espiral simples, fechado redondo, engrossado */
+  /* GÂNGLIOS: anel espiral simples, fechado redondo */
   const st=[];for(let i=0;i<=384;i++){const [x,y,z]=striatumPos(0,i/384);st.push(new THREE.Vector3(x,y,z));}
   mk(st,'#f0a63c',.3);
   /* LOBO FRONTAL: casca dupla + cintura + tronco */
@@ -2419,7 +2435,7 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:25,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:26,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined,k:w.wiki?1:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
@@ -2459,7 +2475,7 @@ function wipeNet(){
   topicCtx=new Map();turnCount=0;lastUserAct=null;
   lastResponses.length=0;
   Object.values(ACTW).forEach(s=>s.clear());
-  aiPlanBias=null;aiConf=null;aiConfGlobal=null;
+  aiPlanBias=null;aiConfGlobal=null;
   frontalPlan='—';arousal=0;prevTurn=null;lastBrainWids=null;history.length=0;
   msgs.innerHTML='';
   buildModules();buildChunks();
@@ -2501,7 +2517,7 @@ function importBrain(d){
       if(ACTW[k])arr.forEach(wi=>{if(words[wi]&&!words[wi].dead)ACTW[k].add(wi);});
     for(const ep of d.episodes||[])if(Array.isArray(ep)&&ep.length)writeEpisode(ep,true);
     if(d.episodeIdx)episodeIdx=d.episodeIdx%NEPI;
-    if(d.aiPlan&&['cadeia','sintaxe','lembranca'].includes(d.aiPlan))aiPlanBias=d.aiPlan;
+    if(d.aiPlan&&validPlan(d.aiPlan))aiPlanBias=d.aiPlan;
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
@@ -2601,7 +2617,9 @@ function animate(){
     sweepT+=rdt*1.1;
     sharedU.uSweep.value=-.08+sweepT;
     sharedU.uSweepAmp.value=sweepT<1.15?1:clamp(1-(sweepT-1.15)*4,0,1);
-  }else sharedU.uSweepAmp.value=0;
+  }else sharedSweepAmpCleanup();
+  function sharedSweepAmpCleanup(){}
+  sharedU.uSweepAmp.value=sweepT<1.15?1:clamp(1-(sweepT-1.15)*4,0,1);
   let left=ACTCHUNK;
   while(left>0){
     if(actCursor>=N){actCursor=0;break;}
@@ -2642,6 +2660,7 @@ wipeNet();
 resize();
 updateStats();
 log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 2525 gânglios (anel fechado) + 97000 córtex em 58 ondas circulares`);
+log('SYS','pragmática: ato de fala fecha o tópico e restringe a resposta ao repertório do ato');
 log('SYS',`mente: ${GROQ_MODEL} com MODO PENSAMENTO — edita · decreta plano · calibra confiança · reforça sinapses`);
 setTimeout(fireSweep,900);
 animate();
