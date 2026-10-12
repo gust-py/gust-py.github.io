@@ -1076,7 +1076,9 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
 /* CADEIA DE MODELOS: se um falhar (404), cai pro próximo automaticamente */
-const MODEL_CHAIN=['openai/gpt-oss-20b'];
+const MODEL_CHAIN=['openai/gpt-oss-20b','openai/gpt-oss-120b','qwen/qwen3-32b','llama-3.1-8b-instant'];
+let modelIdx=0;
+let GROQ_MODEL=MODEL_CHAIN[0];
 let modelIdx=0;
 let aiOn=true;
 let wikiOn=true;
@@ -1136,7 +1138,6 @@ function cleanAI(t){
   const w=t.split(' ').filter(Boolean).slice(0,6).join(' ');
   return w||'';
 }
-/* groqChat com fallback de modelo: 404 → próximo da cadeia; 400 → sem extras */
 async function groqChat(sys,usr,maxTokens=140,temp=.5,extra=null){
   let lastErr=null;
   for(let k=0;k<MODEL_CHAIN.length;k++){
@@ -1157,17 +1158,18 @@ async function groqChat(sys,usr,maxTokens=140,temp=.5,extra=null){
         temperature:temp,max_tokens:maxTokens,stream:false,...(extra||{})});
       if(k>0){log('AI','modelo ativo: '+model+' (anterior indisponível)');}
       modelIdx=(modelIdx+k)%MODEL_CHAIN.length;
+      GROQ_MODEL=model;
       return out;
     }catch(e){
       if(e&&e.modelFail){lastErr=e.err;continue;}
       if(extra){
-        /* 400 pode ser parâmetro rejeitado (ex.: reasoning) — tenta sem extras */
         try{
           const out=await call({model,
             messages:[{role:'system',content:sys},{role:'user',content:usr}],
             temperature:temp,max_tokens:maxTokens,stream:false});
           if(k>0)log('AI','modelo ativo: '+model);
           modelIdx=(modelIdx+k)%MODEL_CHAIN.length;
+          GROQ_MODEL=model;
           return out;
         }catch(e2){lastErr=(e2&&e2.err)||e2;continue;}
       }
