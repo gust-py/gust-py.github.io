@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 500000 neurônios · wikipedia</title>
+<title>ATLAS — 250000 neurônios · emoções · qwen3-32b</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,6 +13,7 @@
   --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
   --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a; --fro:#b9c4e8; --rev:#c8b6e8;
   --ai:#8fd0ff; --ant:#ff8a5c; --xor:#d0e86a; --syn:#d8a8ff; --wik:#f2e14c;
+  --joy:#f2d24c; --sad:#5c8fd0; --ang:#e85c3c; --fear:#9a6ce0;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -42,11 +43,15 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 #chatHead b{font-family:var(--sans);font-size:13px;letter-spacing:.04em}
 #confTag{font-size:9px;color:var(--dim2);letter-spacing:.1em;text-align:right}
 #msgs{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:11px;min-height:0}
-.msg{max-width:94%;font-size:11.5px;line-height:1.55}
+.msg{max-width:94%;font-size:11.5px;line-height:1.55;position:relative}
 .msg .who{display:block;font-size:8.5px;letter-spacing:.18em;color:var(--dim2);margin-bottom:2px;text-transform:uppercase}
 .msg .meta{display:block;font-size:8.5px;color:var(--dim2);margin-top:3px;letter-spacing:.05em}
 .msg.me{align-self:flex-end;text-align:right;color:var(--bone)}
-.msg.brain{align-self:flex-start}
+.msg.brain{align-self:flex-start;padding-left:10px;border-left:2px solid var(--dim2)}
+.msg.brain.em-alegria{border-left-color:var(--joy)}
+.msg.brain.em-tristeza{border-left-color:var(--sad)}
+.msg.brain.em-raiva{border-left-color:var(--ang)}
+.msg.brain.em-medo{border-left-color:var(--fear)}
 .msg.sys{align-self:center;color:var(--dim2);font-size:9.5px;text-align:center;max-width:100%}
 .msg.err{align-self:center;color:var(--red);font-size:9.5px;text-align:center;max-width:100%}
 .msg.weak .tx{opacity:.62;font-style:italic}
@@ -102,7 +107,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
 .lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff} .lk-MOR{color:#7fe0c8}
-.lk-WIK{color:var(--wik)}
+.lk-WIK{color:var(--wik)} .lk-EMO{color:var(--joy)}
 #log .ln{margin-bottom:2px}
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
@@ -114,7 +119,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>500000 neurônios · wikipedia · IA corrige todo turno · anti-eco</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>250000 neurônios · emoções reais · wikipedia · qwen3-32b</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -148,13 +153,13 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 494000 neurônios (19760 colunas × 25) + 5967 gânglios + 33 módulos = 500000 fixos</div>
-      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância por morfologia</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · contradição ≠ (laranja) · alternativa ou (verde) · família ≈ (verde-água)</div>
-      <div class="li"><i style="--c:#f2e14c"></i>wikipedia — conceitos com artigo real: o significado vem da enciclopédia</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — corrige TODO turno; nunca ecoa; valida, rotula, ancora</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 5967 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor anti-eco</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 247000 neurônios (9880 colunas × 25) + 2967 gânglios + 33 módulos = 250000 fixos</div>
+      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância</div>
+      <div class="li"><i style="--c:#f2d24c"></i>emoções — 4 núcleos: alegria · tristeza · raiva · medo — colorem a fala</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · ≠ (laranja) · ou (verde) · família ≈ (verde-água) · ℘ wiki (amarelo)</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>mente IA qwen3-32b — corrige TODO turno · decide a emoção da resposta</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — 2967 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor anti-eco</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — arousal · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
     </div>
   </div>
 
@@ -165,7 +170,7 @@ footer b{color:var(--dim);font-weight:400}
       <div class="grid2">
         <button class="btn" id="btnSleep">dormir<em>replay + consolida moldes</em></button>
         <button class="btn" id="btnPrune">podar ruído<em>rotas fracas fora</em></button>
-        <button class="btn" id="btnLesion">lesionar 25%<em>amígdala em alarme</em></button>
+        <button class="btn" id="btnLesion">lesionar 25%<em>dispara medo e raiva</em></button>
         <button class="btn" id="btnExport">exportar<em>salva .json</em></button>
       </div>
       <div class="grid7">
@@ -184,12 +189,12 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Telemetria</h3>
       <div id="sgrid">
+        <span>emoção<b id="tEmo">neutro</b></span><span>intensidade<b id="tEmv">0.00</b></span>
         <span>palavras<b id="tW">0</b></span><span>entendidas<b id="tU">0</b></span>
         <span>wiki<b id="tWk">0</b></span><span>famílias<b id="tMo">0</b></span>
         <span>quem<b id="tQ">0</b></span><span>ações<b id="tV">0</b></span>
         <span>o quê<b id="tO">0</b></span><span>como<b id="tH">0</b></span>
-        <span>molde gerado<b id="tSyn">—</b></span><span>tópico<b id="tTp">—</b></span>
-        <span>humor<b id="tHu">calmo</b></span><span>ato<b id="tAc">—</b></span>
+        <span>molde<b id="tSyn">—</b></span><span>tópico<b id="tTp">—</b></span>
         <span>rotas<b id="tR">0</b></span><span>hábitos<b id="tK">0</b></span>
         <span>arousal<b id="tAr">0.00</b></span><span>fluência<b id="tF">—</b></span>
         <span>modo<b id="tM">—</b></span><span>confiança<b id="tC">—</b></span>
@@ -207,7 +212,7 @@ footer b{color:var(--dim);font-weight:400}
 
 <footer>
   <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>500000 neurônios · wikipedia real nos conceitos · IA corrige todo turno</span>
+  <span>250000 neurônios · 4 emoções · wikipedia · qwen/qwen3-32b corrige tudo</span>
 </footer>
 
 <script type="importmap">
@@ -225,21 +230,26 @@ const RNG=Math.random;
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const fmtT=t=>{const m=(t/60)|0,s=t%60;return String(m).padStart(2,'0')+':'+(s<10?'0':'')+s.toFixed(1);};
-const $=id=>document.getElementById(id);
+/* CORREÇÃO: $ blindado — elemento faltante vira boneco silencioso, script nunca morre */
+const DUMMY={textContent:'',innerHTML:'',style:{},classList:{add(){},remove(){},toggle(){}},
+  addEventListener(){},appendChild(){},remove(){},prepend(){},click(){},
+  querySelector(){return null},querySelectorAll(){return[]},
+  disabled:false,value:'',scrollTop:0,scrollHeight:0,clientHeight:0,clientWidth:0,
+  firstChild:null,children:[],offsetHeight:100,offsetWidth:100};
+const $=id=>document.getElementById(id)||DUMMY;
 function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;}
 function errMsg(t){
   try{
     const d=document.createElement('div');d.className='msg err';
     d.textContent='— erro interno: '+(t||'desconhecido')+' —';
-    const m=$('msgs');if(m){m.appendChild(d);m.scrollTop=m.scrollHeight;}
+    const m=$('msgs');if(m&&m!==DUMMY){m.appendChild(d);m.scrollTop=m.scrollHeight;}
   }catch{}
 }
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 500000 neurônios =================
-   31 módulos + 2 marcadores + 5967 gânglios + 494000 córtex (19760 colunas × 25) = 500000. */
-const CAPW=25000, NCOLS=19760, NPER=25, NCHUNK=5967, NEPI=24, CAPN=500000;
+/* ================= 1 · motor LIF — hardware FIXO de 250000 neurônios ================= */
+const CAPW=25000, NCOLS=9880, NPER=25, NCHUNK=2967, NEPI=24, CAPN=250000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -321,7 +331,7 @@ const SYNCOL={quem:new THREE.Color('#b0e0ff'),acao:new THREE.Color('#e0b0ff'),oq
 function paintWord(w){
   if(!w||w.dead)return;
   const c=wordColor(w.count);
-  if(w.hub>=0){
+  if(w.hub>=0&&w.hub<N){
     CR[w.hub]=c.r;CG[w.hub]=c.g;CB[w.hub]=c.b;
     nCol[w.hub*3]=c.r;nCol[w.hub*3+1]=c.g;nCol[w.hub*3+2]=c.b;
     nGeo.attributes.aCol.needsUpdate=true;
@@ -350,10 +360,17 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia + córtex dormente (19760 colunas) ================= */
+/* ================= 3 · anatomia: módulos + NÚCLEOS EMOCIONAIS ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
 let planN=-1,stopN=-1;
 let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
+const EMO={alegria:{a:-1,b:-1,lvl:0},tristeza:{a:-1,b:-1,lvl:0},raiva:{a:-1,b:-1,lvl:0},medo:{a:-1,b:-1,lvl:0}};
+const EMODEF={
+  alegria:{col:'#f2d24c',pos:[1.6,2.5,.8]},
+  tristeza:{col:'#5c8fd0',pos:[-1.7,-2.9,-.6]},
+  raiva:{col:'#e85c3c',pos:[4.6,-1.2,.5]},
+  medo:{col:'#9a6ce0',pos:[-4.5,1.6,-.5]}
+};
 let chunkIds=[],chunkFree=[];
 const chunkMap=new Map();
 let dormantIds=[];
@@ -371,8 +388,16 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
+  EMO.alegria.a=addN(EMODEF.alegria.pos[0],EMODEF.alegria.pos[1],EMODEF.alegria.pos[2],EMODEF.alegria.col,.06,.72);
+  EMO.alegria.b=addN(EMODEF.alegria.pos[0]+.35,EMODEF.alegria.pos[1]-.25,EMODEF.alegria.pos[2],EMODEF.alegria.col,.045,.74);
+  EMO.tristeza.a=addN(EMODEF.tristeza.pos[0],EMODEF.tristeza.pos[1],EMODEF.tristeza.pos[2],EMODEF.tristeza.col,.06,.72);
+  EMO.tristeza.b=addN(EMODEF.tristeza.pos[0]-.3,EMODEF.tristeza.pos[1]+.2,EMODEF.tristeza.pos[2],EMODEF.tristeza.col,.045,.74);
+  EMO.raiva.a=addN(EMODEF.raiva.pos[0],EMODEF.raiva.pos[1],EMODEF.raiva.pos[2],EMODEF.raiva.col,.06,.72);
+  EMO.raiva.b=addN(EMODEF.raiva.pos[0]-.3,EMODEF.raiva.pos[1]+.25,EMODEF.raiva.pos[2],EMODEF.raiva.col,.045,.74);
+  EMO.medo.a=addN(EMODEF.medo.pos[0],EMODEF.medo.pos[1],EMODEF.medo.pos[2],EMODEF.medo.col,.06,.72);
+  EMO.medo.b=addN(EMODEF.medo.pos[0]+.3,EMODEF.medo.pos[1]-.2,EMODEF.medo.pos[2],EMODEF.medo.col,.045,.74);
   dormantIds=[];
-  const GX=152,GY=130;
+  const GX=152,GY=65;
   for(let c=0;c<NCOLS;c++){
     const gx=c%GX, gy=(c/GX)|0;
     const u=(gx+.5)/GX+(h32('jx'+c)-.5)*.7/GX;
@@ -781,7 +806,74 @@ function detectAct(text){
 }
 const ACTNAME={greet:'saudação',bye:'despedida',thanks:'agradecimento'};
 
-/* ================= 7 · lobo frontal + geração ================= */
+/* ================= 7 · EMOÇÕES DISCRETAS ================= */
+const EMOKEYS=['alegria','tristeza','raiva','medo'];
+const EMONAME={alegria:'😊 alegria',tristeza:'😢 tristeza',raiva:'😠 raiva',medo:'😨 medo'};
+let curEmotion=null;
+let emoWords={};
+function refreshEmoWords(){
+  emoWords={};
+  for(const k of EMOKEYS)emoWords[k]=new Set();
+  for(const w of words){
+    if(w.dead||w.io||w.count<=0)continue;
+    const m=assocAdj[w.idx];
+    if(!m)continue;
+    for(const k of EMOKEYS){
+      const wi=wkey.get(k);
+      if(wi!==undefined&&m.has(wi)&&m.get(wi).w>=.8)emoWords[k].add(w.idx);
+    }
+  }
+}
+function dominantEmotion(){
+  let best=null,bv=.22;
+  for(const k of EMOKEYS){
+    if(!EMO[k])continue;
+    if(EMO[k].lvl>bv){bv=EMO[k].lvl;best=k;}
+  }
+  return best;
+}
+function emoBoost(wi){
+  if(!curEmotion)return 1;
+  const set=emoWords[curEmotion];
+  if(set&&set.has(wi))return 1+EMO[curEmotion].lvl*1.4;
+  return 1;
+}
+function setEmotion(name,strength){
+  if(!EMODEF[name])return;
+  if(!EMO[name]){curEmotion=null;return;}
+  for(const k of EMOKEYS){
+    if(!EMO[k])continue;
+    const target=(k===name)?strength:0;
+    EMO[k].lvl=Math.max(EMO[k].lvl,target*.7);
+  }
+  EMO[name].lvl=strength;
+  if(EMO[name].a>=0)stim(EMO[name].a,1.4);
+  if(EMO[name].b>=0)stim(EMO[name].b,1.1);
+  const p=EMODEF[name].pos;
+  pulseAt(p[0],p[1],p[2],PX[thalN],PY[thalN],PZ[thalN],.8,EMODEF[name].col);
+  curEmotion=dominantEmotion();
+  log('EMO',`emoção: <b style="color:${EMODEF[name].col}">${EMONAME[name]}</b> · intensidade ${strength.toFixed(2)}`);
+}
+function decayEmotions(rdt){
+  let any=false;
+  for(const k of EMOKEYS){
+    if(!EMO[k])continue;
+    const before=EMO[k].lvl;
+    EMO[k].lvl=Math.max(0,EMO[k].lvl-rdt*.035);
+    if(EMO[k].lvl<.05&&before>=.05)any=true;
+  }
+  const d=dominantEmotion();
+  if(d!==curEmotion){
+    curEmotion=d;
+    if(d)log('EMO',`humor dominante: <b style="color:${EMODEF[d].col}">${EMONAME[d]}</b> (${EMO[d].lvl.toFixed(2)})`);
+    else if(any)log('EMO','humor: neutro — emoções esfriaram');
+  }
+}
+function emoLabel(){
+  return curEmotion?EMONAME[curEmotion]:'neutro';
+}
+
+/* ================= 7.5 · lobo frontal + geração ================= */
 let frontalPlan='—', arousal=0;
 const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc', sintaxe:'#d8a8ff'};
 function bumpArousal(v){
@@ -792,7 +884,6 @@ function bumpArousal(v){
     stim(amgA,1.2);stim(amgB,1.0);
   }
 }
-function moodName(){return arousal>.7?'tenso':arousal>.5?'animado':arousal>.3?'alerta':'calmo';}
 let polarWids=new Set();
 function refreshPolar(){
   polarWids.clear();
@@ -848,6 +939,7 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
     if(qtypeRole&&words[b].syn===qtypeRole)s*=2.6;
     if(actSet&&actSet.has(b))s*=3.2;
     if(arousal>.45)s*=valenceBoost(b);
+    s*=emoBoost(b);
     score.set(b,(score.get(b)||0)+s);contrib.push([b,s,src,slot]);};
   for(const [cw,wt] of ctxArr){const m=assocAdj[cw];
     if(m)for(const [b,o] of m)addC(b,wt*o.w*.5,'assoc');}
@@ -906,6 +998,7 @@ function generate(inputWids,T,qa,plan,learn,qtype,act){
       if(qtypeRole&&words[b].syn===qtypeRole)p*=2.2;
       if(actSet&&actSet.has(b))p*=3.0;
       if(arousal>.45)p*=valenceBoost(b);
+      p*=emoBoost(b);
       opts.push([b,p,o]);
     }
     const pick=sampleWeighted(opts.map(o=>[o,o[1]]));
@@ -1047,16 +1140,15 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   return r;
 }
 
-/* ================= 8.5 · IA groq + WIKIPEDIA ================= */
+/* ================= 8.5 · IA qwen3-32b — mente emocional ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL='openai/gpt-oss-120b';
+const GROQ_MODEL='qwen/qwen3.8-27b';
 let aiOn=true;
 let wikiOn=true;
 const history=[];
 const POLAR=new Set(['positivo','negativo']);
 
-/* ---- WIKIPEDIA: conhecimento real, API livre, sem key ---- */
 async function wikiFetch(term){
   try{
     const url='https://pt.wikipedia.org/w/api.php?action=query&format=json&origin=*'+
@@ -1137,7 +1229,12 @@ async function groqRepair(userText,draftText,qtype,act){
     '8. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
     '9. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas.',
     '10. Use as relações lógicas conhecidas para decidir o lado em contradições e escolhas.',
-    '11. NUNCA repita a mensagem do usuário — responda com conteúdo NOVO.'
+    '11. NUNCA repita a mensagem do usuário — responda com conteúdo NOVO.',
+    '12. EMOCIONE — no final, em linha separada, escreva a emoção da sua resposta, UMA destas palavras exatas: alegria, tristeza, raiva, medo, neutro. Escolha o que a resposta transmite.',
+    '',
+    'FORMATO EXATO DA SAÍDA (2 linhas):',
+    'a frase da resposta',
+    'a emoção'
   ].join('\n');
   const usr='vocabulário do cérebro (única fonte permitida): ['+knownVocabList()+']\n'+
     (rels?'relações lógicas conhecidas: '+rels+'\n':'')+
@@ -1145,11 +1242,21 @@ async function groqRepair(userText,draftText,qtype,act){
     qline+aline+
     'mensagem do usuário: "'+userText+'"\n'+
     'rascunho interno do cérebro (corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
-    'frase final (só a frase):';
-  return cleanAI(await groqChat(sys,usr,60,.15));
+    'resposta (frase + emoção):';
+  const raw=await groqChat(sys,usr,80,.15);
+  const lines=raw.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  let emo='neutro';
+  let fixed='';
+  for(const l of lines){
+    const ln=norm(l);
+    if(EMOKEYS.some(k=>ln===k)||ln==='neutro'){emo=ln==='neutro'?'neutro':ln;continue;}
+    if(/^(emoc|emo|sentimento)/.test(ln)){const m2=l.split(/[:\-–]/);if(m2[1]){const e=norm(m2[1]);if(EMOKEYS.includes(e)||e==='neutro'){emo=e;continue;}}}
+    if(!fixed)fixed=l;
+  }
+  if(!EMOKEYS.includes(emo)&&emo!=='neutro')emo='neutro';
+  return{fixed:cleanAI(fixed),emo};
 }
 
-/* ---------- rotulador sintático ---------- */
 async function groqLabel(labels){
   const sys='Você rotula palavras do português do Brasil com UM papel sintático cada, para um cérebro artificial. '+
     'Papéis possíveis:\n'+
@@ -1206,7 +1313,6 @@ async function pumpLabel(){
   labelBusy=false;
 }
 
-/* ---------- validação de palavras (+ wikipedia como fonte real) ---------- */
 const groundQ=[]; let groundBusy=false;
 function queueGround(wis,ctx){
   if(!aiOn||!wis||!wis.length)return;
@@ -1223,15 +1329,14 @@ async function pumpGround(){
     if(!wis.length)continue;
     wis.forEach(wi=>words[wi].groundTries++);
     const labels=wis.map(wi=>words[wi].label);
-    /* consulta a wikipedia ANTES da validação: contexto real */
     let wikiMap=new Map();
     if(wikiOn){
       wikiMap=await wikiBatch(labels);
       const found=[...wikiMap.keys()];
-      if(found.length)log('WIK',`wikipedia: artigo(s) encontrado(s) para ${found.map(k=>`"${k}"`).join(', ')} — contexto real alimentando a validação`);
-      else if(labels.length)log('WIK',`wikipedia: nenhum artigo para ${labels.map(l=>`"${l}"`).join(', ')} — só IA decide`);
+      if(found.length)log('WIK',`wikipedia: artigo(s) para ${found.map(k=>`"${k}"`).join(', ')}`);
+      else log('WIK',`wikipedia: nenhum artigo para ${labels.map(l=>`"${l}"`).join(', ')}`);
     }
-    log('AI',`validando: ${labels.map(l=>`"${l}"`).join(', ')} — sentido, ≠, ou, forma (${GROQ_MODEL})`);
+    log('AI',`validando: ${labels.map(l=>`"${l}"`).join(', ')} (${GROQ_MODEL})`);
     try{
       const map=await groqValidate(labels,job.ctx,wikiMap);
       let nOK=0,nFGT=0;
@@ -1259,7 +1364,7 @@ async function groqValidate(labels,ctx,wikiMap){
     .sort((a,b)=>b.count-a.count).slice(0,90).map(w=>w.label);
   let wikiCtx='';
   if(wikiMap&&wikiMap.size){
-    wikiCtx='o que a WIKIPEDIA diz (contexto real, use para ancorar melhor):\n'+
+    wikiCtx='o que a WIKIPEDIA diz (contexto real):\n'+
       [...wikiMap.entries()].map(([k,v])=>k+': '+v.slice(0,180)).join('\n')+'\n';
   }
   const sys='Você é o validador semântico de um cérebro artificial que aprende português do Brasil DO ZERO. '+
@@ -1269,15 +1374,14 @@ async function groqValidate(labels,ctx,wikiMap){
     'Exemplos exatos: bem: sim, positivo, bom | mal: sim, negativo, ruim | sim: sim, positivo | nao: sim, negativo\n'+
     '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | pizza: sim, comida, comer | casa: sim, lugar, morar\n'+
     '3. USO — papel gramatical: eu: sim, pessoa | de: sim, ligacao\n'+
-    'Se houver contexto da Wikipedia para a palavra, PRIORIZE conceitos coerentes com o artigo real.\n'+
+    '4. EMOÇÃO — se a palavra transmite uma emoção clara, ligue à palavra da emoção: '+
+    'feliz: sim, alegria, bom | triste: sim, tristeza | bravo: sim, raiva | medo: sim, medo, susto\n'+
+    'Se houver contexto da Wikipedia, PRIORIZE conceitos coerentes com o artigo real.\n'+
     'ALÉM da linha principal, acrescente linhas extras quando existirem (uma por relação):\n'+
     'palavra -contraria: oposto direto. Ex.: bem -contraria: mal | sim -contraria: nao\n'+
     'palavra -outra: alternativa exclusiva "ou". Ex.: sim -outra: nao\n'+
-    'palavra -forma: raiz,tag — se a palavra é variação (conjugação/plural) de outra: '+
-    'quero -forma: quer,eu | quer -forma: quer,voce | gatos -forma: gato,plural | gato -forma: gato,singular | '+
-    'comemos -forma: comer,plural\n'+
+    'palavra -forma: raiz,tag — variação (conjugação/plural): quero -forma: quer,eu | gatos -forma: gato,plural\n'+
     'tags válidas de -forma: eu, voce, ele, plural, singular. '+
-    'Regras das linhas extras: no máximo UMA palavra por linha; só relações claras e diretas. '+
     'Formato das linhas principais:\n'+
     'palavra: sim, conceito1, conceito2, conceito3\n'+
     'palavra: nao\n'+
@@ -1372,7 +1476,6 @@ function applyGrounding(wi,labels,antL,xorL,formsL,wikiText){
     const rwi=ensureWord(f.root);
     if(rwi>=0&&rwi!==wi&&!words[rwi].dead){addMorph(wi,rwi,f.tag);nForm++;}
   }
-  /* WIKIPEDIA: ancora associações com conceitos que aparecem no artigo REAL */
   let nWiki=0;
   if(wikiText){
     w.wiki=true;
@@ -1387,8 +1490,7 @@ function applyGrounding(wi,labels,antL,xorL,formsL,wikiText){
         if(nWiki>=8)break;
       }
     }
-    if(nWiki)log('WIK',`ancorado no artigo: "<b>${w.label}</b>" ⇢ ${nWiki} conceito(s) do texto real da wikipedia`);
-    pulseAt(w.base[0],w.base[1],w.base[2],PX[thalN],PY[thalN],PZ[thalN],.5,'#f2e14c');
+    if(nWiki)log('WIK',`ancorado no artigo: "<b>${w.label}</b>" ⇢ ${nWiki} conceito(s) real(is)`);
   }
   if(!awids.length&&!nRel&&!nForm&&!nWiki){w.groundTries=Math.min(w.groundTries,1);return;}
   w.grounded=true;w.groundTries=0;w.ground=awids.slice(0,3);
@@ -1401,11 +1503,11 @@ function applyGrounding(wi,labels,antL,xorL,formsL,wikiText){
   if(nForm){
     const mo=morphOf.get(wi);
     log('MOR',`família: "<b>${w.label}</b>" é forma ${mo.tag} de "${words[mo.root].label}"`);
-    pulseAt(w.base[0],w.base[1],w.base[2],words[mo.root].base[0],words[mo.root].base[1],words[mo.root].base[2],.6,'#7fe0c8');
   }
   log('GND',`fio de sentido: "<b>${w.label}</b>" ⇢ `+
     (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)')+
     (w.wiki?' · <b style="color:#f2e14c">wiki ✓</b>':''));
+  refreshEmoWords();
   if(dirtyC)compile();
   rebuildVisFromNet();
   rebuildGroundLines();
@@ -1514,7 +1616,7 @@ function userSend(){
 function stimAssembly(wi,amp){
   const w=words[wi];if(!w||w.dead)return;
   w.act=1;
-  if(w.hub>=0){
+  if(w.hub>=0&&w.hub<N){
     stim(w.hub,amp);
   }
 }
@@ -1527,7 +1629,7 @@ async function respond(qa){
     stim(planN,1.5);
     const pc=PLANCOL[frontalPlan]||'#b9c4e8';
     pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.7,pc);
-    log('FRO',`plano = ${frontalPlan} · humor ${moodName()}${arousal>.5?` (${arousal.toFixed(2)})`:''}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
+    log('FRO',`plano = ${frontalPlan} · humor: ${emoLabel()}${qtype?` · pergunta: ${qtype}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
     let r=reviseAndSpeak(q,T,qa,frontalPlan,qtype,lastUserAct);
     r.tokens=r.tokens.filter(wi=>words[wi]&&!words[wi].dead);
     r.path=r.path.filter(wi=>words[wi]&&!words[wi].dead);
@@ -1535,20 +1637,24 @@ async function respond(qa){
     if(r.syn){
       synGenCount++;lastSynGen=r.frame.sig;
       log('SYN',`frase por molde <b>${r.frame.sig}</b>: ${r.roles.map((ro,i)=>`${ro}="${words[r.tokens[i]].label}"`).join(' · ')}`);
-      pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
+    let respEmotion=null;
     if(aiOn){
       log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
-      pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
       $('confTag').textContent='mente IA · corrigindo…';
-      let fixed='';
-      try{fixed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
+      let parsed={fixed:'',emo:'neutro'};
+      try{parsed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
       catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — modo local');}
+      let fixed=parsed.fixed;
       if(fixed){
         if(norm(fixed)===norm(lastUserText)){log('AI','IA ecoou a mensagem — descartado');fixed='';}
       }
       if(fixed){
+        if(parsed.emo&&parsed.emo!=='neutro'&&EMODEF[parsed.emo]&&EMO[parsed.emo]){
+          setEmotion(parsed.emo,clamp(.45+RNG()*.35,.45,.8));
+          respEmotion=parsed.emo;
+        }
         const knownKeys=new Set(words.filter(w=>!w.dead&&!w.io&&w.count>0).map(w=>w.key));
         const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
         const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
@@ -1611,11 +1717,10 @@ async function respond(qa){
     history.push({u:lastUserText,b:r.tokens.map(i=>words[i].label).join(' ')});
     if(history.length>4)history.shift();
     log('REV',`revisor: ${r.candN} rascunho(s) · fluência ${r.flu.toFixed(2)} · `+
-      (r.mode==='IA'?'fala final pela IA (corrigida)':
+      (r.mode==='IA'?'fala final pela IA':
        r.mode==='lembrança'?`lembrança (linha ${r.slot+1})`:
        (r.syn?'venceu o MOLDE sintático':'venceu o rascunho local #'+r.candI)));
-    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)} · ${moodName()}`+
-      (r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:'');
+    $('confTag').textContent=`${emoLabel()}${respEmotion?' (nova)':''} · ${r.mode} · flu ${r.flu.toFixed(2)}`;
     for(const [b,s,src,slot] of r.contrib){
       const wb=words[b];if(!wb||wb.dead)continue;
       if(src==='episódio'&&slot!==undefined){
@@ -1629,16 +1734,21 @@ async function respond(qa){
     else if(r.mode==='IA')log('TLK',`resposta corrigida: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
     else if(r.syn)log('TLK',`frase gerada: "${r.tokens.map(i=>words[i].label).join(' ')}" · molde ${r.frame.sig}`);
     else log('TLK',`rota: ${r.path.slice(0,10).map(i=>words[i].label).join(' → ')}${r.path.length>10?'…':''} · conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}`);
-    typeOut(r);
+    typeOut(r,respEmotion);
   }catch(e){
     log('SYS','erro na resposta: '+(e.message||e));
     sendBtn.disabled=false;
   }
 }
-function typeOut(r){
+function typeOut(r,respEmotion){
   const d=document.createElement('div');
   d.className='msg brain'+((r.mode==='gerado'&&r.flu<.3)?' weak':'');
-  d.innerHTML=`<span class="who">atlas${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}${arousal>.6?` · ${moodName()}`:''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  if(respEmotion&&EMODEF[respEmotion])d.classList.add('em-'+respEmotion);
+  else if(curEmotion&&EMO[curEmotion]&&EMO[curEmotion].lvl>.3)d.classList.add('em-'+curEmotion);
+  const emoTag=(curEmotion&&EMO[curEmotion]&&EMO[curEmotion].lvl>.2)
+    ?` · <span style="color:${EMODEF[curEmotion].col}">${EMONAME[curEmotion]}</span>`
+    :'';
+  d.innerHTML=`<span class="who">atlas${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}${emoTag}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
   let i=0,stopped=false;
@@ -1650,7 +1760,7 @@ function typeOut(r){
       if(i>7&&RNG()<.07){
         stopped=true;stim(stopN,1.4);
         pulseAt(PX[stopN],PY[stopN],PZ[stopN],0,.1,.8,.6,'#b9c4e8');
-        log('FRO','parada inibitória — frase encerrada pelo lobo frontal');
+        log('FRO','parada inibitória — frase encerrada');
         finish();return;}
       const s=document.createElement('span');s.className='w';s.textContent=w.label+' ';
       ref.el.appendChild(s);msgs.scrollTop=msgs.scrollHeight;
@@ -1812,6 +1922,13 @@ function buildHulls(){
   const sy=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
     sy.push(new THREE.Vector3(Math.cos(a)*4.9,.55+Math.sin(a*2)*.12,-.3+Math.sin(a)*2.5));}
   mk(sy,'#d8a8ff',.14);
+  for(const k of EMOKEYS){
+    const p=EMODEF[k].pos;
+    const ring=[];
+    for(let i=0;i<=32;i++){const a=i/32*6.283;
+      ring.push(new THREE.Vector3(p[0]+Math.cos(a)*.55,p[1]+Math.sin(a)*.4,p[2]));}
+    mk(ring,EMODEF[k].col,.3);
+  }
 }
 let ringLine=null;
 function buildRing(){
@@ -2061,13 +2178,17 @@ function buildModLabels(){
   const defs=[
     [()=>[PX[thalN],PY[thalN]+.42,PZ[thalN]],'tálamo','#46c8bc',.9],
     [()=>[PX[planN],PY[planN]+.34,PZ[planN]],'lobo frontal','#b9c4e8',.85],
-    [()=>[PX[stopN],PY[stopN]+.22,PZ[stopN]],'parada','#b9c4e8',.5],
     [()=>[3.38,-2.14,.85],'amígdala','#ef6a8b',.85],
     [()=>[.95,-3.06,-.6],'VTA','#ff5d4d',.85],
     [()=>[STC.cx,STC.cy-.7,STC.cz],'gânglios · hábitos','#f0a63c',.8],
     [()=>[0,-.88,-3.4],'hipocampo','#a5d64a',.8],
     [()=>[2.55,1.6,-.55],'mente · IA','#c8b6e8',.9],
-    [()=>[0,1.05,0],'córtex sintático','#d8a8ff',.85]];
+    [()=>[0,1.05,0],'córtex sintático','#d8a8ff',.85]
+  ];
+  for(const k of EMOKEYS){
+    const p=EMODEF[k].pos;
+    defs.push([()=>[p[0],p[1]+.65,p[2]],EMONAME[k],EMODEF[k].col,.85]);
+  }
   modLabels=defs.map(([p,t,c,o])=>{
     const el=document.createElement('div');el.className='wlb mod';
     el.textContent=t;el.style.color=c;el._o=o;
@@ -2095,7 +2216,6 @@ function rebuildWordLabels(){
     el._o=w.io?1:clamp(.4+w.count*.07,.4,.95);
     if(w.wiki&&!w.io)el.style.color='#f2e14c';
     else if(w.grounded&&!w.io)el.style.color='#8fd0ff';
-    if(w.syn&&w.syn!=='-'&&!w.io&&w.wiki)el.style.color='#f2e14c';
     if(POLAR.has(w.key)&&!w.io)el.style.color='#d0a8ff';
     wlab.appendChild(el);wordLabels.push({el,w});
   }
@@ -2126,6 +2246,10 @@ function updateStats(){
     .sort((a,b)=>b[1]-a[1]).slice(0,3).map(([wi])=>words[wi].label);
   $('stN').textContent=N;$('stS').textContent=syn;$('stW').textContent=alive.length;
   $('stR').textContent=routes;$('stK').textContent=chunkMap.size+'/'+NCHUNK;$('stHz').textContent=hzVal;
+  $('tEmo').textContent=emoLabel();
+  $('tEmv').textContent=(curEmotion&&EMO[curEmotion])?EMO[curEmotion].lvl.toFixed(2):'0.00';
+  if(curEmotion&&EMODEF[curEmotion])$('tEmo').style.color=EMODEF[curEmotion].col;
+  else $('tEmo').style.color='';
   $('tW').textContent=alive.length;$('tU').textContent=alive.filter(w=>w.grounded).length;
   $('tWk').textContent=alive.filter(w=>w.wiki).length;
   $('tQ').textContent=cnt('quem');$('tV').textContent=cnt('acao');
@@ -2133,8 +2257,6 @@ function updateStats(){
   $('tMo').textContent=morphForms.size;
   $('tSyn').textContent=lastSynGen||'—';
   $('tTp').textContent=tp.length?tp.join(' '):'—';
-  $('tHu').textContent=moodName();
-  $('tAc').textContent=lastUserAct?ACTNAME[lastUserAct]:'—';
   $('tR').textContent=routes;$('tK').textContent=chunkMap.size+'/'+NCHUNK;
   $('tAr').textContent=arousal.toFixed(2);
   $('tF').textContent=lastFlu==null?'—':lastFlu.toFixed(2);
@@ -2231,8 +2353,10 @@ function lesion(){
   }
   rebuildGroundLines();
   bumpArousal(1);stim(amgA,1.7);stim(amgB,1.5);
+  setEmotion('medo',.9);
+  setEmotion('raiva',.6);
   pulseAt(PX[amgA],PY[amgA],PZ[amgA],PX[thalN],PY[thalN],PZ[thalN],1,'#ef6a8b');
-  log('LES',`lesão: ${hit} conceitos silenciados · amígdala em alarme`);
+  log('LES',`lesão: ${hit} conceitos silenciados · medo e raiva disparados · amígdala em alarme`);
   compile();syncNeuronAttrs();rebuildVisFromNet();updateStats();
 }
  $('btnLesion').addEventListener('click',lesion);
@@ -2243,13 +2367,14 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:16,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:18,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined,k:w.wiki?1:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
     frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
     acts:Object.fromEntries(Object.entries(ACTW).map(([k,v])=>[k,[...v]])),
+    emotion:curEmotion?{name:curEmotion,lvl:EMO[curEmotion].lvl}:null,
     episodes:epiData.map(e=>e.epi.slice()),episodeIdx,plan:frontalPlan};
   for(let a=0;a<words.length;a++){
     if(!words[a]||words[a].dead)continue;
@@ -2260,7 +2385,7 @@ function exportBrain(){
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='atlas-cerebro.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS','cérebro exportado');
+  log('SYS','cérebro exportado (com humor)');
 }
  $('btnExport').addEventListener('click',exportBrain);
 function wipeNet(){
@@ -2282,6 +2407,8 @@ function wipeNet(){
   topicCtx=new Map();turnCount=0;lastUserAct=null;
   lastResponses.length=0;
   Object.values(ACTW).forEach(s=>s.clear());
+  for(const k of EMOKEYS){if(EMO[k])EMO[k].lvl=0;}
+  curEmotion=null;
   frontalPlan='—';arousal=0;prevTurn=null;lastBrainWids=null;history.length=0;
   msgs.innerHTML='';
   buildModules();buildChunks();
@@ -2323,10 +2450,12 @@ function importBrain(d){
       if(ACTW[k])arr.forEach(wi=>{if(words[wi]&&!words[wi].dead)ACTW[k].add(wi);});
     for(const ep of d.episodes||[])if(Array.isArray(ep)&&ep.length)writeEpisode(ep,true);
     if(d.episodeIdx)episodeIdx=d.episodeIdx%NEPI;
+    if(d.emotion&&EMODEF[d.emotion.name])setEmotion(d.emotion.name,d.emotion.lvl);
+    refreshEmoWords();
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
-    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s)`);
+    log('SYS',`cérebro importado: ${words.length-2} palavras · ${frames.length} molde(s) · humor restaurado`);
   }catch(e){log('SYS','falha ao importar: '+e.message);}
 }
  $('btnImport').addEventListener('click',()=>$('fileIn').click());
@@ -2372,11 +2501,11 @@ let wipeArm=0;
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
-  log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno':'desligada — cérebro 100% cru'));
+  log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno e emociona':'desligada — cérebro 100% cru'));
 });
  $('btnWiki').addEventListener('click',function(){
   wikiOn=!wikiOn;this.classList.toggle('on',wikiOn);
-  log('WIK','wikipedia '+(wikiOn?'ligada — palavras novas buscam artigo real':'desligada'));
+  log('WIK','wikipedia '+(wikiOn?'ligada':'desligada'));
 });
 
 /* ================= 15 · loop + boot ================= */
@@ -2387,15 +2516,14 @@ function resize(){
 new ResizeObserver(resize).observe(stage);
 const clock=new THREE.Clock();
 let lastSpk=0,hzAcc=0,statAcc=0,noiseT=0;
-/* atualização da atividade em fatias rotativas: com 500k neurônios,
-   atualizar tudo todo frame custaria caro — 100k por frame é invisível a olho nu */
 let actCursor=0;
-const ACTCHUNK=100000;
+const ACTCHUNK=125000;
 function animate(){
   requestAnimationFrame(animate);
   const rdt=Math.min(.05,clock.getDelta());
   const dt=rdt*SIMSPEED;
   stepNet(dt);recover();
+  decayEmotions(rdt);
   noiseT-=rdt;
   if(noiseT<=0&&dormantIds.length){
     noiseT=.05+RNG()*.15;
@@ -2424,6 +2552,12 @@ function animate(){
     if(w.cslot>=0&&w.cslot<CAPW)cAct[w.cslot]=w.act;
   }
   cGeo.attributes.aAct.needsUpdate=true;
+  for(const k of EMOKEYS){
+    if(EMO[k]&&EMO[k].lvl>.05&&EMO[k].a>=0&&RNG()<.12){
+      stim(EMO[k].a,EMO[k].lvl*1.1);
+      if(EMO[k].b>=0&&RNG()<.4)stim(EMO[k].b,EMO[k].lvl*.7);
+    }
+  }
   controls.update();
   if(visDirty)rebuildArcs();
   if(chunkDirty&&showChunk)rebuildChunkArcs();
@@ -2444,18 +2578,18 @@ function animate(){
   if(statAcc>=.5){statAcc=0;updateStats();}
   renderer.render(scene,camera);
 }
-log('SYS','montando 500000 neurônios — um instante...');
+log('SYS','montando 250000 neurônios — um instante...');
 buildHulls();
 buildRing();
 buildModLabels();
 wipeNet();
+refreshEmoWords();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 5967 gânglios + 494000 córtex dormente (19760 colunas × 25)`);
-log('SYS','capacidade: 25000 palavras · 5967 hábitos · 24 fios de linha · zero palavras no boot');
-log('SYS','wikipedia: palavras novas buscam artigo real na Wikipédia PT — o significado vem da enciclopédia');
-log('SYS','anti-eco ativo · IA corrige TODO turno · rotulagem e validação com contexto da wikipedia');
-log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · wiki ${wikiOn?'on':'off'} · ${GROQ_MODEL}`);
+log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 4 núcleos emocionais + 2967 gânglios + 247000 córtex`);
+log('SYS',`mente: ${GROQ_MODEL} — corrige TODO turno e escolhe a emoção da resposta`);
+log('SYS','emoções: alegria · tristeza · raiva · medo — sobem com a conversa, esfriam com o tempo');
+log('SYS','wikipedia ligada: conceitos novos ancoram em artigos reais');
 setTimeout(fireSweep,900);
 animate();
 </script>
