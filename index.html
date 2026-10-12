@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 250000 neurônios · ondas circulares · coroa amarela · wikipedia · qwen3-32b</title>
+<title>ATLAS — 100000 neurônios · ondas circulares · coroa amarela · wikipedia · qwen3-32b</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -114,7 +114,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>250000 neurônios · ondas circulares + coroa amarela · qwen3-32b</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>100000 neurônios · ondas circulares · coroa amarela · qwen3-32b</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -148,12 +148,12 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#6e6a5e"></i>ondas circulares — 58 anéis ondulados concêntricos, 170 fileiras de 25 neurônios cada</div>
+      <div class="li"><i style="--c:#6e6a5e"></i>ondas circulares — 58 anéis ondulados concêntricos, 116 fileiras de 25 neurônios cada</div>
       <div class="li"><i class="th" style="--c:#f0a63c"></i>coroa amarela — na borda externa, abraçando o último anel de neurônios</div>
       <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância</div>
       <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · ≠ (laranja) · ou (verde) · família ≈ (verde-água) · ℘ wiki (amarelo)</div>
       <div class="li"><i style="--c:#8fd0ff"></i>mente IA qwen3-32b — corrige TODO turno · nunca ecoa</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — toro espiral 2975 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — casca dupla</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — anel espiral · 2525 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — casca dupla</div>
       <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b"></i>amígdala · <i style="--c:#46c8bc"></i>tálamo (3 cascas) · <i style="--c:#ff5d4d"></i>VTA (hélice)</div>
     </div>
   </div>
@@ -206,7 +206,7 @@ footer b{color:var(--dim);font-weight:400}
 
 <footer>
   <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>250000 neurônios · 58 ondas circulares · coroa amarela na borda · wikipedia · qwen3-32b</span>
+  <span>100000 neurônios · 58 ondas circulares · coroa amarela na borda · wikipedia · qwen3-32b</span>
 </footer>
 
 <script type="importmap">
@@ -241,9 +241,9 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 250000 neurônios =================
-   23 módulos + 2 marcadores + 2975 gânglios + 246980 córtex (58 anéis × 170 colunas × 25) = 250000. */
-const CAPW=25000, NRINGS=58, PERCOL=170, NPER=25, NCHUNK=2975, NEPI=24, CAPN=250000;
+/* ================= 1 · motor LIF — hardware FIXO de 100000 neurônios =================
+   23 módulos + 2 marcadores + 2525 gânglios + 97000 córtex (58 anéis × 116 colunas × 25) = 100000. */
+const CAPW=25000, NRINGS=58, PERCOL=116, NPER=25, NCHUNK=2525, NEPI=24, CAPN=100000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -375,7 +375,7 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
-  /* córtex em ONDAS CIRCULARES concêntricas */
+  /* córtex em ONDAS CIRCULARES concêntricas: 58 anéis × 116 colunas × 25 = 97000 */
   dormantIds=[];
   colAnchors=[];
   for(let r=0;r<NRINGS;r++){
@@ -1842,6 +1842,18 @@ function buildHulls(){
   /* GÂNGLIOS: anel espiral simples, fechado redondo */
   const st=[];for(let i=0;i<=384;i++){const [x,y,z]=striatumPos(0,i/384);st.push(new THREE.Vector3(x,y,z));}
   mk(st,'#f0a63c',.18);
+  /* LOBO FRONTAL: casca dupla + cintura + tronco para a parada */
+  const fShell=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+    fShell.push(new THREE.Vector3(4.1+Math.cos(a)*.55,1.55+Math.sin(a)*.42,-.9+Math.sin(a*2)*.18));}
+  mk(fShell,'#b9c4e8',.3);
+  const fShell2=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
+    fShell2.push(new THREE.Vector3(4.1+Math.cos(a)*.34,1.55+Math.sin(a)*.26,-.9+Math.sin(a*3)*.1));}
+  mk(fShell2,'#b9c4e8',.22);
+  const fBelt=[];for(let i=0;i<=16;i++){const a=i/16*6.283;
+    fBelt.push(new THREE.Vector3(4.1+Math.cos(a)*.6,1.55+Math.sin(a)*.1,-.9+Math.sin(a)*.1));}
+  mk(fBelt,'#8f9ec4',.3);
+  mk([new THREE.Vector3(4.4,.95,-.25),new THREE.Vector3(4.25,1.2,-.55),
+      new THREE.Vector3(4.1,1.55,-.9)],'#b9c4e8',.3);
   /* AMÍGDALA: amêndoa dupla entrelaçada + núcleo */
   const am=[];for(let i=0;i<=32;i++){const a=i/32*6.283;
     am.push(new THREE.Vector3(3.38+Math.cos(a)*.42,-1.68+Math.sin(a)*.34,.85));}
@@ -2316,7 +2328,7 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:22,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:23,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined,k:w.wiki?1:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
@@ -2461,8 +2473,8 @@ new ResizeObserver(resize).observe(stage);
 const clock=new THREE.Clock();
 let lastSpk=0,hzAcc=0,statAcc=0,noiseT=0;
 let actCursor=0;
-const ACTCHUNK=125000;
-let ringT=0;   /* fase da faísca na coroa amarela */
+const ACTCHUNK=50000;
+let ringT=0;
 function animate(){
   requestAnimationFrame(animate);
   const rdt=Math.min(.05,clock.getDelta());
@@ -2528,15 +2540,15 @@ function animate(){
   if(statAcc>=.5){statAcc=0;updateStats();}
   renderer.render(scene,camera);
 }
-log('SYS','montando 250000 neurônios em 58 ondas circulares — um instante...');
+log('SYS','montando 100000 neurônios em 58 ondas circulares — um instante...');
 buildHulls();
 buildRing();
 buildModLabels();
 wipeNet();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 2975 gânglios (toro triplo) + 246980 córtex em 58 ondas circulares`);
-log('SYS','coroa amarela dupla na borda externa · faísca luminosa orbitando-a continuamente');
+log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 2525 gânglios (anel espiral fechado) + 97000 córtex em 58 ondas circulares (58 × 116 colunas × 25)`);
+log('SYS','coroa amarela dupla na borda externa · faísca luminosa orbitando continuamente');
 log('SYS',`mente: ${GROQ_MODEL} — corrige TODO turno · anti-eco ativo · wikipedia ligada`);
 setTimeout(fireSweep,900);
 animate();
