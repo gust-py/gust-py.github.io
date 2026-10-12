@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TABULA·07 — 6000 neurônios · IA corrige tudo · vocabulário fechado</title>
+<title>TABULA·07 — 6000 neurônios · sintaxe generativa · IA corrige tudo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
   --bg:#07080a; --panel:#0b0d0f; --line:rgba(232,227,213,.09); --line2:rgba(232,227,213,.17);
   --tx:#e8e4d8; --dim:#8d897d; --dim2:#5d5a52; --bone:#d9d7cf;
   --acc:#e8b34b; --teal:#46c8bc; --rose:#ef6a8b; --red:#ff5d4d; --grn:#a5d64a; --fro:#b9c4e8; --rev:#c8b6e8;
-  --ai:#8fd0ff; --ant:#ff8a5c; --xor:#d0e86a;
+  --ai:#8fd0ff; --ant:#ff8a5c; --xor:#d0e86a; --syn:#d8a8ff;
   --mono:'IBM Plex Mono',monospace; --sans:'Space Grotesk',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -101,7 +101,7 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-SYS{color:var(--dim)} .lk-NEW{color:var(--grn)} .lk-WEB{color:var(--teal)} .lk-TLK{color:var(--acc)}
 .lk-LES{color:var(--red)} .lk-EPI{color:#a5d64a} .lk-SLP{color:#8fa8d8} .lk-CHK{color:#f0a63c}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
-.lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b}
+.lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff}
 #log .ln{margin-bottom:2px}
 .inst{font-size:10px;line-height:1.7;color:var(--dim)}
 .inst b{color:var(--tx);font-weight:500}
@@ -118,7 +118,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>6000 neurônios · IA corrige toda resposta · vocabulário fechado · sentido obrigatório</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>6000 neurônios · sintaxe generativa (quem·ação·o quê) · IA corrige tudo</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -152,14 +152,12 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 5400 neurônios (216 colunas × 25, grade 18×12) = o mar de hardware</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios da base — espiral de 575 hábitos simultâneos (atalhos firmes)</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>conceitos aprendidos — luzes sinápticas; polos "positivo"/"negativo" concentram a valência</div>
-      <div class="li"><i class="th" style="--c:#8fd0ff"></i>fio de sentido — significado ensinado pela IA</div>
-      <div class="li"><i class="th" style="--c:#ff8a5c"></i>fio de contradição — opostos se inibem: "bem" silencia "mal" na fala</div>
-      <div class="li"><i class="th" style="--c:#d0e86a"></i>fio de alternativa — par exclusivo: depois de "sim", o "não" espera</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — corrige TODA resposta: lê intenção, corta contradições, fala só o vocabulário do cérebro</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 16 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor local</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 5400 neurônios (216 colunas × 25) = o mar de hardware</div>
+      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — rótulos quem · ação · o quê · como: a frase é montada por ESTRUTURA antes da cadeia</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 575 hábitos · <i style="--c:#8fd0ff;margin-left:4px"></i>conceitos + fios de sentido (azul), ≠ (laranja), ou (verde)</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — corrige TODA resposta; lê intenção; fala o vocabulário do cérebro</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 16 episódios · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor local (6 rascunhos)</div>
+      <div class="li"><i style="--c:#ef6a8b"></i>amígdala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA — emoção, atenção e dopamina modulam tudo</div>
     </div>
   </div>
 
@@ -167,10 +165,10 @@ footer b{color:var(--dim);font-weight:400}
     <section>
       <h3>Como usar · o protocolo</h3>
       <div class="inst">
-        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>100% vazio</b>: <b>6000 neurônios fixos</b> — 5400 de córtex dormente (216 colunas), 575 gânglios, 25 módulos. Capacidade: <b>8000 palavras</b>, 575 hábitos, 16 fios de linha.</span></div>
-        <div class="step"><span class="n">2</span><span><b>TODA resposta</b> passa pela mente IA: ela lê sua mensagem, identifica <b>pergunta, contradição e escolha</b> (bem/mal · sim ou não), e responde com sentido usando <b>só as palavras que o cérebro já tem</b>. Ex.: "tudo bem?" → <b>bem</b>.</span></div>
-        <div class="step"><span class="n">3</span><span>Palavra nova é <b>validada</b>: real ⇢ fio de sentido (polaridade, ≠, ou). Typo ⇢ apagada do cérebro. A resposta da IA vira memória dele: rota, episódio, hábito — o treino transfere pro hardware.</span></div>
-        <div class="step"><span class="n">4</span><span>Com treino, o cérebro passa a falar sozinho (modo <b>gerado</b> na telemetria). Botão <b>ia</b> desliga a muleta pra testá-lo cru; <b>revalidar</b> refaz os fios com as regras novas.</span></div>
+        <div class="step"><span class="n">1</span><span>O cérebro nasce <b>100% vazio</b>: <b>6000 neurônios fixos</b>, <b>8000 palavras</b>, 575 hábitos, 16 fios de linha. Quem fala primeiro é a mente IA.</span></div>
+        <div class="step"><span class="n">2</span><span><b>SINTAXE GENERATIVA</b>: cada palavra ganha um papel — <b>quem</b> (eu, você, gato), <b>ação</b> (quero, gosto), <b>o quê</b> (gato, comida), <b>como</b> (bem, muito). O gerador monta a frase <b>por estrutura</b>: sorteia um esqueleto (ex.: <b>sujeito → ação → o quê</b>), preenche cada slot pelos papéis — e pode falar frases que você nunca disse.</span></div>
+        <div class="step"><span class="n">3</span><span>Treine frases completas de padrões diferentes e repita 2–3×: <b>eu quero gato</b> · <b>você gosta</b> · <b>gato bom</b>. Cada padrão vira molde na sintaxe dele. O revisor reprova frase quebra-estrutura; a IA ancora os papéis junto do sentido.</span></div>
+        <div class="step"><span class="n">4</span><span>Botão <b>rotular</b> manda a IA re-classificar os papéis de todo o vocabulário. Botão <b>ia</b> desliga a muleta pra testá-lo cru.</span></div>
       </div>
     </section>
 
@@ -185,7 +183,7 @@ footer b{color:var(--dim);font-weight:400}
       </div>
       <div class="grid6">
         <button class="btn" id="btnImport">importar</button>
-        <button class="btn" id="btnReval">revalidar</button>
+        <button class="btn" id="btnReval">rotular</button>
         <button class="btn on" id="btnThread">fios</button>
         <button class="btn on" id="btnChunk">hábitos</button>
         <button class="btn on" id="btnRev">revisor</button>
@@ -199,11 +197,10 @@ footer b{color:var(--dim);font-weight:400}
       <h3>Telemetria</h3>
       <div id="sgrid">
         <span>palavras<b id="tW">0</b></span><span>entendidas<b id="tU">0</b></span>
-        <span>rotas diretas<b id="tR">0</b></span><span>rotas inversas<b id="tRev">0</b></span>
-        <span>associações<b id="tA">0</b></span><span>hábitos<b id="tK">0</b></span>
-        <span>fios de linha<b id="tT">0</b></span><span>fios de sentido<b id="tG">0</b></span>
-        <span>contradições<b id="tAn">0</b></span><span>alternativas<b id="tX">0</b></span>
-        <span>último plano<b id="tP">—</b></span><span>arousal<b id="tAr">0.00</b></span>
+        <span>quem<b id="tQ">0</b></span><span>ações<b id="tV">0</b></span>
+        <span>o quê<b id="tO">0</b></span><span>como<b id="tH">0</b></span>
+        <span>rotas<b id="tR">0</b></span><span>hábitos<b id="tK">0</b></span>
+        <span>molde<br>gerado<b id="tSyn">—</b></span><span>arousal<b id="tAr">0.00</b></span>
         <span>fluência<b id="tF">—</b></span><span>modo<b id="tM">—</b></span>
         <span>confiança<b id="tC">—</b></span><span>balbucios<b id="tB">0</b></span>
       </div>
@@ -217,8 +214,8 @@ footer b{color:var(--dim);font-weight:400}
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · 6000 neurônios · 575 hábitos em espiral · "tudo bem?" → "bem" · opostos se inibem na fala</span>
-  <span>hardware fixo 6000 · 8000 palavras · IA valida, ancora (sentido/≠/ou) e corrige tudo</span>
+  <span><b>arraste</b> orbitar · frases montadas por estrutura: quem → ação → o quê · treine padrões diferentes pra criar moldes</span>
+  <span>6000 neurônios · 8000 palavras · sintaxe generativa: poucas frases treinadas, milhões possíveis</span>
 </footer>
 
 <script type="importmap">
@@ -231,7 +228,7 @@ footer b{color:var(--dim);font-weight:400}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ================= 0 · utilidades + relator de erro ================= */
+/* ================= 0 · utilidades ================= */
 const RNG=Math.random;
 const clamp=(x,a,b)=>x<a?a:x>b?b:x, lerp=(a,b,t)=>a+(b-a)*t;
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -248,9 +245,7 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 6000 neurônios =================
-   23 módulos + 2 marcadores + 575 gânglios + 5400 córtex (216 colunas × 25) = 6000.
-   Capacidade: 8000 palavras · 575 hábitos · 16 episódios. Nada disso cresce. */
+/* ================= 1 · motor LIF — 6000 neurônios fixos ================= */
 const CAPW=8000, NCOLS=216, NPER=25, NCHUNK=575, NEPI=16, CAPN=6000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
@@ -316,17 +311,19 @@ function recover(){
 }
 let SPK=0;
 
-/* ================= 2 · córtex semântico =================
-   NENHUMA palavra predefinida. Toda palavra aprendida é um conceito-luz:
-   posição, brilho e sinapses — zero neurônios. Capacidade: 8000. */
+/* ================= 2 · córtex semântico + papel sintático =================
+   syn: papel sintático da palavra. '—' = sem papel.
+   quem (sujeito) · acao (verbo) · oque (objeto) · como (modificador). */
 const words=[]; const wkey=new Map();
 const OFFX=new Float32Array(CAPW*3);
+const SYNALL=['quem','acao','oque','como'];
 function sheetPos(u,v){
   return [(u-.5)*7.4,
     .17*Math.sin(u*5.2+1.1)+.09*Math.cos(v*3.8+.5)-(u-.5)*(u-.5)*.3,
     (v-.5)*4.4-.3];
 }
 function wordColor(count){return new THREE.Color('#cfcabc').lerp(new THREE.Color('#e8b34b'),clamp(count/12,0,1)*.85);}
+const SYNCOL={quem:new THREE.Color('#b0e0ff'),acao:new THREE.Color('#e0b0ff'),oque:new THREE.Color('#ffe0b0'),como:new THREE.Color('#c8ffd0')};
 function paintWord(w){
   if(!w||w.dead)return;
   const c=wordColor(w.count);
@@ -351,14 +348,15 @@ function registerWord(label,special){
     hub=addN(x,y,z,col,.058,.72);
   }
   const w={idx,label,key,hub,ids:[],base:[x,y,z],count:0,last:-99,io:!!special,ghost,act:0,
-           grounded:false,ground:null,groundTries:0,dead:false};
+           grounded:false,ground:null,groundTries:0,dead:false,
+           syn:'-',synConf:0,synTries:0};
   words.push(w);wkey.set(key,idx);
   dirtyC=true;
   if(typeof cGeo!=='undefined')syncConcepts();
   return idx;
 }
 
-/* ================= 3 · anatomia + córtex dormente (216 colunas) ================= */
+/* ================= 3 · anatomia + córtex dormente ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
 let planN=-1,stopN=-1;
 let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
@@ -379,7 +377,6 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
-  /* córtex dormente: 216 colunas × 25 = 5400 neurônios numa grade 18×12 */
   dormantIds=[];
   const GX=18,GY=12;
   for(let c=0;c<NCOLS;c++){
@@ -400,7 +397,6 @@ function buildModules(){
     dormantIds.push(...ids);
   }
 }
-/* espiral de 5 voltas na base dos gânglios: 575 hábitos cabem sem virar pasta */
 const STC={cx:-2.35,cy:-1.75,cz:.55,r:1.42};
 function striatumPos(i,t){
   const wraps=Math.max(1,Math.round(NCHUNK/115));
@@ -419,7 +415,7 @@ function buildChunks(){
   }
 }
 
-/* ================= 4 · teia (100% sináptica) + relações lógicas ================= */
+/* ================= 4 · teia + relações lógicas ================= */
 const transAdj=Array.from({length:CAPW},()=>null);
 const revAdj=Array.from({length:CAPW},()=>null);
 const assocAdj=Array.from({length:CAPW},()=>null);
@@ -492,6 +488,79 @@ function addAssoc(a,b,dw){
 }
 const sal=wi=>1/Math.sqrt(1+Math.max(0,words[wi].count));
 
+/* ================= 4.5 · MÓDULO SINTÁTICO =================
+   Moldes (frames) aprendidos com as frases que você ensina:
+   "eu quero gato" → [quem,acao,oque]. O gerador sorteia um molde,
+   preenche cada slot com palavras do papel certo (por associação
+   ao contexto), respeitando hábito/ant/xor. Reinforcement: molde
+   usado numa resposta boa ganha peso; reprovado, perde. */
+const frames=[]; /* {slots:['quem','acao','oque'], use:0, hit:0} */
+let synGenCount=0, lastSynGen=null;
+function learnFrame(wids){
+  const slots=wids.map(wi=>words[wi].syn).filter(s=>s&&s!=='-');
+  if(slots.length<2)return;
+  const sig=slots.join('+');
+  for(const f of frames){if(f.sig===sig){f.use+=1;return;}}
+  frames.push({sig,slots:slots.slice(),use:1,hit:0});
+  log('SYN',`molde novo: <b>${sig}</b> (frames: ${frames.length})`);
+}
+function framePool(role,ctxArr,inputSet,used){
+  /* palavras do papel certo, ordenadas por associação ao contexto */
+  const pool=[];
+  for(const w of words){
+    if(w.dead||w.io||w.count<=0||w.syn!==role)continue;
+    if(used.has(w.idx)||inputSet.has(w.idx))continue;
+    let att=0;
+    const m=assocAdj[w.idx];
+    if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)att+=o.w*wt;}
+    pool.push([w.idx,1+att]);
+  }
+  return pool;
+}
+function generateByFrame(inputWids,T,qa,plan){
+  if(!frames.length)return null;
+  const ctx=new Map();
+  for(const wi of inputWids)ctx.set(wi,(ctx.get(wi)||0)+sal(wi)*2);
+  if(lastBrainWids)for(const wi of lastBrainWids.slice(0,6))if(!ctx.has(wi)&&words[wi]&&!words[wi].dead)ctx.set(wi,sal(wi)*.4);
+  const ctxArr=[...ctx.entries()];
+  const inputSet=new Set(inputWids);
+  /* sorteia molde: uso recente pesa; arousal favorece moldes mais longos */
+  const wArr=frames.map(f=>[f,(f.hit+.5)/(f.use+2)]);
+  const frame=sampleWeighted(wArr);
+  if(!frame)return null;
+  const used=new Set();const toks=[];const roles=[];
+  for(const role of frame.slots){
+    const pool=framePool(role,ctxArr,inputSet,used);
+    if(!pool.length)return null; /* molde não preenchível */
+    const wi=sampleWeighted(pool);
+    if(wi===null)return null;
+    toks.push(wi);used.add(wi);roles.push(role);
+  }
+  /* confiança: média das forças de associação ao contexto */
+  let conf=0,n=0;
+  for(const wi of toks){
+    const m=assocAdj[wi];let att=0;
+    if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)att+=o.w*wt;}
+    conf+=1/(1+Math.exp(-att));n++;
+  }
+  conf=conf/Math.max(1,n);
+  return{tokens:toks,path:toks.slice(),conf:conf*.9,babble:false,jumps:0,
+         contrib:toks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
+         flu:0,syn:true,frame,roles,cand:1};
+}
+/* papéis padrão heurísticos: usados quando a IA ainda não rotulou */
+const HINT_SYN=[
+  [/^(eu|voce|ele|ela|nos|eles|gato|cachorro|comida|tabula|pessoa|bicho)$/,'quem'],
+  [/^(quero|gosto|tenho|vou|falo|como|ando|vejo|amo|odeio|preciso|queres?|gosta|e|sou|vai|da|deixa|sabe|pode|faz|queria)$/,'acao'],
+  [/^(gato|cachorro|comida|pizza|agua|coisa|brinquedo|casa|nome|isso|aquilo)$/,'oque'],
+  [/^(bem|mal|muito|pouco|bom|ruim|otimo|pessimo|sim|nao|talvez|hoje|agora|depois|sempre|nunca)$/,'como'],
+];
+function heuristicSyn(label){
+  const k=norm(label);
+  for(const [re,role] of HINT_SYN)if(re.test(k))return role;
+  return null;
+}
+
 /* ================= 5 · episódios ================= */
 const threadAct=new Float32Array(NEPI);
 const dirtyThread=new Array(NEPI).fill(true);
@@ -527,8 +596,12 @@ function ensureWord(label){
   const key=norm(label);let wi=wkey.get(key);
   if(wi===undefined){wi=registerWord(label);if(wi<0)return -1;
     newWordsMsg++;newWordList.push(wi);stim(vtaA,.8);
-    log('NEW',`palavra nova: "${label}" → enviada à IA para validação`);
-    const w=words[wi];pulseAt(w.base[0],w.base[1],w.base[2],PX[vtaA],PY[vtaA],PZ[vtaA],.6,'#ff5d4d');}
+    /* papel sintático heurístico imediato (IA refina depois) */
+    const w=words[wi];
+    const hint=heuristicSyn(label);
+    if(hint){w.syn=hint;w.synConf=.35;}
+    log('NEW',`palavra nova: "${label}"${hint?` · papel inicial: ${hint}`:' · papel aguardando IA'}`);
+    const ww=words[wi];pulseAt(ww.base[0],ww.base[1],ww.base[2],PX[vtaA],PY[vtaA],PZ[vtaA],.6,'#ff5d4d');}
   return wi;
 }
 function learnMessage(wids,eta){
@@ -542,6 +615,7 @@ function learnMessage(wids,eta){
   }
   for(let i=0;i<wids.length;i++)
     for(let j=i+1;j<Math.min(wids.length,i+5);j++)addAssoc(wids[i],wids[j],.3);
+  learnFrame(wids);
   const epiI=writeEpisode(wids);
   log('EPI',`fio da linha ${epiI+1} gravado (${Math.min(wids.length,30)} palavras) · η ${eta.toFixed(2)}`);
 }
@@ -601,9 +675,9 @@ function forgetWord(wi,reason){
   pulseAt(w.base[0],w.base[1],w.base[2],PX[amgA],PY[amgA],PZ[amgA],.7,'#ff9a8b');
 }
 
-/* ================= 7 · lobo frontal + geração local ================= */
+/* ================= 7 · lobo frontal + geração (cadeia OU molde) ================= */
 let frontalPlan='—', arousal=0;
-const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc'};
+const PLANCOL={cadeia:'#e8b34b', lembrança:'#a5d64a', inversa:'#46c8bc', sintaxe:'#d8a8ff'};
 function bumpArousal(v){
   const old=arousal;
   arousal=clamp(arousal+v,0,1);
@@ -628,7 +702,9 @@ function frontalDecide(inputWids,qa){
   if(top!==undefined&&revAdj[top])for(const o of revAdj[top].values())invS+=o.w;
   if(qa)invS*=1.6;
   const epiS=recentEpisodes().length?1.15:.15;
-  const opts=[['cadeia',chainS+.12],['inversa',invS+.12],['lembrança',epiS]];
+  /* novo plano: sintaxe — disponível quando há moldes aprendidos */
+  const synS=frames.length?frames.reduce((s,f)=>s+f.use,0)*.35+.4:0;
+  const opts=[['cadeia',chainS+.12],['inversa',invS+.12],['lembrança',epiS],['sintaxe',synS]];
   return sampleWeighted(opts.map(([n,s])=>[n,Math.pow(Math.max(.01,s),1.1)]))||'cadeia';
 }
 function generate(inputWids,T,qa,plan,learn){
@@ -717,7 +793,7 @@ function generate(inputWids,T,qa,plan,learn){
   return{tokens,conf,babble,path,jumps,contrib:contrib.slice(0,4),epi:[...epiSlots]};
 }
 
-/* ================= 8 · REVISOR local ================= */
+/* ================= 8 · REVISOR local (sintaxe entra no concurso) ================= */
 let revOn=true;
 function pairSupport(a,b){
   const m=transAdj[a];if(!m)return 0;
@@ -760,16 +836,48 @@ function scoreFluency(toks){
   if(quoteBoost(toks))s+=1.0;
   return clamp(s,0,1.35);
 }
+/* bônus de estrutura: pares de papéis que fluem bem somam; quebra subtrai */
+const GOODPAIR=new Set(['quem>acao','acao>oque','quem>acao>oque','oque>como','como>oque','quem>como','acao>como']);
+function synBonus(toks){
+  if(toks.length<2)return 0;
+  let b=0;
+  for(let i=0;i+1<toks.length;i++){
+    const r1=words[toks[i]].syn, r2=words[toks[i+1]].syn;
+    if(!r1||r1==='-'||!r2||r2==='-')continue;
+    if(GOODPAIR.has(r1+'>'+r2))b+=.22;
+    else if(r1==='quem'&&r2==='quem')b-=.25;
+    else if(r1==='acao'&&r2==='acao')b-=.2;
+  }
+  /* começa com quem ou ação = frase canônica */
+  const r0=words[toks[0]].syn;
+  if(r0==='quem'||r0==='acao')b+=.15;
+  return b;
+}
 function bestOfN(inputWids,T,qa,plan,n=6){
   const temps=[T*.7,T,T*1.25,T*.85,T*1.4,T*.6];
-  let best=null;
+  const cands=[];
   for(let i=0;i<n;i++){
-    const r=generate(inputWids,temps[i%temps.length],qa,plan,false);
-    r.flu=scoreFluency(r.tokens);
-    r.cand=i+1;
+    cands.push(generate(inputWids,temps[i%temps.length],qa,plan,false));
+  }
+  /* dois rascunhos do concurso vêm do gerador por molde */
+  if(frames.length){
+    for(let i=0;i<2;i++){
+      const fr=generateByFrame(inputWids,T,qa,plan);
+      if(fr&&fr.tokens.length>=2)cands.push(fr);
+    }
+  }
+  let best=null;
+  for(const r of cands){
+    if(!r)continue;
+    r.tokens=r.tokens.filter(wi=>words[wi]&&!words[wi].dead);
+    if(r.tokens.length<1)continue;
+    r.flu=r.syn?clamp(scoreFluency(r.tokens)*.65+synBonus(r.tokens)+.55,0,1.35)
+               :clamp(scoreFluency(r.tokens)+(r.tokens.length>=3?synBonus(r.tokens)*.5:0),0,1.35);
+    r.cand=cands.indexOf(r)+1;
     if(!best||r.flu>best.flu)best=r;
   }
-  best.candN=n;
+  if(!best)return{tokens:[],conf:0,babble:true,path:[],jumps:0,contrib:[],epi:[],flu:.05,candN:n,cand:1};
+  best.candN=cands.filter(Boolean).length;
   return best;
 }
 function recallEpisode(inputWids){
@@ -798,7 +906,7 @@ function reviseAndSpeak(inputWids,T,qa,plan){
   return r;
 }
 
-/* ================= 8.5 · IA groq — a MENTE que fala ================= */
+/* ================= 8.5 · IA groq — mente falante + rotulador sintático ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL='openai/gpt-oss-120b';
@@ -826,7 +934,7 @@ function cleanAI(t){
   t=(t||'').replace(/\s+/g,' ').trim();
   t=t.replace(/^(resposta|frase|correção)\s*:\s*/i,'').replace(/^["'“”«]+|["'“”»]+$/g,'').trim();
   t=t.replace(/[.!?…]+$/,'').trim();
-  const w=t.split(' ').filter(Boolean).slice(0,5).join(' ');
+  const w=t.split(' ').filter(Boolean).slice(0,6).join(' ');
   return w||'';
 }
 async function groqChat(sys,usr,maxTokens=80,temp=.5){
@@ -847,29 +955,85 @@ async function groqRepair(userText,draftText){
     'Sua única função: ler a mensagem do usuário e devolver UMA resposta curta, com sentido completo, feita APENAS com o vocabulário disponível.',
     '',
     'PRINCÍPIOS OBRIGATÓRIOS (sem exceção):',
-    '1. SENTIDO ANTES DE TUDO — a resposta final tem que ser uma frase que um humano entende na hora. Nunca devolva sequência aleatória de palavras. Se o rascunho do cérebro for sem sentido, IGNORE-O completamente e construa a resposta você mesmo.',
-    '2. VOCABULÁRIO FECHADO — use SOMENTE palavras da lista "vocabulário do cérebro". Repetir palavra da lista é permitido. Palavra fora da lista é proibida (única exceção: regra 6).',
-    '3. CURTA E DIRETA — no máximo 5 palavras. Uma ou duas palavras bem escolhidas valem mais que uma frase longa. Exemplos: "tudo bem?" → "bem". "oi" → "oi". "gosto de gato" → "gosto".',
-    '4. LEIA A INTENÇÃO da mensagem antes de responder:',
-    '   • PERGUNTA (tem "?") → responda a pergunta diretamente, mesmo que a resposta seja uma palavra só;',
-    '   • PAR DE OPOSTOS ou CONTRADIÇÃO na mensagem (bem/mal, bom/ruim, sim/não, gosto/odeio) → escolha UM lado coerente com o contexto e responda só com esse lado;',
-    '   • ESCOLHA EXCLUSIVA ("sim ou não?", "X ou Y?") → escolha uma das opções e responda com ela;',
-    '   • afirmação positiva → resposta no tom positivo; afirmação negativa → tom negativo;',
-    '   • saudação → devolva a saudação com o que existir no vocabulário;',
-    '   • despedida → responda no tom de despedida.',
-    '5. NUNCA ponha antônimos na mesma resposta — "bem" e "mal" juntos, "sim" e "não" juntos, "bom" e "ruim" juntos: proibido. Escolha um lado.',
-    '6. Se for IMPOSSÍVEL responder com o vocabulário, use no máximo 2 palavras novas, simples e muito comuns do português (o cérebro vai aprendê-las depois). Prefira sempre esgotar o vocabulário existente antes.',
-    '7. ORDEM GRAMATICAL — combine as palavras na ordem correta do português do Brasil. "bem tudo" está errado; "tudo bem" está certo.',
-    '8. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas, sem explicação, sem lista.',
-    '9. Use as relações lógicas conhecidas (se informadas) para decidir o lado da resposta em casos de contradição ou escolha.'
+    '1. SENTIDO ANTES DE TUDO — a resposta final tem que ser uma frase que um humano entende na hora. Se o rascunho for sem sentido, IGNORE-O e construa a resposta você mesmo.',
+    '2. VOCABULÁRIO FECHADO — use SOMENTE palavras da lista. Palavra fora é proibida (única exceção: regra 6).',
+    '3. ESTRUTURA DE FRASE — prefira respostas com SUJEITO + VERBO (+ OBJETO), nessa ordem, quando o sentido permitir. Exemplos: "eu quero gato", "você gosta", "gato bom". Frase de uma palavra só é válida quando a pergunta é fechada (sim/não) ou saudação.',
+    '4. CURTA — no máximo 6 palavras.',
+    '5. LEIA A INTENÇÃO:',
+    '   • PERGUNTA ("?") → responda diretamente;',
+    '   • PAR DE OPOSTOS na mensagem → escolha UM lado coerente;',
+    '   • ESCOLHA EXCLUSIVA ("X ou Y?") → escolha uma opção;',
+    '   • afirmação positiva → tom positivo; negativa → tom negativo;',
+    '   • saudação → devolva; despedida → despeça.',
+    '6. NUNCA ponha antônimos na mesma resposta.',
+    '7. Se IMPOSSÍVEL com o vocabulário, no máximo 2 palavras novas simples.',
+    '8. Saída limpa — minúscula, sem pontuação, sem emoji, sem aspas, sem explicação.',
+    '9. Use as relações lógicas conhecidas para decidir o lado da resposta.'
   ].join('\n');
   const usr='vocabulário do cérebro (única fonte permitida): ['+knownVocabList()+']\n'+
     (rels?'relações lógicas conhecidas: '+rels+'\n':'')+
     (hist?'conversa recente:\n'+hist+'\n':'')+
     'mensagem do usuário: "'+userText+'"\n'+
-    'rascunho interno do cérebro (pode estar sem sentido — corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
+    'rascunho interno do cérebro (corrija ou ignore): "'+(draftText||'(vazio)')+'"\n\n'+
     'frase final (só a frase):';
   return cleanAI(await groqChat(sys,usr,60,.15));
+}
+
+/* ---------- rotulador sintático: papel de cada palavra ---------- */
+async function groqLabel(labels){
+  const sys='Você rotula palavras do português do Brasil com UM papel sintático cada, para um cérebro artificial. '+
+    'Papéis possíveis:\n'+
+    'quem = sujeito/pronome/ser (eu, você, ele, gato, comida, tabula, gente)\n'+
+    'acao = verbo ou ação (quero, gosto, come, vou, é, sou, tem, ama)\n'+
+    'oque = objeto/coisa concreta (gato, pizza, bola, casa, nome)\n'+
+    'como = modificador/advérbio/resposta curta (bem, mal, muito, bom, ruim, sim, não, hoje)\n'+
+    'Formato exato, UMA linha por palavra:\npalavra: papel\n'+
+    'Sem explicação, sem markdown. Só as linhas. Se uma palavra couber em dois papéis, escolha o mais comum em frases simples.';
+  const usr='palavras: '+labels.join(', ')+'\n\nlinhas:';
+  const txt=await groqChat(sys,usr,300,.1);
+  const map=new Map();
+  for(const raw of txt.split(/\n+/)){
+    const m=raw.match(/^\s*(?:[-*•\d.)\s]*)("?)([\p{L}\p{N}'-]+)\1\s*[:\-–]\s*([\p{L}]+)\s*$/u);
+    if(!m)continue;
+    const k=norm(m[2]);let r=norm(m[3]);
+    if(r==='quem'||r==='sujeito')r='quem';
+    else if(r==='acao'||r==='ação'||r==='verbo')r='acao';
+    else if(r==='oque'||r==='o que'||r==='objeto')r='oque';
+    else if(r==='como'||r==='adverbio'||r==='modificador')r='como';
+    else continue;
+    if(!map.has(k))map.set(k,r);
+  }
+  return map;
+}
+const labelQ=[]; let labelBusy=false;
+function queueLabel(wis){
+  if(!aiOn||!wis||!wis.length)return;
+  labelQ.push(...wis);
+  pumpLabel();
+}
+async function pumpLabel(){
+  if(labelBusy)return;
+  labelBusy=true;
+  while(labelQ.length){
+    if(!aiOn){labelQ.length=0;break;}
+    const batch=[...new Set(labelQ.splice(0,8))].filter(wi=>words[wi]&&!words[wi].dead&&!words[wi].io);
+    if(!batch.length)continue;
+    log('SYN',`rotulando papéis: ${batch.map(wi=>`"${words[wi].label}"`).join(', ')}`);
+    try{
+      const map=await groqLabel(batch.map(wi=>words[wi].label));
+      let n=0;
+      for(const wi of batch){
+        const r=map.get(norm(words[wi].label));
+        if(r){words[wi].syn=r;words[wi].synConf=.9;words[wi].synTries=1;n++;
+          const w=words[wi];w.act=Math.max(w.act,1.2);
+          pulseAt(w.base[0],w.base[1],w.base[2],PX[planN],PY[planN],PZ[planN],.5,'#d8a8ff');}
+      }
+      if(n)log('SYN',`${n} palavra(s) com papel: ${batch.slice(0,4).map(wi=>words[wi].syn&&words[wi].syn!=='-'?`${words[wi].label}(${words[wi].syn})`:null).filter(Boolean).join(', ')}…`);
+    }catch(e){log('SYN','rotulagem falhou ('+(e.message||'erro')+')');}
+    await new Promise(r=>setTimeout(r,800));
+  }
+  updateStats();
+  labelBusy=false;
 }
 
 /* ---------- fila de validação de palavras ---------- */
@@ -919,21 +1083,16 @@ async function groqValidate(labels,ctx){
     'otimo: sim, positivo, bom | gosto: sim, positivo | odeio: sim, negativo\n'+
     '2. CATEGORIA — o que a palavra é: gato: sim, animal, bicho | casa: sim, lugar, morar\n'+
     '3. USO — papel gramatical: eu: sim, pessoa | de: sim, ligacao\n'+
-    'Os conceitos "positivo" e "negativo" são os polos centrais — use-os SEMPRE que a palavra tiver valência.\n'+
     'ALÉM da linha principal, quando existir, acrescente linhas extras (uma por relação):\n'+
-    'palavra -contraria: oposto direto (antônimo). Exemplos: bem -contraria: mal | bom -contraria: ruim | '+
-    'sim -contraria: nao | dia -contraria: noite | alto -contraria: baixo | dentro -contraria: fora\n'+
-    'palavra -outra: alternativa exclusiva que forma par de escolha "ou" (A ou B cobre as opções). '+
-    'Exemplos: sim -outra: nao | talvez -outra: nunca | isso -outra: aquilo\n'+
-    'Regras das linhas extras: no máximo UMA palavra por linha; só quando o oposto/par for claro e direto; '+
-    'a mesma palavra pode ter -contraria e -outra (ex.: sim); palavras gramaticais (de, que, o) geralmente não têm. '+
+    'palavra -contraria: oposto direto (antônimo). Exemplos: bem -contraria: mal | sim -contraria: nao\n'+
+    'palavra -outra: alternativa exclusiva "ou". Exemplos: sim -outra: nao\n'+
     'Formato das linhas principais:\n'+
     'palavra: sim, conceito1, conceito2, conceito3\n'+
     'palavra: nao\n'+
     'Sem frases, sem explicação, sem numeração, sem markdown. Apenas as linhas.';
   const usr='palavras novas: '+labels.join(', ')+'\n'+
     'frase onde apareceram: "'+ctx+'"\n'+
-    'vocabulário conhecido: '+(vocab.join(', ')||'(nenhum ainda — é a primeira palavra)')+'\n\nlinhas:';
+    'vocabulário conhecido: '+(vocab.join(', ')||'(nenhum ainda)')+'\n\nlinhas:';
   const txt=await groqChat(sys,usr,320,.2);
   const map=new Map();
   const get=k=>{
@@ -1009,12 +1168,8 @@ function applyGrounding(wi,labels,antL,xorL){
     const a=words[awi];a.act=Math.max(a.act,1.0);
     pulseAt(w.base[0],w.base[1],w.base[2],a.base[0],a.base[1],a.base[2],.85,'#8fd0ff');
   }
-  const antNames=antL.slice(0,1).map(lb=>`"${lb}"`);
-  const xorNames=xorL.slice(0,1).map(lb=>`"${lb}"`);
   log('GND',`fio de sentido: "<b>${w.label}</b>" ⇢ `+
-    (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)')+
-    (antNames.length?` · <b style="color:#ff8a5c">≠ ${antNames.join(', ')}</b>`:'')+
-    (xorNames.length?` · <b style="color:#d0e86a">ou ${xorNames.join(', ')}</b>`:''));
+    (awids.length?awids.map(i=>`"${words[i].label}"`).join(' · '):'(sem conceitos)'));
   if(dirtyC)compile();
   rebuildVisFromNet();
   rebuildGroundLines();
@@ -1072,6 +1227,10 @@ function userSend(){
   learnMessage(wids,eta);
   learnDialogue(prevTurn,wids);
   log('WEB',`absorvido: ${newWordsMsg} palavra(s) nova(s) · ${newRoutesMsg} sinapse(s) nova(s) · surpresa ${(surprise*100)|0}%`);
+  /* palavras sem papel vão pra fila de rotulagem */
+  const toLabel=wids.filter(wi=>words[wi]&&!words[wi].dead&&!words[wi].io&&wi>1&&
+    (words[wi].syn==='-'||words[wi].synConf<.5)&&words[wi].synTries<3);
+  if(toLabel.length)queueLabel(toLabel.slice(0,8));
   const toGround=[...newWordList];
   for(const wi of wids){
     const w=words[wi];
@@ -1110,17 +1269,22 @@ function stimAssembly(wi,amp){
 async function respond(qa){
   try{
     const T=parseFloat($('rngTemp').value);
-    const need=qa?.6:.5;
     const q=prevTurn?prevTurn.q.filter(wi=>words[wi]&&!words[wi].dead):[];
     frontalPlan=frontalDecide(q,qa);
     stim(planN,1.5);
     const pc=PLANCOL[frontalPlan]||'#b9c4e8';
     pulseAt(PX[planN],PY[planN],PZ[planN],PX[thalN],PY[thalN],PZ[thalN],.7,pc);
-    log('FRO',`plano = ${frontalPlan}${arousal>.5?` · arousal ${arousal.toFixed(2)}`:''}`);
+    log('FRO',`plano = ${frontalPlan}${arousal>.5?` · arousal ${arousal.toFixed(2)}`:''}${frontalPlan==='sintaxe'?` · ${frames.length} molde(s)`:''}`);
     let r=reviseAndSpeak(q,T,qa,frontalPlan);
     r.tokens=r.tokens.filter(wi=>words[wi]&&!words[wi].dead);
     r.path=r.path.filter(wi=>words[wi]&&!words[wi].dead);
     const draftText=r.tokens.map(i=>words[i].label).join(' ');
+    /* se o plano foi sintaxe e o vencedor veio de molde, registra */
+    if(r.syn){
+      synGenCount++;lastSynGen=r.frame.sig;
+      log('SYN',`frase por molde <b>${r.frame.sig}</b>: ${r.roles.map((ro,i)=>`${ro}="${words[r.tokens[i]].label}"`).join(' · ')}`);
+      pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
+    }
     let aiUsed=false;
     if(aiOn){
       log('AI',`mente falante revisando (rascunho local: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
@@ -1134,12 +1298,16 @@ async function respond(qa){
         const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
         const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
         const novelN=rawToks.length-knownToks.length;
-        const useToks=knownToks.length?knownToks:rawToks.slice(0,5);
+        const useToks=knownToks.length?knownToks:rawToks.slice(0,6);
         if(useToks.length){
           aiUsed=true;
           newWordsMsg=0;
           learnMessage(useToks,1.4);
           learnDialogue(prevTurn,useToks);
+          /* recompensa o molde se a resposta IA casou com um; senão aprende o da frase corrigida */
+          if(r.syn&&fixed.replace(/\s+/g,' ')===r.tokens.map(i=>words[i].label).join(' ')+' '){
+            r.frame.hit+=1;
+          }
           if(dirtyC)compile();
           stim(vtaA,1.1);bumpArousal(.12);
           fireSweep();
@@ -1149,19 +1317,25 @@ async function respond(qa){
               :' · vocabulário insuficiente — resposta vira ensino'));
           const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
           if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
+          const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
+          if(unlab.length)queueLabel(unlab.slice(0,6));
           r={tokens:useToks,path:useToks.slice(),conf:.95,babble:false,jumps:0,
              contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
              flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
         }
       }
     }
-    if(!aiUsed&&r.flu<need&&r.recall){
-      const rec=r.recall;
-      const toks=rec.tokens.filter(wi=>words[wi]&&!words[wi].dead);
-      r={tokens:toks,path:toks.slice(),conf:1,babble:false,jumps:0,
-         contrib:toks.slice(0,4).map(wi=>[wi,0,'episódio',rec.slot]),
-         epi:[rec.slot],flu:scoreFluency(toks),mode:'lembrança',candN:r.candN,candI:0,slot:rec.slot};
+    if(!aiUsed&&r.flu<.62&&r.mode!=='IA'){
+      const rec=recallEpisode(q);
+      if(rec){
+        const toks=rec.tokens.filter(wi=>words[wi]&&!words[wi].dead);
+        r={tokens:toks,path:toks.slice(),conf:1,babble:false,jumps:0,
+           contrib:toks.slice(0,4).map(wi=>[wi,0,'episódio',rec.slot]),
+           epi:[rec.slot],flu:scoreFluency(toks),mode:'lembrança',candN:r.candN,candI:0,slot:rec.slot};
+      }
     }
+    /* reforço do molde: resposta final boa (fluência alta) e veio de molde */
+    if(r.syn&&r.flu>=.8)r.frame.hit+=1;
     if(r.mode!=='IA'){
       for(let i=0;i+1<r.tokens.length;i++){
         const m=transAdj[r.tokens[i]];
@@ -1175,9 +1349,9 @@ async function respond(qa){
     if(history.length>4)history.shift();
     log('REV',`revisor: ${r.candN} rascunho(s) local(is) · fluência ${r.flu.toFixed(2)} · `+
       (r.mode==='IA'?'fala final pela IA (corrigida)':
-       r.mode==='lembrança'?`nenhuma boa → lembrança literal (linha ${r.slot+1})`:
-       `venceu o rascunho local #${r.candI}`));
-    $('confTag').textContent=`${r.mode} · flu ${r.flu.toFixed(2)}`+
+       r.mode==='lembrança'?`lembrança literal (linha ${r.slot+1})`:
+       (r.syn?'venceu o MOLDE sintático':'venceu o rascunho local #'+r.candI)));
+    $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)}`+
       (r.epi.length?` · linha ${r.epi.map(s=>s+1).join(',')}`:'');
     for(const [b,s,src,slot] of r.contrib){
       const wb=words[b];if(!wb||wb.dead)continue;
@@ -1190,6 +1364,7 @@ async function respond(qa){
     if(!r.tokens.length){sendBtn.disabled=false;return;}
     if(r.mode==='lembrança')log('TLK',`resposta por lembrança: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
     else if(r.mode==='IA')log('TLK',`resposta corrigida: "${r.tokens.map(i=>words[i].label).join(' ')}"`);
+    else if(r.syn)log('TLK',`frase gerada: "${r.tokens.map(i=>words[i].label).join(' ')}" · molde ${r.frame.sig}`);
     else log('TLK',`rota: ${r.path.slice(0,10).map(i=>words[i].label).join(' → ')}${r.path.length>10?'…':''} · conf ${r.conf.toFixed(2)}${r.jumps?` · ${r.jumps} salto(s)`:''}`);
     typeOut(r);
   }catch(e){
@@ -1200,7 +1375,7 @@ async function respond(qa){
 function typeOut(r){
   const d=document.createElement('div');
   d.className='msg brain'+((r.mode==='gerado'&&r.flu<.3)?' weak':'');
-  d.innerHTML=`<span class="who">tabula${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  d.innerHTML=`<span class="who">tabula${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
   let i=0,stopped=false;
@@ -1238,7 +1413,9 @@ function typeOut(r){
       +(r.mode==='lembrança'
         ?`frase literal sua (linha ${r.slot+1}) · fluência ${r.flu.toFixed(2)}`
         :r.mode==='IA'
-        ?`mente IA · corrigida · ${r.candN} rascunho(s) local(is) avaliado(s)`
+        ?`mente IA · corrigida · ${r.candN} rascunho(s) avaliado(s)`
+        :r.syn
+        ?`sintaxe generativa · molde ${r.frame.sig} · confiança ${r.conf.toFixed(2)}`
         :`fluência ${r.flu.toFixed(2)} · rascunho ${r.candI}/${r.candN} · confiança ${r.conf.toFixed(2)}`);
     typing=null;sendBtn.disabled=false;
   };
@@ -1324,8 +1501,11 @@ function syncConcepts(){
   for(const w of words){
     if(w.dead||!w.ghost){if(w&&!w.dead)w.cslot=-1;continue;}
     cPos[n*3]=w.base[0];cPos[n*3+1]=w.base[1];cPos[n*3+2]=w.base[2];
+    /* conceito com papel sintático ganha a cor do papel misturada */
     const c=wordColor(w.count);
-    cCol[n*3]=c.r;cCol[n*3+1]=c.g;cCol[n*3+2]=c.b;
+    const sc=w.syn&&w.syn!=='-'?SYNCOL[w.syn]:null;
+    const mix=sc?c.clone().lerp(sc,.45):c;
+    cCol[n*3]=mix.r;cCol[n*3+1]=mix.g;cCol[n*3+2]=mix.b;
     cSiz[n]=.05;cSeed[n]=h32(w.key+'s');
     cOrd[n]=words.length>1?w.idx/(words.length-1):0;
     cAct[n]=w.act;w.cslot=n;n++;
@@ -1366,6 +1546,10 @@ function buildHulls(){
   const rv=[];for(let i=0;i<=6;i++){const a=i/6*6.283;
     rv.push(new THREE.Vector3(2.55+Math.cos(a)*.34,1.15+Math.sin(a)*.34,-.55));}
   mk(rv,'#c8b6e8',.24);
+  /* halo do córtex sintático (roxo) envolvendo o plano */
+  const sy=[];for(let i=0;i<=48;i++){const a=i/48*6.283;
+    sy.push(new THREE.Vector3(Math.cos(a)*4.9,.55+Math.sin(a*2)*.12,-.3+Math.sin(a)*2.5));}
+  mk(sy,'#d8a8ff',.14);
 }
 let ringLine=null;
 function buildRing(){
@@ -1428,7 +1612,7 @@ function showTrace(wids){
   const curve=new THREE.CatmullRomCurve3(pts,false,'catmullrom',.5);
   traceLine=new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(curve.getPoints(Math.min(300,pts.length*10))),
-    new THREE.LineBasicMaterial({color:'#fff3d8',transparent:true,opacity:.8,
+    new THREE.LineBasicMaterial({color:'#e8d8ff',transparent:true,opacity:.8,
       blending:THREE.AdditiveBlending,depthWrite:false}));
   scene.add(traceLine);traceOp=1;
 }
@@ -1612,14 +1796,16 @@ function buildModLabels(){
     [()=>[PX[stopN],PY[stopN]+.22,PZ[stopN]],'parada','#b9c4e8',.5],
     [()=>[3.38,-2.14,.85],'amígdala','#ef6a8b',.85],
     [()=>[.95,-3.06,-.6],'VTA','#ff5d4d',.85],
-    [()=>[STC.cx,STC.cy-.7,STC.cz],'gânglios · espiral de hábitos','#f0a63c',.8],
+    [()=>[STC.cx,STC.cy-.7,STC.cz],'gânglios · hábitos','#f0a63c',.8],
     [()=>[0,-.88,-3.4],'hipocampo','#a5d64a',.8],
-    [()=>[2.55,1.6,-.55],'mente · IA','#c8b6e8',.9]];
+    [()=>[2.55,1.6,-.55],'mente · IA','#c8b6e8',.9],
+    [()=>[0,1.05,0],'córtex sintático','#d8a8ff',.85]];
   modLabels=defs.map(([p,t,c,o])=>{
     const el=document.createElement('div');el.className='wlb mod';
     el.textContent=t;el.style.color=c;el._o=o;
     wlab.appendChild(el);return{el,p};});
 }
+const SYN_TAG={quem:'⬤',acao:'▲',oque:'■',como:'◆'};
 function rebuildWordLabels(){
   for(const l of wordLabels)l.el.remove();
   wordLabels=[];
@@ -1631,11 +1817,13 @@ function rebuildWordLabels(){
     el.className='wlb '+(w.io?'io':'hub');
     const am=antAdj[w.idx],xm=xorAdj[w.idx];
     let tag='';
+    if(w.syn&&w.syn!=='-')tag=' '+SYN_TAG[w.syn];
     if(am&&am.size)tag+=' ≠'+[...am.keys()].map(i=>words[i]?words[i].label:'').filter(Boolean).slice(0,1);
     if(xm&&xm.size)tag+=' ou'+[...xm.keys()].map(i=>words[i]?words[i].label:'').filter(Boolean).slice(0,1);
     el.textContent=w.io?(w.idx===0?'início':'fim'):w.label+(w.grounded?' ✓':'')+tag;
     el._o=w.io?1:clamp(.4+w.count*.07,.4,.95);
     if(w.grounded&&!w.io)el.style.color='#8fd0ff';
+    if(w.syn&&w.syn!=='-'&&!w.io){el.style.color='#d8a8ff';}
     if(POLAR.has(w.key)&&!w.io)el.style.color='#d0a8ff';
     wlab.appendChild(el);wordLabels.push({el,w});
   }
@@ -1661,22 +1849,15 @@ function updateStats(){
   const syn=routes+revN+assocN+chunkMap.size*2+
     epiData.reduce((s,e)=>s+(e.epi?e.epi.length:0),0);
   const alive=words.filter(w=>!w.dead&&!w.io);
-  const gLines=words.reduce((s,w)=>s+(w.dead||!w.ground?0:w.ground.length),0);
-  const grounded=alive.filter(w=>w.grounded).length;
-  let antCnt=0,xorCnt=0;
-  for(let a=0;a<CAPW;a++){
-    const ma=antAdj[a];if(ma)for(const b of ma.keys())if(a<b)antCnt++;
-    const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xorCnt++;
-  }
+  const cnt=r=>alive.filter(w=>w.syn===r).length;
   $('stN').textContent=N;$('stS').textContent=syn;$('stW').textContent=alive.length;
   $('stR').textContent=routes;$('stK').textContent=chunkMap.size+'/'+NCHUNK;$('stHz').textContent=hzVal;
-  $('tW').textContent=alive.length;$('tU').textContent=grounded;
-  $('tR').textContent=routes;$('tRev').textContent=revN;
-  $('tA').textContent=assocN;$('tK').textContent=chunkMap.size+'/'+NCHUNK;
-  $('tT').textContent=epiData.filter(e=>e.epi&&e.epi.length).length+'/'+NEPI;
-  $('tG').textContent=gLines;
-  $('tAn').textContent=antCnt;$('tX').textContent=xorCnt;
-  $('tP').textContent=frontalPlan;$('tAr').textContent=arousal.toFixed(2);
+  $('tW').textContent=alive.length;$('tU').textContent=alive.filter(w=>w.grounded).length;
+  $('tQ').textContent=cnt('quem');$('tV').textContent=cnt('acao');
+  $('tO').textContent=cnt('oque');$('tH').textContent=cnt('como');
+  $('tR').textContent=routes;$('tK').textContent=chunkMap.size+'/'+NCHUNK;
+  $('tSyn').textContent=lastSynGen||'—';
+  $('tAr').textContent=arousal.toFixed(2);
   $('tF').textContent=lastFlu==null?'—':lastFlu.toFixed(2);
   $('tM').textContent=lastMode||'—';
   $('tC').textContent=lastConf==null?'—':lastConf.toFixed(2);
@@ -1694,7 +1875,7 @@ const SPEEDS=[1,2,4,8];let speedI=0,SIMSPEED=1;
 let SLEEP=false,sleepTimer=null;
 function startSleep(){
   if(SLEEP)return;SLEEP=true;$('btnSleep').classList.add('on');
-  log('SLP','sono iniciado — replay dos fios + consolidação de sinapses');
+  log('SLP','sono iniciado — replay dos fios + consolidação de sinapses + moldes');
   const slots=epiData.map((e,i)=>i).filter(i=>epiData[i].epi.length);
   let k=0;
   const step=()=>{
@@ -1705,6 +1886,13 @@ function startSleep(){
     for(let j=0;j+1<epi.length;j++){
       const m=transAdj[epi[j]];const o=m&&m.get(epi[j+1]);
       if(o){o.w+=.08;}
+    }
+    /* reforça o molde do episódio durante o sono */
+    const slotsArr=epi.map(wi=>words[wi]&&words[wi].syn!=='-'?words[wi].syn:null).filter(Boolean);
+    if(slotsArr.length>=2){
+      const sig=slotsArr.join('+');
+      const f=frames.find(f=>f.sig===sig);
+      if(f)f.hit+=.5;
     }
     epi.forEach((wi,j)=>setTimeout(()=>{if(SLEEP)stimAssembly(wi,.85);},j*130));
     sleepTimer=setTimeout(step,Math.max(900,epi.length*130+320));
@@ -1735,7 +1923,7 @@ function prune(){
     if(ma)for(const [b,o] of [...ma])if(o.w<1.1){ma.delete(b);const mb=assocAdj[b];if(mb&&mb.has(a)){mb.delete(a);assocN--;}cut++;}
   }
   compile();rebuildVisFromNet();updateStats();
-  log('SYS',`poda: ${cut} sinapses fracas removidas — fios de sentido, ≠ e ou preservados`);
+  log('SYS',`poda: ${cut} sinapses fracas removidas — fios e moldes preservados`);
 }
  $('btnPrune').addEventListener('click',prune);
 function lesion(){
@@ -1760,11 +1948,12 @@ function lesion(){
       const qx=xorAdj[a];if(qx&&qx.has(i))qx.delete(i);
     }
     w.grounded=false;w.ground=null;
+    w.syn='-';w.synConf=0; /* o papel sintático também é ferido */
   }
   rebuildGroundLines();
   bumpArousal(1);stim(amgA,1.7);stim(amgB,1.5);
   pulseAt(PX[amgA],PY[amgA],PZ[amgA],PX[thalN],PY[thalN],PZ[thalN],1,'#ef6a8b');
-  log('LES',`lesão: ${hit} conceitos silenciados · lógica (≠/ou) rompida junto · amígdala em alarme`);
+  log('LES',`lesão: ${hit} conceitos silenciados · papéis e lógica rompidos · amígdala em alarme`);
   compile();syncNeuronAttrs();rebuildVisFromNet();updateStats();
 }
  $('btnLesion').addEventListener('click',lesion);
@@ -1774,9 +1963,10 @@ function exportBrain(){
     const ma=antAdj[a];if(ma)for(const b of ma.keys())if(a<b)ants.push([a,b]);
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
-  const data={v:10,model:'tabula-07',capn:CAPN,nchunk:NCHUNK,
-    words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0})),
-    trans:[],rev:[],assoc:[],ants,xors,
+  const data={v:11,model:'tabula-07',capn:CAPN,nchunk:NCHUNK,
+    words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
+      s:w.syn&&w.syn!=='-'?w.syn:undefined})),
+    trans:[],rev:[],assoc:[],ants,xors,frames:frames.map(f=>({sig:f.sig,slots:f.slots,use:f.use,hit:f.hit})),
     grounds:words.map((w,i)=>(!w.dead&&w.ground&&w.ground.length)?[i,w.ground]:null).filter(Boolean),
     episodes:epiData.map(e=>e.epi.slice()),episodeIdx,plan:frontalPlan};
   for(let a=0;a<words.length;a++){
@@ -1788,7 +1978,7 @@ function exportBrain(){
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='tabula07-cerebro.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS','cérebro exportado (sentido, ≠, ou)');
+  log('SYS','cérebro exportado (papéis, moldes, sentido, ≠, ou)');
 }
  $('btnExport').addEventListener('click',exportBrain);
 function wipeNet(){
@@ -1804,7 +1994,8 @@ function wipeNet(){
   HOT.length=0;HOTF.fill(0);BQ.forEach(q=>q.length=0);
   V.fill(0);THR.fill(0);REF.fill(0);ACT.fill(0);
   threadAct.fill(0);dirtyThread.fill(true);
-  groundQ.length=0;newWordList.length=0;
+  groundQ.length=0;labelQ.length=0;newWordList.length=0;
+  frames.length=0;synGenCount=0;lastSynGen=null;
   frontalPlan='—';arousal=0;prevTurn=null;lastBrainWids=null;history.length=0;
   msgs.innerHTML='';
   buildModules();buildChunks();
@@ -1819,7 +2010,9 @@ function importBrain(d){
     if(!d.words||!d.words.length)throw new Error('sem palavras');
     for(const w of d.words){
       const wi=registerWord(w.l,w.io||undefined);
-      if(wi>=0){words[wi].count=w.c||0;paintWord(words[wi]);}
+      if(wi>=0){words[wi].count=w.c||0;
+        if(w.s&&SYNALL.includes(w.s)){words[wi].syn=w.s;words[wi].synConf=.9;}
+        paintWord(words[wi]);}
     }
     for(const [a,b,w] of d.trans||[])addTrans(a,b,w);
     for(const [a,b,w] of d.rev||[])addRev(a,b,w);
@@ -1833,12 +2026,16 @@ function importBrain(d){
     }
     for(const [a,b] of d.ants||[])addAnt(a,b);
     for(const [a,b] of d.xors||[])addXor(a,b);
+    for(const f of d.frames||[]){
+      if(f&&Array.isArray(f.slots)&&f.slots.length>=2)
+        frames.push({sig:f.slots.join('+'),slots:f.slots.slice(),use:f.use||1,hit:f.hit||0});
+    }
     for(const ep of d.episodes||[])if(Array.isArray(ep)&&ep.length)writeEpisode(ep,true);
     if(d.episodeIdx)episodeIdx=d.episodeIdx%NEPI;
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
-    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · lógica restaurada`);
+    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s) · lógica restaurada`);
   }catch(e){log('SYS','falha ao importar: '+e.message);}
 }
  $('btnImport').addEventListener('click',()=>$('fileIn').click());
@@ -1848,17 +2045,17 @@ function importBrain(d){
   rd.onload=()=>{try{importBrain(JSON.parse(rd.result));}catch(e){log('SYS','arquivo inválido: '+e.message);}};
   rd.readAsText(f);ev.target.value='';
 });
+/* rotular: manda a IA re-classificar os papéis de todo o vocabulário */
  $('btnReval').addEventListener('click',()=>{
-  if(!aiOn){log('AI','ligue a IA para revalidar');return;}
+  if(!aiOn){log('SYN','ligue a IA para rotular');return;}
   const list=words.filter(w=>!w.dead&&!w.io&&w.idx>1&&w.count>0).map(w=>w.idx);
-  if(!list.length){log('AI','nada para revalidar — cérebro vazio');return;}
-  for(const wi of list){words[wi].grounded=false;words[wi].groundTries=0;words[wi].ground=null;}
-  antAdj.fill(null);xorAdj.fill(null);
-  rebuildGroundLines();
-  for(let i=0;i<list.length;i+=8)
-    groundQ.push({wis:list.slice(i,i+8),ctx:'revalidação completa do vocabulário'});
-  log('AI',`revalidação: ${list.length} palavra(s) na fila — sentido, ≠ e ou serão reancorados`);
-  pumpGround();
+  if(!list.length){log('SYN','nada para rotular — cérebro vazio');return;}
+  for(const wi of list){words[wi].synTries=0;}
+  labelQ.push(...list);
+  log('SYN',`rotulagem completa: ${list.length} palavra(s) na fila — a IA vai dar o papel de cada uma`);
+  pumpLabel();
+  /* também refaz fios de sentido */
+  for(const wi of list){words[wi].groundTries=0;}
 });
 let wipeArm=0;
  $('btnWipe').addEventListener('click',()=>{
@@ -1887,7 +2084,7 @@ let wipeArm=0;
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
-  log('AI','mente IA '+(aiOn?'ligada — corrige TODA resposta com princípios rígidos':'desligada — cérebro fala os rascunhos crus'));
+  log('AI','mente IA '+(aiOn?'ligada — corrige tudo e rotula papéis':'desligada — cérebro fala os rascunhos crus'));
 });
 
 /* ================= 15 · loop + boot ================= */
@@ -1903,7 +2100,6 @@ function animate(){
   const rdt=Math.min(.05,clock.getDelta());
   const dt=rdt*SIMSPEED;
   stepNet(dt);recover();
-  /* ruído espontâneo: 5400 neurônios dormentes cintilam organicamente */
   noiseT-=rdt;
   if(noiseT<=0&&dormantIds.length){
     noiseT=.05+RNG()*.15;
@@ -1953,9 +2149,10 @@ buildModLabels();
 wipeNet();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 575 gânglios (espiral) + 5400 córtex dormente (216 colunas × 25)`);
-log('SYS','capacidade: 8000 palavras · 575 hábitos · 16 fios de linha · zero palavras no boot');
-log('SYS','mente IA: corrige TODA resposta · lê intenção (pergunta/contradição/escolha) · fala só o vocabulário do cérebro');
+log('SYS',`boot: ${N} neurônios FIXOS — 25 módulos + 575 gânglios + 5400 córtex dormente (216 colunas × 25)`);
+log('SYS','SINTAXE GENERATIVA: palavras ganham papéis (quem·ação·o quê·como) — frases montadas por estrutura');
+log('SYS','treine frases de padrões diferentes (eu quero gato · você gosta · gato bom) para criar moldes');
+log('SYS','o lobo frontal agora tem o plano "sintaxe": sorteia molde, preenche slots, o revisor valida');
 log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · ${GROQ_MODEL}`);
 setTimeout(fireSweep,700);
 animate();
