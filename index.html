@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 25000 neurônios</title>
+<title>ATLAS — 50000 neurônios</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -113,7 +113,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>25000 neurônios · memória 100% sináptica</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>50000 neurônios · IA corrige toda resposta · memória 100% sináptica</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -147,12 +147,12 @@ footer b{color:var(--dim);font-weight:400}
       <button id="btnRot" class="on">rotação</button>
     </div>
     <div id="legend">
-      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 23500 neurônios (940 colunas × 25) + 1467 gânglios + 33 módulos = 25000 fixos</div>
+      <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 47000 neurônios (1880 colunas × 25) + 2967 gânglios + 33 módulos = 50000 fixos</div>
       <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância por morfologia</div>
-      <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · contradição ≠ (laranja) · alternativa ou (verde)</div>
-      <div class="li"><i style="--c:#7fe0c8"></i>famílias morfológicas ≈ — concordância verbal (quero/quer)</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 1467 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · contradição ≠ (laranja) · alternativa ou (verde) · família ≈ (verde-água)</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — corrige TODA resposta; valida, rotula, ancora; absorve como memória</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 2967 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor (6 rascunhos + 2 moldes)</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção colore a fala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
     </div>
   </div>
 
@@ -203,7 +203,7 @@ footer b{color:var(--dim);font-weight:400}
 
 <footer>
   <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>25000 neurônios · 20000 palavras · 1467 hábitos · memória 100% sináptica</span>
+  <span>50000 neurônios · 20000 palavras · 2967 hábitos · IA corrige todo turno</span>
 </footer>
 
 <script type="importmap">
@@ -233,8 +233,9 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 25000 neurônios ================= */
-const CAPW=20000, NCOLS=940, NPER=25, NCHUNK=1467, NEPI=24, CAPN=25000;
+/* ================= 1 · motor LIF — hardware FIXO de 50000 neurônios =================
+   31 módulos + 2 marcadores + 2967 gânglios + 47000 córtex (1880 colunas × 25) = 50000. */
+const CAPW=20000, NCOLS=1880, NPER=25, NCHUNK=2967, NEPI=24, CAPN=50000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
       PX=new Float32Array(CAPN), PY=new Float32Array(CAPN), PZ=new Float32Array(CAPN),
@@ -342,7 +343,7 @@ function registerWord(label,special){
   return idx;
 }
 
-/* ================= 3 · anatomia + córtex dormente (940 colunas) ================= */
+/* ================= 3 · anatomia + córtex dormente (1880 colunas) ================= */
 let epiIds=[],epiData=[],thalN=-1,episodeIdx=0;
 let planN=-1,stopN=-1;
 let amgA=-1,amgB=-1,vtaA=-1,vtaB=-1;
@@ -364,7 +365,7 @@ function buildModules(){
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
   dormantIds=[];
-  const GX=47,GY=20;
+  const GX=47,GY=40;
   for(let c=0;c<NCOLS;c++){
     const gx=c%GX, gy=(c/GX)|0;
     const u=(gx+.5)/GX+(h32('jx'+c)-.5)*.7/GX;
@@ -374,7 +375,7 @@ function buildModules(){
     for(let k=0;k<NPER;k++){
       let dx=RNG()*2-1,dy=RNG()*2-1,dz=RNG()*2-1;
       const L=Math.hypot(dx,dy,dz)||1,r=Math.cbrt(RNG())*.13+.03;
-      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.0085,.78));
+      ids.push(addN(bx+dx/L*r,by+dy/L*r*.8,bz+dz/L*r,'#b8b4a8',.008,.78));
     }
     for(let k=0;k<ids.length;k++){
       if(k+1<ids.length)pushE(ids[k],ids[k+1],.9,0);
@@ -396,7 +397,7 @@ function buildChunks(){
   chunkIds=[];chunkFree=[];
   for(let i=0;i<NCHUNK;i++){
     const [x,y,z]=striatumPos(i,i/(NCHUNK-1));
-    chunkIds.push(addN(x,y,z,'#f0a63c',.022,.68));
+    chunkIds.push(addN(x,y,z,'#f0a63c',.02,.68));
     chunkFree.push(i);
   }
 }
@@ -1021,7 +1022,7 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   return r;
 }
 
-/* ================= 8.5 · IA groq — professora ================= */
+/* ================= 8.5 · IA groq — corrige TODO turno ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL='openai/gpt-oss-120b';
@@ -1448,48 +1449,44 @@ async function respond(qa){
       pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
+    /* IA corrige TODO turno — sempre */
     if(aiOn){
-      const strong=r.flu>=0.9&&r.tokens.length>=2&&!r.babble;
-      if(strong){
-        log('AI',`voz própria forte (flu ${r.flu.toFixed(2)}) — IA poupa a vez`);
-      }else{
-        log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
-        pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
-        $('confTag').textContent='mente IA · corrigindo…';
-        let fixed='';
-        try{fixed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
-        catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — modo local');}
-        if(fixed){
-          const knownKeys=new Set(words.filter(w=>!w.dead&&!w.io&&w.count>0).map(w=>w.key));
-          const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
-          const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
-          const novelN=rawToks.length-knownToks.length;
-          const useToks=knownToks.length?knownToks:rawToks.slice(0,6);
-          if(useToks.length){
-            aiUsed=true;
-            newWordsMsg=0;
-            learnMessage(useToks,1.6);
-            learnDialogue(prevTurn,useToks);
-            if(lastUserAct)useToks.forEach(wi=>ACTW[lastUserAct].add(wi));
-            if(r.syn&&r.tokens.length===useToks.length&&
-               r.tokens.every((wi,i)=>useToks[i]===wi)){
-              r.frame.hit+=1;
-            }
-            if(dirtyC)compile();
-            stim(vtaA,1.1);bumpArousal(.12);
-            fireSweep();
-            log('AI',`corrigido: "${draftText||'—'}" ⇢ "<b>${fixed}</b>"`+
-              (knownToks.length
-                ?(novelN?` · ${novelN} nova(s) pro aprendizado`:' · só vocabulário do cérebro')
-                :' · vocabulário insuficiente — resposta vira ensino'));
-            const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
-            if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
-            const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
-            if(unlab.length)queueLabel(unlab.slice(0,6));
-            r={tokens:useToks,path:useToks.slice(),conf:.95,babble:false,jumps:0,
-               contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
-               flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
+      log('AI',`mente IA revisando (rascunho: "${draftText||'—'}" · flu ${r.flu.toFixed(2)})`);
+      pulseAt(2.55,1.15,-.55,PX[thalN],PY[thalN],PZ[thalN],.8,'#c8b6e8');
+      $('confTag').textContent='mente IA · corrigindo…';
+      let fixed='';
+      try{fixed=await groqRepair(lastUserText,draftText,qtype,lastUserAct);}
+      catch(err){log('AI','IA indisponível ('+(err.message||'falha')+') — modo local');}
+      if(fixed){
+        const knownKeys=new Set(words.filter(w=>!w.dead&&!w.io&&w.count>0).map(w=>w.key));
+        const rawToks=tokenize(fixed).filter(wi=>words[wi]&&!words[wi].dead&&wi>1);
+        const knownToks=rawToks.filter(wi=>knownKeys.has(words[wi].key));
+        const novelN=rawToks.length-knownToks.length;
+        const useToks=knownToks.length?knownToks:rawToks.slice(0,6);
+        if(useToks.length){
+          aiUsed=true;
+          newWordsMsg=0;
+          learnMessage(useToks,1.6);
+          learnDialogue(prevTurn,useToks);
+          if(lastUserAct)useToks.forEach(wi=>ACTW[lastUserAct].add(wi));
+          if(r.syn&&r.tokens.length===useToks.length&&
+             r.tokens.every((wi,i)=>useToks[i]===wi)){
+            r.frame.hit+=1;
           }
+          if(dirtyC)compile();
+          stim(vtaA,1.1);bumpArousal(.12);
+          fireSweep();
+          log('AI',`corrigido: "${draftText||'—'}" ⇢ "<b>${fixed}</b>"`+
+            (knownToks.length
+              ?(novelN?` · ${novelN} nova(s) pro aprendizado`:' · só vocabulário do cérebro')
+              :' · vocabulário insuficiente — resposta vira ensino'));
+          const gq=rawToks.filter(wi=>!knownKeys.has(words[wi].key));
+          if(gq.length)queueGround([...new Set(gq)].slice(0,4),fixed);
+          const unlab=useToks.filter(wi=>words[wi].syn==='-'||words[wi].synConf<.5);
+          if(unlab.length)queueLabel(unlab.slice(0,6));
+          r={tokens:useToks,path:useToks.slice(),conf:.95,babble:false,jumps:0,
+             contrib:useToks.slice(0,4).map(wi=>[wi,0,'assoc']),epi:[],
+             flu:scoreFluency(useToks),mode:'IA',candN:r.candN,candI:r.candI};
         }
       }
     }
@@ -1516,7 +1513,7 @@ async function respond(qa){
     history.push({u:lastUserText,b:r.tokens.map(i=>words[i].label).join(' ')});
     if(history.length>4)history.shift();
     log('REV',`revisor: ${r.candN} rascunho(s) · fluência ${r.flu.toFixed(2)} · `+
-      (r.mode==='IA'?'fala final pela IA (professora)':
+      (r.mode==='IA'?'fala final pela IA (corrigida)':
        r.mode==='lembrança'?`lembrança literal (linha ${r.slot+1})`:
        (r.syn?'venceu o MOLDE sintático':'venceu o rascunho local #'+r.candI)));
     $('confTag').textContent=`${r.mode}${r.syn?' · molde':''} · flu ${r.flu.toFixed(2)} · ${moodName()}`+
@@ -2144,7 +2141,7 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:13,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:14,model:'atlas',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
@@ -2271,7 +2268,7 @@ let wipeArm=0;
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
-  log('AI','mente IA '+(aiOn?'ligada — professora na falha da voz própria':'desligada — cérebro 100% cru'));
+  log('AI','mente IA '+(aiOn?'ligada — corrige TODO turno':'desligada — cérebro 100% cru'));
 });
 
 /* ================= 15 · loop + boot ================= */
@@ -2336,7 +2333,8 @@ buildModLabels();
 wipeNet();
 resize();
 updateStats();
-log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 1467 gânglios + 23500 córtex dormente (940 colunas × 25)`);
+log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 2967 gânglios + 47000 córtex dormente (1880 colunas × 25)`);
+log('SYS','mente IA: corrige TODO turno · valida, rotula, ancora · absorve como memória');
 log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · ${GROQ_MODEL}`);
 setTimeout(fireSweep,700);
 animate();
