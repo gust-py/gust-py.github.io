@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ATLAS — 25000 neurônios</title>
+<title>TABULA·07 — 25000 neurônios · sintaxe + pergunta + morfologia + semântica + tópico + emoção</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -103,6 +103,11 @@ section h3::after{content:'';flex:1;height:1px;background:var(--line)}
 .lk-FRO{color:var(--fro)} .lk-REV{color:var(--rev)} .lk-AI{color:var(--ai)}
 .lk-GND{color:var(--ai)} .lk-FGT{color:#ff9a8b} .lk-SYN{color:#d8a8ff} .lk-MOR{color:#7fe0c8}
 #log .ln{margin-bottom:2px}
+.inst{font-size:10px;line-height:1.7;color:var(--dim)}
+.inst b{color:var(--tx);font-weight:500}
+.inst .step{display:flex;gap:8px;margin-bottom:8px}
+.inst .n{flex:0 0 16px;height:16px;border:1px solid var(--line2);border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:9px;color:var(--acc);margin-top:1px}
 footer{display:flex;align-items:center;justify-content:space-between;padding:0 14px;
   border-top:1px solid var(--line);background:var(--panel);font-size:9px;color:var(--dim2);letter-spacing:.05em}
 footer b{color:var(--dim);font-weight:400}
@@ -113,7 +118,7 @@ footer b{color:var(--dim);font-weight:400}
 <body>
 
 <header>
-  <div class="brand"><span class="dot" id="bDot"></span>ATLAS<em>25000 neurônios · memória 100% sináptica</em></div>
+  <div class="brand"><span class="dot" id="bDot"></span>TABULA·07<em>25000 neurônios · sintaxe + pergunta + morfologia + semântica + tópico + emoção</em></div>
   <div class="stats">
     <span>NEURÔNIOS<b id="stN">—</b></span>
     <span>SINAPSES<b id="stS">0</b></span>
@@ -131,7 +136,7 @@ footer b{color:var(--dim);font-weight:400}
     <div id="chatHead"><b>conversa</b><span id="confTag">—</span></div>
     <div id="msgs"></div>
     <div id="inrow">
-      <input id="inp" placeholder="digite…" autocomplete="off">
+      <input id="inp" placeholder="ensine a primeira palavra…" autocomplete="off">
       <button id="send">ENVIAR</button>
     </div>
   </aside>
@@ -148,15 +153,27 @@ footer b{color:var(--dim);font-weight:400}
     </div>
     <div id="legend">
       <div class="li"><i style="--c:#b8b4a8"></i>córtex dormente — 23500 neurônios (940 colunas × 25) + 1467 gânglios + 33 módulos = 25000 fixos</div>
-      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância por morfologia</div>
+      <div class="li"><i style="--c:#d8a8ff"></i>córtex sintático — papéis quem·ação·o quê·como + concordância (quero/quer) por morfologia</div>
       <div class="li"><i style="--c:#8fd0ff"></i>conceitos + fios: sentido (azul) · contradição ≠ (laranja) · alternativa ou (verde)</div>
-      <div class="li"><i style="--c:#7fe0c8"></i>famílias morfológicas ≈ — concordância verbal (quero/quer)</div>
-      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 1467 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano · parada · revisor</div>
-      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#7fe0c8"></i>checagem semântica — ação só aceita objeto da categoria certa (comer ⇢ comida)</div>
+      <div class="li"><i style="--c:#8fd0ff"></i>mente IA — professor: só entra quando a voz própria falha; valida, rotula, corrige</div>
+      <div class="li"><i style="--c:#f0a63c"></i>gânglios — espiral de 1467 hábitos · <i style="--c:#b9c4e8;margin-left:4px"></i>frontal — plano (cadeia/sintaxe) · parada · revisor</div>
+      <div class="li"><i class="th" style="--c:#a5d64a"></i>hipocampo — 24 episódios · <i style="--c:#ef6a8b;margin-left:4px"></i>amígdala — emoção colore a fala · <i style="--c:#46c8bc;margin-left:4px"></i>tálamo · <i style="--c:#ff5d4d;margin-left:4px"></i>VTA</div>
+      <div class="li"><i style="--c:#5d5a52"></i>esquecimento suave — rotas fracas decaem; sono consolida; tópico vivo por ~5 trocas</div>
     </div>
   </div>
 
   <aside id="pan">
+    <section>
+      <h3>Como usar · o protocolo</h3>
+      <div class="inst">
+        <div class="step"><span class="n">1</span><span><b>25000 neurônios fixos</b> · <b>20000 palavras</b> · 1467 hábitos · 24 fios de linha. Nasce vazio; a mente IA fala até o treino pegar.</span></div>
+        <div class="step"><span class="n">2</span><span><b>PERGUNTAS</b>: quem? o quê? como? sim ou não? — o tipo é detectado e a resposta preenche o papel certo. <b>MORFOLOGIA</b>: a IA liga quero/quer e gato/gatos como a mesma palavra — ele responde "eu quero" e "você quer" com a forma certa.</span></div>
+        <div class="step"><span class="n">3</span><span><b>SEMÂNTICA NOS SLOTS</b>: comer só aceita objeto comestível; a categoria vem dos fios de sentido. <b>TÓPICO</b>: as últimas ~5 trocas ficam vivas — ele não perde o fio. <b>EMOÇÃO</b>: arousal alto puxa palavras de valência forte.</span></div>
+        <div class="step"><span class="n">4</span><span><b>VOZ PRÓPRIA</b>: rascunho local com fluência ≥ 0.9 é falado sem IA — ela vira professora que só aparece na falha. <b>ATOS DE FALA</b>: saudação, despedida e agradecimento têm repertório próprio. <b>ESQUECIMENTO</b>: rotas fracas apodrecem devagar; treino forte fica.</span></div>
+      </div>
+    </section>
+
     <section>
       <h3>Controles</h3>
       <div class="srow"><span>temperatura</span><input type="range" id="rngTemp" min="0.4" max="1.8" step="0.05" value="0.9"><b id="vTemp">0.90</b></div>
@@ -198,12 +215,11 @@ footer b{color:var(--dim);font-weight:400}
       <div id="log"></div>
     </section>
   </aside>
-
 </div>
 
 <footer>
-  <span><b>arraste</b> orbitar · <b>scroll</b> zoom</span>
-  <span>25000 neurônios · 20000 palavras · 1467 hábitos · memória 100% sináptica</span>
+  <span><b>arraste</b> orbitar · pergunta → resposta no papel certo · concordância por família · voz própria fala sozinha quando boa</span>
+  <span>25000 neurônios · 20000 palavras · 1467 hábitos · semântica nos slots · tópico de 5 trocas · emoção colore</span>
 </footer>
 
 <script type="importmap">
@@ -233,7 +249,8 @@ function errMsg(t){
 window.addEventListener('error',ev=>{errMsg(ev.message||'desconhecido');console.error(ev.error||ev.message);});
 window.addEventListener('unhandledrejection',ev=>{errMsg((ev.reason&&(ev.reason.message||ev.reason))||'promise rejeitada');console.error(ev.reason);});
 
-/* ================= 1 · motor LIF — hardware FIXO de 25000 neurônios ================= */
+/* ================= 1 · motor LIF — hardware FIXO de 25000 neurônios =================
+   31 módulos + 2 marcadores + 1467 gânglios + 23500 córtex (940 colunas × 25) = 25000. */
 const CAPW=20000, NCOLS=940, NPER=25, NCHUNK=1467, NEPI=24, CAPN=25000;
 const V=new Float32Array(CAPN), THR=new Float32Array(CAPN), REF=new Float32Array(CAPN),
       ACT=new Float32Array(CAPN),
@@ -363,6 +380,7 @@ function buildModules(){
   amgB=addN(3.55,-1.8,.6,'#ef6a8b',.045,.72);
   vtaA=addN(.75,-2.65,-.8,'#ff5d4d',.048,.72);
   vtaB=addN(1.12,-2.8,-.45,'#ff5d4d',.042,.72);
+  /* córtex dormente: 940 colunas × 25 = 23500 numa grade 47×20 */
   dormantIds=[];
   const GX=47,GY=20;
   for(let c=0;c<NCOLS;c++){
@@ -485,8 +503,9 @@ function learnFrame(wids){
   frames.push({sig,slots:slots.slice(),use:1,hit:0});
   log('SYN',`molde novo: <b>${sig}</b> (frames: ${frames.length})`);
 }
-const morphOf=new Map();
-const morphForms=new Map();
+/* concordância morfológica: quero/quer/gatos… ligados por família */
+const morphOf=new Map();   /* widx → {root, tag} */
+const morphForms=new Map();/* rootwidx → [{wid,tag}] */
 const MTAGS=new Set(['eu','voce','ele','plural','singular']);
 function addMorph(wi,rootWi,tag){
   if(!words[wi]||!words[rootWi]||!MTAGS.has(tag))return;
@@ -505,6 +524,7 @@ function subjTagFor(subjWid){
   const mo=morphOf.get(subjWid);
   return mo?mo.tag:null;
 }
+/* afinidade semântica ação↔objeto, via associações (categorias vêm dos fios de sentido) */
 function semAffinity(a,b){
   if(a==null||b==null||!words[a]||!words[b])return .75;
   const ma=assocAdj[a];
@@ -527,13 +547,16 @@ function framePool(role,ctxArr,inputSet,used,opts={}){
     let p=1;
     const m=assocAdj[w.idx];
     if(m)for(const [cw,wt] of ctxArr){const o=m.get(cw);if(o)p+=o.w*wt;}
+    /* afinidade semântica: o quê tem que combinar com a ação */
     if(role==='oque'&&actWid!=null)p*=(0.55+semAffinity(actWid,w.idx));
+    /* concordância: verbo casa com o sujeito pela família */
     if(role==='acao'&&sTag){
       const mo=morphOf.get(w.idx);
       if(mo){
         if(mo.tag===sTag)p*=6;
         else p*=.15;
       }else{
+        /* verbo sem forma marcada: neutro */
         const fam=morphForms.get(w.idx);
         if(fam&&fam.some(x=>x.tag===sTag)){
           const me=fam.find(x=>x.tag===sTag);
@@ -541,12 +564,16 @@ function framePool(role,ctxArr,inputSet,used,opts={}){
         }
       }
     }
+    /* plural do objeto se o sujeito é plural */
     if(role==='oque'&&sTag==='plural'){
       const mo=morphOf.get(w.idx);
       if(mo){if(mo.tag==='plural')p*=4;else if(mo.tag==='singular')p*=.8;}
     }
+    /* pergunta: o papel perguntado é muito desejado */
     if(qtypeRole&&role===qtypeRole)p*=2.8;
+    /* emoção colore: valência forte com arousal alto */
     if(arousal>.45)p*=valenceBoost(w.idx);
+    /* atos de fala: repertório do ato atual */
     if(actSet&&actSet.has(w.idx))p*=3.2;
     pool.push([w.idx,p]);
   }
@@ -592,7 +619,7 @@ function generateByFrame(inputWids,T,qa,plan,qtype,act){
          flu:0,syn:true,frame,roles,cand:1};
 }
 const HINT_SYN=[
-  [/^(eu|voce|ele|ela|nos|eles|gato|cachorro|comida|pessoa|bicho)$/,'quem'],
+  [/^(eu|voce|ele|ela|nos|eles|gato|cachorro|comida|tabula|pessoa|bicho)$/,'quem'],
   [/^(quero|gosto|tenho|vou|falo|como|ando|vejo|amo|odeio|preciso|queres?|gosta|e|sou|vai|da|deixa|sabe|pode|faz|queria)$/,'acao'],
   [/^(gato|cachorro|comida|pizza|agua|coisa|brinquedo|casa|nome|isso|aquilo)$/,'oque'],
   [/^(bem|mal|muito|pouco|bom|ruim|otimo|pessimo|sim|nao|talvez|hoje|agora|depois|sempre|nunca)$/,'como'],
@@ -656,6 +683,7 @@ function learnMessage(wids,eta){
   }
   for(let i=0;i<wids.length;i++)
     for(let j=i+1;j<Math.min(wids.length,i+5);j++)addAssoc(wids[i],wids[j],.3);
+  /* morfologia reforça o laço com a raiz a cada uso */
   for(const wi of wids){
     const mo=morphOf.get(wi);
     if(mo&&words[mo.root]&&!words[mo.root].dead)addAssoc(wi,mo.root,.3);
@@ -723,6 +751,7 @@ function forgetWord(wi,reason){
   log('FGT',`esquecida: "<b>${lbl}</b>" — ${reason}`);
   pulseAt(w.base[0],w.base[1],w.base[2],PX[amgA],PY[amgA],PZ[amgA],.7,'#ff9a8b');
 }
+/* esquecimento suave: a cada 3 turnos, rotas fracas apodrecem; fortes ficam */
 let turnCount=0;
 function decayNet(){
   let decayed=0;
@@ -738,6 +767,7 @@ function decayNet(){
     if(mr)for(const o of mr.values())if(o.w<.6)o.w*=.995;
   }
   if(decayed>0){
+    /* hábitos cuja rota apodreceu são liberados */
     for(const [key,ch] of [...chunkMap]){
       const a=Math.floor(key/CAPW),b=key%CAPW;
       const m=transAdj[a];const o=m&&m.get(b);
@@ -747,6 +777,7 @@ function decayNet(){
     log('SYS',`esquecimento suave: ${decayed} rota(s) fraca(s) apodreceram desde a última checagem`);
   }
 }
+/* memória de tópico: ~5 trocas vivas com decaimento */
 let topicCtx=new Map();
 function pushTopic(wids,amt){
   for(const wi of wids)topicCtx.set(wi,(topicCtx.get(wi)||0)+amt);
@@ -758,6 +789,7 @@ function pushTopic(wids,amt){
 function ageTopic(){
   for(const [k,v] of [...topicCtx]){const nv=v*.62;nv<.12?topicCtx.delete(k):topicCtx.set(k,nv);}
 }
+/* atos de fala: repertórios por ato */
 const ACTW={greet:new Set(),bye:new Set(),thanks:new Set()};
 const ACTRE={
   greet:/^(oi|ola|eae|e ai|fala|bom dia|boa tarde|boa noite|salve|opa|tudo bem)/,
@@ -785,6 +817,7 @@ function bumpArousal(v){
   }
 }
 function moodName(){return arousal>.7?'tenso':arousal>.5?'animado':arousal>.3?'alerta':'calmo';}
+/* polaridade: polos positivo/negativo na teia */
 let polarWids=new Set();
 function refreshPolar(){
   polarWids.clear();
@@ -1021,7 +1054,7 @@ function reviseAndSpeak(inputWids,T,qa,plan,qtype,act){
   return r;
 }
 
-/* ================= 8.5 · IA groq — professora ================= */
+/* ================= 8.5 · IA groq — professora + mente de reserva ================= */
 const GROQ_KEY='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';
 const GROQ_URL='https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL='openai/gpt-oss-120b';
@@ -1063,7 +1096,7 @@ async function groqChat(sys,usr,maxTokens=80,temp=.5){
   return (j.choices&&j.choices[0]&&j.choices[0].message?j.choices[0].message.content:'')||'';
 }
 async function groqRepair(userText,draftText,qtype,act){
-  const hist=history.slice(-2).map(h=>`- usuário: "${h.u}" | atlas: "${h.b}"`).join('\n');
+  const hist=history.slice(-2).map(h=>`- usuário: "${h.u}" | tabula: "${h.b}"`).join('\n');
   const rels=knownRels();
   const qline=qtype?`tipo de pergunta detectado: ${qtype} — a resposta DEVE preencher esse papel`+
     (qtype==='quem'?' (começar ou conter um sujeito: eu/você/nome)':
@@ -1072,7 +1105,7 @@ async function groqRepair(userText,draftText,qtype,act){
      ' (conter um modificador: sim, não, bem, mal…)')+'\n':'';
   const aline=act?`ato de fala detectado: ${ACTNAME[act]} — responda no tom desse ato\n`:'';
   const sys=[
-    'Você é a MENTE FALANTE do ATLAS: um cérebro artificial minúsculo que SÓ consegue falar com as palavras que já tem.',
+    'Você é a MENTE FALANTE da TABULA: um cérebro artificial minúsculo que SÓ consegue falar com as palavras que já tem.',
     'Sua única função: ler a mensagem do usuário e devolver UMA resposta curta, com sentido completo, feita APENAS com o vocabulário disponível.',
     '',
     'PRINCÍPIOS OBRIGATÓRIOS (sem exceção):',
@@ -1101,7 +1134,7 @@ async function groqRepair(userText,draftText,qtype,act){
 async function groqLabel(labels){
   const sys='Você rotula palavras do português do Brasil com UM papel sintático cada, para um cérebro artificial. '+
     'Papéis possíveis:\n'+
-    'quem = sujeito/pronome/ser (eu, você, ele, gato, comida, gente)\n'+
+    'quem = sujeito/pronome/ser (eu, você, ele, gato, comida, tabula, gente)\n'+
     'acao = verbo ou ação (quero, gosto, come, vou, é, sou, tem, ama)\n'+
     'oque = objeto/coisa concreta (gato, pizza, bola, casa, nome)\n'+
     'como = modificador/advérbio/resposta curta (bem, mal, muito, bom, ruim, sim, não, hoje)\n'+
@@ -1154,7 +1187,7 @@ async function pumpLabel(){
   labelBusy=false;
 }
 
-/* ---------- validação de palavras ---------- */
+/* ---------- validação de palavras (sentido + ≠ + ou + forma) ---------- */
 const groundQ=[]; let groundBusy=false;
 function queueGround(wis,ctx){
   if(!aiOn||!wis||!wis.length)return;
@@ -1371,6 +1404,7 @@ function userSend(){
   d.innerHTML=`<span class="who">você${hadQ?' · pergunta':''}${act?` · ${ACTNAME[act]}`:''}</span><span class="tx"></span>`;
   d.querySelector('.tx').textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   fireSweep();
+  /* tópico envelhece; novo input entra */
   ageTopic();
   newWordsMsg=0;newWordList.length=0;
   const wids=tokenize(text).filter(wi=>words[wi]&&!words[wi].dead);
@@ -1448,6 +1482,7 @@ async function respond(qa){
       pulseAt(PX[planN],PY[planN],PZ[planN],words[r.tokens[0]].base[0],words[r.tokens[0]].base[1],words[r.tokens[0]].base[2],.6,'#d8a8ff');
     }
     let aiUsed=false;
+    /* VOZ PRÓPRIA: resposta local forte é falada sem IA */
     if(aiOn){
       const strong=r.flu>=0.9&&r.tokens.length>=2&&!r.babble;
       if(strong){
@@ -1543,7 +1578,7 @@ async function respond(qa){
 function typeOut(r){
   const d=document.createElement('div');
   d.className='msg brain'+((r.mode==='gerado'&&r.flu<.3)?' weak':'');
-  d.innerHTML=`<span class="who">atlas${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}${arousal>.6?` · ${moodName()}`:''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
+  d.innerHTML=`<span class="who">tabula${r.mode==='lembrança'?' · lembrança':r.mode==='IA'?' · ia':r.syn?' · sintaxe':''}${arousal>.6?` · ${moodName()}`:''}</span><span class="tx"></span><span class="caret"></span><span class="meta"></span>`;
   msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
   const ref={el:d.querySelector('.tx'),meta:d.querySelector('.meta'),root:d};
   let i=0,stopped=false;
@@ -2056,7 +2091,7 @@ const SPEEDS=[1,2,4,8];let speedI=0,SIMSPEED=1;
 let SLEEP=false,sleepTimer=null;
 function startSleep(){
   if(SLEEP)return;SLEEP=true;$('btnSleep').classList.add('on');
-  log('SLP','sono iniciado — replay dos fios + consolidação de moldes');
+  log('SLP','sono iniciado — replay dos fios + consolidação de moldes + reversão do esquecimento');
   const slots=epiData.map((e,i)=>i).filter(i=>epiData[i].epi.length);
   let k=0;
   const step=()=>{
@@ -2144,7 +2179,7 @@ function exportBrain(){
     const mx=xorAdj[a];if(mx)for(const b of mx.keys())if(a<b)xors.push([a,b]);
   }
   for(const [wi,mo] of morphOf)morph.push([wi,mo.root,mo.tag]);
-  const data={v:13,model:'atlas',capn:CAPN,nchunk:NCHUNK,
+  const data={v:12,model:'tabula-07',capn:CAPN,nchunk:NCHUNK,
     words:words.filter(w=>!w.dead).map(w=>({l:w.label,c:w.count,io:w.io?(w.idx===0?'start':'end'):0,
       s:w.syn&&w.syn!=='-'?w.syn:undefined})),
     trans:[],rev:[],assoc:[],ants,xors,morph,
@@ -2160,8 +2195,8 @@ function exportBrain(){
   }
   const blob=new Blob([JSON.stringify(data)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='atlas-cerebro.json';a.click();URL.revokeObjectURL(a.href);
-  log('SYS','cérebro exportado');
+  a.download='tabula07-cerebro.json';a.click();URL.revokeObjectURL(a.href);
+  log('SYS','cérebro exportado (papéis, moldes, famílias, atos, lógica)');
 }
  $('btnExport').addEventListener('click',exportBrain);
 function wipeNet(){
@@ -2225,7 +2260,7 @@ function importBrain(d){
     compile();dirtyC=false;
     rebuildGroundLines();
     syncNeuronAttrs();rebuildVisFromNet();updateStats();
-    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s)`);
+    log('SYS',`cérebro importado: ${words.length-2} palavras · ${routes} rotas · ${frames.length} molde(s) · ${morphForms.size} família(s)`);
   }catch(e){log('SYS','falha ao importar: '+e.message);}
 }
  $('btnImport').addEventListener('click',()=>$('fileIn').click());
@@ -2250,7 +2285,7 @@ let wipeArm=0;
   if(Date.now()-wipeArm<2600){
     wipeNet();
     b.classList.remove('armed');
-    log('SYS','memória apagada — cérebro volta ao vazio');
+    log('SYS','memória apagada — cérebro volta ao vazio (25000 neurônios, zero palavras)');
   }else{
     wipeArm=Date.now();b.classList.add('armed');
     setTimeout(()=>b.classList.remove('armed'),2600);
@@ -2267,7 +2302,7 @@ let wipeArm=0;
 });
  $('btnRev').addEventListener('click',function(){
   revOn=!revOn;this.classList.toggle('on',revOn);
-  log('SYS','revisor local '+(revOn?'ligado':'desligado'));
+  log('SYS','revisor local (rascunhos) '+(revOn?'ligado':'desligado'));
 });
  $('btnAI').addEventListener('click',function(){
   aiOn=!aiOn;this.classList.toggle('on',aiOn);
@@ -2337,6 +2372,10 @@ wipeNet();
 resize();
 updateStats();
 log('SYS',`boot: ${N} neurônios FIXOS — 33 módulos + 1467 gânglios + 23500 córtex dormente (940 colunas × 25)`);
+log('SYS','capacidade: 20000 palavras · 1467 hábitos · 24 fios de linha · zero palavras no boot');
+log('SYS','perguntas (quem/o quê/como/sim-não) → resposta no papel certo · concordância por famílias morfológicas');
+log('SYS','checagem semântica nos slots · tópico vivo por ~5 trocas · emoção colore a fala · esquecimento suave');
+log('SYS','voz própria: fluência ≥ 0.9 é falada sem IA · IA vira professora só na falha');
 log('SYS',`revisor local ${revOn?'on':'off'} · IA ${aiOn?'on':'off'} · ${GROQ_MODEL}`);
 setTimeout(fireSweep,700);
 animate();
