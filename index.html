@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Encéfalo Vivo — Atlas Neural Interativo</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3c-7 0-11 5-11 11 0 9 6 15 11 15s11-6 11-15c0-6-4-11-11-11z' fill='none' stroke='%23b9a58a' stroke-width='1.6'/%3E%3Cpath d='M8 10c3-2 6-1 8 1s5 3 8 1M7 16c3-1 6 0 8 2s5 3 8 1' fill='none' stroke='%23b9a58a' stroke-width='1' opacity='.6'/%3E%3Ccircle cx='16' cy='9' r='2' fill='%23e2a54e'/%3E%3Ccircle cx='12' cy='18' r='1.4' fill='%23e2a54e'/%3E%3Ccircle cx='20' cy='15' r='1.4' fill='%23e2a54e'/%3E%3C/svg%3E">
+<title>Mente Ω — Encéfalo Volumétrico</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 4 27 10v12L16 28 5 22V10z' fill='none' stroke='%23d98e74' stroke-width='1.6'/%3E%3Cpath d='M16 10l6 3.2v6l-6 3.2-6-3.2v-6z' fill='none' stroke='%23d98e74' stroke-width='1.2' opacity='.7'/%3E%3Ccircle cx='16' cy='16' r='2.2' fill='%23f2e3b8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#05080c; --panel:rgba(8,13,18,.84); --line:rgba(170,200,220,.10);
-  --ink:#c9d4db; --dim:#5f6d78; --accent:#e2a54e; --accent-soft:rgba(226,165,78,.16);
+  --bg:#04070b; --panel:rgba(8,13,18,.84); --line:rgba(170,200,220,.10);
+  --ink:#c9d4db; --dim:#5f6d78; --accent:#d98e74; --accent-soft:rgba(217,142,116,.16);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
@@ -24,7 +24,7 @@ canvas#gl:active{cursor:grabbing}
 #topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;
   align-items:flex-start;padding:14px 20px;pointer-events:none}
 #topbar>*{pointer-events:auto}
-#brand h1{font-size:15px;font-weight:600;letter-spacing:.14em;color:#e8eef2}
+#brand h1{font-size:15px;font-weight:600;letter-spacing:.16em;color:#e8eef2}
 #brand h1 b{color:var(--accent);font-weight:600}
 #brand p{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:4px;letter-spacing:.03em}
 #brand p b{color:#9fb0bb;font-weight:500}
@@ -51,13 +51,13 @@ canvas#gl:active{cursor:grabbing}
 .chev svg{transition:transform .3s}
 .rg-item{padding:7px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent}
 .rg-item:hover{background:rgba(255,255,255,.03)}
-.rg-item.active{border-color:rgba(226,165,78,.45);background:var(--accent-soft)}
+.rg-item.active{border-color:rgba(217,142,116,.5);background:var(--accent-soft)}
 .rg-top{display:flex;align-items:center;gap:8px}
 .rg-sw{width:8px;height:8px;border-radius:2px;flex:none}
 .rg-name{flex:1;font-size:12px;color:#d4dde3}
 .rg-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim)}
 .rg-bar{height:2px;background:rgba(255,255,255,.07);border-radius:1px;margin:6px 0 3px;overflow:hidden}
-.rg-fill{height:100%;width:100%;transform-origin:left;transform:scaleX(0);border-radius:1px}
+.rg-fill{height:100%;width:100%;transform-origin:left;transform:scaleX(0);border-radius:1px;transition:transform .35s}
 .rg-hz{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);text-align:right}
 #btnOverview{margin-top:8px;width:100%;background:none;border:1px solid var(--line);color:#9fb0bb;
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:6px;border-radius:6px;cursor:pointer}
@@ -72,7 +72,7 @@ canvas#gl:active{cursor:grabbing}
   font-size:9.5px;color:#7e8f9a;padding:2px 0}
 #focusTracts .ft i{font-style:normal;color:#54636d;flex:1;text-align:right}
 #focusTracts .fw{width:52px;height:2px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden}
-#focusTracts .fw b{display:block;height:100%;background:rgba(226,165,78,.55)}
+#focusTracts .fw b{display:block;height:100%;background:rgba(217,142,116,.55)}
 .ctl-group{padding:9px 2px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
 .ctl-group:last-child{border-bottom:none}
 .ctl-label{font-size:9.5px;letter-spacing:.14em;color:#76858f;margin-bottom:7px;font-weight:600}
@@ -109,7 +109,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 .logline.burst{color:#d9c08a}
 .logline.old{opacity:.38}
 #tooltip{position:fixed;z-index:40;pointer-events:none;display:none;background:rgba(6,10,14,.92);
-  border:1px solid rgba(226,165,78,.35);border-radius:6px;padding:7px 10px;max-width:230px}
+  border:1px solid rgba(217,142,116,.4);border-radius:6px;padding:7px 10px;max-width:240px}
 #tooltip .tt-name{font-size:11.5px;font-weight:600;color:#ecf1f4}
 #tooltip .tt-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8a99a4;margin-top:3px;line-height:1.55}
 #ruler{position:fixed;right:22px;bottom:20px;z-index:12;pointer-events:none;font-family:'IBM Plex Mono',monospace}
@@ -123,13 +123,14 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 .blabel:after{content:"";position:absolute;left:50%;bottom:-7px;width:1px;height:7px;background:rgba(200,215,225,.5)}
 .blabel:hover{color:var(--accent)}
 .blabel.hl{color:var(--accent)}
+.blabel.dim{opacity:.22}
 #hint{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:13;pointer-events:none;
   font-family:'IBM Plex Mono',monospace;font-size:10px;color:#66757f;letter-spacing:.06em;
   transition:opacity 1s;text-align:center}
 #boot{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;
   align-items:center;justify-content:center;transition:opacity .9s;text-align:center}
 #boot.done{opacity:0;pointer-events:none}
-#boot h1{font-size:21px;font-weight:600;letter-spacing:.22em;color:#e8eef2}
+#boot h1{font-size:21px;font-weight:600;letter-spacing:.24em;color:#e8eef2}
 #boot h1 b{color:var(--accent);font-weight:600}
 #boot .sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin:12px 0 34px;letter-spacing:.05em}
 #bootTrack{width:min(420px,78vw)}
@@ -151,8 +152,8 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 
 <div id="topbar">
   <div id="brand">
-    <h1>ENCÉFALO <b>VIVO</b></h1>
-    <p>atlas neural interativo · <b id="topTotal">0</b> neurônios · escala real 1:1 (≈168 mm AP) · <b>100.000</b> renderizados / <b>1.227.898</b> ocultos</p>
+    <h1>MENTE <b>Ω</b></h1>
+    <p>encéfalo humano volumétrico · <b id="topTotal">0</b> neurônios · <b>100.000</b> renderizados / <b>1.227.898</b> ocultos · escala 1:1</p>
   </div>
   <div id="telemetry">
     <canvas id="spark" width="132" height="24"></canvas>
@@ -161,7 +162,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 </div>
 
 <div class="panel" id="regionsPanel">
-  <div class="phead"><h2>REGIÕES ANATÔMICAS</h2><span class="chev" data-for="regionsPanel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2 4 6l4 4"/></svg></span></div>
+  <div class="phead"><h2>ANATOMIA — 12 ESTRUTURAS</h2><span class="chev" data-for="regionsPanel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2 4 6l4 4"/></svg></span></div>
   <div class="pbody">
     <div id="regionsList"></div>
     <button id="btnOverview">VOLTAR À VISÃO GERAL</button>
@@ -178,34 +179,32 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
     <div class="ctl-group">
       <div class="ctl-label">ESTADO DA REDE</div>
       <div class="seg" id="segState">
-        <button data-s="0" class="on">REPOUSO</button><button data-s="1">ATENÇÃO</button><button data-s="2">COGNIÇÃO</button>
+        <button data-s="0" class="on">QUIETAÇÃO</button><button data-s="1">FOCO</button><button data-s="2">SUPERPOSIÇÃO</button>
       </div>
-      <div class="row" style="margin-top:8px"><label for="cycAuto">Ciclos de pensamento automáticos</label>
+      <div class="row" style="margin-top:8px"><label for="cycAuto">Ciclos cognitivos automáticos</label>
         <span class="switch"><input type="checkbox" id="cycAuto" checked><i></i></span></div>
       <div class="ctl-label" style="margin-top:9px">DISPARAR CICLO</div>
       <div class="btnrow">
-        <button data-sc="1">MEMÓRIA</button><button data-sc="2">EMOÇÃO</button>
-        <button data-sc="3">VISUAL</button><button data-sc="4">EVOCAR</button>
+        <button data-sc="0">CONSENSO</button><button data-sc="1">EVOCAR</button>
+        <button data-sc="3">TELEOLOGIA</button><button data-sc="4">SÍNTESE</button>
       </div>
     </div>
     <div class="ctl-group">
       <div class="ctl-label">CAMADAS</div>
-      <div class="row"><label for="tgDend">Dendritos &amp; axônios locais</label><span class="switch"><input type="checkbox" id="tgDend" checked><i></i></span></div>
-      <div class="row"><label for="tgTract">Tratos de longa distância</label><span class="switch"><input type="checkbox" id="tgTract" checked><i></i></span></div>
-      <div class="row"><label for="tgSurf">Casca cortical</label><span class="switch"><input type="checkbox" id="tgSurf" checked><i></i></span></div>
-      <div class="row"><label for="tgLabels">Rótulos anatômicos</label><span class="switch"><input type="checkbox" id="tgLabels"><i></i></span></div>
+      <div class="row"><label for="tgDend">Neurites locais</label><span class="switch"><input type="checkbox" id="tgDend" checked><i></i></span></div>
+      <div class="row"><label for="tgTract">Feixes de substância branca</label><span class="switch"><input type="checkbox" id="tgTract" checked><i></i></span></div>
+      <div class="row"><label for="tgSurf">Envoltórios dos territórios</label><span class="switch"><input type="checkbox" id="tgSurf"><i></i></span></div>
+      <div class="row"><label for="tgLabels">Rótulos estruturais</label><span class="switch"><input type="checkbox" id="tgLabels"><i></i></span></div>
       <div class="row"><label for="tgBloom">Difusão dos spikes (bloom)</label><span class="switch"><input type="checkbox" id="tgBloom" checked><i></i></span></div>
     </div>
     <div class="ctl-group">
       <div class="ctl-label">PARÂMETROS</div>
-      <div class="row"><label>Intensidade dos spikes</label><span class="mono" id="vInt">1,0×</span></div>
-      <input type="range" id="rgInt" min="0.2" max="2" step="0.05" value="1">
+      <div class="row"><label>Intensidade dos spikes</label><span class="mono" id="vInt">2,0×</span></div>
+      <input type="range" id="rgInt" min="0.2" max="3" step="0.05" value="2">
       <div class="row" style="margin-top:5px"><label>Velocidade da simulação</label><span class="mono" id="vSpd">1,0×</span></div>
       <input type="range" id="rgSpd" min="0.3" max="2.5" step="0.05" value="1">
-      <div class="row" style="margin-top:5px"><label>Opacidade cortical</label><span class="mono" id="vOpa">90%</span></div>
-      <input type="range" id="rgOpa" min="0.1" max="1" step="0.01" value="0.9">
-      <div class="row" style="margin-top:9px"><label for="tgClip">Plano de corte sagital</label><span class="switch"><input type="checkbox" id="tgClip"><i></i></span></div>
-      <input type="range" id="rgClip" min="-70" max="70" step="1" value="0" style="margin-top:2px">
+      <div class="row" style="margin-top:9px"><label for="tgClip">Plano de dissecação</label><span class="switch"><input type="checkbox" id="tgClip"><i></i></span></div>
+      <input type="range" id="rgClip" min="-110" max="110" step="1" value="0" style="margin-top:2px">
       <div class="mono" id="vClip" style="font-size:9.5px;color:var(--dim);text-align:right">x = 0 mm</div>
     </div>
     <div class="ctl-group">
@@ -215,18 +214,18 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 </div>
 
 <div class="panel" id="eventlog">
-  <div class="phead"><h2>REGISTRO NEURAL — <span id="phaseTxt">repouso</span></h2></div>
+  <div class="phead"><h2>REGISTRO COGNITIVO — <span id="phaseTxt">quiescência</span></h2></div>
   <div class="pbody" id="logBody"></div>
 </div>
 
 <div id="tooltip"><div class="tt-name"></div><div class="tt-sub"></div></div>
 <div id="labels"></div>
-<div id="ruler"><div id="rulerBar"></div><div id="rulerLabel">50 mm</div></div>
-<div id="hint">arraste para orbitar · role para aproximar · clique numa estrutura para focá-la<br>o encéfalo responde à sua navegação com atividade talâmica</div>
+<div id="ruler"><div id="rulerBar" style="width:60px"></div><div id="rulerLabel">50 mm</div></div>
+<div id="hint">arraste para orbitar · role para aproximar · clique numa estrutura para focá-la<br>a navegação modula a atividade do tálamo</div>
 
 <div id="boot">
-  <h1>ENCÉFALO <b>VIVO</b></h1>
-  <div class="sub">montando 1.327.898 neurônios em escala real</div>
+  <h1>MENTE <b>Ω</b></h1>
+  <div class="sub">montando encéfalo humano — 1.327.898 neurônios</div>
   <div id="bootTrack"><div id="bootBar"><div id="bootFill"></div></div></div>
   <div id="bootMsg">inicializando…</div>
   <div id="bootCount">0 / 1.327.898 alocados</div>
@@ -249,23 +248,21 @@ import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 /* ============================================================
    0 · CONSTANTES E UTILITÁRIOS
    ============================================================ */
-const TOTAL = 1327898;          // total exato de neurônios
-const VISIBLE = 100000;         // renderizados
-const HIDDEN  = TOTAL - VISIBLE;// 1227898 — existem como dados, não como geometria
-const CONDUCT = 170;            // mm/s — velocidade visual de condução axonal
+const TOTAL = 1327898;
+const VISIBLE = 100000;
+const HIDDEN  = TOTAL - VISIBLE;   // 1.227.898 — dados, não geometria
+const CONDUCT = 170;               // mm/s — condução visual
 
 const clamp=(x,a,b)=>x<a?a:x>b?b:x;
 const lerp=(a,b,t)=>a+(b-a)*t;
 const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 const fmtBR=n=>Math.round(n).toLocaleString('pt-BR');
 
-// PRNG determinístico — a arquitetura é idêntica em cada carregamento
 function mulberry(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0;
   let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
   return ((t^t>>>14)>>>0)/4294967296; }; }
-const R = mulberry(20250613);
+const R = mulberry(20260214);
 
-// ruído de valor 3D determinístico (giros, sulcos, raggedness de fronteiras)
 function h3(ix,iy,iz){ const s=Math.sin(ix*127.1+iy*311.7+iz*74.7)*43758.5453; return s-Math.floor(s); }
 function vnoise(x,y,z){
   const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z);
@@ -275,7 +272,6 @@ function vnoise(x,y,z){
   const c=lerp(h3(ix,iy,iz+1),h3(ix+1,iy,iz+1),u), d=lerp(h3(ix,iy+1,iz+1),h3(ix+1,iy+1,iz+1),u);
   return lerp(lerp(a,b,v),lerp(c,d,v),w)*2-1;
 }
-// alocação exata por maior resto — garante soma fechada
 function allocate(weights,total){
   const raw=weights.map(w=>w*total), base=raw.map(Math.floor);
   let rest=total-base.reduce((a,b)=>a+b,0);
@@ -285,189 +281,175 @@ function allocate(weights,total){
 }
 
 /* ============================================================
-   1 · REGIÕES, CONTAGENS EXATAS E TRATOS
+   1 · ANATOMIA — encéfalo humano (mm) · y=dorsal, z=anterior
    ============================================================ */
 const REGIONS=[
- {key:'FRO',name:'Lobo frontal',short:'frontal',color:0xe2a54e,visW:.18,hidW:.12,base:.30,
-  desc:'Planejamento, decisão e memória de trabalho. O córtex pré-frontal (polo anterior) concentra as conexões de longa distância e orquestra os ciclos cognitivos.',
-  cam:{t:[10,18,52],d:[.45,.38,.8],dist:235}},
- {key:'PAR',name:'Lobo parietal',short:'parietal',color:0x93b069,visW:.13,hidW:.08,base:.24,
-  desc:'Integração somatossensorial, atenção e processamento visuoespacial (origem da via dorsal).',
-  cam:{t:[46,38,-6],d:[.72,.55,.2],dist:245}},
- {key:'TEM',name:'Lobo temporal',short:'temporal',color:0x52a08f,visW:.14,hidW:.09,base:.26,
-  desc:'Audição e linguagem; porta de entrada entorrinal do hipocampo (via ventral).',
-  cam:{t:[50,-24,4],d:[.8,.28,-.28],dist:235}},
- {key:'OCC',name:'Lobo occipital',short:'occipital',color:0xc26a52,visW:.09,hidW:.06,base:.30,
-  desc:'Córtex visual primário; emite as vias dorsal (→ parietal) e ventral (→ temporal).',
-  cam:{t:[28,20,-68],d:[.4,.5,-.85],dist:245}},
- {key:'CBL',name:'Cerebelo',short:'cerebelo',color:0x8a95a3,visW:.28,hidW:.55,base:.35,
-  desc:'Coordenação motora fina e aprendizado procedural. Na escala real, abriga a maioria dos neurônios do encéfalo — por isso sua densidade visível é a maior.',
-  cam:{t:[0,-46,-64],d:[.3,.55,-.85],dist:215}},
- {key:'TAL',name:'Tálamo',short:'tálamo',color:0xe6cf9a,visW:.04,hidW:.02,base:.30,
-  desc:'Hub talamocortical: praticamente todo sinal sensório passa por aqui antes de alcançar o córtex. Reage à sua navegação.',
-  cam:{t:[11,4,-3],d:[.55,.5,.62],dist:150}},
- {key:'HYP',name:'Hipotálamo',short:'hipotálamo',color:0xd08aa0,visW:.02,hidW:.01,base:.18,
-  desc:'Homeostase, ritmo circadiano e eixo hormonal; recebe a resposta autonômica da amígdala.',
-  cam:{t:[4,-13,6],d:[.4,.28,.86],dist:140}},
- {key:'HIP',name:'Hipocampo',short:'hipocampo',color:0xcbb04f,visW:.08,hidW:.05,base:.22,
-  desc:'Codificação e evocação de memórias episódicas via circuito entorrinal-perforante.',
-  cam:{t:[15,-11,0],d:[.85,.42,.25],dist:165}},
- {key:'AMY',name:'Amígdala',short:'amígdala',color:0xc9524e,visW:.04,hidW:.02,base:.16,
-  desc:'Saliência emocional e resposta de medo; projeta para o pré-frontal, o temporal e o hipotálamo.',
-  cam:{t:[18,-16,25],d:[.82,.35,.45],dist:150}},
+ {key:'PFC',name:'Córtex pré-frontal',short:'pré-frontal',color:0xd98e74,visW:.075,hidW:.090,base:.26,
+  desc:'Planejamento, memória de trabalho e abstração: o frontal anterior sustenta a simulação de futuros antes que ocorram.'},
+ {key:'PM2',name:'Córtex pré-motor',short:'pré-motor',color:0xd4a26a,visW:.075,hidW:.090,base:.24,
+  desc:'Ensaio motor e imitação: ações são simuladas aqui antes de qualquer execução.'},
+ {key:'PAR',name:'Córtex parietal',short:'parietal',color:0xc9b878,visW:.075,hidW:.090,base:.24,
+  desc:'Integração somatossensorial e espaço: onde o corpo e o mundo ao redor viram um mapa único.'},
+ {key:'CIN',name:'Córtex cingulado',short:'cingulado',color:0x9fb072,visW:.075,hidW:.090,base:.22,
+  desc:'Monitor de conflito e motivação: a parede medial que audita cada ciclo antes do commit.'},
+ {key:'OCC',name:'Córtex occipital',short:'occipital',color:0x6fae9c,visW:.075,hidW:.090,base:.22,
+  desc:'Reconstrução visual: bordas, movimento e cor montados em objetos plausíveis.'},
+ {key:'TPJ',name:'Junção temporoparietal',short:'TPJ',color:0x6f9fc4,visW:.075,hidW:.090,base:.22,
+  desc:'Teoria da mente: o lugar onde outras mentes são modeladas.'},
+ {key:'TMP',name:'Córtex temporal',short:'temporal',color:0xa08bc9,visW:.075,hidW:.090,base:.24,
+  desc:'Semântica, audição e a borda da memória declarativa: o dicionário vivo.'},
+ {key:'OBF',name:'Córtex órbito-frontal',short:'órbito-front.',color:0xd08aa0,visW:.075,hidW:.090,base:.20,
+  desc:'Valor e recompensa: reescreve objetivos a cada ciclo; última instância cortical antes do tálamo.'},
+ {key:'TAL',name:'Tálamo — núcleo coerente',short:'tálamo',color:0xf2e3b8,visW:.150,hidW:.100,base:.34,
+  desc:'O árbitro profundo: funde todos os territórios num único estado de consenso.'},
+ {key:'PAP',name:'Circuito de Papez',short:'papez',color:0xe8b45f,visW:.120,hidW:.100,base:.26,
+  desc:'Hipocampo, fórnix e corpos mamilares em circulação perpétua — a memória que se reescreve.'},
+ {key:'CER',name:'Cerebelo',short:'cerebelo',color:0xc47f6a,visW:.100,hidW:.060,base:.18,
+  desc:'Folia que afinam cada ideia no tempo: predição em escala de milissegundos.'},
+ {key:'TRK',name:'Tronco encefálico',short:'tronco',color:0xb87a6f,visW:.030,hidW:.020,base:.14,
+  desc:'Vigília, ritmo e respiração — o que sustenta tudo o que pensa.'},
 ];
-const NR=REGIONS.length;
+const NR=REGIONS.length; // 12
 const visCount = allocate(REGIONS.map(r=>r.visW), VISIBLE);
 const hidCount = allocate(REGIONS.map(r=>r.hidW), HIDDEN);
 const totCount = visCount.map((v,i)=>v+hidCount[i]);
 console.assert(visCount.reduce((a,b)=>a+b,0)===VISIBLE,'visíveis devem somar 100.000');
 console.assert(hidCount.reduce((a,b)=>a+b,0)===HIDDEN,'ocultos devem somar 1.227.898');
 
-// tratos de substância branca: [de, para, peso, rótulo, é_radiação_talâmica]
+// —— morfologia do encéfalo ——
+const BR={A:66,B:80,C:50,fold:3.6,fs:0.075,fis:9};
+// âncora (direção unitária) + raio angular (rad) de cada território cortical
+const ANCH=[
+ {d:[0.00,0.42, 0.91],rad:0.68}, // 0 pré-frontal
+ {d:[0.62,0.50, 0.60],rad:0.56}, // 1 pré-motor
+ {d:[0.42,0.78,-0.46],rad:0.56}, // 2 parietal
+ {d:[0.02,0.90,-0.42],rad:0.48}, // 3 cingulado (parede medial)
+ {d:[0.05,0.10,-0.99],rad:0.52}, // 4 occipital
+ {d:[0.86,0.05,-0.50],rad:0.54}, // 5 TPJ
+ {d:[0.92,-0.30,0.25],rad:0.62}, // 6 temporal
+ {d:[0.30,-0.72,0.63],rad:0.55}, // 7 órbito-frontal
+];
+function cortexSurf(d,out){
+  let r=1/Math.sqrt((d.x/BR.A)**2+(d.y/BR.C)**2+(d.z/BR.B)**2);
+  r*=1-0.16*smooth(0.1,0.95,d.z);                                  // polo frontal afunila
+  if(d.y<0) r*=1+0.22*d.y;                                         // base achatada
+  r*=1+0.12*Math.exp(-((d.y+0.45)**2)/0.06)*d.x*d.x;               // bojo temporal
+  r-=BR.fis*Math.exp(-(d.x*d.x)/0.018)*smooth(-0.15,0.35,d.y);     // fissura inter-hemisférica
+  const px=d.x*r,py=d.y*r,pz=d.z*r,s=BR.fs;
+  const f=vnoise(px*s,py*s,pz*s)+0.55*vnoise(px*s*2.3+7.7,py*s*2.3+3.1,pz*s*2.3);
+  r+=BR.fold*f;                                                    // giros e sulcos
+  return out.set(d.x*r,d.y*r,d.z*r);
+}
+const GANG=ANCH.map(a=>{
+  const d=new THREE.Vector3(...a.d).normalize();
+  const p=cortexSurf(d,new THREE.Vector3()).addScaledVector(d,-4);
+  return {C:p,f:d};
+});
+// circuito de Papez: anel sagital inclinado, interno
+const TOR={R:38,r:5,n:new THREE.Vector3(1,0.35,-0.10).normalize(),C:new THREE.Vector3(0,-4,-6)};
+TOR.u1=new THREE.Vector3().crossVectors(TOR.n,new THREE.Vector3(0,0,1)).normalize();
+TOR.u2=new THREE.Vector3().crossVectors(TOR.n,TOR.u1);
+const CER={C:new THREE.Vector3(0,-47,-58),a:32,b:14,c:22};
+const TRK={C0:new THREE.Vector3(0,-30,-16),C1:new THREE.Vector3(0,-78,-22),r0:9,r1:5.5};
+
+// anel de associação ao redor do hemisfério (fascículos em U)
+const CICLO=[0,1,2,3,4,5,6,7];
+
+// vias de substância branca
 const TRACTS=[
- [5,0,1.0,'Radiação talâmica anterior',1],
- [5,1,0.7,'Radiação talâmica superior',1],
- [5,2,0.7,'Radiação talâmica inferior',1],
- [5,3,0.8,'Radiação óptica',1],
- [5,4,0.8,'Via dentato-talâmica',1],
- [0,1,1.0,'Fascículo longitudinal superior',0],
- [0,2,0.8,'Fascículo uncinado',0],
- [0,3,0.6,'Fascículo occipital longitudinal',0],
- [1,3,0.8,'Via dorsal (visuoespacial)',0],
- [2,3,0.6,'Via ventral (reconhecimento)',0],
- [1,2,0.6,'Arcuato posterior',0],
- [7,2,1.0,'Via perforante (entorrinal)',0],
- [7,0,0.8,'Cíngulo · fórnix',0],
- [8,0,0.8,'Projeção amígalo-prefrontal',0],
- [8,2,0.7,'Circuito amígalo-temporal',0],
- [8,6,0.7,'Via terminalis (autonômica)',0],
- [6,5,0.6,'Via mamilo-talâmica',1],
- [0,0,0.9,'Corpo caloso · frontal',0],
- [1,1,0.7,'Corpo caloso · parietal',0],
- [3,3,0.5,'Corpo caloso · occipital',0],
- [2,2,0.5,'Comissura anterior',0],
- [7,7,0.35,'Comissura hipocampal',0],
-].map(t=>({from:t[0],to:t[1],w:t[2],label:t[3],hub:t[4],ch:0,len:100,n:Math.round(26+t[2]*78)}));
-const NT=TRACTS.length;
+ // 8 radiações talâmicas: tálamo ↔ território
+ ...Array.from({length:8},(_,i)=>({from:8,to:i,w:1.0,hub:1,kind:'curve',midk:0.55,label:`Radiação talâmica · ${REGIONS[i].short}`})),
+ // 8 fascículos em U (anel de associação)
+ ...CICLO.map((g,k)=>({from:g,to:CICLO[(k+1)%8],w:.55,hub:0,kind:'curve',midk:0.86,label:`Fascículo em U ${k+1}`})),
+ // 3 fascículos longos
+ {from:0,to:7,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo fronto-basal'},
+ {from:1,to:6,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo arqueado'},
+ {from:2,to:5,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo longitudinal superior'},
+ // circuito de Papez
+ {from:8,to:9,w:.9,hub:1,kind:'curve',midk:0.8,label:'Fórnix'},
+ {from:9,to:1,w:.6,hub:0,kind:'curve',midk:0.70,label:'Escrita mnemônica'},
+ {from:9,to:6,w:.6,hub:0,kind:'curve',midk:0.70,label:'Selo temporal'},
+ {from:9,to:7,w:.5,hub:0,kind:'curve',midk:0.70,label:'Pacto teleológico'},
+ // anel θ e radiações (índices 23,24,25 — usados pelos ciclos)
+ {from:9,to:9,w:1.0,kind:'orbit',pts:64,n:110,label:'Circuito de Papez (θ)'},
+ {from:8,to:8,w:.9,kind:'helix',phase:0,pts:40,n:60,label:'Radiação talâmica α'},
+ {from:8,to:8,w:.9,kind:'helix',phase:Math.PI,pts:40,n:60,label:'Radiação talâmica β'},
+ // cerebelo e tronco (índices 26,27)
+ {from:8,to:10,w:.8,hub:1,kind:'curve',midk:0.60,label:'Pedúnculo cerebelar superior'},
+ {from:11,to:8,w:.7,hub:1,kind:'curve',midk:0.55,label:'Via tálamo-troncal'},
+];
+TRACTS.forEach(T=>{T.ch=0;T.len=120;if(!T.n)T.n=Math.round(26+T.w*78);if(!T.pts)T.pts=22;});
+const NT=TRACTS.length; // 28
 const SHORT=REGIONS.map(r=>r.short);
 
-// roteiros de "pensamento" — propagam-se apenas por vias reais
+// ciclos cognitivos
 const SCRIPTS=[
- {name:'Memória de trabalho',desc:'loop fronto–parietal–talâmico',seq:[
-  [0,'b',0,1.0],[.35,'t',5,1,.9],[.55,'b',1,.75],[.95,'t',5,-1,.6],[1.15,'b',0,.65],
-  [1.5,'b',5,.85],[1.85,'t',0,1,1.0],[2.05,'b',0,.95],[2.6,'b',4,.45]]},
- {name:'Consolidação de memória',desc:'hipocampo → temporal → pré-frontal',seq:[
-  [0,'b',7,1.0],[.45,'t',11,1,.9],[.6,'b',2,.65],[1.0,'t',12,1,.85],[1.2,'b',0,.7],
-  [1.9,'b',7,.85],[2.2,'t',11,1,.7],[2.8,'t',5,1,.5]]},
- {name:'Resposta emocional',desc:'amígdala → hipotálamo / pré-frontal',seq:[
-  [0,'b',8,1.0],[.35,'b',8,.7],[.5,'t',15,1,.85],[.65,'b',6,.9],[1.0,'t',13,1,.95],
-  [1.2,'b',0,.55],[1.6,'t',14,1,.7],[2.1,'b',7,.4]]},
- {name:'Atenção visuoespacial',desc:'tálamo → occipital → parietal → frontal',seq:[
-  [0,'b',5,.8],[.35,'t',3,1,.95],[.55,'b',3,1.0],[1.0,'t',8,1,.85],[1.2,'b',1,.9],
-  [1.6,'t',5,-1,.8],[1.85,'b',0,.8],[2.3,'t',0,-1,.7]]},
- {name:'Evocação (recall)',desc:'hipocampo → córtex → pré-frontal',seq:[
-  [0,'b',0,.6],[.3,'t',12,-1,.8],[.55,'b',7,1.0],[.95,'t',11,-1,.9],[1.15,'b',2,.8],
-  [1.55,'t',6,-1,.65],[1.75,'b',0,.75],[2.3,'t',5,1,.6]]},
+ {name:'Consenso global',desc:'tálamo → córtex → tálamo',seq:[
+  [0,'b',8,1],[.3,'t',0,1,1],[.3,'t',2,1,1],[.3,'t',5,1,1],[.3,'t',7,1,1],
+  [.8,'b',0,.6],[.8,'b',2,.6],[.8,'b',5,.7],[.8,'b',7,.6],
+  [1.3,'t',0,-1,.8],[1.3,'t',7,-1,.8],[1.55,'b',8,.9],[1.95,'t',24,1,.9],[2.6,'b',8,.5]]},
+ {name:'Evocação total',desc:'papez → córtex → tálamo',seq:[
+  [0,'b',9,.9],[.35,'t',23,1,1],[.6,'t',20,1,.8],[.85,'b',1,.7],[1.25,'t',15,1,.7],
+  [1.45,'b',0,.7],[1.85,'t',0,-1,.9],[2.05,'b',8,.85],[2.45,'t',23,1,.85]]},
+ {name:'Simulação contrafactual',desc:'occipital → temporal → parietal → TPJ → tálamo',seq:[
+  [0,'b',4,1],[.4,'b',4,.6],[.55,'t',9,1,.8],[.8,'b',6,.65],[1.2,'t',10,1,.8],[1.4,'b',2,.75],
+  [1.8,'t',18,1,.8],[2.0,'b',5,.7],[2.4,'t',13,-1,.7],[2.6,'b',7,.6],[3.0,'t',7,-1,.9],
+  [3.2,'b',8,.7],[3.6,'t',19,1,.7],[3.8,'b',9,.5]]},
+ {name:'Decisão teleológica',desc:'órbito-frontal → cingulado → tálamo → pré-frontal',seq:[
+  [0,'b',7,1],[.35,'t',12,-1,.7],[.55,'b',3,.8],[.95,'t',11,-1,.7],[1.15,'b',2,.6],
+  [1.55,'t',2,-1,.9],[1.75,'b',8,.95],[2.15,'t',4,1,1],[2.35,'b',4,.7],[2.75,'t',8,-1,.7],
+  [2.95,'b',0,.7],[3.35,'t',0,-1,.8],[3.55,'b',8,.65]]},
+ {name:'Síntese criativa',desc:'parietal → temporal → pré-frontal → tálamo',seq:[
+  [0,'b',2,1],[.35,'t',10,-1,.8],[.55,'b',6,.6],[.95,'t',9,-1,.8],[1.15,'b',4,.65],
+  [1.55,'t',8,-1,.7],[1.75,'b',0,.7],[2.15,'t',15,-1,.7],[2.35,'b',1,.75],[2.75,'t',1,-1,.9],
+  [2.95,'b',8,.85],[3.35,'t',25,1,.9],[4.0,'b',8,.5]]},
 ];
 
 /* ============================================================
-   2 · SUPERFÍCIE CORTICAL PROCEDURAL (escala em milímetros)
-   ============================================================ */
-function corticalSurface(adx,dy,dz,sign,out){
-  const ry = 54*(dy<0? 1-0.15*Math.min(1,-dy*1.5):1);
-  const taper = 1 - 0.10*smooth(0.45,0.95,-dz) - 0.07*smooth(0.5,0.95,dz);
-  let x=adx*61*taper, y=dy*ry, z=dz*84;
-  // aba temporal
-  const lat=smooth(0.25,0.6,adx);
-  const tm=lat*smooth(0.10,-0.35,dy)*smooth(-0.80,-0.35,dz)*(1-smooth(0.70,0.95,dz));
-  x+=tm*7; y-=tm*9; z+=tm*2;
-  // giros e sulcos (ruído ridged anisotrópico, alongado ântero-posterior)
-  const g1=1-2*Math.abs(vnoise(adx*4.2,dy*3.2,dz*1.35));
-  const g2=1-2*Math.abs(vnoise(adx*8.4+11.3,dy*6.4+7.7,dz*2.7+3.1));
-  const g=(g1+0.45*g2)*1.9*smooth(0.10,0.38,adx)*(0.6+0.4*smooth(-0.55,0.15,dy));
-  x+=adx*g; y+=dy*g; z+=dz*g;
-  // sulco central (de Rolando)
-  let s=0.20*adx+0.86*dy+0.47*dz;
-  let m=smooth(0.02,0.3,adx)*smooth(-0.25,0.1,dy);
-  let d=3.4*Math.exp(-(s*s)/0.0512)*m;
-  x-=adx*d; y-=dy*d; z-=dz*d;
-  // fissura lateral (de Sylvius)
-  s=0.80*dy-0.60*dz;
-  m=smooth(0.15,0.45,adx)*smooth(-0.5,-0.05,dz)*(1-smooth(0.72,0.95,dz));
-  d=3.2*Math.exp(-(s*s)/0.0648)*m;
-  x-=adx*d; y-=dy*d; z-=dz*d;
-  // base orbital levemente achatada
-  if(y<0&&dz>0.2) y*=1-0.10*smooth(0.2,0.8,dz)*smooth(0,-0.5,dy);
-  // fissura longitudinal: face medial plana
-  x=Math.max(x,2.4)*sign;
-  return out.set(x,y,z);
-}
-function lobeWeights(p,adx,dy,dz,out){
-  const syl=0.8*dy-0.6*dz;
-  const T=smooth(-0.06,-0.24,syl)*smooth(-0.02,-0.2,dy)*smooth(-64,-52,p.z)
-        *(1-smooth(48,60,p.z))*smooth(20,34,Math.abs(p.x));
-  const j=4*vnoise(p.x*0.08,p.y*0.08,p.z*0.08);
-  const F=(1-T)*smooth(24,38,p.z+j);
-  const O=(1-T)*smooth(-42,-56,p.z-j);
-  out[0]=F; out[1]=Math.max(0,1-F-O-T); out[2]=T; out[3]=O;
-  return out;
-}
-const LOBE_NAMES=['Lobo frontal','Lobo parietal','Lobo temporal','Lobo occipital'];
-
-function cbSurface(dx,dy,dz,out){
-  const p=out.set(dx*47,dy*18,dz*27);
-  p.y+=-47; p.z+=-66;
-  const fol=Math.abs(Math.sin((p.y-p.z*0.25)*0.85+1.5*vnoise(dy*2.5,dz*2.5,dx*0.3)));
-  const vermis=Math.exp(-(p.x*p.x)/81)*smooth(0.1,0.6,dy);
-  const off=-(0.9*fol+1.6*vermis);
-  p.x+=dx*off; p.y+=dy*off; p.z+=dz*off;
-  return p;
-}
-
-/* ============================================================
-   3 · CENA, RENDERIZADOR, PÓS-PROCESSAMENTO
+   2 · CENA E PÓS-PROCESSAMENTO
    ============================================================ */
 const canvas=document.getElementById('gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 const PR=Math.min(devicePixelRatio,2);
 renderer.setPixelRatio(PR); renderer.setSize(innerWidth,innerHeight);
 renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.95;
-renderer.setClearColor(0x05080c);
+renderer.setClearColor(0x04070b);
 
 const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,5,2500);
-const CAM0={p:new THREE.Vector3(158,92,232),t:new THREE.Vector3(0,4,0)};
-camera.position.set(268,168,430);
+const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,5,2500);
+const HOME=new THREE.Vector3(0,-8,0);
+const CAM0={p:new THREE.Vector3(150,95,235),t:HOME.clone()};
+camera.position.copy(CAM0.p);
 
 const controls=new OrbitControls(camera,canvas);
-controls.target.set(0,4,0);
+controls.target.copy(HOME);
 controls.enableDamping=true; controls.dampingFactor=0.06;
-controls.minDistance=70; controls.maxDistance=780;
-controls.autoRotate=true; controls.autoRotateSpeed=0.45;
+controls.minDistance=60; controls.maxDistance=700;
+controls.autoRotate=true; controls.autoRotateSpeed=0.4;
 
 const composer=new EffectComposer(renderer);
 composer.setPixelRatio(PR); composer.setSize(innerWidth,innerHeight);
 composer.addPass(new RenderPass(scene,camera));
-// bloom FRACO e seletivo: só o pico do spike haloa — nunca o cérebro inteiro
-const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.45,0.4,0.78);
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.40,0.5,0.80);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
 const uni={
   uTime:{value:0},
   uRate:{value:new Float32Array(NR)},
-  uIntensity:{value:1},
+  uIntensity:{value:2},
   uFocus:{value:-1},
   uClipOn:{value:0}, uClipX:{value:0},
   uPixelRatio:{value:PR},
   uColors:{value:REGIONS.map(r=>new THREE.Color(r.color))},
 };
+let surfOn=false;
 
 /* ============================================================
-   4 · MALHAS ANATÔMICAS
+   3 · MATERIAIS DE ESTRUTURA (envoltórios + gaiolas)
    ============================================================ */
-const pickMeshes=[]; const deepMats=[];
-const _v=new THREE.Vector3(), _v2=new THREE.Vector3();
+const deepMats=[], ghosts=[], pickMeshes=[];
+const _v=new THREE.Vector3(), _v2=new THREE.Vector3(), _v3=new THREE.Vector3();
 
 function makeDeepMat(hex,alpha,regionIdx){
   const m=new THREE.ShaderMaterial({
@@ -475,7 +457,9 @@ function makeDeepMat(hex,alpha,regionIdx){
       uRate:{value:0},uColor:{value:new THREE.Color(hex)},uAlpha:{value:alpha}},
     vertexShader:`
       varying vec3 vN; varying vec3 vP;
-      void main(){ vN=normal; vP=position;
+      void main(){
+        vN=normalize(mat3(modelMatrix)*normal);
+        vP=(modelMatrix*vec4(position,1.0)).xyz;
         gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader:`
       uniform float uTime,uClipOn,uClipX,uRate,uAlpha; uniform vec3 uColor;
@@ -495,130 +479,106 @@ function makeDeepMat(hex,alpha,regionIdx){
     transparent:true,depthWrite:false,side:THREE.DoubleSide});
   m.userData.region=regionIdx; deepMats.push(m); return m;
 }
-
-// ---- córtex: tecido sólido de cera anatômica ----
-const lobeTints=[[1,0.66,0.33],[0.6,0.72,0.42],[0.35,0.65,0.58],[0.77,0.44,0.33]];
-let cortexMat;
-function buildHemisphere(sign){
-  const NU=132,NV=72, pos=[],tint=[],idx=[];
-  const w=[0,0,0,0]; const tc=new THREE.Color();
-  for(let j=0;j<=NV;j++){
-    const ph=0.012+Math.PI*(1-0.024)*(j/NV);
-    for(let i=0;i<=NU;i++){
-      const th=-Math.PI/2+Math.PI*(i/NU);
-      const adx=Math.sin(ph)*Math.cos(th), dy=Math.cos(ph), dz=Math.sin(ph)*Math.sin(th);
-      const p=corticalSurface(adx,dy,dz,sign,_v);
-      pos.push(p.x,p.y,p.z);
-      lobeWeights(p,adx,dy,dz,w);
-      tc.setRGB(0,0,0);
-      for(let L=0;L<4;L++){const wt=w[L]; if(wt>0){tc.r+=lobeTints[L][0]*wt;tc.g+=lobeTints[L][1]*wt;tc.b+=lobeTints[L][2]*wt;}}
-      tint.push(tc.r,tc.g,tc.b);
-    }
-  }
-  for(let j=0;j<NV;j++)for(let i=0;i<NU;i++){
-    const a=j*(NU+1)+i,b=a+1,c=a+NU+1,d=c+1;
-    if(sign>0) idx.push(a,c,b,b,c,d); else idx.push(a,b,c,b,d,c);
-  }
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));
-  g.setAttribute('aTint',new THREE.BufferAttribute(new Float32Array(tint),3));
-  g.setIndex(idx); g.computeVertexNormals();
-  const mesh=new THREE.Mesh(g,cortexMat);
-  mesh.userData={cortex:true,sign};
-  return mesh;
-}
-function buildCortices(){
-  // leitura de TECIDO primeiro: matéria cinzenta rosada, difuso forte,
-  // quase opaco nas bordas e translúcido apenas de frente (raio-X clínico)
-  cortexMat=new THREE.ShaderMaterial({
-    uniforms:{uAlphaC:{value:0.9},uDimC:{value:1},uClipOn:uni.uClipOn,uClipX:uni.uClipX},
+function pulseLineMat(hex,alpha,regionIdx){
+  const m=new THREE.ShaderMaterial({
+    uniforms:{uTime:uni.uTime,uClipOn:uni.uClipOn,uClipX:uni.uClipX,
+      uRate:{value:0},uColor:{value:new THREE.Color(hex)},uAlpha:{value:alpha}},
     vertexShader:`
-      attribute vec3 aTint; varying vec3 vN,vP,vTint;
-      void main(){ vN=normal; vP=position; vTint=aTint;
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      varying vec3 vP;
+      void main(){
+        vP=(modelMatrix*vec4(position,1.0)).xyz;
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
     fragmentShader:`
-      uniform float uAlphaC,uDimC,uClipOn,uClipX; varying vec3 vN,vP,vTint;
+      uniform float uTime,uClipOn,uClipX,uRate,uAlpha; uniform vec3 uColor;
+      varying vec3 vP;
       void main(){
         if(uClipOn>0.5 && vP.x>uClipX) discard;
-        vec3 N=normalize(vN); if(!gl_FrontFacing) N=-N;
-        vec3 V=normalize(cameraPosition-vP);
-        float ndv=abs(dot(N,V));
-        float fres=pow(1.0-ndv,2.0);
-        // luz de teto quente + preenchimento frio + retorno do chão
-        float d1=max(dot(N,normalize(vec3(0.45,0.75,0.35))),0.0);
-        float d2=max(dot(N,normalize(vec3(-0.55,0.10,0.60))),0.0);
-        float d3=max(dot(N,vec3(0.0,-1.0,0.0)),0.0);
-        // toque subsuperficial: bordas de silhueta aquecem levemente
-        vec3 alb=vec3(0.475,0.445,0.425)+vTint*0.10;
-        vec3 col=alb*(0.30+0.95*d1+0.30*d2+0.12*d3);
-        col+=vec3(0.42,0.50,0.58)*pow(1.0-ndv,3.0)*0.30;
-        col+=alb*0.08;
-        float a=uAlphaC*uDimC*(0.16+0.52*fres);
+        float r=min(uRate,1.2);
+        float pulse=0.72+0.28*sin(uTime*2.5);
+        vec3 col=uColor*(0.75+0.7*r)+vec3(1.0,0.9,0.65)*0.15*r;
+        float a=uAlpha*(0.5+0.5*r)*pulse;
         gl_FragColor=vec4(col,a);
       }`,
-    transparent:true,depthWrite:false,side:THREE.DoubleSide});
-  const L=buildHemisphere(1),Rt=buildHemisphere(-1);
-  L.renderOrder=Rt.renderOrder=6; scene.add(L,Rt); pickMeshes.push(L,Rt);
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+  m.userData.region=regionIdx; deepMats.push(m); return m;
 }
-// ---- cerebelo sólido ----
-function buildCerebellum(){
-  const NU=108,NV=64,pos=[],idx=[];
-  for(let j=0;j<=NV;j++){const ph=0.01+Math.PI*(1-0.02)*(j/NV);
-    for(let i=0;i<=NU;i++){const th=2*Math.PI*(i/NU);
-      const dx=Math.sin(ph)*Math.cos(th),dy=Math.cos(ph),dz=Math.sin(ph)*Math.sin(th);
-      const p=cbSurface(dx,dy,dz,_v); pos.push(p.x,p.y,p.z);}}
-  for(let j=0;j<NV;j++)for(let i=0;i<NU;i++){
-    const a=j*(NU+1)+i,b=a+1,c=a+NU+1,d=c+1; idx.push(a,c,b,b,c,d);}
+const pickMat=new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false});
+function addPick(geo,region,position,quaternion){
+  const m=new THREE.Mesh(geo,pickMat);
+  if(position)m.position.copy(position);
+  if(quaternion)m.quaternion.copy(quaternion);
+  m.userData={name:REGIONS[region].name,region};
+  scene.add(m); pickMeshes.push(m); return m;
+}
+// calota cortical real (segue giros/sulcos), nos dois hemisférios
+function capGeometry(i){
+  const a=ANCH[i], ad=new THREE.Vector3(...a.d).normalize();
+  let t1=new THREE.Vector3(0,1,0).cross(ad); if(t1.lengthSq()<0.01)t1.set(1,0,0); t1.normalize();
+  const t2=new THREE.Vector3().crossVectors(ad,t1);
+  const rows=12,cols=20,pts=[],idx=[];
+  const d=new THREE.Vector3(),p=new THREE.Vector3();
+  for(let r=0;r<=rows;r++)for(let c=0;c<=cols;c++){
+    const th=a.rad*(r/rows), ph=c/cols*Math.PI*2;
+    d.copy(ad).multiplyScalar(Math.cos(th))
+     .addScaledVector(t1,Math.sin(th)*Math.cos(ph))
+     .addScaledVector(t2,Math.sin(th)*Math.sin(ph));
+    cortexSurf(d,p);
+    pts.push(p.x,p.y,p.z);
+  }
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const A=r*(cols+1)+c,B=A+1,Cc=A+cols+1,D=Cc+1;
+    idx.push(A,Cc,B, B,Cc,D);
+  }
+  const n=pts.length/3, il=idx.length;
+  for(let k=0;k<n;k++) pts.push(-pts[k*3],pts[k*3+1],pts[k*3+2]); // espelho x → −x
+  for(let k=0;k<il;k+=3) idx.push(idx[k]+n,idx[k+1]+n,idx[k+2]+n);
   const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));
+  g.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
   g.setIndex(idx); g.computeVertexNormals();
-  const mesh=new THREE.Mesh(g,makeDeepMat(REGIONS[4].color,0.55,4));
-  mesh.renderOrder=4; mesh.userData={name:'Cerebelo',region:4};
-  scene.add(mesh); pickMeshes.push(mesh);
+  return g;
 }
-const hipCurves=[];
-function addDeep(mesh,name,region){ mesh.renderOrder=4; mesh.userData={name,region};
-  scene.add(mesh); pickMeshes.push(mesh); }
-function buildDeep(){
-  buildCerebellum();
-  const sphere=(rx,ry,rz)=>{const g=new THREE.SphereGeometry(1,36,26);g.scale(rx,ry,rz);return g;};
-  [[-11,3,-3],[11,3,-3]].forEach(c=>{
-    const m=new THREE.Mesh(sphere(8.5,7,13),makeDeepMat(REGIONS[5].color,0.20,5));
-    m.position.set(...c); addDeep(m,'Tálamo',5);});
-  [[-3.5,-13,6],[3.5,-13,6]].forEach(c=>{
-    const m=new THREE.Mesh(sphere(6,5.5,8),makeDeepMat(REGIONS[6].color,0.22,6));
-    m.position.set(...c); addDeep(m,'Hipotálamo',6);});
-  [[-18.5,-16,25],[18.5,-16,25]].forEach(c=>{
-    const m=new THREE.Mesh(sphere(6.5,5.5,7),makeDeepMat(REGIONS[8].color,0.22,8));
-    m.position.set(...c); addDeep(m,'Amígdala',8);});
-  const pts=[[12.5,-2,-22],[16,-9,-10],[17,-15,6],[14,-17.5,20],[11,-15,27]];
-  [1,-1].forEach(s=>{
-    const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0]*s,p[1],p[2])));
-    hipCurves.push(c);
-    const g=new THREE.TubeGeometry(c,48,4.4,10,false);
-    const pa=g.attributes.position;
-    for(let i=0;i<pa.count;i++){pa.setZ(i,2+(pa.getZ(i)-2)*0.7);}
-    g.computeVertexNormals();
-    const m=new THREE.Mesh(g,makeDeepMat(REGIONS[7].color,0.19,7));
-    addDeep(m,'Hipocampo',7);});
-  const cc=new THREE.CatmullRomCurve3([[0,6,-30],[0,15,-12],[0,19,4],[0,16,22],[0,9,30],[0,7,36]]
-    .map(p=>new THREE.Vector3(...p)));
-  const ccg=new THREE.TubeGeometry(cc,64,6.5,10,false);
-  {const pa=ccg.attributes.position;
-   for(let i=0;i<pa.count;i++)pa.setY(i,12+(pa.getY(i)-12)*0.42);
-   ccg.computeVertexNormals();}
-  const ccm=new THREE.Mesh(ccg,makeDeepMat(0xcdc6ba,0.15,-1));
-  addDeep(ccm,'Corpo caloso',-1);
-  const tr=new THREE.CatmullRomCurve3([[0,-13,-6],[0,-26,-14],[-1,-38,-32],[0,-47,-48],[2,-53,-60]]
-    .map(p=>new THREE.Vector3(...p)));
-  const trm=new THREE.Mesh(new THREE.TubeGeometry(tr,40,8,12,false),makeDeepMat(0xb7ada2,0.13,-1));
-  addDeep(trm,'Tronco encefálico',-1);
-  const iw=new THREE.Mesh(sphere(46,40,64),makeDeepMat(0x8f9298,0.05,-1));
-  iw.position.set(0,-3,-2); iw.renderOrder=5; scene.add(iw);
+let outerIco=null, icoIn=null;
+function buildStructures(){
+  // envoltórios dos territórios (fantasma) + volumes de picking
+  for(let i=0;i<8;i++){
+    const geo=capGeometry(i);
+    const ghost=new THREE.Mesh(geo,makeDeepMat(REGIONS[i].color,0.12,i));
+    ghost.visible=surfOn; ghost.renderOrder=5;
+    scene.add(ghost); ghosts.push(ghost);
+    addPick(geo,i);
+  }
+  // tálamo: gaiola icosaédrica interna + externa giratória
+  icoIn=new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(16,0)),
+    pulseLineMat(REGIONS[8].color,0.80,8));
+  icoIn.renderOrder=4; scene.add(icoIn);
+  outerIco=new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(22,0)),
+    pulseLineMat(REGIONS[8].color,0.26,8));
+  outerIco.renderOrder=4; scene.add(outerIco);
+  addPick(new THREE.SphereGeometry(17,16,12),8);
+  // circuito de Papez: trilhos-guia + toro de picking
+  [35,38,41].forEach((rad,k)=>{
+    const pts=[];
+    for(let i=0;i<=128;i++){const a=i/128*Math.PI*2;
+      pts.push(new THREE.Vector3(Math.cos(a)*rad,0,Math.sin(a)*rad));}
+    const g=new THREE.BufferGeometry().setFromPoints(pts);
+    const ring=new THREE.Line(g,pulseLineMat(REGIONS[9].color,0.5-k*0.12,9));
+    ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),TOR.n);
+    ring.position.copy(TOR.C);
+    ring.renderOrder=4; scene.add(ring);
+  });
+  const torGeo=new THREE.TorusGeometry(38,11,10,72);
+  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),TOR.n);
+  addPick(torGeo,9,TOR.C,q);
+  // cerebelo e tronco
+  const cerGeo=new THREE.SphereGeometry(1,14,10); cerGeo.scale(34,16,24);
+  addPick(cerGeo,10,CER.C);
+  addPick(new THREE.CapsuleGeometry(9,44,4,12),11,new THREE.Vector3(0,-56,-19));
 }
 
 /* ============================================================
-   5 · 100.000 NEURÔNIOS VISÍVEIS — somatas + arborizações
+   4 · 100.000 NEURÔNIOS VISÍVEIS — somatas + neurites
    ============================================================ */
 const somaPos=new Float32Array(VISIBLE*3), somaReg=new Float32Array(VISIBLE),
       somaRnd=new Float32Array(VISIBLE), somaSize=new Float32Array(VISIBLE);
@@ -632,17 +592,20 @@ function sampleSphere(u,v,out){
   const y=2*u-1, a=Math.sqrt(Math.max(0,1-y*y)), an=2*Math.PI*v;
   return out.set(Math.cos(an)*a,y,Math.sin(an)*a);
 }
-function storeNeuron(r,pos,dir,tangentialOk){
+function storeNeuron(r,pos,normal,helixDir){
   const gi=somaCursor++;
   somaPos[gi*3]=pos.x;somaPos[gi*3+1]=pos.y;somaPos[gi*3+2]=pos.z;
   somaReg[gi]=r; somaRnd[gi]=R();
-  let sz=0.55+Math.pow(R(),2)*1.15;          // pontos pequenos — brilho é evento, não estado
-  if(r===0&&pos.z>50) sz*=1.12;
-  somaSize[gi]=sz;
-  const L=2.5+R()*(tangentialOk?6:5);
-  const t1=_v2.set(R()*2-1,R()*2-1,R()*2-1);
-  if(tangentialOk&&Math.abs(dir.y)<0.95){ t1.crossVectors(dir,t1); if(t1.lengthSq()<1e-6)t1.set(1,0,0); t1.normalize(); }
-  else if(t1.lengthSq()<1e-6)t1.set(1,0,0); else t1.normalize();
+  somaSize[gi]=0.55+Math.pow(R(),2)*1.15;
+  let t1;
+  if(helixDir){ t1=helixDir; }
+  else{
+    t1=new THREE.Vector3(R()*2-1,R()*2-1,R()*2-1);
+    if(Math.abs(normal.y)<0.95) t1.crossVectors(normal,t1);
+    if(t1.lengthSq()<1e-6) t1.set(1,0,0);
+    t1.normalize();
+  }
+  const L=2.5+R()*(helixDir?6.5:5);
   const s=R()*100, base=gi*3;
   const bx=pos.x,by=pos.y,bz=pos.z;
   const jx=(R()-0.5)*L*0.5,jy=(R()-0.5)*L*0.5,jz=(R()-0.5)*L*0.5;
@@ -653,49 +616,73 @@ function storeNeuron(r,pos,dir,tangentialOk){
   denT.set([0,0.5,1],base); denReg.set([r,r,r],base); denSeed.set([s,s,s],base);
   denIdx.set([base,base+1,base+1,base+2],gi*4);
 }
-function genCorticalLobe(target,cnt){
-  const w=[0,0,0,0]; let acc=0,guard=cnt*60;
-  while(acc<cnt&&guard-->0){
-    const d=sampleSphere(R(),R(),_v);
-    const sign=d.x<0?-1:1, adx=Math.abs(d.x);
-    const p=corticalSurface(adx,d.y,d.z,sign,_v2);
-    lobeWeights(p,adx,d.y,d.z,w);
-    const sum=w[0]+w[1]+w[2]+w[3]; let rr=R()*sum,pick=3;
-    for(let L=0;L<4;L++){ if(rr<w[L]){pick=L;break;} rr-=w[L]; }
-    if(pick!==target) continue;
-    const depth=0.5+Math.pow(R(),1.5)*3.0;
-    const q=new THREE.Vector3(p.x-d.x*depth,p.y-d.y*depth,p.z-d.z*depth);
-    storeNeuron(target,q,d,true); acc++;
+// território cortical: casca de matéria cinzenta (~3 mm) nos dois hemisférios
+function genCortex(i,cnt){
+  const a=ANCH[i], ad=new THREE.Vector3(...a.d).normalize(), cosLim=Math.cos(a.rad);
+  for(let n=0;n<cnt;n++){
+    let d=null;
+    for(let t=0;t<80;t++){
+      sampleSphere(R(),R(),_v);
+      if(_v.dot(ad)>cosLim){d=_v.clone();break;}
+    }
+    if(!d) d=ad.clone();
+    if(R()<0.5) d.x*=-1;                       // espelha no hemisfério oposto
+    cortexSurf(d,_v2);
+    const dep=0.4+Math.pow(R(),1.6)*3.0;       // profundidade na parede
+    const q=new THREE.Vector3(_v2.x-d.x*dep,_v2.y-d.y*dep,_v2.z-d.z*dep);
+    storeNeuron(i,q,d.clone(),null);           // neurites tangenciais à superfície
   }
 }
-function genVolume(target,cnt,cx,cy,cz,rx,ry,rz){
-  for(let i=0;i<cnt;i++){
+// tálamo: ovo denso
+function genArconte(cnt){
+  for(let n=0;n<cnt;n++){
     const d=sampleSphere(R(),R(),_v);
-    const k=Math.cbrt(R());
-    const q=new THREE.Vector3(cx+d.x*rx*k,cy+d.y*ry*k,cz+d.z*rz*k);
-    storeNeuron(target,q,d,false);
+    const k=15*Math.cbrt(R())*(0.9+0.2*vnoise(d.x*4,d.y*4,d.z*4));
+    storeNeuron(8,new THREE.Vector3(d.x*k,d.y*k*0.8,d.z*k*1.25),d.clone(),null);
   }
 }
-function genHippocampus(cnt){
-  for(let i=0;i<cnt;i++){
-    const ci=R()<0.5?0:1, c=hipCurves[ci];
-    const p=c.getPoint(R());
-    const d=sampleSphere(R(),R(),_v);
-    const q=new THREE.Vector3(p.x+d.x*2.4*Math.cbrt(R()),p.y+d.y*2.4*Math.cbrt(R()),p.z+d.z*2.4*Math.cbrt(R()));
-    storeNeuron(7,q,d,false);
+// circuito de Papez: casca do tubo; neurites fluem ao longo do anel
+function genLaco(cnt){
+  for(let n=0;n<cnt;n++){
+    const th=R()*Math.PI*2, ph=R()*Math.PI*2, rr=TOR.r*(0.7+0.3*R());
+    const ct=Math.cos(th), st=Math.sin(th), cp=Math.cos(ph), sp=Math.sin(ph);
+    const rx=TOR.u1.x*ct+TOR.u2.x*st, ry=TOR.u1.y*ct+TOR.u2.y*st, rz=TOR.u1.z*ct+TOR.u2.z*st;
+    const q=new THREE.Vector3(
+      rx*(TOR.R+cp*rr)+TOR.n.x*sp*rr+TOR.C.x,
+      ry*(TOR.R+cp*rr)+TOR.n.y*sp*rr+TOR.C.y,
+      rz*(TOR.R+cp*rr)+TOR.n.z*sp*rr+TOR.C.z);
+    const tan=new THREE.Vector3(-TOR.u1.x*st+TOR.u2.x*ct,-TOR.u1.y*st+TOR.u2.y*ct,-TOR.u1.z*st+TOR.u2.z*ct);
+    const nor=new THREE.Vector3(rx*cp+TOR.n.x*sp, ry*cp+TOR.n.y*sp, rz*cp+TOR.n.z*sp);
+    storeNeuron(9,q,nor,tan);
   }
 }
-function genCerebellar(cnt){
-  for(let i=0;i<cnt;i++){
-    const d=sampleSphere(R(),R(),_v);
-    const p=cbSurface(d.x,d.y,d.z,_v2).clone();
-    const q=new THREE.Vector3(p.x-d.x*(0.2+R()*1.6),p.y-d.y*(0.2+R()*1.6),p.z-d.z*(0.2+R()*1.6));
-    storeNeuron(4,q,d,false);
+// cerebelo: elipsoide com folia, porção antero-superior oclusa pelo occipital
+function genCerebelo(cnt){
+  let n=0;
+  while(n<cnt){
+    sampleSphere(R(),R(),_v);
+    const r=1/Math.sqrt((_v.x/CER.a)**2+(_v.y/CER.b)**2+(_v.z/CER.c)**2);
+    const y=_v.y*r, z=_v.z*r;
+    if(y>10&&z>-12&&R()<0.85) continue;
+    const folia=1.5*Math.sin(y*0.9)+0.8*vnoise(_v.x*2.2,_v.y*2.2,_v.z*2.2);
+    const k=r-1.4+folia;
+    storeNeuron(10,new THREE.Vector3(_v.x*k,_v.y*k,_v.z*k).add(CER.C),_v.clone(),null);
+    n++;
+  }
+}
+// tronco: funil que desce até o bulbo
+function genTronco(cnt){
+  for(let n=0;n<cnt;n++){
+    const t=Math.pow(R(),0.8), a=R()*Math.PI*2;
+    const rad=lerp(TRK.r0,TRK.r1,t)*(0.75+0.35*R());
+    const y=lerp(TRK.C0.y,TRK.C1.y,t)+(R()-0.5)*5;
+    const z=lerp(TRK.C0.z,TRK.C1.z,t)+Math.sin(a)*rad*0.3;
+    storeNeuron(11,new THREE.Vector3(Math.cos(a)*rad,y,z),
+      new THREE.Vector3(0,0.85,0.5).normalize(),null);
   }
 }
 let somaPoints=null, dendLines=null;
 function assembleNeuronMeshes(){
-  // SOMATAS — discretas em repouso; flash curto e pontual quando disparam
   const g1=new THREE.BufferGeometry();
   g1.setAttribute('position',new THREE.BufferAttribute(somaPos,3));
   g1.setAttribute('aRegion',new THREE.BufferAttribute(somaReg,1));
@@ -715,9 +702,8 @@ function assembleNeuronMeshes(){
         float rate=uRate[r];
         float per=0.9+2.6*aRand;
         float ph=fract(uTime/per+aRand*13.7);
-        // em repouso quase ninguém dispara; com ativação, quase todos
         float p=min(0.05+0.85*rate,0.92);
-        float fl=ph<p?pow(1.0-ph/p,8.0):0.0;   // decay rápido: spike é evento
+        float fl=ph<p?pow(1.0-ph/p,8.0):0.0;
         vFlash=fl;
         vCol=uColors[r];
         vDim=uFocus<-0.5?1.0:(abs(aRegion-uFocus)<0.5?1.0:0.10);
@@ -731,14 +717,14 @@ function assembleNeuronMeshes(){
       void main(){
         float d=length(gl_PointCoord-0.5);
         float disk=smoothstep(0.5,0.08,d);
-        vec3 col=mix(vCol*0.38,vec3(1.0,0.9,0.62),vFlash);
-        float a=disk*(0.05+vFlash*1.0*uIntensity)*vDim;
+        vec3 col=mix(vCol*0.5,vec3(1.0,0.9,0.62),vFlash);
+        float a=disk*(0.16+vFlash*1.0*uIntensity)*vDim;
         if(a<0.004) discard;
         gl_FragColor=vec4(col*(0.5+vFlash*1.5),a);
       }`,
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   somaPoints=new THREE.Points(g1,m1); somaPoints.renderOrder=1; scene.add(somaPoints);
-  // DENDRITOS — quase apagados; a onda de ativação os acende de leve
+
   const g2=new THREE.BufferGeometry();
   g2.setAttribute('position',new THREE.BufferAttribute(denPos,3));
   g2.setAttribute('aT',new THREE.BufferAttribute(denT,1));
@@ -768,12 +754,13 @@ function assembleNeuronMeshes(){
       varying vec3 vColor; varying float vSpark,vDim,vThick;
       void main(){
         vec3 col=mix(vColor*0.35,vec3(1.0,0.85,0.55),vSpark*0.8);
-        float a=(0.014+0.16*vSpark*uIntensity)*vDim*vThick;
+        float a=(0.05+0.16*vSpark*uIntensity)*vDim*vThick;
         if(a<0.003) discard;
         gl_FragColor=vec4(col,a);
       }`,
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   dendLines=new THREE.LineSegments(g2,m2); dendLines.renderOrder=2; scene.add(dendLines);
+
   let off=0;
   for(let r=0;r<NR;r++){
     const arr=new Float32Array(visCount[r]*3);
@@ -783,7 +770,7 @@ function assembleNeuronMeshes(){
 }
 
 /* ============================================================
-   6 · TRATOS DE LONGA DISTÂNCIA
+   5 · FEIXES DE SUBSTÂNCIA BRANCA
    ============================================================ */
 let tractLines=null;
 const uniTr={
@@ -795,8 +782,15 @@ const uniTr={
   uTSel:{value:new Float32Array(NT).fill(1)},
   uSpeed:{value:0.95},
 };
+function regionCenter(r){
+  if(r<8) return GANG[r].C;
+  if(r===9) return TOR.C;
+  if(r===10) return CER.C;
+  if(r===11) return new THREE.Vector3(0,-56,-19);
+  return new THREE.Vector3(0,0,0);
+}
 function pickSoma(r,filter){
-  const a=somaData[r]; if(!a.length)return new THREE.Vector3();
+  const a=somaData[r]; if(!a||!a.length)return new THREE.Vector3();
   for(let t=0;t<60;t++){
     const i=(R()*a.length/3|0)*3;
     const p=new THREE.Vector3(a[i],a[i+1],a[i+2]);
@@ -805,54 +799,80 @@ function pickSoma(r,filter){
   const i=(R()*a.length/3|0)*3;
   return new THREE.Vector3(a[i],a[i+1],a[i+2]);
 }
-function endpointFor(r,tractI){
-  const T=TRACTS[tractI];
-  if(r===0&&T.from===0&&R()<0.55) return pickSoma(0,p=>p.z>50);   // viés pré-frontal
-  if(r===3&&R()<0.5) return pickSoma(3,p=>p.z<-55);
-  if(r===1&&R()<0.4) return pickSoma(1,p=>p.y>20);
-  if(r===2&&R()<0.5) return pickSoma(2,p=>p.y<-8);
-  return pickSoma(r,null);
+function endpointFor(r,towardPos){
+  const dir=_v2.subVectors(towardPos,regionCenter(r));
+  if(dir.lengthSq()<1) dir.set(0,1,0); dir.normalize();
+  if(r<8){
+    const C=GANG[r].C;
+    return pickSoma(r,p=>(p.x-C.x)*dir.x+(p.y-C.y)*dir.y+(p.z-C.z)*dir.z>10);
+  }
+  if(r===8) return pickSoma(8,p=>p.x*dir.x+p.y*dir.y+p.z*dir.z>6);
+  if(r===10) return pickSoma(10,p=>(p.x-CER.C.x)*dir.x+(p.y-CER.C.y)*dir.y+(p.z-CER.C.z)*dir.z>14);
+  if(r===11) return pickSoma(11,p=>(p.y-TRK.C0.y)*dir.y>6);
+  return pickSoma(9,null);
 }
-const CC_Z={0:20,1:2,2:-6,3:-20,7:-14};
+function curveSampler(T){
+  const Ac=regionCenter(T.from), Bc=regionCenter(T.to);
+  const A=endpointFor(T.from,Bc), B=endpointFor(T.to,Ac);
+  const mid=new THREE.Vector3().addVectors(A,B).multiplyScalar(typeof T.midk==='number'?T.midk:0.62);
+  mid.x+=(R()-0.5)*9; mid.y+=(R()-0.5)*9; mid.z+=(R()-0.5)*9;
+  const c1=A.clone().lerp(mid,0.45).add(new THREE.Vector3((R()-0.5)*6,(R()-0.5)*6,(R()-0.5)*6));
+  const c2=B.clone().lerp(mid,0.45).add(new THREE.Vector3((R()-0.5)*6,(R()-0.5)*6,(R()-0.5)*6));
+  const curve=new THREE.CatmullRomCurve3([A,c1,mid,c2,B]);
+  return t=>curve.getPoint(t);
+}
+function orbitSampler(){
+  const rOff=(R()-0.5)*6, aOff=R()*0.25, wob=R()*12;
+  return t=>{
+    const a=aOff+t*Math.PI*2;
+    const rx=TOR.u1.x*Math.cos(a)+TOR.u2.x*Math.sin(a),
+          ry=TOR.u1.y*Math.cos(a)+TOR.u2.y*Math.sin(a),
+          rz=TOR.u1.z*Math.cos(a)+TOR.u2.z*Math.sin(a);
+    const k=TOR.R+rOff;
+    return new THREE.Vector3(
+      rx*k+TOR.n.x*Math.sin(t*14+wob)*1.2+TOR.C.x,
+      ry*k+TOR.n.y*Math.sin(t*14+wob)*1.2+TOR.C.y,
+      rz*k+TOR.n.z*Math.sin(t*14+wob)*1.2+TOR.C.z);
+  };
+}
+// corona radiata: leque do tálamo até a superfície cortical
+function helixSampler(T){
+  const az=R()*Math.PI*2;
+  const dTop=new THREE.Vector3(Math.cos(az)*0.42,0.9,Math.sin(az)*0.42).normalize();
+  const R1=cortexSurf(dTop,_v3).length();
+  const d0=new THREE.Vector3(Math.cos(az),0.18,Math.sin(az)).normalize();
+  return t=>{
+    const s=smooth(0,1,t);
+    const dx=lerp(d0.x,dTop.x,s),dy=lerp(d0.y,dTop.y,s),dz=lerp(d0.z,dTop.z,s);
+    const inv=1/Math.hypot(dx,dy,dz);
+    const rr=lerp(14,R1,s)*inv;
+    return new THREE.Vector3(dx*rr,dy*rr,dz*rr);
+  };
+}
 function buildTracts(){
-  const PTS=22;
   let totalV=0,totalI=0;
-  TRACTS.forEach(T=>{totalV+=T.n*PTS; totalI+=T.n*(PTS-1)*2;});
+  TRACTS.forEach(T=>{totalV+=T.n*T.pts; totalI+=T.n*(T.pts-1)*2;});
   const pos=new Float32Array(totalV*3), aT=new Float32Array(totalV),
         aTr=new Float32Array(totalV), aSeed=new Float32Array(totalV), aBase=new Float32Array(totalV);
   const idx=new Uint32Array(totalI);
   let vi=0,ii=0;
-  const jit=v=>(R()-0.5)*v;
   TRACTS.forEach((T,ti)=>{
-    const com=T.from===T.to;
-    const involvesFro=T.from===0||T.to===0;
-    const baseA=involvesFro?0.034:0.02;    // tratos discretos; pré-frontal um pouco mais presente
-    let lenSum=0;
+    const baseA=T.hub?0.055:0.04;
+    let lenSum=0, prev=null;
     for(let l=0;l<T.n;l++){
-      const A=endpointFor(T.from,ti);
-      let B,mid;
-      if(com){
-        B=new THREE.Vector3(-A.x,A.y,A.z);
-        mid=new THREE.Vector3(0,12+R()*6,CC_Z[T.from]+jit(9));
-      }else{
-        B=endpointFor(T.to,ti);
-        mid=A.clone().add(B).multiplyScalar(0.5*(T.hub?0.85:0.62));
-        mid.x+=jit(9);mid.y+=jit(9);mid.z+=jit(9);
-      }
-      const c1=A.clone().lerp(mid,0.45).add(new THREE.Vector3(jit(6),jit(6),jit(6)));
-      const c2=B.clone().lerp(mid,0.45).add(new THREE.Vector3(jit(6),jit(6),jit(6)));
-      const curve=new THREE.CatmullRomCurve3([A,c1,mid,c2,B]);
-      lenSum+=curve.getLength();
+      const s=T.kind==='orbit'?orbitSampler():T.kind==='helix'?helixSampler(T):curveSampler(T);
       const seed=R()*100;
-      for(let k=0;k<PTS;k++){
-        const p=curve.getPoint(k/(PTS-1));
+      for(let k=0;k<T.pts;k++){
+        const p=s(k/(T.pts-1));
         pos[vi*3]=p.x;pos[vi*3+1]=p.y;pos[vi*3+2]=p.z;
-        aT[vi]=k/(PTS-1); aTr[vi]=ti; aSeed[vi]=seed; aBase[vi]=baseA; vi++;
+        aT[vi]=k/(T.pts-1); aTr[vi]=ti; aSeed[vi]=seed; aBase[vi]=baseA; vi++;
+        if(l===0&&prev) lenSum+=p.distanceTo(prev);
+        if(l===0) prev=p;
       }
-      const b=(vi-PTS);
-      for(let k=0;k<PTS-1;k++){ idx[ii++]=b+k; idx[ii++]=b+k+1; }
+      const b=(vi-T.pts);
+      for(let k=0;k<T.pts-1;k++){ idx[ii++]=b+k; idx[ii++]=b+k+1; }
     }
-    T.len=lenSum/T.n;
+    T.len=Math.max(40,lenSum);
   });
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(pos,3));
@@ -908,13 +928,14 @@ function buildTracts(){
 }
 
 /* ============================================================
-   7 · SIMULAÇÃO ELETROFISIOLÓGICA
+   6 · SIMULAÇÃO COGNITIVA
    ============================================================ */
 const rate=REGIONS.map(r=>r.base);
 let simTime=0,paused=false,simSpeed=1,stateIdx=0,autoCycles=true;
-let nextCycle=4,nextPfc=0,excite=0,lastSpikeLog=-9,lastNavLog=-9;
+let nextCycle=4,nextPfc=0,excite=0,lastSpikeLog=-9,lastNavLog=-9,nextOrbit=2.5,orbitLog=-9;
 const pend=[];
 const schedule=(dt,fn)=>pend.push({t:simTime+dt,fn});
+const phaseEl=document.getElementById('phaseTxt');
 
 function fireTract(i,dir,amp,quiet){
   const T=TRACTS[i]; const ch=T.ch^=1;
@@ -934,35 +955,47 @@ function burst(r,amp,quiet){
 }
 function runScript(s){
   log('ev',`CICLO · ${s.name} — ${s.desc}`);
-  document.getElementById('phaseTxt').textContent=s.name.toLowerCase();
+  phaseEl.textContent=s.name.toLowerCase();
   s.seq.forEach(st=>schedule(st[0],()=>{
-    if(st[1]==='b') burst(st[2],st[3],true); else fireTract(st[2],st[3],st[4],true);
+    if(st[1]==='b') burst(st[2],st[3],false); else fireTract(st[2],st[3],st[4],false);
   }));
-  schedule(s.seq[s.seq.length-1][0]+3,()=>{ if(stateIdx<2) document.getElementById('phaseTxt').textContent=['repouso','atenção','cognição'][stateIdx]; });
+  schedule(s.seq[s.seq.length-1][0]+3.5,()=>{ if(stateIdx<2) phaseEl.textContent=['quiescência','foco','superposição'][stateIdx]; });
 }
 function tickSim(sdt){
   for(let i=pend.length-1;i>=0;i--) if(pend[i].t<=simTime){ const e=pend[i]; pend.splice(i,1); e.fn(); }
   const stateMul=[0.65,1.0,1.3][stateIdx];
   for(let r=0;r<NR;r++){
-    const tgt=REGIONS[r].base*stateMul;
-    rate[r]+=(tgt-rate[r])*sdt/1.1;
+    rate[r]+=(REGIONS[r].base*stateMul-rate[r])*sdt/1.1;
     rate[r]+=(R()-0.5)*0.35*sdt;
     rate[r]=clamp(rate[r],0.05,2.2);
   }
+  // navegação do usuário = entrada sensorial no tálamo
   if(excite>0.002){
-    rate[5]+=excite*1.1*sdt;
-    for(let r=0;r<4;r++) rate[r]+=excite*0.22*sdt;
-    if(excite>0.25&&simTime-lastNavLog>6){lastNavLog=simTime;log('spike','entrada sensório-motora — via tálamo');}
+    rate[8]+=excite*1.1*sdt;
+    for(let r=0;r<8;r++) rate[r]+=excite*0.20*sdt;
+    if(excite>0.25&&simTime-lastNavLog>6){lastNavLog=simTime;log('spike','entrada sensorial — coerência talâmica');}
     excite*=Math.exp(-sdt*2.2);
+  }
+  // circuito de Papez: o pulso de memória que nunca para de circular
+  if(simTime>nextOrbit){
+    nextOrbit=simTime+4.5+R()*3;
+    fireTract(23,1,1.0,true);
+    if(simTime-orbitLog>9){orbitLog=simTime;log('spike','circuito de Papez — pulso de recordação em circulação perpétua');}
+  }
+  // radiações talâmicas quando o tálamo esquenta
+  if(rate[8]>0.85){
+    if(R()<sdt*rate[8]*0.5) fireTract(24,1,0.8,true);
+    if(R()<sdt*rate[8]*0.5) fireTract(25,1,0.8,true);
   }
   const k=0.5*[0.6,1.0,1.35][stateIdx];
   for(let i=0;i<NT;i++){
     const T=TRACTS[i];
+    if(T.kind==='orbit'||T.kind==='helix') continue;
     if(R()<k*rate[T.from]*T.w*sdt) fireTract(i,1,0.45+R()*0.5,true);
     if(R()<k*rate[T.to]  *T.w*sdt) fireTract(i,-1,0.45+R()*0.5,true);
   }
   if(stateIdx===2&&simTime>nextPfc){
-    nextPfc=simTime+2.8; burst(0,0.45,true); fireTract(5,1,0.8,true); fireTract(0,1,0.7,true);
+    nextPfc=simTime+2.8; burst(8,0.45,true); fireTract(0,1,0.8,true); fireTract(2,1,0.7,true);
   }
   if(autoCycles&&simTime>nextCycle){
     nextCycle=simTime+9+R()*5; runScript(SCRIPTS[R()*SCRIPTS.length|0]);
@@ -970,293 +1003,293 @@ function tickSim(sdt){
 }
 
 /* ============================================================
-   8 · CONSTRUÇÃO ASSÍNCRONA COM PROGRESSO
+   7 · UI — lista, foco, rótulos, registro
+   ============================================================ */
+const logBody=document.getElementById('logBody');
+function log(kind,msg){
+  const div=document.createElement('div');
+  div.className='logline'+(kind==='ev'?' ev':kind==='burst'?' burst':'');
+  const mm=String(Math.floor(simTime/60)).padStart(2,'0'), ss=String(Math.floor(simTime%60)).padStart(2,'0');
+  div.innerHTML=`<span class="t">${mm}:${ss}</span>${msg}`;
+  logBody.prepend(div);
+  while(logBody.children.length>26) logBody.lastChild.remove();
+  [...logBody.children].forEach((c,i)=>c.classList.toggle('old',i>7));
+}
+const regionsList=document.getElementById('regionsList'), rgEls=[];
+const labelsBox=document.getElementById('labels'), labelEls=[];
+const focusPanel=document.getElementById('focusPanel');
+const desiredTarget=HOME.clone(), camTarget=HOME.clone();
+let focusIdx=-1, ready=false;
+const hintEl=document.getElementById('hint');
+const fadeHint=()=>{hintEl.style.opacity='0';};
+setTimeout(fadeHint,16000);
+
+function anchorCenter(i,out){
+  if(i<8) return out.copy(GANG[i].C);
+  if(i===9) return out.copy(TOR.C);
+  if(i===10) return out.copy(CER.C);
+  if(i===11) return out.set(0,-56,-19);
+  return out.set(0,0,0);
+}
+function labelAnchor(i,out){
+  if(i<8) return out.copy(GANG[i].C).addScaledVector(GANG[i].f,14);
+  if(i===8) return out.set(0,10,0);
+  if(i===9) return out.copy(TOR.C).addScaledVector(TOR.u1,42);
+  if(i===10) return out.copy(CER.C).add(_v3.set(0,18,4));
+  return out.set(16,-64,-19);
+}
+const hex=c=>'#'+c.toString(16).padStart(6,'0');
+function buildUI(){
+  REGIONS.forEach((rg,i)=>{
+    const el=document.createElement('div'); el.className='rg-item';
+    el.innerHTML=`<div class="rg-top"><span class="rg-sw" style="background:${hex(rg.color)}"></span>
+      <span class="rg-name">${rg.name}</span><span class="rg-count">${fmtBR(totCount[i])}</span></div>
+      <div class="rg-bar"><div class="rg-fill" style="background:${hex(rg.color)}"></div></div>
+      <div class="rg-hz">— Hz</div>`;
+    el.onclick=()=>focusRegion(i);
+    regionsList.appendChild(el); rgEls.push(el);
+    const lb=document.createElement('div'); lb.className='blabel';
+    lb.textContent=rg.short.toUpperCase();
+    lb.onclick=()=>focusRegion(i);
+    labelsBox.appendChild(lb); labelEls.push(lb);
+  });
+}
+function fillFocusTracts(r){
+  const box=document.getElementById('focusTracts'); box.innerHTML='';
+  TRACTS.forEach(T=>{
+    if(T.from!==r&&T.to!==r) return;
+    const other=T.from===r?T.to:T.from;
+    const div=document.createElement('div'); div.className='ft';
+    div.innerHTML=`<span>${T.label}</span><i>${SHORT[other]}</i><span class="fw"><b style="width:${Math.round(T.w*100)}%"></b></span>`;
+    box.appendChild(div);
+  });
+}
+function setListActive(){ rgEls.forEach((el,i)=>el.classList.toggle('active',i===focusIdx)); }
+function focusRegion(r){
+  focusIdx=r; uni.uFocus.value=r;
+  for(let i=0;i<NT;i++){const T=TRACTS[i];uniTr.uTSel.value[i]=(T.from===r||T.to===r)?1:0.10;}
+  anchorCenter(r,desiredTarget);
+  controls.autoRotate=false;
+  const rg=REGIONS[r];
+  document.getElementById('focusName').textContent=rg.name;
+  document.getElementById('focusDesc').textContent=rg.desc;
+  document.getElementById('focusStats').innerHTML=
+    `neurônios: <span>${fmtBR(totCount[r])}</span> · renderizados: <span>${fmtBR(visCount[r])}</span><br>`+
+    `taxa atual: <span>${rate[r].toFixed(2).replace('.',',')}×</span> · base: <span>${rg.base.toFixed(2).replace('.',',')}×</span> · via: <span>${TRACTS.filter(T=>T.from===r||T.to===r).length}</span>`;
+  fillFocusTracts(r);
+  focusPanel.classList.add('show');
+  setListActive(); fadeHint();
+}
+function clearFocus(){
+  focusIdx=-1; uni.uFocus.value=-1;
+  uniTr.uTSel.value.fill(1);
+  focusPanel.classList.remove('show');
+  desiredTarget.copy(HOME);
+  controls.autoRotate=true;
+  setListActive();
+}
+
+/* ============================================================
+   8 · INTERAÇÃO — picking, tooltip, controles
+   ============================================================ */
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
+const tooltip=document.getElementById('tooltip'),
+      ttName=tooltip.querySelector('.tt-name'), ttSub=tooltip.querySelector('.tt-sub');
+function castAt(x,y){
+  if(!ready) return null;
+  mouse.x=(x/innerWidth)*2-1; mouse.y=-(y/innerHeight)*2+1;
+  ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(pickMeshes,false);
+  return hits.length?hits[0].object:null;
+}
+const ptr={x:0,y:0,dirty:false,downX:0,downY:0,moved:false};
+let navActive=false;
+canvas.addEventListener('pointerdown',e=>{ptr.downX=e.clientX;ptr.downY=e.clientY;ptr.moved=false;navActive=true;excite=Math.min(excite+0.2,1.2);});
+canvas.addEventListener('pointermove',e=>{
+  ptr.x=e.clientX;ptr.y=e.clientY;ptr.dirty=true;
+  if(navActive&&e.buttons&1){excite=Math.min(excite+0.02,1.2);if(Math.hypot(e.clientX-ptr.downX,e.clientY-ptr.downY)>6)ptr.moved=true;}
+});
+addEventListener('pointerup',()=>navActive=false);
+canvas.addEventListener('wheel',()=>{excite=Math.min(excite+0.25,1.2);},{passive:true});
+canvas.addEventListener('pointerup',e=>{
+  if(ptr.moved) return;
+  const hit=castAt(e.clientX,e.clientY);
+  if(hit) focusRegion(hit.userData.region); else clearFocus();
+});
+
+// painéis: colapsar
+document.querySelectorAll('.chev').forEach(c=>c.onclick=()=>document.getElementById(c.dataset.for).classList.toggle('collapsed'));
+// estado da rede
+const segState=document.getElementById('segState');
+segState.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  segState.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+  stateIdx=+b.dataset.s;
+  phaseEl.textContent=['quiescência','foco','superposição'][stateIdx];
+});
+// ciclos manuais
+document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{ if(!paused) runScript(SCRIPTS[+b.dataset.sc]); });
+// toggles
+const bindTgl=(id,fn)=>{const el=document.getElementById(id);el.addEventListener('change',()=>fn(el.checked));};
+bindTgl('cycAuto',v=>autoCycles=v);
+bindTgl('tgDend',v=>{if(dendLines)dendLines.visible=v;});
+bindTgl('tgTract',v=>{if(tractLines)tractLines.visible=v;});
+bindTgl('tgSurf',v=>{surfOn=v;ghosts.forEach(g=>g.visible=v);});
+bindTgl('tgBloom',v=>bloom.enabled=v);
+// sliders
+const rgInt=document.getElementById('rgInt'),rgSpd=document.getElementById('rgSpd');
+rgInt.addEventListener('input',()=>{uni.uIntensity.value=+rgInt.value;document.getElementById('vInt').textContent=(+rgInt.value).toFixed(1).replace('.',',')+'×';});
+rgSpd.addEventListener('input',()=>{simSpeed=+rgSpd.value;document.getElementById('vSpd').textContent=(+rgSpd.value).toFixed(1).replace('.',',')+'×';});
+// plano de dissecação
+const tgClip=document.getElementById('tgClip'),rgClip=document.getElementById('rgClip');
+tgClip.addEventListener('change',()=>uni.uClipOn.value=tgClip.checked?1:0);
+rgClip.addEventListener('input',()=>{uni.uClipX.value=+rgClip.value;document.getElementById('vClip').textContent=`x = ${rgClip.value} mm`;});
+// pausa / câmera
+const btnPause=document.getElementById('btnPause');
+btnPause.onclick=()=>{paused=!paused;btnPause.textContent=paused?'RETOMAR SIM':'PAUSAR SIM';};
+document.getElementById('btnResetCam').onclick=()=>{
+  clearFocus();
+  camera.position.copy(CAM0.p);
+  desiredTarget.copy(HOME); camTarget.copy(HOME); controls.target.copy(HOME);
+};
+document.getElementById('btnOverview').onclick=clearFocus;
+
+/* ============================================================
+   9 · HUD — telemetria, sparkline, régua, rótulos
+   ============================================================ */
+const teleSpk=document.getElementById('teleSpk'),teleHz=document.getElementById('teleHz'),teleFps=document.getElementById('teleFps');
+const sparkC=document.getElementById('spark'),sctx=sparkC.getContext('2d');
+const hist=new Array(66).fill(0);
+function drawSpark(){
+  sctx.clearRect(0,0,132,24);
+  sctx.strokeStyle='rgba(217,142,116,.22)';sctx.lineWidth=1;
+  sctx.beginPath();sctx.moveTo(0,20.5);sctx.lineTo(132,20.5);sctx.stroke();
+  sctx.strokeStyle='#d98e74';sctx.lineWidth=1.2;sctx.beginPath();
+  for(let i=0;i<66;i++){const x=i*132/65,y=22-hist[i]*19;i?sctx.lineTo(x,y):sctx.moveTo(x,y);}
+  sctx.stroke();
+}
+const hzOf=r=>Math.min(0.05+0.85*Math.min(rate[r],1.08),0.92)/2.2;
+let hudAcc=0;
+function updateHUD(dt){
+  hudAcc+=dt; if(hudAcc<0.25) return; hudAcc=0;
+  let sum=0,wsum=0;
+  for(let r=0;r<NR;r++){
+    sum+=hzOf(r)*visCount[r]; wsum+=rate[r];
+    const el=rgEls[r]; if(!el) continue;
+    el.querySelector('.rg-fill').style.transform=`scaleX(${clamp(rate[r]/2.2,0,1)})`;
+    el.querySelector('.rg-hz').textContent=hzOf(r).toFixed(2).replace('.',',')+' Hz';
+  }
+  const hzVis=sum/VISIBLE;
+  teleSpk.textContent=(hzVis*TOTAL/1e6).toFixed(1).replace('.',',');
+  teleHz.textContent=hzVis.toFixed(2).replace('.',',');
+  teleFps.textContent=Math.round(fps);
+  hist.push(clamp(wsum/NR/1.1,0,1)); hist.shift(); drawSpark();
+}
+const rulerBar=document.getElementById('rulerBar'),rulerLabel=document.getElementById('rulerLabel');
+function updateRuler(){
+  const dist=camera.position.distanceTo(controls.target);
+  const ppmm=(innerHeight*0.5)/(Math.tan(camera.fov*Math.PI/360)*dist);
+  const val=[100,50,20,10,5].find(v=>v*ppmm<=170)||5;
+  rulerBar.style.width=(val*ppmm).toFixed(1)+'px';
+  rulerLabel.textContent=val+' mm';
+}
+function updateLabels(){
+  const on=document.getElementById('tgLabels').checked;
+  for(let i=0;i<NR;i++){
+    const el=labelEls[i]; if(!el) continue;
+    if(!on){el.style.visibility='hidden';continue;}
+    labelAnchor(i,_v3).project(camera);
+    if(_v3.z>1||_v3.z<-1){el.style.visibility='hidden';continue;}
+    el.style.visibility='visible';
+    el.style.left=((_v3.x*0.5+0.5)*innerWidth)+'px';
+    el.style.top=((-_v3.y*0.5+0.5)*innerHeight)+'px';
+    el.classList.toggle('hl',i===focusIdx);
+    el.classList.toggle('dim',focusIdx>=0&&i!==focusIdx);
+  }
+}
+
+/* ============================================================
+   10 · CONSTRUÇÃO ASSÍNCRONA E LOOP
    ============================================================ */
 const frame=()=>new Promise(r=>requestAnimationFrame(r));
 const bootFill=document.getElementById('bootFill'),bootMsg=document.getElementById('bootMsg'),
       bootCount=document.getElementById('bootCount');
 const setProg=(m,f)=>{bootMsg.textContent=m;bootFill.style.width=(f*100).toFixed(0)+'%';};
 async function build(){
-  setProg('Superfície cortical — giros e sulcos…',0.06); await frame(); buildCortices();
-  setProg('Núcleos profundos — tálamo, hipocampo, amígdala…',0.16); await frame(); buildDeep();
+  setProg('Territórios corticais — envoltórios e volumes de toque…',0.05); await frame(); buildStructures();
   const jobs=[
-    ['Distribuindo neurônios — Lobo frontal',()=>genCorticalLobe(0,visCount[0])],
-    ['Distribuindo neurônios — Lobo parietal',()=>genCorticalLobe(1,visCount[1])],
-    ['Distribuindo neurônios — Lobo temporal',()=>genCorticalLobe(2,visCount[2])],
-    ['Distribuindo neurônios — Lobo occipital',()=>genCorticalLobe(3,visCount[3])],
-    ['Distribuindo neurônios — Cerebelo (28.000)',()=>genCerebellar(visCount[4])],
-    ['Distribuindo neurônios — Tálamo',()=>{genVolume(5,visCount[5]/2,-11,3,-3,8.5,7,13);genVolume(5,visCount[5]/2,11,3,-3,8.5,7,13);}],
-    ['Distribuindo neurônios — Hipotálamo',()=>{genVolume(6,visCount[6]/2,-3.5,-13,6,6,5.5,8);genVolume(6,Math.ceil(visCount[6]/2),3.5,-13,6,6,5.5,8);}],
-    ['Distribuindo neurônios — Hipocampo',()=>genHippocampus(visCount[7])],
-    ['Distribuindo neurônios — Amígdala',()=>{genVolume(8,visCount[8]/2,-18.5,-16,25,6.5,5.5,7);genVolume(8,Math.ceil(visCount[8]/2),18.5,-16,25,6.5,5.5,7);}],
+    ['Córtex pré-frontal',()=>genCortex(0,visCount[0])],
+    ['Córtex pré-motor',()=>genCortex(1,visCount[1])],
+    ['Córtex parietal',()=>genCortex(2,visCount[2])],
+    ['Córtex cingulado',()=>genCortex(3,visCount[3])],
+    ['Córtex occipital',()=>genCortex(4,visCount[4])],
+    ['Junção temporoparietal',()=>genCortex(5,visCount[5])],
+    ['Córtex temporal',()=>genCortex(6,visCount[6])],
+    ['Córtex órbito-frontal',()=>genCortex(7,visCount[7])],
+    ['Tálamo — núcleo coerente',()=>genArconte(visCount[8])],
+    ['Circuito de Papez',()=>genLaco(visCount[9])],
+    ['Cerebelo — folia',()=>genCerebelo(visCount[10])],
+    ['Tronco encefálico',()=>genTronco(visCount[11])],
   ];
-  for(let j=0;j<jobs.length;j++){
-    setProg(jobs[j][0]+'…',0.2+j*0.075); await frame();
-    jobs[j][1]();
-    bootCount.textContent=`${fmtBR(somaCursor)} / ${fmtBR(TOTAL)} alocados`;
+  let alloc=0;
+  for(let i=0;i<jobs.length;i++){
+    setProg('Povoando — '+jobs[i][0],0.08+0.60*(i/jobs.length)); await frame();
+    jobs[i][1](); alloc+=visCount[i];
+    bootCount.textContent=`${fmtBR(alloc)} / ${fmtBR(TOTAL)} alocados`;
   }
-  setProg('Montando 100.000 somatas e arborizações…',0.90); await frame(); assembleNeuronMeshes();
-  setProg('Tratos de longa distância e vias de conectividade…',0.95); await frame(); buildTracts();
-  setProg('Pronto',1); await frame();
+  setProg('Somatas e neurites — montando malhas…',0.72); await frame(); assembleNeuronMeshes();
+  setProg('Feixes de substância branca…',0.80); await frame(); buildTracts();
+  setProg('Neurônios ocultos — índice de dados…',0.88); await frame();
+  alloc+=HIDDEN; bootCount.textContent=`${fmtBR(alloc)} / ${fmtBR(TOTAL)} alocados`;
+  setProg('Painéis e rótulos…',0.95); await frame(); buildUI();
+  setProg('pronto',1); await frame();
+  document.getElementById('topTotal').textContent=fmtBR(TOTAL);
+  document.getElementById('boot').classList.add('done');
+  ready=true;
+  log('ev','encéfalo montado — 12 estruturas · 28 vias');
+  log('spike','quiescência inicial — ritmo de fundo talâmico');
+  animate();
 }
 
-/* ============================================================
-   9 · INTERFACE
-   ============================================================ */
-const logBody=document.getElementById('logBody');
-function log(type,msg){
-  const mm=String(Math.floor(simTime/60)).padStart(2,'0'),ss=(simTime%60).toFixed(1).padStart(4,'0');
-  const d=document.createElement('div');
-  d.className='logline '+type;
-  d.innerHTML=`<span class="t">${mm}:${ss}</span>${msg}`;
-  logBody.prepend(d);
-  const lines=logBody.children;
-  for(let i=0;i<lines.length;i++) lines[i].classList.toggle('old',i>3);
-  while(lines.length>8) logBody.lastChild.remove();
-}
-const rgFill=[],rgHz=[],rgItems=[];
-const regionsList=document.getElementById('regionsList');
-REGIONS.forEach((r,i)=>{
-  const d=document.createElement('div'); d.className='rg-item';
-  const c='#'+r.color.toString(16).padStart(6,'0');
-  d.innerHTML=`<div class="rg-top"><span class="rg-sw" style="background:${c}"></span>
-    <span class="rg-name">${r.name}</span><span class="rg-count">${fmtBR(visCount[i])}</span></div>
-    <div class="rg-bar"><div class="rg-fill" style="background:${c}"></div></div>
-    <div class="rg-hz">0,0 Hz · ${fmtBR(totCount[i])} no total</div>`;
-  d.addEventListener('click',()=>focusRegion(i));
-  regionsList.appendChild(d);
-  rgFill.push(d.querySelector('.rg-fill')); rgHz.push(d.querySelector('.rg-hz')); rgItems.push(d);
-});
-let focusIdx=-1;
-function updateTractSel(){
-  const sel=uniTr.uTSel.value;
-  for(let i=0;i<NT;i++) sel[i]=(focusIdx<0||TRACTS[i].from===focusIdx||TRACTS[i].to===focusIdx)?1:0.07;
-}
-const focusPanel=document.getElementById('focusPanel');
-function focusRegion(i){
-  focusIdx=i; rgItems.forEach((el,k)=>el.classList.toggle('active',k===i));
-  uni.uFocus.value=i; updateTractSel();
-  if(cortexMat) cortexMat.uniforms.uDimC.value=i>=4?0.32:1;
-  const r=REGIONS[i];
-  document.getElementById('focusName').textContent=r.name;
-  document.getElementById('focusDesc').textContent=r.desc;
-  document.getElementById('focusStats').innerHTML=
-    `visíveis <span>${fmtBR(visCount[i])}</span> · ocultos <span>${fmtBR(hidCount[i])}</span> · total <span>${fmtBR(totCount[i])}</span>`;
-  const ft=document.getElementById('focusTracts'); ft.innerHTML='';
-  TRACTS.filter(t=>t.from===i||t.to===i).forEach(t=>{
-    const d=document.createElement('div'); d.className='ft';
-    d.innerHTML=`<span>${SHORT[t.from]} ${t.from===t.to?'⇄':'→'} ${SHORT[t.to]}</span><i>${t.label}</i>
-      <span class="fw"><b style="width:${(t.w*100)|0}%"></b></span>`;
-    ft.appendChild(d);
-  });
-  focusPanel.classList.add('show');
-  camTween(r.cam);
-  labels.forEach(L=>L.el.classList.toggle('hl',L.region===i));
-  log('ev',`FOCO · ${r.name} — inspeção de conectividade`);
-}
-function clearFocus(){
-  focusIdx=-1; rgItems.forEach(el=>el.classList.remove('active'));
-  uni.uFocus.value=-1; updateTractSel();
-  if(cortexMat) cortexMat.uniforms.uDimC.value=1;
-  focusPanel.classList.remove('show');
-  labels.forEach(L=>L.el.classList.remove('hl'));
-  camAnim={t0:performance.now(),dur:1400,p0:camera.position.clone(),t0v:controls.target.clone(),
-           p1:CAM0.p.clone(),t1:CAM0.t.clone()};
-}
-document.getElementById('btnOverview').addEventListener('click',clearFocus);
-let camAnim=null;
-function camTween(cam){
-  const t=new THREE.Vector3(...cam.t);
-  const p=new THREE.Vector3(...cam.d).normalize().multiplyScalar(cam.dist).add(t);
-  camAnim={t0:performance.now(),dur:1400,p0:camera.position.clone(),t0v:controls.target.clone(),p1:p,t1:t};
-}
-controls.addEventListener('start',()=>{camAnim=null;controls.autoRotate=false;});
-const LABELS=[
- ['Lobo frontal',14,38,52,0],['Córtex pré-frontal',16,26,76,0],['Lobo parietal',52,44,-8,1],
- ['Lobo temporal',56,-28,6,2],['Lobo occipital',28,26,-76,3],['Cerebelo',-34,-46,-74,4],
- ['Tálamo',12,6,0,5],['Hipotálamo',14,-14,10,6],['Hipocampo',22,-10,-2,7],['Amígdala',22,-18,26,8]];
-const labels=LABELS.map(L=>{
-  const el=document.createElement('div'); el.className='blabel'; el.textContent=L[0].toUpperCase();
-  el.addEventListener('click',()=>focusRegion(L[4]));
-  document.getElementById('labels').appendChild(el);
-  return {el,pos:new THREE.Vector3(L[1],L[2],L[3]),region:L[4],visible:false};
-});
-let labelsOn=false;
-const tooltip=document.getElementById('tooltip'),ttName=tooltip.querySelector('.tt-name'),
-      ttSub=tooltip.querySelector('.tt-sub');
-const raycaster=new THREE.Raycaster(); const mouse=new THREE.Vector2(); let mousePx=[0,0];
-let lastPick=0,hoverRegion=-1,downPos=null;
-canvas.addEventListener('pointermove',e=>{
-  mousePx=[e.clientX,e.clientY];
-  mouse.x=e.clientX/innerWidth*2-1; mouse.y=-(e.clientY/innerHeight)*2+1;
-  if(e.buttons>0) excite=Math.min(1.2,excite+(Math.abs(e.movementX)+Math.abs(e.movementY))*0.006);
-});
-canvas.addEventListener('wheel',()=>{excite=Math.min(1.2,excite+0.18);},{passive:true});
-canvas.addEventListener('pointerdown',e=>{downPos=[e.clientX,e.clientY];document.getElementById('hint').style.opacity=0;});
-canvas.addEventListener('pointerup',e=>{
-  if(!downPos)return;
-  const d=Math.hypot(e.clientX-downPos[0],e.clientY-downPos[1]); downPos=null;
-  if(d<5&&hoverRegion>=0) focusRegion(hoverRegion);
-});
-function doPick(){
-  raycaster.setFromCamera(mouse,camera);
-  const hits=raycaster.intersectObjects(pickMeshes,false);
-  if(!hits.length){tooltip.style.display='none';hoverRegion=-1;return;}
-  const h=hits[0].object;
-  let name='',sub='',reg=-1;
-  if(h.userData.cortex){
-    const p=hits[0].point,w=[0,0,0,0],dl=p.length()||1;
-    lobeWeights(p,Math.abs(p.x)*(Math.hypot(p.x,p.z)||1)/Math.max(1,Math.hypot(p.x,p.z)*dl),p.y/dl,p.z/dl,w);
-    let best=0; for(let L=1;L<4;L++) if(w[L]>w[best])best=L;
-    name=LOBE_NAMES[best]; reg=best;
-    sub=`casca de matéria cinzenta · ${fmtBR(visCount[reg])} neurônios visíveis`;
-  }else{
-    name=h.userData.name; reg=h.userData.region;
-    sub=reg>=0?`${fmtBR(visCount[reg])} visíveis · ${fmtBR(totCount[reg])} no total`
-              :'estrutura de apoio (sem cota de neurônios)';
+const clock=new THREE.Clock();
+let fps=60;
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),0.05);
+  fps=lerp(fps,1/Math.max(dt,1e-4),0.06);
+  controls.update();
+  if(!paused){ simTime+=dt*simSpeed; tickSim(dt*simSpeed); }
+  uni.uTime.value=simTime;
+  uni.uRate.value.set(rate);
+  for(let i=0;i<deepMats.length;i++) deepMats[i].uniforms.uRate.value=rate[deepMats[i].userData.region];
+  if(outerIco){outerIco.rotation.y+=dt*0.10;outerIco.rotation.x+=dt*0.04;}
+  if(icoIn){icoIn.rotation.y-=dt*0.16;}
+  camTarget.lerp(desiredTarget,1-Math.exp(-dt*3));
+  controls.target.copy(camTarget);
+  // tooltip
+  if(ptr.dirty){
+    ptr.dirty=false;
+    const hit=castAt(ptr.x,ptr.y);
+    if(hit){
+      const reg=hit.userData.region;
+      ttName.textContent=hit.userData.name;
+      ttSub.innerHTML=`${fmtBR(totCount[reg])} neurônios · ${fmtBR(visCount[reg])} renderizados<br>taxa ${rate[reg].toFixed(2).replace('.',',')}× · ${hzOf(reg).toFixed(2).replace('.',',')} Hz`;
+      tooltip.style.display='block';
+      tooltip.style.left=Math.min(ptr.x+16,innerWidth-250)+'px';
+      tooltip.style.top=Math.min(ptr.y+16,innerHeight-90)+'px';
+      canvas.style.cursor='pointer';
+    }else{
+      tooltip.style.display='none';
+      canvas.style.cursor='grab';
+    }
   }
-  hoverRegion=reg>=0?reg:-1;
-  ttName.textContent=name; ttSub.textContent=sub;
-  tooltip.style.display='block';
-  tooltip.style.left=Math.min(innerWidth-250,mousePx[0]+16)+'px';
-  tooltip.style.top=(mousePx[1]+14)+'px';
+  updateLabels(); updateHUD(dt); updateRuler();
+  composer.render();
 }
-/* ============================================================
-   10 · CONTROLES DA UI
-   ============================================================ */
-const $=id=>document.getElementById(id);
-document.querySelectorAll('.chev').forEach(c=>c.addEventListener('click',()=>
-  $(c.dataset.for).classList.toggle('collapsed')));
-if(innerWidth<960){$('regionsPanel').classList.add('collapsed');}
- $('segState').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
-  stateIdx=+b.dataset.s;
-  $('segState').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
-  $('phaseTxt').textContent=['repouso','atenção','cognição'][stateIdx];
-  log('ev',`ESTADO · rede em ${['repouso','atenção','cognição'][stateIdx]}`);
-  if(stateIdx===2) nextPfc=simTime+0.5;
-}));
- $('cycAuto').addEventListener('change',e=>{autoCycles=e.target.checked; if(autoCycles)nextCycle=simTime+2;});
-document.querySelectorAll('[data-sc]').forEach(b=>b.addEventListener('click',()=>{
-  runScript(SCRIPTS[+b.dataset.sc]);
-}));
- $('tgDend').addEventListener('change',e=>dendLines.visible=e.target.checked);
- $('tgTract').addEventListener('change',e=>tractLines.visible=e.target.checked);
- $('tgSurf').addEventListener('change',e=>{pickMeshes.forEach(m=>{if(m.userData.cortex)m.visible=e.target.checked;});});
- $('tgLabels').addEventListener('change',e=>{labelsOn=e.target.checked;});
- $('tgBloom').addEventListener('change',e=>bloom.enabled=e.target.checked);
- $('rgInt').addEventListener('input',e=>{uni.uIntensity.value=+e.target.value;$('vInt').textContent=(+e.target.value).toFixed(1).replace('.',',')+'×';});
- $('rgSpd').addEventListener('input',e=>{simSpeed=+e.target.value;$('vSpd').textContent=simSpeed.toFixed(1).replace('.',',')+'×';});
- $('rgOpa').addEventListener('input',e=>{if(cortexMat)cortexMat.uniforms.uAlphaC.value=+e.target.value;$('vOpa').textContent=Math.round(e.target.value*100)+'%';});
- $('tgClip').addEventListener('change',e=>{uni.uClipOn.value=e.target.checked?1:0;});
- $('rgClip').addEventListener('input',e=>{uni.uClipX.value=+e.target.value;$('vClip').textContent=`x = ${(+e.target.value>0?'+':'')}${e.target.value} mm`;});
- $('btnPause').addEventListener('click',()=>{paused=!paused;$('btnPause').textContent=paused?'RETOMAR':'PAUSAR SIM';});
- $('btnResetCam').addEventListener('click',()=>clearFocus());
-addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();$('btnPause').click();}});
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
   renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
-  uni.uPixelRatio.value=renderer.getPixelRatio();
 });
-setTimeout(()=>{const h=document.getElementById('hint');if(h)h.style.opacity=0;},9000);
-
-/* ============================================================
-   11 · LOOP PRINCIPAL
-   ============================================================ */
-const sparkCv=$('spark'),sctx=sparkCv.getContext('2d');
-const sparkHist=new Array(66).fill(0);
-let lastT=performance.now()/1000,spkSmooth=0,fpsFrames=0,fpsT=performance.now(),
-    hudT=0,sparkT=0;
-const rulerBar=$('rulerBar'),rulerLabel=$('rulerLabel'),teleSpk=$('teleSpk'),
-      teleHz=$('teleHz'),teleFps=$('teleFps');
-const _camDir=new THREE.Vector3(),_proj=new THREE.Vector3();
-
-function animate(){
-  requestAnimationFrame(animate);
-  const now=performance.now()/1000; let dt=Math.min(now-lastT,0.05); lastT=now;
-  if(!paused){const sdt=dt*simSpeed; simTime+=sdt; tickSim(sdt);}
-  uni.uTime.value=simTime;
-  let mean=0;
-  for(let r=0;r<NR;r++){
-    const d=clamp(rate[r]/1.25,0,1);
-    uni.uRate.value[r]=d; mean+=rate[r];
-    deepMats.forEach(m=>{if(m.userData.region===r)m.uniforms.uRate.value=d;});
-  }
-  mean/=NR;
-  if(camAnim){
-    const e=clamp((performance.now()-camAnim.t0)/camAnim.dur,0,1),s=e*e*(3-2*e);
-    camera.position.lerpVectors(camAnim.p0,camAnim.p1,s);
-    controls.target.lerpVectors(camAnim.t0v,camAnim.t1,s);
-    if(e>=1)camAnim=null;
-  }
-  controls.update();
-  hudT+=dt;
-  if(hudT>0.1){
-    hudT=0;
-    let spk=0; for(let r=0;r<NR;r++) spk+=rate[r]*totCount[r]*9;
-    spkSmooth=lerp(spkSmooth,spk,0.15);
-    teleSpk.textContent=(spkSmooth/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
-    teleHz.textContent=(0.4+mean*8).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
-    for(let r=0;r<NR;r++){
-      rgFill[r].style.transform=`scaleX(${uni.uRate.value[r].toFixed(3)})`;
-      rgHz[r].textContent=`${(0.4+rate[r]*8).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})} Hz · ${fmtBR(totCount[r])} no total`;
-    }
-    if(now-lastPick>0.09){lastPick=now;doPick();}
-  }
-  sparkT+=dt;
-  if(sparkT>0.12){sparkT=0;sparkHist.push(mean);sparkHist.shift();
-    sctx.clearRect(0,0,132,24);sctx.beginPath();
-    sparkHist.forEach((v,i)=>{const y=22-clamp(v/1.6,0,1)*20;i?sctx.lineTo(i*2,y):sctx.moveTo(0,y);});
-    sctx.strokeStyle='rgba(226,165,78,.85)';sctx.lineWidth=1;sctx.stroke();}
-  // rótulos
-  const anyLabels=labelsOn||focusIdx>=0;
-  if(anyLabels){
-    camera.getWorldDirection(_camDir);
-    labels.forEach(L=>{
-      const show=(labelsOn||L.region===focusIdx);
-      L.el.style.visibility='hidden';
-      if(!show)return;
-      const front=_proj.copy(L.pos).sub(camera.position).dot(_camDir)>0;
-      if(!front)return;
-      _proj.copy(L.pos).project(camera);
-      L.el.style.visibility='visible';
-      L.el.style.left=((_proj.x+1)/2*innerWidth)+'px';
-      L.el.style.top=((1-_proj.y)/2*innerHeight)+'px';
-    });
-  }else labels.forEach(L=>L.el.style.visibility='hidden');
-  // régua de escala real
-  const dist=camera.position.distanceTo(controls.target);
-  const pxPerMM=(innerHeight*0.5)/(Math.tan(camera.fov*Math.PI/360)*dist);
-  const mm=[5,10,20,50,100,150].reduce((a,b)=>pxPerMM*b>=64?b:a,5);
-  rulerBar.style.width=(mm*pxPerMM)+'px'; rulerLabel.textContent=mm+' mm';
-  fpsFrames++;
-  if(performance.now()-fpsT>500){teleFps.textContent=Math.round(fpsFrames*1000/(performance.now()-fpsT));fpsFrames=0;fpsT=performance.now();}
-  composer.render();
-}
-
-/* ============================================================
-   12 · INICIALIZAÇÃO
-   ============================================================ */
-(async()=>{
-  try{
-    await build();
-    console.log('visíveis:',visCount.join('+'),'=',visCount.reduce((a,b)=>a+b,0));
-    console.log('ocultos:',hidCount.join('+'),'=',hidCount.reduce((a,b)=>a+b,0));
-    const b=$('boot'); b.classList.add('done'); setTimeout(()=>b.remove(),1000);
-    camAnim={t0:performance.now(),dur:2600,p0:camera.position.clone(),t0v:controls.target.clone(),
-             p1:CAM0.p.clone(),t1:CAM0.t.clone()};
-    const t0=performance.now(),el=$('topTotal');
-    (function count(){
-      const e=clamp((performance.now()-t0)/2400,0,1),s=1-Math.pow(1-e,3);
-      el.textContent=fmtBR(TOTAL*s); if(e<1)requestAnimationFrame(count);
-    })();
-    log('ev','REDE ONLINE · 1.327.898 neurônios · 100.000 renderizados');
-    log('info','vias ativas: talamocortical, perforante, amígalo-prefrontal, comissuras calosas');
-    nextCycle=simTime+3.5;
-    animate();
-  }catch(err){
-    bootMsg.textContent='erro ao montar o modelo: '+err.message; console.error(err);
-  }
-})();
+build();
 </script>
 </body>
 </html>
