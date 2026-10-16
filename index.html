@@ -42,9 +42,12 @@ canvas#gl:active{cursor:grabbing}
 #regionsPanel{left:16px;top:66px;width:252px;max-height:calc(100vh - 320px);display:flex;flex-direction:column}
 #regionsPanel .pbody{overflow-y:auto}
 #controlsPanel{right:16px;top:66px;width:252px;max-height:calc(100vh - 250px);overflow-y:auto}
+#chatPanel{right:16px;bottom:16px;width:344px;max-height:calc(100vh - 420px);display:flex;flex-direction:column}
+#chatPanel .pbody{overflow-y:auto}
 .collapsed .pbody{display:none}
 .collapsed#regionsPanel{transform:translateX(-236px);opacity:.9}
 .collapsed#controlsPanel{transform:translateX(236px);opacity:.9}
+.collapsed#chatPanel{transform:translateX(328px);opacity:.9}
 .chev{cursor:pointer;color:var(--dim);display:flex;padding:2px}
 .chev:hover{color:var(--ink)}
 .collapsed .chev svg{transform:rotate(180deg)}
@@ -112,7 +115,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
   border:1px solid rgba(217,142,116,.4);border-radius:6px;padding:7px 10px;max-width:240px}
 #tooltip .tt-name{font-size:11.5px;font-weight:600;color:#ecf1f4}
 #tooltip .tt-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8a99a4;margin-top:3px;line-height:1.55}
-#ruler{position:fixed;right:22px;bottom:20px;z-index:12;pointer-events:none;font-family:'IBM Plex Mono',monospace}
+#ruler{position:fixed;right:376px;bottom:20px;z-index:12;pointer-events:none;font-family:'IBM Plex Mono',monospace}
 #rulerBar{height:7px;border-left:1px solid #7e8f9a;border-right:1px solid #7e8f9a;border-bottom:1px solid #7e8f9a;position:relative}
 #rulerBar:before{content:"";position:absolute;left:50%;top:2px;bottom:0;width:1px;background:#7e8f9a}
 #rulerLabel{font-size:9.5px;color:#8a99a4;text-align:center;margin-top:3px;letter-spacing:.06em}
@@ -138,10 +141,33 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 #bootFill{height:100%;width:0;background:var(--accent);transition:width .3s}
 #bootMsg{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7e8d98;margin-top:12px;letter-spacing:.04em;min-height:14px}
 #bootCount{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#54636d;margin-top:5px}
+/* —— chat / córtex de linguagem —— */
+#chatScroll{max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px}
+.msg{max-width:86%;padding:6px 9px;border-radius:9px;font-size:11.5px;line-height:1.45;word-wrap:break-word}
+.msg.user{align-self:flex-end;background:rgba(217,142,116,.14);border:1px solid rgba(217,142,116,.3)}
+.msg.brain{align-self:flex-start;background:rgba(255,255,255,.04);border:1px solid var(--line);color:#d4dde3}
+.msg.sys{align-self:center;color:#7e8d98;font-family:'IBM Plex Mono',monospace;font-size:9.5px;max-width:95%;text-align:center}
+.msg-actions{display:flex;gap:5px;margin-top:5px}
+.msg-actions button{background:none;border:1px solid var(--line);color:#8494a0;font-family:'IBM Plex Mono',monospace;
+  font-size:9px;padding:2px 7px;border-radius:5px;cursor:pointer}
+.msg-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.chat-row{display:flex;gap:6px;margin-top:8px}
+.chat-row input{flex:1;min-width:0;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:6px;
+  color:var(--ink);font-size:12px;padding:6px 8px;outline:none;font-family:inherit}
+.chat-row input:focus{border-color:rgba(217,142,116,.5)}
+.chat-row button{background:none;border:1px solid var(--line);color:#9fb0bb;font-family:'IBM Plex Mono',monospace;
+  font-size:10px;padding:6px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.chat-row button:hover{border-color:var(--accent);color:var(--accent)}
+#teachBox{border:1px dashed rgba(217,142,116,.45);border-radius:8px;padding:8px;margin-top:8px}
+#teachQuote{font-size:9.5px;color:#8a99a4;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lnStats{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);margin-top:7px}
+#lnStats span{color:#c8b98a}
 @media (max-width:960px){
   #regionsPanel{width:232px}#controlsPanel{width:232px}
+  #chatPanel{width:calc(100vw - 32px);max-width:344px}
   #eventlog{width:calc(100vw - 32px);max-width:352px}
   #brand p{display:none}
+  #ruler{display:none}
 }
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:2px}
 </style>
@@ -153,7 +179,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 <div id="topbar">
   <div id="brand">
     <h1>MENTE <b>Ω</b></h1>
-    <p>encéfalo humano volumétrico · <b id="topTotal">0</b> neurônios · <b>100.000</b> renderizados / <b>1.227.898</b> ocultos · escala 1:1</p>
+    <p>encéfalo humano volumétrico · <b id="topTotal">0</b> neurônios · <b>100.000</b> renderizados / <b>1.227.898</b> ocultos · <b>1</b> rede linguística virgem</p>
   </div>
   <div id="telemetry">
     <canvas id="spark" width="132" height="24"></canvas>
@@ -213,6 +239,22 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
   </div>
 </div>
 
+<div class="panel" id="chatPanel">
+  <div class="phead"><h2>CÓRTEX LINGUAGEM — <span id="lnStatus">virgem</span></h2><span class="chev" data-for="chatPanel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2 4 6l4 4"/></svg></span></div>
+  <div class="pbody">
+    <div id="chatScroll"></div>
+    <div id="teachBox" style="display:none">
+      <div id="teachQuote" class="mono"></div>
+      <div class="chat-row"><input id="teachInput" placeholder="a resposta certa era…"><button id="btnTeach">TREINAR</button></div>
+    </div>
+    <div class="chat-row"><input id="chatInput" placeholder="diga algo — ele ainda não sabe nada" maxlength="160"><button id="btnSend">ENVIAR</button></div>
+    <div id="lnStats">— sinapses · 0 passos · perda —</div>
+    <div class="row" style="margin-top:4px"><label>Temperatura da geração</label><span class="mono" id="vTemp">0,9</span></div>
+    <input type="range" id="rgTemp" min="0.3" max="1.6" step="0.05" value="0.9">
+    <div class="btnrow" style="margin-top:7px"><button id="btnLesion">LESÃO TOTAL</button></div>
+  </div>
+</div>
+
 <div class="panel" id="eventlog">
   <div class="phead"><h2>REGISTRO COGNITIVO — <span id="phaseTxt">quiescência</span></h2></div>
   <div class="pbody" id="logBody"></div>
@@ -221,11 +263,11 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 <div id="tooltip"><div class="tt-name"></div><div class="tt-sub"></div></div>
 <div id="labels"></div>
 <div id="ruler"><div id="rulerBar" style="width:60px"></div><div id="rulerLabel">50 mm</div></div>
-<div id="hint">arraste para orbitar · role para aproximar · clique numa estrutura para focá-la<br>a navegação modula a atividade do tálamo</div>
+<div id="hint">arraste para orbitar · role para aproximar · clique numa estrutura para focá-la<br>o painel CÓRTEX LINGUAGEM é uma rede virgem — ensine com ✎, recompense com ✓</div>
 
 <div id="boot">
   <h1>MENTE <b>Ω</b></h1>
-  <div class="sub">montando encéfalo humano — 1.327.898 neurônios</div>
+  <div class="sub">montando encéfalo humano — 1.327.898 neurônios + linguagem virgem</div>
   <div id="bootTrack"><div id="bootBar"><div id="bootFill"></div></div></div>
   <div id="bootMsg">inicializando…</div>
   <div id="bootCount">0 / 1.327.898 alocados</div>
@@ -318,12 +360,11 @@ console.assert(hidCount.reduce((a,b)=>a+b,0)===HIDDEN,'ocultos devem somar 1.227
 
 // —— morfologia do encéfalo ——
 const BR={A:66,B:80,C:50,fold:3.6,fs:0.075,fis:9};
-// âncora (direção unitária) + raio angular (rad) de cada território cortical
 const ANCH=[
  {d:[0.00,0.42, 0.91],rad:0.68}, // 0 pré-frontal
  {d:[0.62,0.50, 0.60],rad:0.56}, // 1 pré-motor
  {d:[0.42,0.78,-0.46],rad:0.56}, // 2 parietal
- {d:[0.02,0.90,-0.42],rad:0.48}, // 3 cingulado (parede medial)
+ {d:[0.02,0.90,-0.42],rad:0.48}, // 3 cingulado
  {d:[0.05,0.10,-0.99],rad:0.52}, // 4 occipital
  {d:[0.86,0.05,-0.50],rad:0.54}, // 5 TPJ
  {d:[0.92,-0.30,0.25],rad:0.62}, // 6 temporal
@@ -331,13 +372,13 @@ const ANCH=[
 ];
 function cortexSurf(d,out){
   let r=1/Math.sqrt((d.x/BR.A)**2+(d.y/BR.C)**2+(d.z/BR.B)**2);
-  r*=1-0.16*smooth(0.1,0.95,d.z);                                  // polo frontal afunila
-  if(d.y<0) r*=1+0.22*d.y;                                         // base achatada
-  r*=1+0.12*Math.exp(-((d.y+0.45)**2)/0.06)*d.x*d.x;               // bojo temporal
-  r-=BR.fis*Math.exp(-(d.x*d.x)/0.018)*smooth(-0.15,0.35,d.y);     // fissura inter-hemisférica
+  r*=1-0.16*smooth(0.1,0.95,d.z);
+  if(d.y<0) r*=1+0.22*d.y;
+  r*=1+0.12*Math.exp(-((d.y+0.45)**2)/0.06)*d.x*d.x;
+  r-=BR.fis*Math.exp(-(d.x*d.x)/0.018)*smooth(-0.15,0.35,d.y);
   const px=d.x*r,py=d.y*r,pz=d.z*r,s=BR.fs;
   const f=vnoise(px*s,py*s,pz*s)+0.55*vnoise(px*s*2.3+7.7,py*s*2.3+3.1,pz*s*2.3);
-  r+=BR.fold*f;                                                    // giros e sulcos
+  r+=BR.fold*f;
   return out.set(d.x*r,d.y*r,d.z*r);
 }
 const GANG=ANCH.map(a=>{
@@ -345,36 +386,27 @@ const GANG=ANCH.map(a=>{
   const p=cortexSurf(d,new THREE.Vector3()).addScaledVector(d,-4);
   return {C:p,f:d};
 });
-// circuito de Papez: anel sagital inclinado, interno
-const TOR={R:38,r:5,n:new THREE.Vector3(1,0.35,-0.10).normalize(),C:new THREE.Vector3(0,-4,-6)};
+const TOR={R:31,r:5,n:new THREE.Vector3(1,0.35,-0.10).normalize(),C:new THREE.Vector3(0,-2,-4)};
 TOR.u1=new THREE.Vector3().crossVectors(TOR.n,new THREE.Vector3(0,0,1)).normalize();
 TOR.u2=new THREE.Vector3().crossVectors(TOR.n,TOR.u1);
 const CER={C:new THREE.Vector3(0,-47,-58),a:32,b:14,c:22};
 const TRK={C0:new THREE.Vector3(0,-30,-16),C1:new THREE.Vector3(0,-78,-22),r0:9,r1:5.5};
 
-// anel de associação ao redor do hemisfério (fascículos em U)
 const CICLO=[0,1,2,3,4,5,6,7];
 
-// vias de substância branca
 const TRACTS=[
- // 8 radiações talâmicas: tálamo ↔ território
  ...Array.from({length:8},(_,i)=>({from:8,to:i,w:1.0,hub:1,kind:'curve',midk:0.55,label:`Radiação talâmica · ${REGIONS[i].short}`})),
- // 8 fascículos em U (anel de associação)
  ...CICLO.map((g,k)=>({from:g,to:CICLO[(k+1)%8],w:.55,hub:0,kind:'curve',midk:0.86,label:`Fascículo em U ${k+1}`})),
- // 3 fascículos longos
  {from:0,to:7,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo fronto-basal'},
  {from:1,to:6,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo arqueado'},
  {from:2,to:5,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo longitudinal superior'},
- // circuito de Papez
  {from:8,to:9,w:.9,hub:1,kind:'curve',midk:0.8,label:'Fórnix'},
  {from:9,to:1,w:.6,hub:0,kind:'curve',midk:0.70,label:'Escrita mnemônica'},
  {from:9,to:6,w:.6,hub:0,kind:'curve',midk:0.70,label:'Selo temporal'},
  {from:9,to:7,w:.5,hub:0,kind:'curve',midk:0.70,label:'Pacto teleológico'},
- // anel θ e radiações (índices 23,24,25 — usados pelos ciclos)
  {from:9,to:9,w:1.0,kind:'orbit',pts:64,n:110,label:'Circuito de Papez (θ)'},
  {from:8,to:8,w:.9,kind:'helix',phase:0,pts:40,n:60,label:'Radiação talâmica α'},
  {from:8,to:8,w:.9,kind:'helix',phase:Math.PI,pts:40,n:60,label:'Radiação talâmica β'},
- // cerebelo e tronco (índices 26,27)
  {from:8,to:10,w:.8,hub:1,kind:'curve',midk:0.60,label:'Pedúnculo cerebelar superior'},
  {from:11,to:8,w:.7,hub:1,kind:'curve',midk:0.55,label:'Via tálamo-troncal'},
 ];
@@ -382,7 +414,6 @@ TRACTS.forEach(T=>{T.ch=0;T.len=120;if(!T.n)T.n=Math.round(26+T.w*78);if(!T.pts)
 const NT=TRACTS.length; // 28
 const SHORT=REGIONS.map(r=>r.short);
 
-// ciclos cognitivos
 const SCRIPTS=[
  {name:'Consenso global',desc:'tálamo → córtex → tálamo',seq:[
   [0,'b',8,1],[.3,'t',0,1,1],[.3,'t',2,1,1],[.3,'t',5,1,1],[.3,'t',7,1,1],
@@ -510,7 +541,6 @@ function addPick(geo,region,position,quaternion){
   m.userData={name:REGIONS[region].name,region};
   scene.add(m); pickMeshes.push(m); return m;
 }
-// calota cortical real (segue giros/sulcos), nos dois hemisférios
 function capGeometry(i){
   const a=ANCH[i], ad=new THREE.Vector3(...a.d).normalize();
   let t1=new THREE.Vector3(0,1,0).cross(ad); if(t1.lengthSq()<0.01)t1.set(1,0,0); t1.normalize();
@@ -530,7 +560,7 @@ function capGeometry(i){
     idx.push(A,Cc,B, B,Cc,D);
   }
   const n=pts.length/3, il=idx.length;
-  for(let k=0;k<n;k++) pts.push(-pts[k*3],pts[k*3+1],pts[k*3+2]); // espelho x → −x
+  for(let k=0;k<n;k++) pts.push(-pts[k*3],pts[k*3+1],pts[k*3+2]);
   for(let k=0;k<il;k+=3) idx.push(idx[k]+n,idx[k+1]+n,idx[k+2]+n);
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
@@ -539,7 +569,6 @@ function capGeometry(i){
 }
 let outerIco=null, icoIn=null;
 function buildStructures(){
-  // envoltórios dos territórios (fantasma) + volumes de picking
   for(let i=0;i<8;i++){
     const geo=capGeometry(i);
     const ghost=new THREE.Mesh(geo,makeDeepMat(REGIONS[i].color,0.12,i));
@@ -547,7 +576,6 @@ function buildStructures(){
     scene.add(ghost); ghosts.push(ghost);
     addPick(geo,i);
   }
-  // tálamo: gaiola icosaédrica interna + externa giratória
   icoIn=new THREE.LineSegments(
     new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(16,0)),
     pulseLineMat(REGIONS[8].color,0.80,8));
@@ -557,8 +585,7 @@ function buildStructures(){
     pulseLineMat(REGIONS[8].color,0.26,8));
   outerIco.renderOrder=4; scene.add(outerIco);
   addPick(new THREE.SphereGeometry(17,16,12),8);
-  // circuito de Papez: trilhos-guia + toro de picking
-  [35,38,41].forEach((rad,k)=>{
+  [28,31,34].forEach((rad,k)=>{
     const pts=[];
     for(let i=0;i<=128;i++){const a=i/128*Math.PI*2;
       pts.push(new THREE.Vector3(Math.cos(a)*rad,0,Math.sin(a)*rad));}
@@ -568,10 +595,9 @@ function buildStructures(){
     ring.position.copy(TOR.C);
     ring.renderOrder=4; scene.add(ring);
   });
-  const torGeo=new THREE.TorusGeometry(38,11,10,72);
+  const torGeo=new THREE.TorusGeometry(31,10,10,72);
   const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),TOR.n);
   addPick(torGeo,9,TOR.C,q);
-  // cerebelo e tronco
   const cerGeo=new THREE.SphereGeometry(1,14,10); cerGeo.scale(34,16,24);
   addPick(cerGeo,10,CER.C);
   addPick(new THREE.CapsuleGeometry(9,44,4,12),11,new THREE.Vector3(0,-56,-19));
@@ -616,7 +642,6 @@ function storeNeuron(r,pos,normal,helixDir){
   denT.set([0,0.5,1],base); denReg.set([r,r,r],base); denSeed.set([s,s,s],base);
   denIdx.set([base,base+1,base+1,base+2],gi*4);
 }
-// território cortical: casca de matéria cinzenta (~3 mm) nos dois hemisférios
 function genCortex(i,cnt){
   const a=ANCH[i], ad=new THREE.Vector3(...a.d).normalize(), cosLim=Math.cos(a.rad);
   for(let n=0;n<cnt;n++){
@@ -626,14 +651,13 @@ function genCortex(i,cnt){
       if(_v.dot(ad)>cosLim){d=_v.clone();break;}
     }
     if(!d) d=ad.clone();
-    if(R()<0.5) d.x*=-1;                       // espelha no hemisfério oposto
+    if(R()<0.5) d.x*=-1;
     cortexSurf(d,_v2);
-    const dep=0.4+Math.pow(R(),1.6)*3.0;       // profundidade na parede
+    const dep=0.4+Math.pow(R(),1.6)*3.0;
     const q=new THREE.Vector3(_v2.x-d.x*dep,_v2.y-d.y*dep,_v2.z-d.z*dep);
-    storeNeuron(i,q,d.clone(),null);           // neurites tangenciais à superfície
+    storeNeuron(i,q,d.clone(),null);
   }
 }
-// tálamo: ovo denso
 function genArconte(cnt){
   for(let n=0;n<cnt;n++){
     const d=sampleSphere(R(),R(),_v);
@@ -641,7 +665,6 @@ function genArconte(cnt){
     storeNeuron(8,new THREE.Vector3(d.x*k,d.y*k*0.8,d.z*k*1.25),d.clone(),null);
   }
 }
-// circuito de Papez: casca do tubo; neurites fluem ao longo do anel
 function genLaco(cnt){
   for(let n=0;n<cnt;n++){
     const th=R()*Math.PI*2, ph=R()*Math.PI*2, rr=TOR.r*(0.7+0.3*R());
@@ -656,7 +679,6 @@ function genLaco(cnt){
     storeNeuron(9,q,nor,tan);
   }
 }
-// cerebelo: elipsoide com folia, porção antero-superior oclusa pelo occipital
 function genCerebelo(cnt){
   let n=0;
   while(n<cnt){
@@ -670,7 +692,6 @@ function genCerebelo(cnt){
     n++;
   }
 }
-// tronco: funil que desce até o bulbo
 function genTronco(cnt){
   for(let n=0;n<cnt;n++){
     const t=Math.pow(R(),0.8), a=R()*Math.PI*2;
@@ -814,7 +835,8 @@ function endpointFor(r,towardPos){
 function curveSampler(T){
   const Ac=regionCenter(T.from), Bc=regionCenter(T.to);
   const A=endpointFor(T.from,Bc), B=endpointFor(T.to,Ac);
-  const mid=new THREE.Vector3().addVectors(A,B).multiplyScalar(typeof T.midk==='number'?T.midk:0.62);
+  const mid=new THREE.Vector3().addVectors(A,B)
+    .multiplyScalar(0.5*(typeof T.midk==='number'?T.midk:0.62));
   mid.x+=(R()-0.5)*9; mid.y+=(R()-0.5)*9; mid.z+=(R()-0.5)*9;
   const c1=A.clone().lerp(mid,0.45).add(new THREE.Vector3((R()-0.5)*6,(R()-0.5)*6,(R()-0.5)*6));
   const c2=B.clone().lerp(mid,0.45).add(new THREE.Vector3((R()-0.5)*6,(R()-0.5)*6,(R()-0.5)*6));
@@ -835,7 +857,6 @@ function orbitSampler(){
       rz*k+TOR.n.z*Math.sin(t*14+wob)*1.2+TOR.C.z);
   };
 }
-// corona radiata: leque do tálamo até a superfície cortical
 function helixSampler(T){
   const az=R()*Math.PI*2;
   const dTop=new THREE.Vector3(Math.cos(az)*0.42,0.9,Math.sin(az)*0.42).normalize();
@@ -969,20 +990,17 @@ function tickSim(sdt){
     rate[r]+=(R()-0.5)*0.35*sdt;
     rate[r]=clamp(rate[r],0.05,2.2);
   }
-  // navegação do usuário = entrada sensorial no tálamo
   if(excite>0.002){
     rate[8]+=excite*1.1*sdt;
     for(let r=0;r<8;r++) rate[r]+=excite*0.20*sdt;
     if(excite>0.25&&simTime-lastNavLog>6){lastNavLog=simTime;log('spike','entrada sensorial — coerência talâmica');}
     excite*=Math.exp(-sdt*2.2);
   }
-  // circuito de Papez: o pulso de memória que nunca para de circular
   if(simTime>nextOrbit){
     nextOrbit=simTime+4.5+R()*3;
     fireTract(23,1,1.0,true);
     if(simTime-orbitLog>9){orbitLog=simTime;log('spike','circuito de Papez — pulso de recordação em circulação perpétua');}
   }
-  // radiações talâmicas quando o tálamo esquenta
   if(rate[8]>0.85){
     if(R()<sdt*rate[8]*0.5) fireTract(24,1,0.8,true);
     if(R()<sdt*rate[8]*0.5) fireTract(25,1,0.8,true);
@@ -1022,7 +1040,7 @@ const desiredTarget=HOME.clone(), camTarget=HOME.clone();
 let focusIdx=-1, ready=false;
 const hintEl=document.getElementById('hint');
 const fadeHint=()=>{hintEl.style.opacity='0';};
-setTimeout(fadeHint,16000);
+setTimeout(fadeHint,18000);
 
 function anchorCenter(i,out){
   if(i<8) return out.copy(GANG[i].C);
@@ -1034,7 +1052,7 @@ function anchorCenter(i,out){
 function labelAnchor(i,out){
   if(i<8) return out.copy(GANG[i].C).addScaledVector(GANG[i].f,14);
   if(i===8) return out.set(0,10,0);
-  if(i===9) return out.copy(TOR.C).addScaledVector(TOR.u1,42);
+  if(i===9) return out.copy(TOR.C).addScaledVector(TOR.u1,38);
   if(i===10) return out.copy(CER.C).add(_v3.set(0,18,4));
   return out.set(16,-64,-19);
 }
@@ -1117,33 +1135,26 @@ canvas.addEventListener('pointerup',e=>{
   if(hit) focusRegion(hit.userData.region); else clearFocus();
 });
 
-// painéis: colapsar
 document.querySelectorAll('.chev').forEach(c=>c.onclick=()=>document.getElementById(c.dataset.for).classList.toggle('collapsed'));
-// estado da rede
 const segState=document.getElementById('segState');
 segState.querySelectorAll('button').forEach(b=>b.onclick=()=>{
   segState.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
   stateIdx=+b.dataset.s;
   phaseEl.textContent=['quiescência','foco','superposição'][stateIdx];
 });
-// ciclos manuais
 document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{ if(!paused) runScript(SCRIPTS[+b.dataset.sc]); });
-// toggles
 const bindTgl=(id,fn)=>{const el=document.getElementById(id);el.addEventListener('change',()=>fn(el.checked));};
 bindTgl('cycAuto',v=>autoCycles=v);
 bindTgl('tgDend',v=>{if(dendLines)dendLines.visible=v;});
 bindTgl('tgTract',v=>{if(tractLines)tractLines.visible=v;});
 bindTgl('tgSurf',v=>{surfOn=v;ghosts.forEach(g=>g.visible=v);});
 bindTgl('tgBloom',v=>bloom.enabled=v);
-// sliders
 const rgInt=document.getElementById('rgInt'),rgSpd=document.getElementById('rgSpd');
 rgInt.addEventListener('input',()=>{uni.uIntensity.value=+rgInt.value;document.getElementById('vInt').textContent=(+rgInt.value).toFixed(1).replace('.',',')+'×';});
 rgSpd.addEventListener('input',()=>{simSpeed=+rgSpd.value;document.getElementById('vSpd').textContent=(+rgSpd.value).toFixed(1).replace('.',',')+'×';});
-// plano de dissecação
 const tgClip=document.getElementById('tgClip'),rgClip=document.getElementById('rgClip');
 tgClip.addEventListener('change',()=>uni.uClipOn.value=tgClip.checked?1:0);
 rgClip.addEventListener('input',()=>{uni.uClipX.value=+rgClip.value;document.getElementById('vClip').textContent=`x = ${rgClip.value} mm`;});
-// pausa / câmera
 const btnPause=document.getElementById('btnPause');
 btnPause.onclick=()=>{paused=!paused;btnPause.textContent=paused?'RETOMAR SIM':'PAUSAR SIM';};
 document.getElementById('btnResetCam').onclick=()=>{
@@ -1208,7 +1219,387 @@ function updateLabels(){
 }
 
 /* ============================================================
-   10 · CONSTRUÇÃO ASSÍNCRONA E LOOP
+   10 · CÓRTEX DE LINGUAGEM — rede treinável (GRU char-level)
+   Sem nenhuma palavra predefinida: pesos aleatórios no boot,
+   vocabulário mínimo inato (fonemas), resto você ensina.
+   ============================================================ */
+const LN={E:16,C:40,H:64,VMAX:126};
+const SEED=' abcdefghijklmnopqrstuvwxyzáàâãéêíóôõúç0123456789.,!?;:-';
+const D=LN.E+LN.C, H=LN.H;
+const PARAM_KEYS=['Wz','bz','Wr','br','Wn','bn','Un','bhn','Wc','bc','Wo','bo','Emb'];
+const LKEY='menteOmegaLangV1';
+let chars=[], V=2, P={}, AM={}, AV={}, Gg={};
+let stepCount=0, emaLoss=null, AdamT=0, genTemp=0.9;
+let pairs=[], trainQ=[], training=false, brainMsgs=[], pendingTeach=null;
+let lastConsLog=0, lastGenLog=0, saveTimer=null;
+
+const zeros=n=>new Float32Array(n);
+const fresh=(n,s)=>{const a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*s;return a;};
+const norm=s=>s.normalize('NFC').toLowerCase().slice(0,160);
+const cmap=new Map();
+const rebuildMap=()=>{cmap.clear();chars.forEach((c,i)=>cmap.set(c,i+2));};
+
+function initParams(){
+  V=2+chars.length;
+  P.Wz=fresh(H*D,0.12); P.bz=zeros(H);
+  P.Wr=fresh(H*D,0.12); P.br=zeros(H);
+  P.Wn=fresh(H*D,0.18); P.bn=zeros(H);
+  P.Un=fresh(H*H,0.12); P.bhn=zeros(H);
+  P.Wc=fresh(H*LN.C,0.15); P.bc=zeros(H);
+  P.Wo=fresh(V*H,0.12); P.bo=zeros(V);
+  P.Emb=fresh(V*LN.E,0.35);
+  AM={};AV={};Gg={};
+  for(const k of PARAM_KEYS){AM[k]=zeros(P[k].length);AV[k]=zeros(P[k].length);Gg[k]=zeros(P[k].length);}
+}
+function growChar(c){
+  if(cmap.has(c))return;
+  if(V>=2+LN.VMAX){return;}
+  chars.push(c); const oldV=V; V++;
+  const ext=(a,n)=>{const nu=new Float32Array(n);nu.set(a);return nu;};
+  const growRow=(key,rowLen,init)=>{
+    const nu=new Float32Array(V*rowLen);nu.set(P[key]);
+    for(let i=oldV*rowLen;i<nu.length;i++)nu[i]=(Math.random()*2-1)*init;
+    P[key]=nu;AM[key]=ext(AM[key],V*rowLen);AV[key]=ext(AV[key],V*rowLen);Gg[key]=ext(Gg[key],V*rowLen);
+  };
+  const growVec=key=>{
+    const nu=new Float32Array(V);nu.set(P[key]);
+    P[key]=nu;AM[key]=ext(AM[key],V);AV[key]=ext(AV[key],V);Gg[key]=ext(Gg[key],V);
+  };
+  growRow('Emb',LN.E,0.35); growRow('Wo',H,0.12); growVec('bo');
+  cmap.set(c,V-1);
+}
+function encodeCtx(str){
+  const v=new Float32Array(LN.C);
+  const s=' '+str+' ';
+  for(let i=0;i<s.length-2;i++){
+    let h=2166136261>>>0;
+    for(let k=0;k<3;k++){h^=s.charCodeAt(i+k);h=Math.imul(h,16777619)>>>0;}
+    v[h%LN.C]+=((h>>>9)&1)?0.3:-0.3;
+  }
+  for(let i=0;i<LN.C;i++)v[i]=Math.tanh(v[i]);
+  return v;
+}
+function matvec(W,x,nR,nC){
+  const o=new Float32Array(nR);
+  for(let i=0;i<nR;i++){let s=0;const r=i*nC;for(let j=0;j<nC;j++)s+=W[r+j]*x[j];o[i]=s;}
+  return o;
+}
+function gruStep(x,hPrev,cache){
+  const az=matvec(P.Wz,x,H,D), ar=matvec(P.Wr,x,H,D), an=matvec(P.Wn,x,H,D),
+        au=matvec(P.Un,hPrev,H,H);
+  const z=new Float32Array(H), r=new Float32Array(H), n=new Float32Array(H), h=new Float32Array(H);
+  for(let i=0;i<H;i++){
+    z[i]=1/(1+Math.exp(-(az[i]+P.bz[i])));
+    r[i]=1/(1+Math.exp(-(ar[i]+P.br[i])));
+    const u=au[i]+P.bhn[i];
+    n[i]=Math.tanh(an[i]+P.bn[i]+r[i]*u);
+    h[i]=(1-z[i])*hPrev[i]+z[i]*n[i];
+    if(cache){cache.z[i]=z[i];cache.r[i]=r[i];cache.au[i]=u;cache.n[i]=n[i];}
+  }
+  return h;
+}
+function softmaxSample(logits,temp){
+  let mx=-1e30; for(let i=0;i<logits.length;i++)if(logits[i]>mx)mx=logits[i];
+  const p=new Float32Array(logits.length); let s=0;
+  for(let i=0;i<logits.length;i++){p[i]=Math.exp((logits[i]-mx)/temp);s+=p[i];}
+  let r=Math.random()*s;
+  for(let i=0;i<p.length;i++){r-=p[i];if(r<=0)return i;}
+  return p.length-1;
+}
+function netGenerate(ctxStr){
+  const ctx=encodeCtx(ctxStr);
+  const a0=matvec(P.Wc,ctx,H,LN.C);
+  let h=new Float32Array(H);
+  for(let i=0;i<H;i++)h[i]=Math.tanh(a0[i]+P.bc[i]);
+  let prev=0, out='';
+  for(let s=0;s<100;s++){
+    const x=new Float32Array(D);
+    for(let e=0;e<LN.E;e++)x[e]=P.Emb[prev*LN.E+e];
+    for(let c=0;c<LN.C;c++)x[LN.E+c]=ctx[c];
+    h=gruStep(x,h,null);
+    const logits=matvec(P.Wo,h,V,H);
+    for(let i=0;i<V;i++)logits[i]+=P.bo[i];
+    logits[0]=-1e9;
+    const id=softmaxSample(logits,genTemp);
+    if(id===1)break;
+    out+=chars[id-2]; prev=id;
+  }
+  return out;
+}
+// —— forward com cache + backward (BPTT) + Adam ——
+function trainOne(p,lr){
+  const ids=[];
+  for(const ch of p.tgt){const id=cmap.get(ch);if(id===undefined)return 0;ids.push(id);}
+  if(!ids.length)return 0;
+  const T=ids.length+1;                      // alvos: chars + EOS
+  const a0=matvec(P.Wc,p.ctx,H,LN.C);
+  const h0=new Float32Array(H);
+  for(let i=0;i<H;i++)h0[i]=Math.tanh(a0[i]+P.bc[i]);
+  let hPrev=h0;
+  const caches=[];
+  for(let t=0;t<T;t++){
+    const prev=t===0?0:ids[t-1];
+    const x=new Float32Array(D);
+    for(let e=0;e<LN.E;e++)x[e]=P.Emb[prev*LN.E+e];
+    for(let c=0;c<LN.C;c++)x[LN.E+c]=p.ctx[c];
+    const cache={x,hPrev,z:new Float32Array(H),r:new Float32Array(H),au:new Float32Array(H),
+                 n:new Float32Array(H),h:null,logits:null};
+    const h=gruStep(x,hPrev,cache);
+    cache.h=h;
+    cache.logits=matvec(P.Wo,h,V,H);
+    for(let i=0;i<V;i++)cache.logits[i]+=P.bo[i];
+    caches.push(cache); hPrev=h;
+  }
+  let loss=0;
+  const dh=new Float32Array(H), dxT=new Float32Array(D), tmpH=new Float32Array(H);
+  for(let t=T-1;t>=0;t--){
+    const c=caches[t], tgt=t===T-1?1:ids[t];
+    // softmax + CE
+    let mx=-1e30;for(let i=0;i<V;i++)if(c.logits[i]>mx)mx=c.logits[i];
+    let se=0; const psm=new Float32Array(V);
+    for(let i=0;i<V;i++){psm[i]=Math.exp(c.logits[i]-mx);se+=psm[i];}
+    loss+=-Math.log(Math.max(psm[tgt]/se,1e-9));
+    // dlogits
+    const dl=new Float32Array(V);
+    for(let i=0;i<V;i++)dl[i]=psm[i]/se;
+    dl[tgt]-=1;
+    // output grads + dh
+    for(let i=0;i<V;i++){
+      const di=dl[i]; if(Math.abs(di)<1e-12)continue;
+      const row=i*H;
+      for(let j=0;j<H;j++){Gg.Wo[row+j]+=di*c.h[j];dh[j]+=di*P.Wo[row+j];}
+      Gg.bo[i]+=di;
+    }
+    // GRU backward
+    const z=c.z,r=c.r,au=c.au,n=c.n,hp=c.hPrev;
+    tmpH.fill(0);
+    for(let j=0;j<H;j++){
+      const d=dh[j];
+      const dzp=d*(n[j]-hp[j])*z[j]*(1-z[j]);
+      const dn=d*z[j];
+      const dna=dn*(1-n[j])*(1-n[j]);
+      const dr=dna*au[j];
+      const du=dna*r[j];
+      const drp=dr*r[j]*(1-r[j]);
+      for(let jj=0;jj<H;jj++){
+        Gg.Un[j*H+jj]+=du*hp[jj];
+        tmpH[jj]+=P.Un[j*H+jj]*du;
+      }
+      for(let jj=0;jj<D;jj++){
+        Gg.Wn[j*D+jj]+=dna*c.x[jj];
+        Gg.Wr[j*D+jj]+=drp*c.x[jj];
+        Gg.Wz[j*D+jj]+=dzp*c.x[jj];
+        dxT[jj]+=P.Wn[j*D+jj]*dna+P.Wr[j*D+jj]*drp+P.Wz[j*D+jj]*dzp;
+      }
+      Gg.bn[j]+=dna;Gg.br[j]+=drp;Gg.bz[j]+=dzp;
+      tmpH[j]+=d*(1-z[j]);
+    }
+    const prev=t===0?0:ids[t-1];
+    for(let e=0;e<LN.E;e++)Gg.Emb[prev*LN.E+e]+=dxT[e];
+    dxT.fill(0);
+    dh.set(tmpH);
+  }
+  // h0 grads
+  for(let i=0;i<H;i++){
+    const g=dh[i]*(1-h0[i]*h0[i]);
+    for(let j=0;j<LN.C;j++)Gg.Wc[i*LN.C+j]+=g*p.ctx[j];
+    Gg.bc[i]+=g;
+  }
+  const invT=1/T;
+  let sq=0;
+  for(const k of PARAM_KEYS){const g=Gg[k];for(let i=0;i<g.length;i++){g[i]*=invT;sq+=g[i]*g[i];}}
+  const nrm=Math.sqrt(sq), clip=nrm>5?5/nrm:1;
+  AdamT++;
+  if(lr>=0){
+    const b1=0.9,b2=0.999;
+    for(const k of PARAM_KEYS){
+      const w=P[k],g=Gg[k],m=AM[k],vv=AV[k];
+      const c1=1-Math.pow(b1,AdamT), c2=1-Math.pow(b2,AdamT);
+      for(let i=0;i<w.length;i++){
+        const gi=g[i]*clip;
+        m[i]=b1*m[i]+(1-b1)*gi; vv[i]=b2*vv[i]+(1-b2)*gi*gi;
+        w[i]-=lr*(m[i]/c1)/(Math.sqrt(vv[i]/c2)+1e-8);
+      }
+    }
+  }else{ // desaprendizado: subida de gradiente leve (SGD)
+    const s=-lr;
+    for(const k of PARAM_KEYS){
+      const w=P[k],g=Gg[k];
+      for(let i=0;i<w.length;i++)w[i]+=s*g[i]*clip;
+    }
+  }
+  stepCount++;
+  emaLoss=emaLoss==null?loss/T:emaLoss*0.9+(loss/T)*0.1;
+  return loss/T;
+}
+function teachPair(user,target,mode){
+  const ctxStr=norm(user), tgtStr=norm(target).trim();
+  if(!tgtStr)return;
+  for(const ch of new Set(ctxStr+tgtStr)){if(!cmap.has(ch)&&cmap.get(' ')!==undefined)growChar(ch);}
+  if(!cmap.has(ctxStr[0])&&ctxStr[0])growChar(ctxStr[0]);
+  const pair={ctxStr,tgt:tgtStr,ctx:encodeCtx(ctxStr)};
+  pairs.push(pair); if(pairs.length>120)pairs.shift();
+  const cfg={teach:[60,0.015],reinforce:[18,0.008],punish:[8,-0.0035]}[mode];
+  trainQ.push({pair,left:cfg[0],lr:cfg[1],mode});
+  pumpTraining();
+}
+function pumpTraining(){
+  if(training)return;
+  const job=trainQ[0]; if(!job)return;
+  training=true; setLnStatus('treinando…');
+  const tick=()=>{
+    let n=0;
+    while(n<4&&job.left>0){
+      const p=(pairs.length>1&&Math.random()<0.3)?pairs[(Math.random()*pairs.length)|0]:job.pair;
+      trainOne(p,job.lr); job.left--; n++;
+    }
+    updLnStats();
+    if(job.left>0)requestAnimationFrame(tick);
+    else{
+      trainQ.shift(); training=false;
+      onTrainDone(job);
+      pumpTraining();
+    }
+  };
+  requestAnimationFrame(tick);
+}
+function onTrainDone(job){
+  saveSoon();
+  if(ready){
+    burst(0,0.5,true); burst(9,0.6,true); fireTract(23,1,0.9,true);
+    const now=performance.now();
+    if(now-lastConsLog>6000){
+      lastConsLog=now;
+      log('ev',`consolidação — ${job.mode==='teach'?'imitação':job.mode==='reinforce'?'reforço':'desaprendizado'} · perda ${emaLoss.toFixed(3)}`);
+    }
+  }
+  if(job.mode==='teach')addSysMsg('aprendido ✓ — 60 passos de gradiente');
+  if(job.mode==='reinforce')addSysMsg('reforço consolidado ✓');
+  if(job.mode==='punish')addSysMsg('desaprendizado aplicado');
+  setLnStatus(stepCount>0?'plasticidade ativa':'virgem');
+}
+function setLnStatus(s){document.getElementById('lnStatus').textContent=s;}
+function updLnStats(){
+  let n=0; for(const k of PARAM_KEYS)n+=P[k].length;
+  document.getElementById('lnStats').innerHTML=
+    `<span>${fmtBR(n)}</span> sinapses · <span>${fmtBR(stepCount)}</span> passos · perda <span>${emaLoss==null?'—':emaLoss.toFixed(3)}</span> · vocab <span>${chars.length}</span>`;
+}
+function saveLang(){
+  try{
+    const o={chars,steps:stepCount,loss:emaLoss,t:AdamT,
+      pairs:pairs.slice(-60).map(p=>({c:p.ctxStr,t:p.tgt}))};
+    for(const k of PARAM_KEYS)o[k]=Array.from(P[k],x=>+x.toFixed(5));
+    localStorage.setItem(LKEY,JSON.stringify(o));
+  }catch(e){}
+}
+function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(saveLang,2000);}
+function loadLang(){
+  try{
+    const o=JSON.parse(localStorage.getItem(LKEY));
+    if(!o||!o.chars)return false;
+    chars=o.chars; V=2+chars.length;
+    for(const k of PARAM_KEYS){
+      P[k]=Float32Array.from(o[k]);
+      AM[k]=zeros(P[k].length);AV[k]=zeros(P[k].length);Gg[k]=zeros(P[k].length);
+    }
+    stepCount=o.steps||0; emaLoss=o.loss??null; AdamT=o.t||0;
+    pairs=(o.pairs||[]).map(p=>({ctxStr:p.c,tgt:p.t,ctx:encodeCtx(p.c)}));
+    return true;
+  }catch(e){return false;}
+}
+function lesion(){
+  localStorage.removeItem(LKEY);
+  chars=[...SEED]; rebuildMap(); initParams();
+  stepCount=0; emaLoss=null; AdamT=0; pairs=[]; trainQ.length=0;
+  addSysMsg('lesão total — tecido rerandomizado, tudo esquecido');
+  setLnStatus('virgem'); updLnStats();
+  log('ev','lesão total — sinapses do córtex de linguagem rerandomizadas');
+}
+// —— chat UI ——
+const chatScroll=document.getElementById('chatScroll');
+function scrollChat(){chatScroll.scrollTop=chatScroll.scrollHeight;}
+function addSysMsg(t){
+  const d=document.createElement('div'); d.className='msg sys'; d.textContent=t;
+  chatScroll.appendChild(d); scrollChat();
+}
+function addUserMsg(t){
+  const d=document.createElement('div'); d.className='msg user'; d.textContent=t;
+  chatScroll.appendChild(d); scrollChat();
+}
+function addBrainMsg(t,idx){
+  const d=document.createElement('div'); d.className='msg brain';
+  d.textContent=t;
+  const act=document.createElement('div'); act.className='msg-actions';
+  const mk=(label,title,fn)=>{const b=document.createElement('button');b.textContent=label;b.title=title;b.onclick=fn;act.appendChild(b);};
+  mk('✓ reforçar','treinar na resposta que dei',()=>{
+    const m=brainMsgs[idx]; if(m&&m.out){teachPair(m.ctxStr,m.out,'reinforce');if(ready)burst(7,0.5,true);}
+  });
+  mk('✗ punir','desaprender essa resposta',()=>{
+    const m=brainMsgs[idx]; if(m&&m.out){teachPair(m.ctxStr,m.out,'punish');if(ready)burst(3,0.6,true);}
+  });
+  mk('✎ ensinar','digitar a resposta certa',()=>{
+    const m=brainMsgs[idx]; if(!m)return;
+    pendingTeach=m;
+    document.getElementById('teachQuote').textContent=`ensinar resposta para: "${m.ctxStr}"`;
+    document.getElementById('teachBox').style.display='block';
+    document.getElementById('teachInput').focus();
+  });
+  d.appendChild(act);
+  chatScroll.appendChild(d); scrollChat();
+}
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const v=inp.value.trim(); if(!v)return;
+  inp.value='';
+  addUserMsg(v);
+  if(ready)excite=Math.min(excite+0.3,1.2);
+  const ctxStr=norm(v);
+  const out=netGenerate(ctxStr);
+  const idx=brainMsgs.push({ctxStr,out})-1;
+  addBrainMsg(out||'…',idx);
+  if(ready){
+    burst(6,0.5,true); burst(8,0.3,true); fireTract(21,1,0.8,true);
+    const now=performance.now();
+    if(now-lastGenLog>8000){lastGenLog=now;log('spike','córtex temporal → tálamo — token emitido pelo córtex de linguagem');}
+  }
+}
+function submitTeach(){
+  const inp=document.getElementById('teachInput');
+  const v=inp.value.trim();
+  if(!v||!pendingTeach)return;
+  inp.value='';
+  document.getElementById('teachBox').style.display='none';
+  addSysMsg('treinando…');
+  teachPair(pendingTeach.ctxStr,v,'teach');
+  pendingTeach=null;
+}
+document.getElementById('btnSend').onclick=sendChat;
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
+document.getElementById('btnTeach').onclick=submitTeach;
+document.getElementById('teachInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitTeach();});
+document.getElementById('btnLesion').onclick=()=>{
+  if(confirm('LESÃO TOTAL: apaga todo o treinamento do córtex de linguagem. Continuar?'))lesion();
+};
+const rgTemp=document.getElementById('rgTemp');
+rgTemp.addEventListener('input',()=>{
+  genTemp=+rgTemp.value;
+  document.getElementById('vTemp').textContent=genTemp.toFixed(1).replace('.',',');
+});
+function initLang(){
+  chars=[...SEED]; rebuildMap(); initParams();
+  const loaded=loadLang();
+  rebuildMap();
+  updLnStats();
+  if(loaded){
+    setLnStatus(stepCount>0?'plasticidade ativa':'virgem');
+    addSysMsg(`memória restaurada — ${fmtBR(stepCount)} passos de treino sobreviveram ao reload`);
+  }else{
+    addSysMsg('rede aleatória: 0 palavras, 0 conceitos. fale — e ensine com ✎ sob cada resposta.');
+  }
+}
+
+/* ============================================================
+   11 · CONSTRUÇÃO ASSÍNCRONA E LOOP
    ============================================================ */
 const frame=()=>new Promise(r=>requestAnimationFrame(r));
 const bootFill=document.getElementById('bootFill'),bootMsg=document.getElementById('bootMsg'),
@@ -1238,14 +1629,15 @@ async function build(){
   }
   setProg('Somatas e neurites — montando malhas…',0.72); await frame(); assembleNeuronMeshes();
   setProg('Feixes de substância branca…',0.80); await frame(); buildTracts();
-  setProg('Neurônios ocultos — índice de dados…',0.88); await frame();
+  setProg('Neurônios ocultos — índice de dados…',0.86); await frame();
   alloc+=HIDDEN; bootCount.textContent=`${fmtBR(alloc)} / ${fmtBR(TOTAL)} alocados`;
-  setProg('Painéis e rótulos…',0.95); await frame(); buildUI();
+  setProg('Painéis e rótulos…',0.92); await frame(); buildUI();
+  setProg('Córtex de linguagem — sinapses aleatórias…',0.97); await frame(); initLang();
   setProg('pronto',1); await frame();
   document.getElementById('topTotal').textContent=fmtBR(TOTAL);
   document.getElementById('boot').classList.add('done');
   ready=true;
-  log('ev','encéfalo montado — 12 estruturas · 28 vias');
+  log('ev','encéfalo montado — 12 estruturas · 28 vias · 1 rede linguística');
   log('spike','quiescência inicial — ritmo de fundo talâmico');
   animate();
 }
@@ -1265,7 +1657,6 @@ function animate(){
   if(icoIn){icoIn.rotation.y-=dt*0.16;}
   camTarget.lerp(desiredTarget,1-Math.exp(-dt*3));
   controls.target.copy(camTarget);
-  // tooltip
   if(ptr.dirty){
     ptr.dirty=false;
     const hit=castAt(ptr.x,ptr.y);
