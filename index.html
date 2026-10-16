@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Encéfalo Vivo — Atlas Neural Interativo</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23e2a54e' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23e2a54e'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3c-7 0-11 5-11 11 0 9 6 15 11 15s11-6 11-15c0-6-4-11-11-11z' fill='none' stroke='%23b9a58a' stroke-width='1.6'/%3E%3Cpath d='M8 10c3-2 6-1 8 1s5 3 8 1M7 16c3-1 6 0 8 2s5 3 8 1' fill='none' stroke='%23b9a58a' stroke-width='1' opacity='.6'/%3E%3Ccircle cx='16' cy='9' r='2' fill='%23e2a54e'/%3E%3Ccircle cx='12' cy='18' r='1.4' fill='%23e2a54e'/%3E%3Ccircle cx='20' cy='15' r='1.4' fill='%23e2a54e'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#04070b; --panel:rgba(8,13,18,.82); --line:rgba(170,200,220,.10);
+  --bg:#05080c; --panel:rgba(8,13,18,.84); --line:rgba(170,200,220,.10);
   --ink:#c9d4db; --dim:#5f6d78; --accent:#e2a54e; --accent-soft:rgba(226,165,78,.16);
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -19,9 +19,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 canvas#gl{position:fixed;inset:0;display:block;cursor:grab}
 canvas#gl:active{cursor:grabbing}
 #vignette{position:fixed;inset:0;pointer-events:none;z-index:2;
-  background:radial-gradient(ellipse at 50% 42%, transparent 55%, rgba(0,0,0,.42) 100%)}
+  background:radial-gradient(ellipse at 50% 42%, transparent 58%, rgba(0,0,0,.45) 100%)}
 .mono{font-family:'IBM Plex Mono',monospace}
-/* ---------- topo ---------- */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;
   align-items:flex-start;padding:14px 20px;pointer-events:none}
 #topbar>*{pointer-events:auto}
@@ -33,7 +32,6 @@ canvas#gl:active{cursor:grabbing}
 #telemetry .big{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.04em}
 #telemetry .big span{color:var(--accent)}
 #spark{display:block;margin:5px 0 3px auto;opacity:.9}
-/* ---------- painéis ---------- */
 .panel{position:fixed;z-index:15;background:var(--panel);border:1px solid var(--line);
   border-radius:10px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s}
@@ -51,7 +49,6 @@ canvas#gl:active{cursor:grabbing}
 .chev:hover{color:var(--ink)}
 .collapsed .chev svg{transform:rotate(180deg)}
 .chev svg{transition:transform .3s}
-/* lista de regiões */
 .rg-item{padding:7px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent}
 .rg-item:hover{background:rgba(255,255,255,.03)}
 .rg-item.active{border-color:rgba(226,165,78,.45);background:var(--accent-soft)}
@@ -65,7 +62,6 @@ canvas#gl:active{cursor:grabbing}
 #btnOverview{margin-top:8px;width:100%;background:none;border:1px solid var(--line);color:#9fb0bb;
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:6px;border-radius:6px;cursor:pointer}
 #btnOverview:hover{border-color:var(--accent);color:var(--accent)}
-/* painel de foco */
 #focusPanel{display:none;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.18)}
 #focusPanel.show{display:block}
 #focusName{font-size:12.5px;font-weight:600;color:#e8eef2;margin-bottom:5px}
@@ -74,10 +70,9 @@ canvas#gl:active{cursor:grabbing}
 #focusStats span{color:#c8b98a}
 #focusTracts .ft{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;
   font-size:9.5px;color:#7e8f9a;padding:2px 0}
-#focusTracts .ft i{font-style:normal;color:#54636d}
-#focusTracts .fw{flex:1;height:2px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden}
+#focusTracts .ft i{font-style:normal;color:#54636d;flex:1;text-align:right}
+#focusTracts .fw{width:52px;height:2px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden}
 #focusTracts .fw b{display:block;height:100%;background:rgba(226,165,78,.55)}
-/* controles */
 .ctl-group{padding:9px 2px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
 .ctl-group:last-child{border-bottom:none}
 .ctl-label{font-size:9.5px;letter-spacing:.14em;color:#76858f;margin-bottom:7px;font-weight:600}
@@ -105,16 +100,14 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 .btnrow button{flex:1;min-width:70px;background:none;border:1px solid var(--line);color:#9fb0bb;
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:6px 4px;border-radius:6px;cursor:pointer}
 .btnrow button:hover{border-color:var(--accent);color:var(--accent)}
-/* ---------- registro ---------- */
 #eventlog{left:16px;bottom:16px;width:352px;z-index:14}
 #eventlog .pbody{padding:6px 12px 9px;max-height:172px;overflow:hidden}
 .logline{font-family:'IBM Plex Mono',monospace;font-size:9.8px;line-height:1.75;color:#8ea3ad;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:1;transition:opacity .6s}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .6s}
 .logline .t{color:#4d5c66;margin-right:7px}
 .logline.ev{color:var(--accent)}
 .logline.burst{color:#d9c08a}
 .logline.old{opacity:.38}
-/* ---------- diversos ---------- */
 #tooltip{position:fixed;z-index:40;pointer-events:none;display:none;background:rgba(6,10,14,.92);
   border:1px solid rgba(226,165,78,.35);border-radius:6px;padding:7px 10px;max-width:230px}
 #tooltip .tt-name{font-size:11.5px;font-weight:600;color:#ecf1f4}
@@ -126,14 +119,13 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 #labels{position:fixed;inset:0;z-index:10;pointer-events:none;overflow:hidden}
 .blabel{position:absolute;transform:translate(-50%,-130%);pointer-events:auto;cursor:pointer;
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#b9c6cf;
-  text-shadow:0 1px 4px #000;white-space:nowrap;padding:2px 5px}
+  text-shadow:0 1px 4px #000;white-space:nowrap;padding:2px 5px;visibility:hidden}
 .blabel:after{content:"";position:absolute;left:50%;bottom:-7px;width:1px;height:7px;background:rgba(200,215,225,.5)}
 .blabel:hover{color:var(--accent)}
 .blabel.hl{color:var(--accent)}
 #hint{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:13;pointer-events:none;
   font-family:'IBM Plex Mono',monospace;font-size:10px;color:#66757f;letter-spacing:.06em;
   transition:opacity 1s;text-align:center}
-/* ---------- boot ---------- */
 #boot{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;
   align-items:center;justify-content:center;transition:opacity .9s;text-align:center}
 #boot.done{opacity:0;pointer-events:none}
@@ -210,8 +202,8 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
       <input type="range" id="rgInt" min="0.2" max="2" step="0.05" value="1">
       <div class="row" style="margin-top:5px"><label>Velocidade da simulação</label><span class="mono" id="vSpd">1,0×</span></div>
       <input type="range" id="rgSpd" min="0.3" max="2.5" step="0.05" value="1">
-      <div class="row" style="margin-top:5px"><label>Opacidade cortical</label><span class="mono" id="vOpa">85%</span></div>
-      <input type="range" id="rgOpa" min="0" max="1" step="0.01" value="0.85">
+      <div class="row" style="margin-top:5px"><label>Opacidade cortical</label><span class="mono" id="vOpa">90%</span></div>
+      <input type="range" id="rgOpa" min="0.1" max="1" step="0.01" value="0.9">
       <div class="row" style="margin-top:9px"><label for="tgClip">Plano de corte sagital</label><span class="switch"><input type="checkbox" id="tgClip"><i></i></span></div>
       <input type="range" id="rgClip" min="-70" max="70" step="1" value="0" style="margin-top:2px">
       <div class="mono" id="vClip" style="font-size:9.5px;color:var(--dim);text-align:right">x = 0 mm</div>
@@ -268,16 +260,12 @@ const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 const fmtBR=n=>Math.round(n).toLocaleString('pt-BR');
 
 // PRNG determinístico — a arquitetura é idêntica em cada carregamento
-let _seed = 20250613;
-function rnd(){ _seed|=0; _seed=_seed+0x6D2B79F5|0; let t=Math.imul(_seed^_seed>>>15,1|seed_t()); return ((t^t>>>14)>>>0)/4294967296; }
-function seed_t(){ return _seed; }
-// (mulberry32 clássico, reescrito)
 function mulberry(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0;
   let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
   return ((t^t>>>14)>>>0)/4294967296; }; }
 const R = mulberry(20250613);
 
-// ruído de valor 3D determinístico (para giros, sulcos e raggedness)
+// ruído de valor 3D determinístico (giros, sulcos, raggedness de fronteiras)
 function h3(ix,iy,iz){ const s=Math.sin(ix*127.1+iy*311.7+iz*74.7)*43758.5453; return s-Math.floor(s); }
 function vnoise(x,y,z){
   const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z);
@@ -287,13 +275,12 @@ function vnoise(x,y,z){
   const c=lerp(h3(ix,iy,iz+1),h3(ix+1,iy,iz+1),u), d=lerp(h3(ix,iy+1,iz+1),h3(ix+1,iy+1,iz+1),u);
   return lerp(lerp(a,b,v),lerp(c,d,v),w)*2-1;
 }
-
 // alocação exata por maior resto — garante soma fechada
 function allocate(weights,total){
-  const n=weights.length, raw=weights.map(w=>w*total), base=raw.map(Math.floor);
+  const raw=weights.map(w=>w*total), base=raw.map(Math.floor);
   let rest=total-base.reduce((a,b)=>a+b,0);
   const order=raw.map((v,i)=>[v-base[i],i]).sort((a,b)=>b[0]-a[0]);
-  for(let k=0;k<rest;k++) base[order[k%n][1]]++;
+  for(let k=0;k<rest;k++) base[order[k%weights.length][1]]++;
   return base;
 }
 
@@ -313,7 +300,7 @@ const REGIONS=[
  {key:'OCC',name:'Lobo occipital',short:'occipital',color:0xc26a52,visW:.09,hidW:.06,base:.30,
   desc:'Córtex visual primário; emite as vias dorsal (→ parietal) e ventral (→ temporal).',
   cam:{t:[28,20,-68],d:[.4,.5,-.85],dist:245}},
- {key:'CBL',name:'Cerebelo',short:'cerebelo',color:0x8296ab,visW:.28,hidW:.55,base:.35,
+ {key:'CBL',name:'Cerebelo',short:'cerebelo',color:0x8a95a3,visW:.28,hidW:.55,base:.35,
   desc:'Coordenação motora fina e aprendizado procedural. Na escala real, abriga a maioria dos neurônios do encéfalo — por isso sua densidade visível é a maior.',
   cam:{t:[0,-46,-64],d:[.3,.55,-.85],dist:215}},
  {key:'TAL',name:'Tálamo',short:'tálamo',color:0xe6cf9a,visW:.04,hidW:.02,base:.30,
@@ -402,12 +389,12 @@ function corticalSurface(adx,dy,dz,sign,out){
   // sulco central (de Rolando)
   let s=0.20*adx+0.86*dy+0.47*dz;
   let m=smooth(0.02,0.3,adx)*smooth(-0.25,0.1,dy);
-  let d=3.4*Math.exp(-(s*s)/0.0512)*m; // σ≈0.16
+  let d=3.4*Math.exp(-(s*s)/0.0512)*m;
   x-=adx*d; y-=dy*d; z-=dz*d;
   // fissura lateral (de Sylvius)
   s=0.80*dy-0.60*dz;
   m=smooth(0.15,0.45,adx)*smooth(-0.5,-0.05,dz)*(1-smooth(0.72,0.95,dz));
-  d=3.2*Math.exp(-(s*s)/0.0648)*m; // σ≈0.18
+  d=3.2*Math.exp(-(s*s)/0.0648)*m;
   x-=adx*d; y-=dy*d; z-=dz*d;
   // base orbital levemente achatada
   if(y<0&&dz>0.2) y*=1-0.10*smooth(0.2,0.8,dz)*smooth(0,-0.5,dy);
@@ -415,7 +402,6 @@ function corticalSurface(adx,dy,dz,sign,out){
   x=Math.max(x,2.4)*sign;
   return out.set(x,y,z);
 }
-// pesos suaves de lobo (frontal/parietal/temporal/occipital) — fronteiras irregulares
 function lobeWeights(p,adx,dy,dz,out){
   const syl=0.8*dy-0.6*dz;
   const T=smooth(-0.06,-0.24,syl)*smooth(-0.02,-0.2,dy)*smooth(-64,-52,p.z)
@@ -428,10 +414,9 @@ function lobeWeights(p,adx,dy,dz,out){
 }
 const LOBE_NAMES=['Lobo frontal','Lobo parietal','Lobo temporal','Lobo occipital'];
 
-// cerebelo com folia
 function cbSurface(dx,dy,dz,out){
   const p=out.set(dx*47,dy*18,dz*27);
-  p.x+=0; p.y+=-47; p.z+=-66;
+  p.y+=-47; p.z+=-66;
   const fol=Math.abs(Math.sin((p.y-p.z*0.25)*0.85+1.5*vnoise(dy*2.5,dz*2.5,dx*0.3)));
   const vermis=Math.exp(-(p.x*p.x)/81)*smooth(0.1,0.6,dy);
   const off=-(0.9*fol+1.6*vermis);
@@ -446,13 +431,13 @@ const canvas=document.getElementById('gl');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 const PR=Math.min(devicePixelRatio,2);
 renderer.setPixelRatio(PR); renderer.setSize(innerWidth,innerHeight);
-renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
-renderer.setClearColor(0x04070b);
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.95;
+renderer.setClearColor(0x05080c);
 
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,5,2500);
 const CAM0={p:new THREE.Vector3(158,92,232),t:new THREE.Vector3(0,4,0)};
-camera.position.set(268,168,430); // ponto de partida da abertura
+camera.position.set(268,168,430);
 
 const controls=new OrbitControls(camera,canvas);
 controls.target.set(0,4,0);
@@ -463,11 +448,11 @@ controls.autoRotate=true; controls.autoRotateSpeed=0.45;
 const composer=new EffectComposer(renderer);
 composer.setPixelRatio(PR); composer.setSize(innerWidth,innerHeight);
 composer.addPass(new RenderPass(scene,camera));
-const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.85,0.55,0.55);
+// bloom FRACO e seletivo: só o pico do spike haloa — nunca o cérebro inteiro
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.45,0.4,0.78);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
-// uniforms compartilhados por todos os materiais
 const uni={
   uTime:{value:0},
   uRate:{value:new Float32Array(NR)},
@@ -501,16 +486,17 @@ function makeDeepMat(hex,alpha,regionIdx){
         vec3 V=normalize(cameraPosition-vP);
         float fres=pow(1.0-abs(dot(N,V)),2.0);
         float diff=max(dot(N,normalize(vec3(0.45,0.75,0.35))),0.0);
-        float pulse=0.8+0.55*min(uRate,1.3)*(0.5+0.5*sin(uTime*2.7));
-        vec3 col=uColor*(0.35+0.6*diff)+uColor*fres*0.75+vec3(1.0,0.85,0.55)*0.10*min(uRate,1.5);
-        float a=uAlpha*(0.55+0.45*fres)*pulse;
+        float diff2=max(dot(N,normalize(vec3(-0.55,0.10,0.60))),0.0)*0.28;
+        float pulse=0.8+0.45*min(uRate,1.3)*(0.5+0.5*sin(uTime*2.7));
+        vec3 col=uColor*(0.38+0.72*diff+diff2)+uColor*fres*0.55+vec3(1.0,0.85,0.55)*0.07*min(uRate,1.5);
+        float a=uAlpha*(0.62+0.38*fres)*pulse;
         gl_FragColor=vec4(col,a);
       }`,
     transparent:true,depthWrite:false,side:THREE.DoubleSide});
   m.userData.region=regionIdx; deepMats.push(m); return m;
 }
 
-// ---- córtex (por hemisfério, paramétrico) ----
+// ---- córtex: tecido sólido de cera anatômica ----
 const lobeTints=[[1,0.66,0.33],[0.6,0.72,0.42],[0.35,0.65,0.58],[0.77,0.44,0.33]];
 let cortexMat;
 function buildHemisphere(sign){
@@ -542,8 +528,10 @@ function buildHemisphere(sign){
   return mesh;
 }
 function buildCortices(){
+  // leitura de TECIDO primeiro: matéria cinzenta rosada, difuso forte,
+  // quase opaco nas bordas e translúcido apenas de frente (raio-X clínico)
   cortexMat=new THREE.ShaderMaterial({
-    uniforms:{uAlphaC:{value:0.85},uDimC:{value:1},uClipOn:uni.uClipOn,uClipX:uni.uClipX},
+    uniforms:{uAlphaC:{value:0.9},uDimC:{value:1},uClipOn:uni.uClipOn,uClipX:uni.uClipX},
     vertexShader:`
       attribute vec3 aTint; varying vec3 vN,vP,vTint;
       void main(){ vN=normal; vP=position; vTint=aTint;
@@ -554,18 +542,25 @@ function buildCortices(){
         if(uClipOn>0.5 && vP.x>uClipX) discard;
         vec3 N=normalize(vN); if(!gl_FrontFacing) N=-N;
         vec3 V=normalize(cameraPosition-vP);
-        float fres=pow(1.0-abs(dot(N,V)),2.2);
+        float ndv=abs(dot(N,V));
+        float fres=pow(1.0-ndv,2.0);
+        // luz de teto quente + preenchimento frio + retorno do chão
         float d1=max(dot(N,normalize(vec3(0.45,0.75,0.35))),0.0);
-        float d2=max(dot(N,normalize(vec3(-0.6,0.15,0.55))),0.0)*0.35;
-        vec3 alb=vec3(0.315,0.30,0.295)+vTint*0.11;
-        vec3 col=alb*(0.22+0.85*d1+d2)+vec3(0.35,0.45,0.55)*fres*0.26;
-        gl_FragColor=vec4(col,uAlphaC*uDimC*(0.10+0.52*fres));
+        float d2=max(dot(N,normalize(vec3(-0.55,0.10,0.60))),0.0);
+        float d3=max(dot(N,vec3(0.0,-1.0,0.0)),0.0);
+        // toque subsuperficial: bordas de silhueta aquecem levemente
+        vec3 alb=vec3(0.475,0.445,0.425)+vTint*0.10;
+        vec3 col=alb*(0.30+0.95*d1+0.30*d2+0.12*d3);
+        col+=vec3(0.42,0.50,0.58)*pow(1.0-ndv,3.0)*0.30;
+        col+=alb*0.08;
+        float a=uAlphaC*uDimC*(0.16+0.52*fres);
+        gl_FragColor=vec4(col,a);
       }`,
     transparent:true,depthWrite:false,side:THREE.DoubleSide});
   const L=buildHemisphere(1),Rt=buildHemisphere(-1);
   L.renderOrder=Rt.renderOrder=6; scene.add(L,Rt); pickMeshes.push(L,Rt);
 }
-// ---- cerebelo ----
+// ---- cerebelo sólido ----
 function buildCerebellum(){
   const NU=108,NV=64,pos=[],idx=[];
   for(let j=0;j<=NV;j++){const ph=0.01+Math.PI*(1-0.02)*(j/NV);
@@ -577,30 +572,25 @@ function buildCerebellum(){
   const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));
   g.setIndex(idx); g.computeVertexNormals();
-  const mesh=new THREE.Mesh(g,makeDeepMat(REGIONS[4].color,0.42,4));
+  const mesh=new THREE.Mesh(g,makeDeepMat(REGIONS[4].color,0.55,4));
   mesh.renderOrder=4; mesh.userData={name:'Cerebelo',region:4};
   scene.add(mesh); pickMeshes.push(mesh);
 }
-// ---- núcleos profundos + estruturas de apoio ----
 const hipCurves=[];
 function addDeep(mesh,name,region){ mesh.renderOrder=4; mesh.userData={name,region};
   scene.add(mesh); pickMeshes.push(mesh); }
 function buildDeep(){
   buildCerebellum();
   const sphere=(rx,ry,rz)=>{const g=new THREE.SphereGeometry(1,36,26);g.scale(rx,ry,rz);return g;};
-  // tálamo (par)
   [[-11,3,-3],[11,3,-3]].forEach(c=>{
-    const m=new THREE.Mesh(sphere(8.5,7,13),makeDeepMat(REGIONS[5].color,0.18,5));
+    const m=new THREE.Mesh(sphere(8.5,7,13),makeDeepMat(REGIONS[5].color,0.20,5));
     m.position.set(...c); addDeep(m,'Tálamo',5);});
-  // hipotálamo (par)
   [[-3.5,-13,6],[3.5,-13,6]].forEach(c=>{
-    const m=new THREE.Mesh(sphere(6,5.5,8),makeDeepMat(REGIONS[6].color,0.20,6));
+    const m=new THREE.Mesh(sphere(6,5.5,8),makeDeepMat(REGIONS[6].color,0.22,6));
     m.position.set(...c); addDeep(m,'Hipotálamo',6);});
-  // amígdala (par)
   [[-18.5,-16,25],[18.5,-16,25]].forEach(c=>{
-    const m=new THREE.Mesh(sphere(6.5,5.5,7),makeDeepMat(REGIONS[8].color,0.20,8));
+    const m=new THREE.Mesh(sphere(6.5,5.5,7),makeDeepMat(REGIONS[8].color,0.22,8));
     m.position.set(...c); addDeep(m,'Amígdala',8);});
-  // hipocampo (par) — tubo achatado em forma de corno
   const pts=[[12.5,-2,-22],[16,-9,-10],[17,-15,6],[14,-17.5,20],[11,-15,27]];
   [1,-1].forEach(s=>{
     const c=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(p[0]*s,p[1],p[2])));
@@ -609,23 +599,20 @@ function buildDeep(){
     const pa=g.attributes.position;
     for(let i=0;i<pa.count;i++){pa.setZ(i,2+(pa.getZ(i)-2)*0.7);}
     g.computeVertexNormals();
-    const m=new THREE.Mesh(g,makeDeepMat(REGIONS[7].color,0.17,7));
+    const m=new THREE.Mesh(g,makeDeepMat(REGIONS[7].color,0.19,7));
     addDeep(m,'Hipocampo',7);});
-  // corpo caloso
   const cc=new THREE.CatmullRomCurve3([[0,6,-30],[0,15,-12],[0,19,4],[0,16,22],[0,9,30],[0,7,36]]
     .map(p=>new THREE.Vector3(...p)));
   const ccg=new THREE.TubeGeometry(cc,64,6.5,10,false);
   {const pa=ccg.attributes.position;
    for(let i=0;i<pa.count;i++)pa.setY(i,12+(pa.getY(i)-12)*0.42);
    ccg.computeVertexNormals();}
-  const ccm=new THREE.Mesh(ccg,makeDeepMat(0xcdc6ba,0.13,-1));
+  const ccm=new THREE.Mesh(ccg,makeDeepMat(0xcdc6ba,0.15,-1));
   addDeep(ccm,'Corpo caloso',-1);
-  // tronco encefálico
   const tr=new THREE.CatmullRomCurve3([[0,-13,-6],[0,-26,-14],[-1,-38,-32],[0,-47,-48],[2,-53,-60]]
     .map(p=>new THREE.Vector3(...p)));
-  const trm=new THREE.Mesh(new THREE.TubeGeometry(tr,40,8,12,false),makeDeepMat(0xb7ada2,0.11,-1));
+  const trm=new THREE.Mesh(new THREE.TubeGeometry(tr,40,8,12,false),makeDeepMat(0xb7ada2,0.13,-1));
   addDeep(trm,'Tronco encefálico',-1);
-  // massa branca interna (visível no plano de corte)
   const iw=new THREE.Mesh(sphere(46,40,64),makeDeepMat(0x8f9298,0.05,-1));
   iw.position.set(0,-3,-2); iw.renderOrder=5; scene.add(iw);
 }
@@ -638,10 +625,10 @@ const somaPos=new Float32Array(VISIBLE*3), somaReg=new Float32Array(VISIBLE),
 const denPos=new Float32Array(VISIBLE*9), denT=new Float32Array(VISIBLE*3),
       denReg=new Float32Array(VISIBLE*3), denSeed=new Float32Array(VISIBLE*3);
 const denIdx=new Uint32Array(VISIBLE*4);
-const somaData=[]; // posições por região (endpoints dos tratos)
+const somaData=[];
 let somaCursor=0;
 
-function sampleSphere(u,v,out){ // dir uniforme na esfera
+function sampleSphere(u,v,out){
   const y=2*u-1, a=Math.sqrt(Math.max(0,1-y*y)), an=2*Math.PI*v;
   return out.set(Math.cos(an)*a,y,Math.sin(an)*a);
 }
@@ -649,10 +636,9 @@ function storeNeuron(r,pos,dir,tangentialOk){
   const gi=somaCursor++;
   somaPos[gi*3]=pos.x;somaPos[gi*3+1]=pos.y;somaPos[gi*3+2]=pos.z;
   somaReg[gi]=r; somaRnd[gi]=R();
-  let sz=0.9+Math.pow(R(),2)*1.7;
-  if(r===0&&pos.z>50) sz*=1.18;              // pré-frontal levemente mais presente
+  let sz=0.55+Math.pow(R(),2)*1.15;          // pontos pequenos — brilho é evento, não estado
+  if(r===0&&pos.z>50) sz*=1.12;
   somaSize[gi]=sz;
-  // processo (axônio/dendrito) local tortuoso
   const L=2.5+R()*(tangentialOk?6:5);
   const t1=_v2.set(R()*2-1,R()*2-1,R()*2-1);
   if(tangentialOk&&Math.abs(dir.y)<0.95){ t1.crossVectors(dir,t1); if(t1.lengthSq()<1e-6)t1.set(1,0,0); t1.normalize(); }
@@ -677,7 +663,7 @@ function genCorticalLobe(target,cnt){
     const sum=w[0]+w[1]+w[2]+w[3]; let rr=R()*sum,pick=3;
     for(let L=0;L<4;L++){ if(rr<w[L]){pick=L;break;} rr-=w[L]; }
     if(pick!==target) continue;
-    const depth=0.5+Math.pow(R(),1.5)*3.0;   // casca de matéria cinzenta
+    const depth=0.5+Math.pow(R(),1.5)*3.0;
     const q=new THREE.Vector3(p.x-d.x*depth,p.y-d.y*depth,p.z-d.z*depth);
     storeNeuron(target,q,d,true); acc++;
   }
@@ -693,8 +679,7 @@ function genVolume(target,cnt,cx,cy,cz,rx,ry,rz){
 function genHippocampus(cnt){
   for(let i=0;i<cnt;i++){
     const ci=R()<0.5?0:1, c=hipCurves[ci];
-    const t=R();
-    const p=c.getPoint(t);
+    const p=c.getPoint(R());
     const d=sampleSphere(R(),R(),_v);
     const q=new THREE.Vector3(p.x+d.x*2.4*Math.cbrt(R()),p.y+d.y*2.4*Math.cbrt(R()),p.z+d.z*2.4*Math.cbrt(R()));
     storeNeuron(7,q,d,false);
@@ -708,21 +693,9 @@ function genCerebellar(cnt){
     storeNeuron(4,q,d,false);
   }
 }
-function buildNeurons(onProgress){
-  const jobs=[
-    [0,()=>genCorticalLobe(0,visCount[0])],[1,()=>genCorticalLobe(1,visCount[1])],
-    [2,()=>genCorticalLobe(2,visCount[2])],[3,()=>genCorticalLobe(3,visCount[3])],
-    [4,()=>genCerebellar(visCount[4])],
-    [5,()=>genVolume(5,visCount[5],-11,3,-3,8.5,7,13),()=>genVolume(5,0,11,3,-3,8.5,7,13)],
-    [6,()=>genVolume(6,Math.floor(visCount[6]/2),-3.5,-13,6,6,5.5,8),()=>genVolume(6,Math.ceil(visCount[6]/2),3.5,-13,6,6,5.5,8)],
-    [7,()=>genHippocampus(visCount[7])],
-    [8,()=>genVolume(8,Math.floor(visCount[8]/2),-18.5,-16,25,6.5,5.5,7),()=>genVolume(8,Math.ceil(visCount[8]/2),18.5,-16,25,6.5,5.5,7)],
-  ];
-}
-// (executado em etapas assíncronas pelo builder, ver seção 8)
 let somaPoints=null, dendLines=null;
 function assembleNeuronMeshes(){
-  // somatas
+  // SOMATAS — discretas em repouso; flash curto e pontual quando disparam
   const g1=new THREE.BufferGeometry();
   g1.setAttribute('position',new THREE.BufferAttribute(somaPos,3));
   g1.setAttribute('aRegion',new THREE.BufferAttribute(somaReg,1));
@@ -734,37 +707,38 @@ function assembleNeuronMeshes(){
       attribute float aRegion,aRand,aSize;
       uniform float uTime,uIntensity,uPixelRatio,uFocus,uClipOn,uClipX;
       uniform float uRate[${NR}];
-      varying float vFlash,vDim,vReg; varying vec3 vCol;
+      varying float vFlash,vDim; varying vec3 vCol;
       uniform vec3 uColors[${NR}];
       void main(){
-        if(uClipOn>0.5&&position.x>uClipX){gl_Position=vec4(0.,0.,2.,1.);vFlash=0.;vDim=0.;vReg=0.;vCol=vec3(0.);return;}
+        if(uClipOn>0.5&&position.x>uClipX){gl_Position=vec4(0.,0.,2.,1.);vFlash=0.;vDim=0.;vCol=vec3(0.);return;}
         int r=int(aRegion+0.5);
         float rate=uRate[r];
-        float per=0.8+2.2*aRand;
+        float per=0.9+2.6*aRand;
         float ph=fract(uTime/per+aRand*13.7);
-        float p=min(0.10+1.5*rate,0.95);
-        float fl=ph<p?pow(1.0-ph/p,5.0):0.0;
-        vFlash=fl; vReg=aRegion;
+        // em repouso quase ninguém dispara; com ativação, quase todos
+        float p=min(0.05+0.85*rate,0.92);
+        float fl=ph<p?pow(1.0-ph/p,8.0):0.0;   // decay rápido: spike é evento
+        vFlash=fl;
         vCol=uColors[r];
         vDim=uFocus<-0.5?1.0:(abs(aRegion-uFocus)<0.5?1.0:0.10);
         vec4 mv=modelViewMatrix*vec4(position,1.0);
-        gl_PointSize=clamp(aSize*uPixelRatio*(1.0+fl*1.9*uIntensity)*(240.0/max(1.0,-mv.z)),0.6,24.0);
+        gl_PointSize=clamp(aSize*uPixelRatio*(1.0+fl*1.5*uIntensity)*(240.0/max(1.0,-mv.z)),0.5,14.0);
         gl_Position=projectionMatrix*mv;
       }`,
     fragmentShader:`
       uniform float uIntensity;
-      varying float vFlash,vDim,vReg; varying vec3 vCol;
+      varying float vFlash,vDim; varying vec3 vCol;
       void main(){
         float d=length(gl_PointCoord-0.5);
-        float disk=smoothstep(0.5,0.12,d);
-        vec3 col=mix(vCol*0.55,vec3(1.0,0.88,0.58),vFlash);
-        float a=disk*(0.26+vFlash*1.45*uIntensity)*vDim;
+        float disk=smoothstep(0.5,0.08,d);
+        vec3 col=mix(vCol*0.38,vec3(1.0,0.9,0.62),vFlash);
+        float a=disk*(0.05+vFlash*1.0*uIntensity)*vDim;
         if(a<0.004) discard;
-        gl_FragColor=vec4(col*(0.55+vFlash*1.7),a);
+        gl_FragColor=vec4(col*(0.5+vFlash*1.5),a);
       }`,
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   somaPoints=new THREE.Points(g1,m1); somaPoints.renderOrder=1; scene.add(somaPoints);
-  // dendritos
+  // DENDRITOS — quase apagados; a onda de ativação os acende de leve
   const g2=new THREE.BufferGeometry();
   g2.setAttribute('position',new THREE.BufferAttribute(denPos,3));
   g2.setAttribute('aT',new THREE.BufferAttribute(denT,1));
@@ -793,14 +767,13 @@ function assembleNeuronMeshes(){
       uniform float uIntensity;
       varying vec3 vColor; varying float vSpark,vDim,vThick;
       void main(){
-        vec3 col=mix(vColor*0.45,vec3(1.0,0.85,0.55),vSpark*0.85);
-        float a=(0.045+0.5*vSpark*uIntensity)*vDim*vThick;
+        vec3 col=mix(vColor*0.35,vec3(1.0,0.85,0.55),vSpark*0.8);
+        float a=(0.014+0.16*vSpark*uIntensity)*vDim*vThick;
         if(a<0.003) discard;
         gl_FragColor=vec4(col,a);
       }`,
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   dendLines=new THREE.LineSegments(g2,m2); dendLines.renderOrder=2; scene.add(dendLines);
-  // recorta, por região, as posições para os endpoints dos tratos
   let off=0;
   for(let r=0;r<NR;r++){
     const arr=new Float32Array(visCount[r]*3);
@@ -853,7 +826,7 @@ function buildTracts(){
   TRACTS.forEach((T,ti)=>{
     const com=T.from===T.to;
     const involvesFro=T.from===0||T.to===0;
-    const baseA=involvesFro?0.075:0.045;   // pré-frontal: feixes mais visíveis
+    const baseA=involvesFro?0.034:0.02;    // tratos discretos; pré-frontal um pouco mais presente
     let lenSum=0;
     for(let l=0;l<T.n;l++){
       const A=endpointFor(T.from,ti);
@@ -925,10 +898,10 @@ function buildTracts(){
       uniform float uIntensity;
       varying float vGlow,vSel,vBase; varying vec3 vColor;
       void main(){
-        vec3 col=mix(vColor*0.55,vec3(1.0,0.88,0.62),clamp(vGlow,0.0,1.0));
-        float a=(vBase+vGlow*1.15)*vSel*(0.55+0.45*uIntensity);
+        vec3 col=mix(vColor*0.45,vec3(1.0,0.88,0.62),clamp(vGlow,0.0,1.0));
+        float a=(vBase+vGlow*0.85)*vSel*(0.5+0.5*uIntensity);
         if(a<0.004) discard;
-        gl_FragColor=vec4(col*(0.6+1.3*vGlow),a);
+        gl_FragColor=vec4(col*(0.5+1.2*vGlow),a);
       }`,
     transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
   tractLines=new THREE.LineSegments(g,m); tractLines.renderOrder=3; scene.add(tractLines);
@@ -940,7 +913,7 @@ function buildTracts(){
 const rate=REGIONS.map(r=>r.base);
 let simTime=0,paused=false,simSpeed=1,stateIdx=0,autoCycles=true;
 let nextCycle=4,nextPfc=0,excite=0,lastSpikeLog=-9,lastNavLog=-9;
-const pend=[]; // fila de eventos {t,fn}
+const pend=[];
 const schedule=(dt,fn)=>pend.push({t:simTime+dt,fn});
 
 function fireTract(i,dir,amp,quiet){
@@ -957,7 +930,7 @@ function fireTract(i,dir,amp,quiet){
 }
 function burst(r,amp,quiet){
   rate[r]=clamp(rate[r]+amp*0.55,0.05,2.2);
-  if(!quiet) log('burst',`BURST · ${REGIONS[r].name} → ${(rate[r]).toFixed(2).replace('.',',')}×`);
+  if(!quiet) log('burst',`BURST · ${REGIONS[r].name} → ${rate[r].toFixed(2).replace('.',',')}×`);
 }
 function runScript(s){
   log('ev',`CICLO · ${s.name} — ${s.desc}`);
@@ -968,34 +941,29 @@ function runScript(s){
   schedule(s.seq[s.seq.length-1][0]+3,()=>{ if(stateIdx<2) document.getElementById('phaseTxt').textContent=['repouso','atenção','cognição'][stateIdx]; });
 }
 function tickSim(sdt){
-  // eventos agendados (chegadas de spikes, passos de roteiros)
   for(let i=pend.length-1;i>=0;i--) if(pend[i].t<=simTime){ const e=pend[i]; pend.splice(i,1); e.fn(); }
   const stateMul=[0.65,1.0,1.3][stateIdx];
   for(let r=0;r<NR;r++){
     const tgt=REGIONS[r].base*stateMul;
-    rate[r]+= (tgt-rate[r])*sdt/1.1;                      // relaxamento à linha de base
-    rate[r]+=(R()-0.5)*0.35*sdt;                          // ruído de rede
+    rate[r]+=(tgt-rate[r])*sdt/1.1;
+    rate[r]+=(R()-0.5)*0.35*sdt;
     rate[r]=clamp(rate[r],0.05,2.2);
   }
-  // navegação do usuário = entrada sensório-talâmica
   if(excite>0.002){
     rate[5]+=excite*1.1*sdt;
     for(let r=0;r<4;r++) rate[r]+=excite*0.22*sdt;
     if(excite>0.25&&simTime-lastNavLog>6){lastNavLog=simTime;log('spike','entrada sensório-motora — via tálamo');}
     excite*=Math.exp(-sdt*2.2);
   }
-  // disparo espontâneo pelos tratos (proporcional à taxa da região de origem)
   const k=0.5*[0.6,1.0,1.35][stateIdx];
   for(let i=0;i<NT;i++){
     const T=TRACTS[i];
     if(R()<k*rate[T.from]*T.w*sdt) fireTract(i,1,0.45+R()*0.5,true);
     if(R()<k*rate[T.to]  *T.w*sdt) fireTract(i,-1,0.45+R()*0.5,true);
   }
-  // coordenação pré-frontal em estado cognitivo
   if(stateIdx===2&&simTime>nextPfc){
     nextPfc=simTime+2.8; burst(0,0.45,true); fireTract(5,1,0.8,true); fireTract(0,1,0.7,true);
   }
-  // ciclos de pensamento automáticos
   if(autoCycles&&simTime>nextCycle){
     nextCycle=simTime+9+R()*5; runScript(SCRIPTS[R()*SCRIPTS.length|0]);
   }
@@ -1033,7 +1001,7 @@ async function build(){
 }
 
 /* ============================================================
-   9 · INTERFACE — painéis, log, rótulos, régua, foco
+   9 · INTERFACE
    ============================================================ */
 const logBody=document.getElementById('logBody');
 function log(type,msg){
@@ -1046,7 +1014,6 @@ function log(type,msg){
   for(let i=0;i<lines.length;i++) lines[i].classList.toggle('old',i>3);
   while(lines.length>8) logBody.lastChild.remove();
 }
-// lista de regiões
 const rgFill=[],rgHz=[],rgItems=[];
 const regionsList=document.getElementById('regionsList');
 REGIONS.forEach((r,i)=>{
@@ -1060,7 +1027,6 @@ REGIONS.forEach((r,i)=>{
   regionsList.appendChild(d);
   rgFill.push(d.querySelector('.rg-fill')); rgHz.push(d.querySelector('.rg-hz')); rgItems.push(d);
 });
-// painel de foco
 let focusIdx=-1;
 function updateTractSel(){
   const sel=uniTr.uTSel.value;
@@ -1094,20 +1060,17 @@ function clearFocus(){
   if(cortexMat) cortexMat.uniforms.uDimC.value=1;
   focusPanel.classList.remove('show');
   labels.forEach(L=>L.el.classList.remove('hl'));
-  camTween({t:[0,4,0],d:[CAM0.p.x,CAM0.p.y,CAM0.p.z].map((v,k)=>v-(k===0?[0,4,0][k]:0)),dist:0},true);
+  camAnim={t0:performance.now(),dur:1400,p0:camera.position.clone(),t0v:controls.target.clone(),
+           p1:CAM0.p.clone(),t1:CAM0.t.clone()};
 }
 document.getElementById('btnOverview').addEventListener('click',clearFocus);
-// tween de câmera
 let camAnim=null;
-function camTween(cam,absolute){
+function camTween(cam){
   const t=new THREE.Vector3(...cam.t);
-  let p;
-  if(absolute) p=new THREE.Vector3(...cam.d);
-  else{ p=new THREE.Vector3(...cam.d).normalize().multiplyScalar(cam.dist).add(t); }
+  const p=new THREE.Vector3(...cam.d).normalize().multiplyScalar(cam.dist).add(t);
   camAnim={t0:performance.now(),dur:1400,p0:camera.position.clone(),t0v:controls.target.clone(),p1:p,t1:t};
 }
 controls.addEventListener('start',()=>{camAnim=null;controls.autoRotate=false;});
-// rótulos 3D
 const LABELS=[
  ['Lobo frontal',14,38,52,0],['Córtex pré-frontal',16,26,76,0],['Lobo parietal',52,44,-8,1],
  ['Lobo temporal',56,-28,6,2],['Lobo occipital',28,26,-76,3],['Cerebelo',-34,-46,-74,4],
@@ -1116,28 +1079,25 @@ const labels=LABELS.map(L=>{
   const el=document.createElement('div'); el.className='blabel'; el.textContent=L[0].toUpperCase();
   el.addEventListener('click',()=>focusRegion(L[4]));
   document.getElementById('labels').appendChild(el);
-  return {el,pos:new THREE.Vector3(L[1],L[2],L[3]),region:L[4]};
+  return {el,pos:new THREE.Vector3(L[1],L[2],L[3]),region:L[4],visible:false};
 });
 let labelsOn=false;
-// tooltip
 const tooltip=document.getElementById('tooltip'),ttName=tooltip.querySelector('.tt-name'),
       ttSub=tooltip.querySelector('.tt-sub');
 const raycaster=new THREE.Raycaster(); const mouse=new THREE.Vector2(); let mousePx=[0,0];
-let lastPick=0;
+let lastPick=0,hoverRegion=-1,downPos=null;
 canvas.addEventListener('pointermove',e=>{
   mousePx=[e.clientX,e.clientY];
   mouse.x=e.clientX/innerWidth*2-1; mouse.y=-(e.clientY/innerHeight)*2+1;
-  if(e.buttons>0) excite=Math.min(1.2,excite+Math.abs(e.movementX)+Math.abs(e.movementY))*0.012+excite;
+  if(e.buttons>0) excite=Math.min(1.2,excite+(Math.abs(e.movementX)+Math.abs(e.movementY))*0.006);
 });
 canvas.addEventListener('wheel',()=>{excite=Math.min(1.2,excite+0.18);},{passive:true});
-let downPos=null;
 canvas.addEventListener('pointerdown',e=>{downPos=[e.clientX,e.clientY];document.getElementById('hint').style.opacity=0;});
 canvas.addEventListener('pointerup',e=>{
   if(!downPos)return;
   const d=Math.hypot(e.clientX-downPos[0],e.clientY-downPos[1]); downPos=null;
   if(d<5&&hoverRegion>=0) focusRegion(hoverRegion);
 });
-let hoverRegion=-1;
 function doPick(){
   raycaster.setFromCamera(mouse,camera);
   const hits=raycaster.intersectObjects(pickMeshes,false);
@@ -1145,9 +1105,8 @@ function doPick(){
   const h=hits[0].object;
   let name='',sub='',reg=-1;
   if(h.userData.cortex){
-    const p=hits[0].point,w=[0,0,0,0];
-    const dl=p.length()||1;
-    lobeWeights(p,Math.abs(p.x)/Math.max(dl,1)*(Math.hypot(p.x,p.z)||1),p.y/dl,p.z/dl,w);
+    const p=hits[0].point,w=[0,0,0,0],dl=p.length()||1;
+    lobeWeights(p,Math.abs(p.x)*(Math.hypot(p.x,p.z)||1)/Math.max(1,Math.hypot(p.x,p.z)*dl),p.y/dl,p.z/dl,w);
     let best=0; for(let L=1;L<4;L++) if(w[L]>w[best])best=L;
     name=LOBE_NAMES[best]; reg=best;
     sub=`casca de matéria cinzenta · ${fmtBR(visCount[reg])} neurônios visíveis`;
@@ -1183,7 +1142,7 @@ document.querySelectorAll('[data-sc]').forEach(b=>b.addEventListener('click',()=
  $('tgDend').addEventListener('change',e=>dendLines.visible=e.target.checked);
  $('tgTract').addEventListener('change',e=>tractLines.visible=e.target.checked);
  $('tgSurf').addEventListener('change',e=>{pickMeshes.forEach(m=>{if(m.userData.cortex)m.visible=e.target.checked;});});
- $('tgLabels').addEventListener('change',e=>{labelsOn=e.target.checked;labels.forEach(L=>L.el.style.display=labelsOn?'block':'none');});
+ $('tgLabels').addEventListener('change',e=>{labelsOn=e.target.checked;});
  $('tgBloom').addEventListener('change',e=>bloom.enabled=e.target.checked);
  $('rgInt').addEventListener('input',e=>{uni.uIntensity.value=+e.target.value;$('vInt').textContent=(+e.target.value).toFixed(1).replace('.',',')+'×';});
  $('rgSpd').addEventListener('input',e=>{simSpeed=+e.target.value;$('vSpd').textContent=simSpeed.toFixed(1).replace('.',',')+'×';});
@@ -1216,7 +1175,6 @@ function animate(){
   const now=performance.now()/1000; let dt=Math.min(now-lastT,0.05); lastT=now;
   if(!paused){const sdt=dt*simSpeed; simTime+=sdt; tickSim(sdt);}
   uni.uTime.value=simTime;
-  // taxas normalizadas → shaders
   let mean=0;
   for(let r=0;r<NR;r++){
     const d=clamp(rate[r]/1.25,0,1);
@@ -1224,7 +1182,6 @@ function animate(){
     deepMats.forEach(m=>{if(m.userData.region===r)m.uniforms.uRate.value=d;});
   }
   mean/=NR;
-  // câmera
   if(camAnim){
     const e=clamp((performance.now()-camAnim.t0)/camAnim.dur,0,1),s=e*e*(3-2*e);
     camera.position.lerpVectors(camAnim.p0,camAnim.p1,s);
@@ -1232,7 +1189,6 @@ function animate(){
     if(e>=1)camAnim=null;
   }
   controls.update();
-  // HUD (10 Hz)
   hudT+=dt;
   if(hudT>0.1){
     hudT=0;
@@ -1252,25 +1208,26 @@ function animate(){
     sparkHist.forEach((v,i)=>{const y=22-clamp(v/1.6,0,1)*20;i?sctx.lineTo(i*2,y):sctx.moveTo(0,y);});
     sctx.strokeStyle='rgba(226,165,78,.85)';sctx.lineWidth=1;sctx.stroke();}
   // rótulos
-  if(labelsOn||focusIdx>=0){
+  const anyLabels=labelsOn||focusIdx>=0;
+  if(anyLabels){
     camera.getWorldDirection(_camDir);
     labels.forEach(L=>{
-      const show=(labelsOn||L.region===focusIdx)&&L.el.style.display!=='none';
+      const show=(labelsOn||L.region===focusIdx);
+      L.el.style.visibility='hidden';
       if(!show)return;
       const front=_proj.copy(L.pos).sub(camera.position).dot(_camDir)>0;
-      if(!front){L.el.style.visibility='hidden';return;}
+      if(!front)return;
       _proj.copy(L.pos).project(camera);
       L.el.style.visibility='visible';
       L.el.style.left=((_proj.x+1)/2*innerWidth)+'px';
       L.el.style.top=((1-_proj.y)/2*innerHeight)+'px';
     });
-  }
+  }else labels.forEach(L=>L.el.style.visibility='hidden');
   // régua de escala real
   const dist=camera.position.distanceTo(controls.target);
   const pxPerMM=(innerHeight*0.5)/(Math.tan(camera.fov*Math.PI/360)*dist);
   const mm=[5,10,20,50,100,150].reduce((a,b)=>pxPerMM*b>=64?b:a,5);
   rulerBar.style.width=(mm*pxPerMM)+'px'; rulerLabel.textContent=mm+' mm';
-  // fps
   fpsFrames++;
   if(performance.now()-fpsT>500){teleFps.textContent=Math.round(fpsFrames*1000/(performance.now()-fpsT));fpsFrames=0;fpsT=performance.now();}
   composer.render();
@@ -1282,15 +1239,11 @@ function animate(){
 (async()=>{
   try{
     await build();
-    // contagem final auditável
     console.log('visíveis:',visCount.join('+'),'=',visCount.reduce((a,b)=>a+b,0));
     console.log('ocultos:',hidCount.join('+'),'=',hidCount.reduce((a,b)=>a+b,0));
     const b=$('boot'); b.classList.add('done'); setTimeout(()=>b.remove(),1000);
-    camTween({t:[0,4,0],d:[CAM0.p.x-0,CAM0.p.y-4,CAM0.p.z-0],dist:0},true); // mantém
-    // abertura cinematográfica
     camAnim={t0:performance.now(),dur:2600,p0:camera.position.clone(),t0v:controls.target.clone(),
              p1:CAM0.p.clone(),t1:CAM0.t.clone()};
-    // contagem animada no topo
     const t0=performance.now(),el=$('topTotal');
     (function count(){
       const e=clamp((performance.now()-t0)/2400,0,1),s=1-Math.pow(1-e,3);
