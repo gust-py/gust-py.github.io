@@ -179,7 +179,7 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 <div id="topbar">
   <div id="brand">
     <h1>MENTE <b>Ω</b></h1>
-    <p>encéfalo humano volumétrico · <b id="topTotal">0</b> neurônios · <b>100.000</b> renderizados / <b>1.227.898</b> ocultos · <b>1</b> rede linguística virgem</p>
+    <p>encéfalo humano volumétrico · <b id="topTotal">0</b> neurônios · <b>100.000</b> renderizados / <b>2.267.987</b> ocultos · córtex de linguagem <b>~100k sinapses</b></p>
   </div>
   <div id="telemetry">
     <canvas id="spark" width="132" height="24"></canvas>
@@ -267,10 +267,10 @@ input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-ra
 
 <div id="boot">
   <h1>MENTE <b>Ω</b></h1>
-  <div class="sub">montando encéfalo humano — 1.327.898 neurônios + linguagem virgem</div>
+  <div class="sub">montando encéfalo humano — 2.367.987 neurônios + córtex de linguagem ~100k sinapses</div>
   <div id="bootTrack"><div id="bootBar"><div id="bootFill"></div></div></div>
   <div id="bootMsg">inicializando…</div>
-  <div id="bootCount">0 / 1.327.898 alocados</div>
+  <div id="bootCount">0 / 2.367.987 alocados</div>
 </div>
 
 <script type="importmap">
@@ -290,9 +290,9 @@ import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 /* ============================================================
    0 · CONSTANTES E UTILITÁRIOS
    ============================================================ */
-const TOTAL = 1327898;
+const TOTAL = 2367987;
 const VISIBLE = 100000;
-const HIDDEN  = TOTAL - VISIBLE;   // 1.227.898 — dados, não geometria
+const HIDDEN  = TOTAL - VISIBLE;   // 2.267.987 — dados, não geometria
 const CONDUCT = 170;               // mm/s — condução visual
 
 const clamp=(x,a,b)=>x<a?a:x>b?b:x;
@@ -356,7 +356,7 @@ const visCount = allocate(REGIONS.map(r=>r.visW), VISIBLE);
 const hidCount = allocate(REGIONS.map(r=>r.hidW), HIDDEN);
 const totCount = visCount.map((v,i)=>v+hidCount[i]);
 console.assert(visCount.reduce((a,b)=>a+b,0)===VISIBLE,'visíveis devem somar 100.000');
-console.assert(hidCount.reduce((a,b)=>a+b,0)===HIDDEN,'ocultos devem somar 1.227.898');
+console.assert(hidCount.reduce((a,b)=>a+b,0)===HIDDEN,'ocultos devem somar 2.267.987');
 
 // —— morfologia do encéfalo ——
 const BR={A:66,B:80,C:50,fold:3.6,fs:0.075,fis:9};
@@ -1219,15 +1219,14 @@ function updateLabels(){
 }
 
 /* ============================================================
-   10 · CÓRTEX DE LINGUAGEM — rede treinável (GRU char-level)
-   Sem nenhuma palavra predefinida: pesos aleatórios no boot,
-   vocabulário mínimo inato (fonemas), resto você ensina.
+   10 · CÓRTEX DE LINGUAGEM — GRU 128·128 · ~100k sinapses
+   n-gramas de contexto 1–3 chars · sem palavra predefinida
    ============================================================ */
-const LN={E:16,C:40,H:64,VMAX:126};
+const LN={E:24,C:128,H:128,VMAX:160};
 const SEED=' abcdefghijklmnopqrstuvwxyzáàâãéêíóôõúç0123456789.,!?;:-';
 const D=LN.E+LN.C, H=LN.H;
 const PARAM_KEYS=['Wz','bz','Wr','br','Wn','bn','Un','bhn','Wc','bc','Wo','bo','Emb'];
-const LKEY='menteOmegaLangV1';
+const LKEY='menteOmegaLangV2';
 let chars=[], V=2, P={}, AM={}, AV={}, Gg={};
 let stepCount=0, emaLoss=null, AdamT=0, genTemp=0.9;
 let pairs=[], trainQ=[], training=false, brainMsgs=[], pendingTeach=null;
@@ -1268,13 +1267,17 @@ function growChar(c){
   growRow('Emb',LN.E,0.35); growRow('Wo',H,0.12); growVec('bo');
   cmap.set(c,V-1);
 }
+// contexto: hashing espalhado de n-gramas 1, 2 e 3 (bigramas + trigramas)
 function encodeCtx(str){
   const v=new Float32Array(LN.C);
   const s=' '+str+' ';
-  for(let i=0;i<s.length-2;i++){
-    let h=2166136261>>>0;
-    for(let k=0;k<3;k++){h^=s.charCodeAt(i+k);h=Math.imul(h,16777619)>>>0;}
-    v[h%LN.C]+=((h>>>9)&1)?0.3:-0.3;
+  for(let n=1;n<=3;n++){
+    for(let i=0;i+n<=s.length;i++){
+      let h=2166136261>>>0;
+      for(let k=0;k<n;k++){h^=s.charCodeAt(i+k);h=Math.imul(h,16777619)>>>0;}
+      const bin=h%LN.C, sign=((h>>>7)&1)?0.42:-0.42;
+      v[bin]+=sign;
+    }
   }
   for(let i=0;i<LN.C;i++)v[i]=Math.tanh(v[i]);
   return v;
@@ -1312,7 +1315,7 @@ function netGenerate(ctxStr){
   let h=new Float32Array(H);
   for(let i=0;i<H;i++)h[i]=Math.tanh(a0[i]+P.bc[i]);
   let prev=0, out='';
-  for(let s=0;s<100;s++){
+  for(let s=0;s<80;s++){
     const x=new Float32Array(D);
     for(let e=0;e<LN.E;e++)x[e]=P.Emb[prev*LN.E+e];
     for(let c=0;c<LN.C;c++)x[LN.E+c]=ctx[c];
@@ -1354,23 +1357,19 @@ function trainOne(p,lr){
   const dh=new Float32Array(H), dxT=new Float32Array(D), tmpH=new Float32Array(H);
   for(let t=T-1;t>=0;t--){
     const c=caches[t], tgt=t===T-1?1:ids[t];
-    // softmax + CE
     let mx=-1e30;for(let i=0;i<V;i++)if(c.logits[i]>mx)mx=c.logits[i];
     let se=0; const psm=new Float32Array(V);
     for(let i=0;i<V;i++){psm[i]=Math.exp(c.logits[i]-mx);se+=psm[i];}
     loss+=-Math.log(Math.max(psm[tgt]/se,1e-9));
-    // dlogits
     const dl=new Float32Array(V);
     for(let i=0;i<V;i++)dl[i]=psm[i]/se;
     dl[tgt]-=1;
-    // output grads + dh
     for(let i=0;i<V;i++){
       const di=dl[i]; if(Math.abs(di)<1e-12)continue;
       const row=i*H;
       for(let j=0;j<H;j++){Gg.Wo[row+j]+=di*c.h[j];dh[j]+=di*P.Wo[row+j];}
       Gg.bo[i]+=di;
     }
-    // GRU backward
     const z=c.z,r=c.r,au=c.au,n=c.n,hp=c.hPrev;
     tmpH.fill(0);
     for(let j=0;j<H;j++){
@@ -1399,7 +1398,6 @@ function trainOne(p,lr){
     dxT.fill(0);
     dh.set(tmpH);
   }
-  // h0 grads
   for(let i=0;i<H;i++){
     const g=dh[i]*(1-h0[i]*h0[i]);
     for(let j=0;j<LN.C;j++)Gg.Wc[i*LN.C+j]+=g*p.ctx[j];
@@ -1435,11 +1433,10 @@ function trainOne(p,lr){
 function teachPair(user,target,mode){
   const ctxStr=norm(user), tgtStr=norm(target).trim();
   if(!tgtStr)return;
-  for(const ch of new Set(ctxStr+tgtStr)){if(!cmap.has(ch)&&cmap.get(' ')!==undefined)growChar(ch);}
-  if(!cmap.has(ctxStr[0])&&ctxStr[0])growChar(ctxStr[0]);
+  for(const ch of new Set(ctxStr+tgtStr)){if(!cmap.has(ch))growChar(ch);}
   const pair={ctxStr,tgt:tgtStr,ctx:encodeCtx(ctxStr)};
   pairs.push(pair); if(pairs.length>120)pairs.shift();
-  const cfg={teach:[60,0.015],reinforce:[18,0.008],punish:[8,-0.0035]}[mode];
+  const cfg={teach:[50,0.015],reinforce:[20,0.008],punish:[8,-0.0035]}[mode];
   trainQ.push({pair,left:cfg[0],lr:cfg[1],mode});
   pumpTraining();
 }
@@ -1448,10 +1445,10 @@ function pumpTraining(){
   const job=trainQ[0]; if(!job)return;
   training=true; setLnStatus('treinando…');
   const tick=()=>{
-    let n=0;
-    while(n<4&&job.left>0){
+    const t0=performance.now();
+    while(job.left>0 && performance.now()-t0<12){   // orçamento de 12 ms/frame
       const p=(pairs.length>1&&Math.random()<0.3)?pairs[(Math.random()*pairs.length)|0]:job.pair;
-      trainOne(p,job.lr); job.left--; n++;
+      trainOne(p,job.lr); job.left--;
     }
     updLnStats();
     if(job.left>0)requestAnimationFrame(tick);
@@ -1473,7 +1470,7 @@ function onTrainDone(job){
       log('ev',`consolidação — ${job.mode==='teach'?'imitação':job.mode==='reinforce'?'reforço':'desaprendizado'} · perda ${emaLoss.toFixed(3)}`);
     }
   }
-  if(job.mode==='teach')addSysMsg('aprendido ✓ — 60 passos de gradiente');
+  if(job.mode==='teach')addSysMsg('aprendido ✓ — 50 passos de gradiente');
   if(job.mode==='reinforce')addSysMsg('reforço consolidado ✓');
   if(job.mode==='punish')addSysMsg('desaprendizado aplicado');
   setLnStatus(stepCount>0?'plasticidade ativa':'virgem');
@@ -1482,11 +1479,11 @@ function setLnStatus(s){document.getElementById('lnStatus').textContent=s;}
 function updLnStats(){
   let n=0; for(const k of PARAM_KEYS)n+=P[k].length;
   document.getElementById('lnStats').innerHTML=
-    `<span>${fmtBR(n)}</span> sinapses · <span>${fmtBR(stepCount)}</span> passos · perda <span>${emaLoss==null?'—':emaLoss.toFixed(3)}</span> · vocab <span>${chars.length}</span>`;
+    `<span>${fmtBR(n)}</span> sinapses · GRU <span>128×128</span> · ctx <span>128</span> bins · <span>${fmtBR(stepCount)}</span> passos · perda <span>${emaLoss==null?'—':emaLoss.toFixed(3)}</span> · vocab <span>${chars.length}</span>`;
 }
 function saveLang(){
   try{
-    const o={chars,steps:stepCount,loss:emaLoss,t:AdamT,
+    const o={chars,steps:stepCount,loss:emaLoss,t:AdamT,dims:{E:LN.E,C:LN.C,H:LN.H},
       pairs:pairs.slice(-60).map(p=>({c:p.ctxStr,t:p.tgt}))};
     for(const k of PARAM_KEYS)o[k]=Array.from(P[k],x=>+x.toFixed(5));
     localStorage.setItem(LKEY,JSON.stringify(o));
@@ -1496,7 +1493,8 @@ function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(saveLang,2000);
 function loadLang(){
   try{
     const o=JSON.parse(localStorage.getItem(LKEY));
-    if(!o||!o.chars)return false;
+    if(!o||!o.chars||!o.dims)return false;
+    if(o.dims.E!==LN.E||o.dims.C!==LN.C||o.dims.H!==LN.H)return false; // arquitetura divergente
     chars=o.chars; V=2+chars.length;
     for(const k of PARAM_KEYS){
       P[k]=Float32Array.from(o[k]);
@@ -1594,7 +1592,7 @@ function initLang(){
     setLnStatus(stepCount>0?'plasticidade ativa':'virgem');
     addSysMsg(`memória restaurada — ${fmtBR(stepCount)} passos de treino sobreviveram ao reload`);
   }else{
-    addSysMsg('rede aleatória: 0 palavras, 0 conceitos. fale — e ensine com ✎ sob cada resposta.');
+    addSysMsg('rede aleatória: ~100 mil sinapses virgens. fale — e ensine com ✎ sob cada resposta.');
   }
 }
 
@@ -1632,7 +1630,7 @@ async function build(){
   setProg('Neurônios ocultos — índice de dados…',0.86); await frame();
   alloc+=HIDDEN; bootCount.textContent=`${fmtBR(alloc)} / ${fmtBR(TOTAL)} alocados`;
   setProg('Painéis e rótulos…',0.92); await frame(); buildUI();
-  setProg('Córtex de linguagem — sinapses aleatórias…',0.97); await frame(); initLang();
+  setProg('Córtex de linguagem — 100k sinapses aleatórias…',0.97); await frame(); initLang();
   setProg('pronto',1); await frame();
   document.getElementById('topTotal').textContent=fmtBR(TOTAL);
   document.getElementById('boot').classList.add('done');
