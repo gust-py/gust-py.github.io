@@ -25,7 +25,6 @@
     padding:6px 10px;border-radius:7px;cursor:pointer;transition:.15s;font-family:inherit}
   button:hover{border-color:var(--acc);color:#fff;background:#1b2b3c}
   button.on{background:var(--acc);border-color:var(--acc);color:#06202e;font-weight:700}
-  button.warn.on{background:var(--acc2);border-color:var(--acc2)}
   .info{margin-top:10px;font-size:11px;color:var(--dim);font-family:Consolas,monospace;line-height:1.6;
     border-top:1px solid var(--line);padding-top:8px}
   .info b{color:var(--acc);font-weight:600}
@@ -38,7 +37,7 @@
     animation:ld 1.1s ease-in-out infinite alternate}
   @keyframes ld{from{transform:translateX(-60%)}to{transform:translateX(240%)}}
 </style>
-<!-- Inclusão das bibliotecas Three.js via CDN para funcionamento direto no navegador -->
+<!-- Bibliotecas Three.js via CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
@@ -73,7 +72,6 @@
     <button id="btnGhost">Fantasma</button>
     <button id="btnGrid" class="on">Grade</button>
     <button id="btnAxes">Cotas</button>
-    <button id="btnPlat">Ocultar plat.</button>
   </div>
 
   <div class="info" id="info"><b>Nenhum modelo carregado</b><br>Clique em "Abrir arquivo .Build..."</div>
@@ -81,7 +79,6 @@
 <div id="hint">arrastar: orbitar · roda: zoom · botão direito: pan</div>
 
 <script>
-// Tratamento seguro para dados iniciais (caso não venham injetados)
 try {
   window.__DATA__ = typeof __DATA__ !== 'undefined' ? __DATA__ : { models: [] };
 } catch(e) {
@@ -122,17 +119,23 @@ axesGrp = new THREE.Group(); scene.add(axesGrp);
     const g = new THREE.BufferGeometry().setFromPoints([a,b]);
     return new THREE.Line(g, new THREE.LineBasicMaterial({color:col}));
   };
-  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(len,0,0), 0xff5577)); // X
-  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(0,len,0), 0x77ff99)); // Y
-  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,len), 0x5599ff)); // Z
+  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(len,0,0), 0xff5577));
+  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(0,len,0), 0x77ff99));
+  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,len), 0x5599ff));
 })();
 axesGrp.visible = false;
 
 function b64ToF32(b64){
-  const bin = atob(b64), n = bin.length/4;
-  const u8 = new Uint8Array(n*4);
-  for(let i=0;i<n*4;i++) u8[i] = bin.charCodeAt(i);
-  return new Float32Array(u8.buffer);
+  if (!b64) return new Float32Array(0);
+  try {
+    const bin = atob(b64), n = bin.length/4;
+    const u8 = new Uint8Array(n*4);
+    for(let i=0;i<n*4;i++) u8[i] = bin.charCodeAt(i);
+    return new Float32Array(u8.buffer);
+  } catch(err) {
+    console.error("Erro ao descodificar Base64:", err);
+    return new Float32Array(0);
+  }
 }
 
 function clearMeshes(){
@@ -147,20 +150,32 @@ function buildMeshes(){
   
   const unit = new THREE.BoxGeometry(1,1,1);
   data.models.forEach((m, mi)=>{
-    const pos=b64ToF32(m.pos), siz=b64ToF32(m.siz), col=b64ToF32(m.col),
-          qua=b64ToF32(m.qua), tix=b64ToF32(m.typeIdx);
-    const geo = unit;
-    const mat = new THREE.MeshStandardMaterial({roughness:.82, metalness:.18});
+    const pos = b64ToF32(m.pos), 
+          siz = b64ToF32(m.siz), 
+          col = b64ToF32(m.col),
+          qua = b64ToF32(m.qua), 
+          tix = b64ToF32(m.typeIdx);
+
+    // CORRECÇÃO CRUCIAL: vertexColors: true permite que o InstancedMesh pinte os blocos
+    const mat = new THREE.MeshStandardMaterial({roughness:.82, metalness:.18, vertexColors: true});
     const mesh = new THREE.InstancedMesh(geo, mat, m.n);
     mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+    
     const M = new THREE.Matrix4(), Q = new THREE.Quaternion(),
           P = new THREE.Vector3(), S = new THREE.Vector3(), C = new THREE.Color();
-    for(let i=0;i<m.n;i++){
-      P.set(pos[3*i],pos[3*i+1],pos[3*i+2]);
-      S.set(Math.max(siz[3*i],.01),Math.max(siz[3*i+1],.01),Math.max(siz[3*i+2],.01));
-      Q.set(qua[4*i],qua[4*i+1],qua[4*i+2],qua[4*i+3]);
-      M.compose(P,Q,S); mesh.setMatrixAt(i,M);
-      C.setRGB(col[3*i],col[3*i+1],col[3*i+2]);
+          
+    for(let i=0; i<m.n; i++){
+      P.set(pos[3*i] || 0, pos[3*i+1] || 0, pos[3*i+2] || 0);
+      S.set(Math.max(siz[3*i] || 1, .01), Math.max(siz[3*i+1] || 1, .01), Math.max(siz[3*i+2] || 1, .01));
+      Q.set(qua[4*i] || 0, qua[4*i+1] || 0, qua[4*i+2] || 0, qua[4*i+3] || 1);
+      M.compose(P,Q,S); 
+      mesh.setMatrixAt(i,M);
+      
+      if(col.length >= 3*(i+1)) {
+        C.setRGB(col[3*i], col[3*i+1], col[3*i+2]);
+      } else {
+        C.set(0xffffff);
+      }
       mesh.setColorAt(i,C);
     }
     mesh.instanceMatrix.needsUpdate = true;
@@ -171,14 +186,15 @@ function buildMeshes(){
   });
 }
 
-function fmt(n){ return n.toFixed(1); }
+function fmt(n){ return (n || 0).toFixed(1); }
+
 function updateInfo(){
   if(!meshes[currentModel]) return;
   const m = meshes[currentModel].model;
-  const b = m.bbox;
-  const L = b.z[1]-b.z[0], S = b.x[1]-b.x[0], H = b.y[1]-b.y[0];
+  const b = m.bbox || {x:[0,0], y:[0,0], z:[0,0]};
+  const L = (b.z[1]||0)-(b.z[0]||0), S = (b.x[1]||0)-(b.x[0]||0), H = (b.y[1]||0)-(b.y[0]||0);
   document.getElementById('info').innerHTML =
-    `<b>${m.name}</b><br>${m.n.toLocaleString('pt-BR')} blocos · ${m.types.length} tipos<br>` +
+    `<b>${m.name || 'Modelo'}</b><br>${(m.n || 0).toLocaleString('pt-BR')} blocos · ${(m.types ? m.types.length : 0)} tipos<br>` +
     `Compr (Z): ${fmt(L)} · Enverg (X): ${fmt(S)} · Alt (Y): ${fmt(H)}<br>` +
     `Z: [${fmt(b.z[0])}, ${fmt(b.z[1])}] · X: [${fmt(b.x[0])}, ${fmt(b.x[1])}] · Y: [${fmt(b.y[0])}, ${fmt(b.y[1])}]`;
 }
@@ -186,10 +202,10 @@ function updateInfo(){
 function fitCamera(view){
   if(!meshes[currentModel]) return;
   const m = meshes[currentModel].model;
-  const b = m.bbox;
-  const cx=(b.x[0]+b.x[1])/2, cy=(b.y[0]+b.y[1])/2, cz=(b.z[0]+b.z[1])/2;
-  const S=(b.x[1]-b.x[0]), L=(b.z[1]-b.z[0]), H=(b.y[1]-b.y[0]);
-  const R = Math.max(S, L, H);
+  const b = m.bbox || {x:[-50,50], y:[0,100], z:[-50,50]};
+  const cx=((b.x[0]||0)+(b.x[1]||0))/2, cy=((b.y[0]||0)+(b.y[1]||0))/2, cz=((b.z[0]||0)+(b.z[1]||0))/2;
+  const S=((b.x[1]||0)-(b.x[0]||0)), L=((b.z[1]||0)-(b.z[0]||0)), H=((b.y[1]||0)-(b.y[0]||0));
+  const R = Math.max(Math.abs(S), Math.abs(L), Math.abs(H), 50);
   controls.target.set(cx, cy, cz);
   let p;
   if(view==='side')     p=[cx + R*1.55, cy+R*.03, cz];
@@ -228,7 +244,6 @@ function initUIButtons(){
     mBtns.innerHTML = '<span style="font-size:11px;color:var(--dim)">Nenhum modelo</span>';
     return;
   }
-  
   data.models.forEach((m,i)=>{
     const b = document.createElement('button');
     b.textContent = m.name || `Modelo ${i+1}`; 
@@ -237,7 +252,6 @@ function initUIButtons(){
   });
 }
 
-// Configuração do seletor de arquivos .Build
 document.getElementById('btnOpen').onclick = () => document.getElementById('fileInput').click();
 document.getElementById('fileInput').onchange = (e) => {
   const file = e.target.files[0];
@@ -261,7 +275,6 @@ document.getElementById('fileInput').onchange = (e) => {
   reader.readAsText(file);
 };
 
-// UI Geral
 initUIButtons();
 
 document.querySelectorAll('[data-cam]').forEach(b=>{
@@ -294,7 +307,6 @@ if(data && data.models && data.models.length > 0){
 }
 
 resize();
-// Garante a remoção da tela de carregamento independentemente de haver modelo inicial
 document.getElementById('loading').style.display='none';
 loop(t0);
 })();
