@@ -15,7 +15,7 @@
   #c{position:fixed;inset:0;display:block}
   .panel{position:fixed;top:14px;left:14px;background:var(--panel);border:1px solid var(--line);
     border-radius:12px;padding:14px 16px;backdrop-filter:blur(10px);max-width:300px;
-    box-shadow:0 8px 30px rgba(0,0,0,.45)}
+    box-shadow:0 8px 30px rgba(0,0,0,.45);z-index:5}
   .panel h1{font-size:15px;letter-spacing:.5px;margin-bottom:2px;color:#fff}
   .panel h1 span{color:var(--acc)}
   .sub{font-size:11px;color:var(--dim);margin-bottom:10px;font-family:Consolas,monospace}
@@ -46,6 +46,12 @@
 <div class="panel">
   <h1>HANGAR <span>3D</span></h1>
   <div class="sub">BuilderHub · block-build viewer</div>
+
+  <div class="lbl">Arquivo</div>
+  <div class="row">
+    <input type="file" id="fileInput" accept=".build,.json" style="display:none">
+    <button id="btnOpen" style="width:100%">Abrir arquivo .Build...</button>
+  </div>
 
   <div class="lbl">Modelo</div>
   <div class="row" id="modelBtns"></div>
@@ -80,7 +86,7 @@ window.__DATA__ = __DATA__;
 "use strict";
 const V = new THREE.Vector3();
 let renderer, scene, camera, controls, grid, axesGrp;
-const meshes = [];   // {mesh, model, visible}
+let meshes = [];    // {mesh, model, visible}
 let currentModel = 0, ghost = false, showGrid = true;
 
 const canvas = document.getElementById('c');
@@ -124,8 +130,16 @@ function b64ToF32(b64){
   return new Float32Array(u8.buffer);
 }
 
+function clearMeshes(){
+  meshes.forEach(o => scene.remove(o.mesh));
+  meshes = [];
+}
+
 function buildMeshes(){
+  clearMeshes();
   const data = window.__DATA__;
+  if (!data || !data.models) return;
+  
   const unit = new THREE.BoxGeometry(1,1,1);
   data.models.forEach((m, mi)=>{
     const pos=b64ToF32(m.pos), siz=b64ToF32(m.siz), col=b64ToF32(m.col),
@@ -154,6 +168,7 @@ function buildMeshes(){
 
 function fmt(n){ return n.toFixed(1); }
 function updateInfo(){
+  if(!meshes[currentModel]) return;
   const m = meshes[currentModel].model;
   const b = m.bbox;
   const L = b.z[1]-b.z[0], S = b.x[1]-b.x[0], H = b.y[1]-b.y[0];
@@ -164,6 +179,7 @@ function updateInfo(){
 }
 
 function fitCamera(view){
+  if(!meshes[currentModel]) return;
   const m = meshes[currentModel].model;
   const b = m.bbox;
   const cx=(b.x[0]+b.x[1])/2, cy=(b.y[0]+b.y[1])/2, cz=(b.z[0]+b.z[1])/2;
@@ -171,7 +187,7 @@ function fitCamera(view){
   const R = Math.max(S, L, H);
   controls.target.set(cx, cy, cz);
   let p;
-  if(view==='side')       p=[cx + R*1.55, cy+R*.03, cz];
+  if(view==='side')     p=[cx + R*1.55, cy+R*.03, cz];
   else if(view==='front') p=[cx, cy+R*.08, cz + R*1.55];
   else if(view==='rear')  p=[cx, cy+R*.08, cz - R*1.55];
   else if(view==='top')   p=[cx, cy + R*1.6, cz+0.001];
@@ -199,14 +215,49 @@ function setModel(i){
   fitCamera('q'); updateInfo();
 }
 
-// UI
+function initUIButtons(){
+  const mBtns = document.getElementById('modelBtns');
+  mBtns.innerHTML = '';
+  const data = window.__DATA__;
+  if(!data || !data.models) return;
+  
+  data.models.forEach((m,i)=>{
+    const b = document.createElement('button');
+    b.textContent = m.name || `Modelo ${i+1}`; 
+    b.onclick = ()=>setModel(i);
+    mBtns.appendChild(b);
+  });
+}
+
+// Configuração do seletor de arquivos .Build
+document.getElementById('btnOpen').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      let json = JSON.parse(evt.target.result);
+      // Se o arquivo contiver apenas um único modelo em vez de { models: [...] }
+      if(!json.models && json.n && json.pos) {
+        json = { models: [json] };
+      }
+      window.__DATA__ = json;
+      currentModel = 0;
+      initUIButtons();
+      buildMeshes();
+      setModel(0);
+    } catch(err) {
+      alert('Erro ao ler o arquivo .Build / JSON: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+};
+
+// UI Geral
 const data = window.__DATA__;
-const mBtns = document.getElementById('modelBtns');
-data.models.forEach((m,i)=>{
-  const b = document.createElement('button');
-  b.textContent = m.name; b.onclick = ()=>setModel(i);
-  mBtns.appendChild(b);
-});
+initUIButtons();
+
 document.querySelectorAll('[data-cam]').forEach(b=>{
   b.onclick = ()=>{ fitCamera(b.dataset.cam);
     document.querySelectorAll('[data-cam]').forEach(x=>x.classList.remove('on')); b.classList.add('on'); };
@@ -230,9 +281,11 @@ function loop(t){
   renderer.render(scene,camera);
 }
 
-buildMeshes();
+if(data && data.models){
+  buildMeshes();
+  setModel(0);
+}
 resize();
-setModel(0);
 document.getElementById('loading').style.display='none';
 loop(t0);
 })();
