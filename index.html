@@ -3,1682 +3,239 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mente Ω — Encéfalo Volumétrico</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 4 27 10v12L16 28 5 22V10z' fill='none' stroke='%23d98e74' stroke-width='1.6'/%3E%3Cpath d='M16 10l6 3.2v6l-6 3.2-6-3.2v-6z' fill='none' stroke='%23d98e74' stroke-width='1.2' opacity='.7'/%3E%3Ccircle cx='16' cy='16' r='2.2' fill='%23f2e3b8'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Hangar 3D — C-5 → C-17</title>
 <style>
-:root{
-  --bg:#04070b; --panel:rgba(8,13,18,.84); --line:rgba(170,200,220,.10);
-  --ink:#c9d4db; --dim:#5f6d78; --accent:#d98e74; --accent-soft:rgba(217,142,116,.16);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
-  font-family:'Space Grotesk',sans-serif;font-size:13px}
-canvas#gl{position:fixed;inset:0;display:block;cursor:grab}
-canvas#gl:active{cursor:grabbing}
-#vignette{position:fixed;inset:0;pointer-events:none;z-index:2;
-  background:radial-gradient(ellipse at 50% 42%, transparent 58%, rgba(0,0,0,.45) 100%)}
-.mono{font-family:'IBM Plex Mono',monospace}
-#topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;
-  align-items:flex-start;padding:14px 20px;pointer-events:none}
-#topbar>*{pointer-events:auto}
-#brand h1{font-size:15px;font-weight:600;letter-spacing:.16em;color:#e8eef2}
-#brand h1 b{color:var(--accent);font-weight:600}
-#brand p{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:4px;letter-spacing:.03em}
-#brand p b{color:#9fb0bb;font-weight:500}
-#telemetry{text-align:right}
-#telemetry .big{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.04em}
-#telemetry .big span{color:var(--accent)}
-#spark{display:block;margin:5px 0 3px auto;opacity:.9}
-.panel{position:fixed;z-index:15;background:var(--panel);border:1px solid var(--line);
-  border-radius:10px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .3s}
-.panel .phead{display:flex;align-items:center;justify-content:space-between;
-  padding:10px 12px 8px;border-bottom:1px solid var(--line)}
-.panel .phead h2{font-size:10px;font-weight:600;letter-spacing:.18em;color:#8fa0ab}
-.panel .pbody{padding:8px 10px 10px}
-#regionsPanel{left:16px;top:66px;width:252px;max-height:calc(100vh - 320px);display:flex;flex-direction:column}
-#regionsPanel .pbody{overflow-y:auto}
-#controlsPanel{right:16px;top:66px;width:252px;max-height:calc(100vh - 250px);overflow-y:auto}
-#chatPanel{right:16px;bottom:16px;width:344px;max-height:calc(100vh - 420px);display:flex;flex-direction:column}
-#chatPanel .pbody{overflow-y:auto}
-.collapsed .pbody{display:none}
-.collapsed#regionsPanel{transform:translateX(-236px);opacity:.9}
-.collapsed#controlsPanel{transform:translateX(236px);opacity:.9}
-.collapsed#chatPanel{transform:translateX(328px);opacity:.9}
-.chev{cursor:pointer;color:var(--dim);display:flex;padding:2px}
-.chev:hover{color:var(--ink)}
-.collapsed .chev svg{transform:rotate(180deg)}
-.chev svg{transition:transform .3s}
-.rg-item{padding:7px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent}
-.rg-item:hover{background:rgba(255,255,255,.03)}
-.rg-item.active{border-color:rgba(217,142,116,.5);background:var(--accent-soft)}
-.rg-top{display:flex;align-items:center;gap:8px}
-.rg-sw{width:8px;height:8px;border-radius:2px;flex:none}
-.rg-name{flex:1;font-size:12px;color:#d4dde3}
-.rg-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim)}
-.rg-bar{height:2px;background:rgba(255,255,255,.07);border-radius:1px;margin:6px 0 3px;overflow:hidden}
-.rg-fill{height:100%;width:100%;transform-origin:left;transform:scaleX(0);border-radius:1px;transition:transform .35s}
-.rg-hz{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);text-align:right}
-#btnOverview{margin-top:8px;width:100%;background:none;border:1px solid var(--line);color:#9fb0bb;
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:6px;border-radius:6px;cursor:pointer}
-#btnOverview:hover{border-color:var(--accent);color:var(--accent)}
-#focusPanel{display:none;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.18)}
-#focusPanel.show{display:block}
-#focusName{font-size:12.5px;font-weight:600;color:#e8eef2;margin-bottom:5px}
-#focusDesc{font-size:11px;line-height:1.5;color:#93a2ac;margin-bottom:7px}
-#focusStats{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);line-height:1.6;margin-bottom:6px}
-#focusStats span{color:#c8b98a}
-#focusTracts .ft{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;
-  font-size:9.5px;color:#7e8f9a;padding:2px 0}
-#focusTracts .ft i{font-style:normal;color:#54636d;flex:1;text-align:right}
-#focusTracts .fw{width:52px;height:2px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden}
-#focusTracts .fw b{display:block;height:100%;background:rgba(217,142,116,.55)}
-.ctl-group{padding:9px 2px 4px;border-bottom:1px solid rgba(255,255,255,.05)}
-.ctl-group:last-child{border-bottom:none}
-.ctl-label{font-size:9.5px;letter-spacing:.14em;color:#76858f;margin-bottom:7px;font-weight:600}
-.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.seg button{flex:1;background:none;border:none;color:#8494a0;font-family:'IBM Plex Mono',monospace;
-  font-size:9.5px;padding:6px 2px;cursor:pointer;letter-spacing:.03em}
-.seg button.on{background:var(--accent-soft);color:var(--accent)}
-.row{display:flex;align-items:center;justify-content:space-between;padding:4px 0}
-.row label{font-size:11.5px;color:#aebbc4;cursor:pointer}
-.row .mono{font-size:9.5px;color:var(--dim)}
-.switch{position:relative;width:30px;height:16px;flex:none;cursor:pointer}
-.switch input{opacity:0;width:0;height:0}
-.switch i{position:absolute;inset:0;border-radius:9px;background:rgba(255,255,255,.10);transition:.2s}
-.switch i:before{content:"";position:absolute;width:10px;height:10px;border-radius:50%;top:3px;left:3px;
-  background:#6b7a85;transition:.2s}
-.switch input:checked+i{background:var(--accent-soft)}
-.switch input:checked+i:before{left:17px;background:var(--accent)}
-input[type=range]{-webkit-appearance:none;width:100%;height:14px;background:none;cursor:pointer}
-input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(255,255,255,.14);border-radius:1px}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;
-  background:var(--accent);margin-top:-4.5px}
-input[type=range]::-moz-range-track{height:2px;background:rgba(255,255,255,.14)}
-input[type=range]::-moz-range-thumb{width:11px;height:11px;border:none;border-radius:50%;background:var(--accent)}
-.btnrow{display:flex;gap:6px;flex-wrap:wrap}
-.btnrow button{flex:1;min-width:70px;background:none;border:1px solid var(--line);color:#9fb0bb;
-  font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:6px 4px;border-radius:6px;cursor:pointer}
-.btnrow button:hover{border-color:var(--accent);color:var(--accent)}
-#eventlog{left:16px;bottom:16px;width:352px;z-index:14}
-#eventlog .pbody{padding:6px 12px 9px;max-height:172px;overflow:hidden}
-.logline{font-family:'IBM Plex Mono',monospace;font-size:9.8px;line-height:1.75;color:#8ea3ad;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .6s}
-.logline .t{color:#4d5c66;margin-right:7px}
-.logline.ev{color:var(--accent)}
-.logline.burst{color:#d9c08a}
-.logline.old{opacity:.38}
-#tooltip{position:fixed;z-index:40;pointer-events:none;display:none;background:rgba(6,10,14,.92);
-  border:1px solid rgba(217,142,116,.4);border-radius:6px;padding:7px 10px;max-width:240px}
-#tooltip .tt-name{font-size:11.5px;font-weight:600;color:#ecf1f4}
-#tooltip .tt-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8a99a4;margin-top:3px;line-height:1.55}
-#ruler{position:fixed;right:376px;bottom:20px;z-index:12;pointer-events:none;font-family:'IBM Plex Mono',monospace}
-#rulerBar{height:7px;border-left:1px solid #7e8f9a;border-right:1px solid #7e8f9a;border-bottom:1px solid #7e8f9a;position:relative}
-#rulerBar:before{content:"";position:absolute;left:50%;top:2px;bottom:0;width:1px;background:#7e8f9a}
-#rulerLabel{font-size:9.5px;color:#8a99a4;text-align:center;margin-top:3px;letter-spacing:.06em}
-#labels{position:fixed;inset:0;z-index:10;pointer-events:none;overflow:hidden}
-.blabel{position:absolute;transform:translate(-50%,-130%);pointer-events:auto;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:#b9c6cf;
-  text-shadow:0 1px 4px #000;white-space:nowrap;padding:2px 5px;visibility:hidden}
-.blabel:after{content:"";position:absolute;left:50%;bottom:-7px;width:1px;height:7px;background:rgba(200,215,225,.5)}
-.blabel:hover{color:var(--accent)}
-.blabel.hl{color:var(--accent)}
-.blabel.dim{opacity:.22}
-#hint{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:13;pointer-events:none;
-  font-family:'IBM Plex Mono',monospace;font-size:10px;color:#66757f;letter-spacing:.06em;
-  transition:opacity 1s;text-align:center}
-#boot{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;transition:opacity .9s;text-align:center}
-#boot.done{opacity:0;pointer-events:none}
-#boot h1{font-size:21px;font-weight:600;letter-spacing:.24em;color:#e8eef2}
-#boot h1 b{color:var(--accent);font-weight:600}
-#boot .sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin:12px 0 34px;letter-spacing:.05em}
-#bootTrack{width:min(420px,78vw)}
-#bootBar{height:2px;background:rgba(255,255,255,.09);border-radius:1px;overflow:hidden}
-#bootFill{height:100%;width:0;background:var(--accent);transition:width .3s}
-#bootMsg{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7e8d98;margin-top:12px;letter-spacing:.04em;min-height:14px}
-#bootCount{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#54636d;margin-top:5px}
-/* —— chat / córtex de linguagem —— */
-#chatScroll{max-height:210px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px}
-.msg{max-width:86%;padding:6px 9px;border-radius:9px;font-size:11.5px;line-height:1.45;word-wrap:break-word}
-.msg.user{align-self:flex-end;background:rgba(217,142,116,.14);border:1px solid rgba(217,142,116,.3)}
-.msg.brain{align-self:flex-start;background:rgba(255,255,255,.04);border:1px solid var(--line);color:#d4dde3}
-.msg.sys{align-self:center;color:#7e8d98;font-family:'IBM Plex Mono',monospace;font-size:9.5px;max-width:95%;text-align:center}
-.msg-actions{display:flex;gap:5px;margin-top:5px}
-.msg-actions button{background:none;border:1px solid var(--line);color:#8494a0;font-family:'IBM Plex Mono',monospace;
-  font-size:9px;padding:2px 7px;border-radius:5px;cursor:pointer}
-.msg-actions button:hover{border-color:var(--accent);color:var(--accent)}
-.chat-row{display:flex;gap:6px;margin-top:8px}
-.chat-row input{flex:1;min-width:0;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:6px;
-  color:var(--ink);font-size:12px;padding:6px 8px;outline:none;font-family:inherit}
-.chat-row input:focus{border-color:rgba(217,142,116,.5)}
-.chat-row button{background:none;border:1px solid var(--line);color:#9fb0bb;font-family:'IBM Plex Mono',monospace;
-  font-size:10px;padding:6px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
-.chat-row button:hover{border-color:var(--accent);color:var(--accent)}
-#teachBox{border:1px dashed rgba(217,142,116,.45);border-radius:8px;padding:8px;margin-top:8px}
-#teachQuote{font-size:9.5px;color:#8a99a4;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#lnStats{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--dim);margin-top:7px}
-#lnStats span{color:#c8b98a}
-@media (max-width:960px){
-  #regionsPanel{width:232px}#controlsPanel{width:232px}
-  #chatPanel{width:calc(100vw - 32px);max-width:344px}
-  #eventlog{width:calc(100vw - 32px);max-width:352px}
-  #brand p{display:none}
-  #ruler{display:none}
-}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:2px}
+  :root{
+    --bg0:#0b1016; --bg1:#111a24; --panel:rgba(13,20,29,.88); --line:rgba(120,180,255,.14);
+    --txt:#cfe3ff; --dim:#7d93ad; --acc:#4fc3f7; --acc2:#ffb74d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--bg0);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--txt)}
+  #c{position:fixed;inset:0;display:block}
+  .panel{position:fixed;top:14px;left:14px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px;backdrop-filter:blur(10px);max-width:300px;
+    box-shadow:0 8px 30px rgba(0,0,0,.45)}
+  .panel h1{font-size:15px;letter-spacing:.5px;margin-bottom:2px;color:#fff}
+  .panel h1 span{color:var(--acc)}
+  .sub{font-size:11px;color:var(--dim);margin-bottom:10px;font-family:Consolas,monospace}
+  .lbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin:10px 0 5px}
+  .row{display:flex;flex-wrap:wrap;gap:5px}
+  button{background:#16222f;border:1px solid var(--line);color:var(--txt);font-size:11.5px;
+    padding:6px 10px;border-radius:7px;cursor:pointer;transition:.15s;font-family:inherit}
+  button:hover{border-color:var(--acc);color:#fff;background:#1b2b3c}
+  button.on{background:var(--acc);border-color:var(--acc);color:#06202e;font-weight:700}
+  button.warn.on{background:var(--acc2);border-color:var(--acc2)}
+  .info{margin-top:10px;font-size:11px;color:var(--dim);font-family:Consolas,monospace;line-height:1.6;
+    border-top:1px solid var(--line);padding-top:8px}
+  .info b{color:var(--acc);font-weight:600}
+  #hint{position:fixed;bottom:12px;right:16px;font-size:10.5px;color:var(--dim);opacity:.8;
+    font-family:Consolas,monospace}
+  #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:var(--bg0);z-index:10;color:var(--acc);font-family:Consolas,monospace;font-size:13px}
+  .bar{width:220px;height:3px;background:#1b2b3c;border-radius:2px;margin-top:10px;overflow:hidden}
+  .bar i{display:block;height:100%;width:40%;background:var(--acc);border-radius:2px;
+    animation:ld 1.1s ease-in-out infinite alternate}
+  @keyframes ld{from{transform:translateX(-60%)}to{transform:translateX(240%)}}
 </style>
 </head>
 <body>
-<canvas id="gl"></canvas>
-<div id="vignette"></div>
+<canvas id="c"></canvas>
+<div id="loading"><div style="text-align:center">CARREGANDO HANGAR<div class="bar"><i></i></div></div></div>
 
-<div id="topbar">
-  <div id="brand">
-    <h1>MENTE <b>Ω</b></h1>
-    <p>encéfalo humano volumétrico · <b id="topTotal">0</b> neurônios · <b>100.000</b> renderizados / <b>2.267.987</b> ocultos · córtex de linguagem <b>~100k sinapses</b></p>
+<div class="panel">
+  <h1>HANGAR <span>3D</span></h1>
+  <div class="sub">BuilderHub · block-build viewer</div>
+
+  <div class="lbl">Modelo</div>
+  <div class="row" id="modelBtns"></div>
+
+  <div class="lbl">Câmera</div>
+  <div class="row">
+    <button data-cam="q">¾ vista</button>
+    <button data-cam="side">Perfil</button>
+    <button data-cam="front">Frente</button>
+    <button data-cam="top">Topo</button>
+    <button data-cam="rear">Traseira</button>
   </div>
-  <div id="telemetry">
-    <canvas id="spark" width="132" height="24"></canvas>
-    <div class="big">≈ <span id="teleSpk">0,0</span> M spikes/s · <span id="teleHz">0,0</span> Hz médios · <span id="teleFps">—</span> fps</div>
+
+  <div class="lbl">Exibição</div>
+  <div class="row">
+    <button id="btnGhost">Fantasma</button>
+    <button id="btnGrid" class="on">Grade</button>
+    <button id="btnAxes">Cotas</button>
+    <button id="btnPlat">Ocultar plat.</button>
   </div>
+
+  <div class="info" id="info"></div>
 </div>
+<div id="hint">arrastar: orbitar · roda: zoom · botão direito: pan</div>
 
-<div class="panel" id="regionsPanel">
-  <div class="phead"><h2>ANATOMIA — 12 ESTRUTURAS</h2><span class="chev" data-for="regionsPanel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2 4 6l4 4"/></svg></span></div>
-  <div class="pbody">
-    <div id="regionsList"></div>
-    <button id="btnOverview">VOLTAR À VISÃO GERAL</button>
-    <div id="focusPanel">
-      <div id="focusName"></div><div id="focusDesc"></div>
-      <div id="focusStats"></div><div id="focusTracts"></div>
-    </div>
-  </div>
-</div>
+<script>__THREE__</script>
+<script>__ORBIT__</script>
+<script>
+window.__DATA__ = __DATA__;
 
-<div class="panel" id="controlsPanel">
-  <div class="phead"><h2>REDE &amp; RENDER</h2><span class="chev" data-for="controlsPanel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2l4 4-4 4"/></svg></span></div>
-  <div class="pbody">
-    <div class="ctl-group">
-      <div class="ctl-label">ESTADO DA REDE</div>
-      <div class="seg" id="segState">
-        <button data-s="0" class="on">QUIETAÇÃO</button><button data-s="1">FOCO</button><button data-s="2">SUPERPOSIÇÃO</button>
-      </div>
-      <div class="row" style="margin-top:8px"><label for="cycAuto">Ciclos cognitivos automáticos</label>
-        <span class="switch"><input type="checkbox" id="cycAuto" checked><i></i></span></div>
-      <div class="ctl-label" style="margin-top:9px">DISPARAR CICLO</div>
-      <div class="btnrow">
-        <button data-sc="0">CONSENSO</button><button data-sc="1">EVOCAR</button>
-        <button data-sc="3">TELEOLOGIA</button><button data-sc="4">SÍNTESE</button>
-      </div>
-    </div>
-    <div class="ctl-group">
-      <div class="ctl-label">CAMADAS</div>
-      <div class="row"><label for="tgDend">Neurites locais</label><span class="switch"><input type="checkbox" id="tgDend" checked><i></i></span></div>
-      <div class="row"><label for="tgTract">Feixes de substância branca</label><span class="switch"><input type="checkbox" id="tgTract" checked><i></i></span></div>
-      <div class="row"><label for="tgSurf">Envoltórios dos territórios</label><span class="switch"><input type="checkbox" id="tgSurf"><i></i></span></div>
-      <div class="row"><label for="tgLabels">Rótulos estruturais</label><span class="switch"><input type="checkbox" id="tgLabels"><i></i></span></div>
-      <div class="row"><label for="tgBloom">Difusão dos spikes (bloom)</label><span class="switch"><input type="checkbox" id="tgBloom" checked><i></i></span></div>
-    </div>
-    <div class="ctl-group">
-      <div class="ctl-label">PARÂMETROS</div>
-      <div class="row"><label>Intensidade dos spikes</label><span class="mono" id="vInt">2,0×</span></div>
-      <input type="range" id="rgInt" min="0.2" max="3" step="0.05" value="2">
-      <div class="row" style="margin-top:5px"><label>Velocidade da simulação</label><span class="mono" id="vSpd">1,0×</span></div>
-      <input type="range" id="rgSpd" min="0.3" max="2.5" step="0.05" value="1">
-      <div class="row" style="margin-top:9px"><label for="tgClip">Plano de dissecação</label><span class="switch"><input type="checkbox" id="tgClip"><i></i></span></div>
-      <input type="range" id="rgClip" min="-110" max="110" step="1" value="0" style="margin-top:2px">
-      <div class="mono" id="vClip" style="font-size:9.5px;color:var(--dim);text-align:right">x = 0 mm</div>
-    </div>
-    <div class="ctl-group">
-      <div class="btnrow"><button id="btnPause">PAUSAR SIM</button><button id="btnResetCam">CÂMERA</button></div>
-    </div>
-  </div>
-</div>
+(function(){
+"use strict";
+const V = new THREE.Vector3();
+let renderer, scene, camera, controls, grid, axesGrp;
+const meshes = [];   // {mesh, model, visible}
+let currentModel = 0, ghost = false, showGrid = true;
 
-<div class="panel" id="chatPanel">
-  <div class="phead"><h2>CÓRTEX LINGUAGEM — <span id="lnStatus">virgem</span></h2><span class="chev" data-for="chatPanel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2 4 6l4 4"/></svg></span></div>
-  <div class="pbody">
-    <div id="chatScroll"></div>
-    <div id="teachBox" style="display:none">
-      <div id="teachQuote" class="mono"></div>
-      <div class="chat-row"><input id="teachInput" placeholder="a resposta certa era…"><button id="btnTeach">TREINAR</button></div>
-    </div>
-    <div class="chat-row"><input id="chatInput" placeholder="diga algo — ele ainda não sabe nada" maxlength="160"><button id="btnSend">ENVIAR</button></div>
-    <div id="lnStats">— sinapses · 0 passos · perda —</div>
-    <div class="row" style="margin-top:4px"><label>Temperatura da geração</label><span class="mono" id="vTemp">0,9</span></div>
-    <input type="range" id="rgTemp" min="0.3" max="1.6" step="0.05" value="0.9">
-    <div class="btnrow" style="margin-top:7px"><button id="btnLesion">LESÃO TOTAL</button></div>
-  </div>
-</div>
+const canvas = document.getElementById('c');
+renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
 
-<div class="panel" id="eventlog">
-  <div class="phead"><h2>REGISTRO COGNITIVO — <span id="phaseTxt">quiescência</span></h2></div>
-  <div class="pbody" id="logBody"></div>
-</div>
+scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b1016);
+scene.fog = new THREE.Fog(0x0b1016, 900, 2400);
 
-<div id="tooltip"><div class="tt-name"></div><div class="tt-sub"></div></div>
-<div id="labels"></div>
-<div id="ruler"><div id="rulerBar" style="width:60px"></div><div id="rulerLabel">50 mm</div></div>
-<div id="hint">arraste para orbitar · role para aproximar · clique numa estrutura para focá-la<br>o painel CÓRTEX LINGUAGEM é uma rede virgem — ensine com ✎, recompense com ✓</div>
+camera = new THREE.PerspectiveCamera(50, 1, 0.5, 6000);
+controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = 0.08;
 
-<div id="boot">
-  <h1>MENTE <b>Ω</b></h1>
-  <div class="sub">montando encéfalo humano — 2.367.987 neurônios + córtex de linguagem ~100k sinapses</div>
-  <div id="bootTrack"><div id="bootBar"><div id="bootFill"></div></div></div>
-  <div id="bootMsg">inicializando…</div>
-  <div id="bootCount">0 / 2.367.987 alocados</div>
-</div>
+// Luzes
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x2a3440, 0.95); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff2dd, 1.25); sun.position.set(180, 320, 140); scene.add(sun);
+const fill = new THREE.DirectionalLight(0x88aaff, 0.35); fill.position.set(-200, 120, -160); scene.add(fill);
 
-<script type="importmap">
-{"imports":{
-  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-}}
-</script>
-<script type="module">
-import * as THREE from 'three';
-import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
-import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
-import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
-import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+// Grid
+grid = new THREE.GridHelper(1200, 60, 0x2a4a6a, 0x16283a);
+grid.material.transparent = true; grid.material.opacity = 0.55; scene.add(grid);
 
-/* ============================================================
-   0 · CONSTANTES E UTILITÁRIOS
-   ============================================================ */
-const TOTAL = 2367987;
-const VISIBLE = 100000;
-const HIDDEN  = TOTAL - VISIBLE;   // 2.267.987 — dados, não geometria
-const CONDUCT = 170;               // mm/s — condução visual
-
-const clamp=(x,a,b)=>x<a?a:x>b?b:x;
-const lerp=(a,b,t)=>a+(b-a)*t;
-const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
-const fmtBR=n=>Math.round(n).toLocaleString('pt-BR');
-
-function mulberry(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0;
-  let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
-  return ((t^t>>>14)>>>0)/4294967296; }; }
-const R = mulberry(20260214);
-
-function h3(ix,iy,iz){ const s=Math.sin(ix*127.1+iy*311.7+iz*74.7)*43758.5453; return s-Math.floor(s); }
-function vnoise(x,y,z){
-  const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z);
-  const fx=x-ix,fy=y-iy,fz=z-iz;
-  const u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),w=fz*fz*(3-2*fz);
-  const a=lerp(h3(ix,iy,iz),h3(ix+1,iy,iz),u), b=lerp(h3(ix,iy+1,iz),h3(ix+1,iy+1,iz),u);
-  const c=lerp(h3(ix,iy,iz+1),h3(ix+1,iy,iz+1),u), d=lerp(h3(ix,iy+1,iz+1),h3(ix+1,iy+1,iz+1),u);
-  return lerp(lerp(a,b,v),lerp(c,d,v),w)*2-1;
-}
-function allocate(weights,total){
-  const raw=weights.map(w=>w*total), base=raw.map(Math.floor);
-  let rest=total-base.reduce((a,b)=>a+b,0);
-  const order=raw.map((v,i)=>[v-base[i],i]).sort((a,b)=>b[0]-a[0]);
-  for(let k=0;k<rest;k++) base[order[k%weights.length][1]]++;
-  return base;
-}
-
-/* ============================================================
-   1 · ANATOMIA — encéfalo humano (mm) · y=dorsal, z=anterior
-   ============================================================ */
-const REGIONS=[
- {key:'PFC',name:'Córtex pré-frontal',short:'pré-frontal',color:0xd98e74,visW:.075,hidW:.090,base:.26,
-  desc:'Planejamento, memória de trabalho e abstração: o frontal anterior sustenta a simulação de futuros antes que ocorram.'},
- {key:'PM2',name:'Córtex pré-motor',short:'pré-motor',color:0xd4a26a,visW:.075,hidW:.090,base:.24,
-  desc:'Ensaio motor e imitação: ações são simuladas aqui antes de qualquer execução.'},
- {key:'PAR',name:'Córtex parietal',short:'parietal',color:0xc9b878,visW:.075,hidW:.090,base:.24,
-  desc:'Integração somatossensorial e espaço: onde o corpo e o mundo ao redor viram um mapa único.'},
- {key:'CIN',name:'Córtex cingulado',short:'cingulado',color:0x9fb072,visW:.075,hidW:.090,base:.22,
-  desc:'Monitor de conflito e motivação: a parede medial que audita cada ciclo antes do commit.'},
- {key:'OCC',name:'Córtex occipital',short:'occipital',color:0x6fae9c,visW:.075,hidW:.090,base:.22,
-  desc:'Reconstrução visual: bordas, movimento e cor montados em objetos plausíveis.'},
- {key:'TPJ',name:'Junção temporoparietal',short:'TPJ',color:0x6f9fc4,visW:.075,hidW:.090,base:.22,
-  desc:'Teoria da mente: o lugar onde outras mentes são modeladas.'},
- {key:'TMP',name:'Córtex temporal',short:'temporal',color:0xa08bc9,visW:.075,hidW:.090,base:.24,
-  desc:'Semântica, audição e a borda da memória declarativa: o dicionário vivo.'},
- {key:'OBF',name:'Córtex órbito-frontal',short:'órbito-front.',color:0xd08aa0,visW:.075,hidW:.090,base:.20,
-  desc:'Valor e recompensa: reescreve objetivos a cada ciclo; última instância cortical antes do tálamo.'},
- {key:'TAL',name:'Tálamo — núcleo coerente',short:'tálamo',color:0xf2e3b8,visW:.150,hidW:.100,base:.34,
-  desc:'O árbitro profundo: funde todos os territórios num único estado de consenso.'},
- {key:'PAP',name:'Circuito de Papez',short:'papez',color:0xe8b45f,visW:.120,hidW:.100,base:.26,
-  desc:'Hipocampo, fórnix e corpos mamilares em circulação perpétua — a memória que se reescreve.'},
- {key:'CER',name:'Cerebelo',short:'cerebelo',color:0xc47f6a,visW:.100,hidW:.060,base:.18,
-  desc:'Folia que afinam cada ideia no tempo: predição em escala de milissegundos.'},
- {key:'TRK',name:'Tronco encefálico',short:'tronco',color:0xb87a6f,visW:.030,hidW:.020,base:.14,
-  desc:'Vigília, ritmo e respiração — o que sustenta tudo o que pensa.'},
-];
-const NR=REGIONS.length; // 12
-const visCount = allocate(REGIONS.map(r=>r.visW), VISIBLE);
-const hidCount = allocate(REGIONS.map(r=>r.hidW), HIDDEN);
-const totCount = visCount.map((v,i)=>v+hidCount[i]);
-console.assert(visCount.reduce((a,b)=>a+b,0)===VISIBLE,'visíveis devem somar 100.000');
-console.assert(hidCount.reduce((a,b)=>a+b,0)===HIDDEN,'ocultos devem somar 2.267.987');
-
-// —— morfologia do encéfalo ——
-const BR={A:66,B:80,C:50,fold:3.6,fs:0.075,fis:9};
-const ANCH=[
- {d:[0.00,0.42, 0.91],rad:0.68}, // 0 pré-frontal
- {d:[0.62,0.50, 0.60],rad:0.56}, // 1 pré-motor
- {d:[0.42,0.78,-0.46],rad:0.56}, // 2 parietal
- {d:[0.02,0.90,-0.42],rad:0.48}, // 3 cingulado
- {d:[0.05,0.10,-0.99],rad:0.52}, // 4 occipital
- {d:[0.86,0.05,-0.50],rad:0.54}, // 5 TPJ
- {d:[0.92,-0.30,0.25],rad:0.62}, // 6 temporal
- {d:[0.30,-0.72,0.63],rad:0.55}, // 7 órbito-frontal
-];
-function cortexSurf(d,out){
-  let r=1/Math.sqrt((d.x/BR.A)**2+(d.y/BR.C)**2+(d.z/BR.B)**2);
-  r*=1-0.16*smooth(0.1,0.95,d.z);
-  if(d.y<0) r*=1+0.22*d.y;
-  r*=1+0.12*Math.exp(-((d.y+0.45)**2)/0.06)*d.x*d.x;
-  r-=BR.fis*Math.exp(-(d.x*d.x)/0.018)*smooth(-0.15,0.35,d.y);
-  const px=d.x*r,py=d.y*r,pz=d.z*r,s=BR.fs;
-  const f=vnoise(px*s,py*s,pz*s)+0.55*vnoise(px*s*2.3+7.7,py*s*2.3+3.1,pz*s*2.3);
-  r+=BR.fold*f;
-  return out.set(d.x*r,d.y*r,d.z*r);
-}
-const GANG=ANCH.map(a=>{
-  const d=new THREE.Vector3(...a.d).normalize();
-  const p=cortexSurf(d,new THREE.Vector3()).addScaledVector(d,-4);
-  return {C:p,f:d};
-});
-const TOR={R:31,r:5,n:new THREE.Vector3(1,0.35,-0.10).normalize(),C:new THREE.Vector3(0,-2,-4)};
-TOR.u1=new THREE.Vector3().crossVectors(TOR.n,new THREE.Vector3(0,0,1)).normalize();
-TOR.u2=new THREE.Vector3().crossVectors(TOR.n,TOR.u1);
-const CER={C:new THREE.Vector3(0,-47,-58),a:32,b:14,c:22};
-const TRK={C0:new THREE.Vector3(0,-30,-16),C1:new THREE.Vector3(0,-78,-22),r0:9,r1:5.5};
-
-const CICLO=[0,1,2,3,4,5,6,7];
-
-const TRACTS=[
- ...Array.from({length:8},(_,i)=>({from:8,to:i,w:1.0,hub:1,kind:'curve',midk:0.55,label:`Radiação talâmica · ${REGIONS[i].short}`})),
- ...CICLO.map((g,k)=>({from:g,to:CICLO[(k+1)%8],w:.55,hub:0,kind:'curve',midk:0.86,label:`Fascículo em U ${k+1}`})),
- {from:0,to:7,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo fronto-basal'},
- {from:1,to:6,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo arqueado'},
- {from:2,to:5,w:.75,hub:0,kind:'curve',midk:0.70,label:'Fascículo longitudinal superior'},
- {from:8,to:9,w:.9,hub:1,kind:'curve',midk:0.8,label:'Fórnix'},
- {from:9,to:1,w:.6,hub:0,kind:'curve',midk:0.70,label:'Escrita mnemônica'},
- {from:9,to:6,w:.6,hub:0,kind:'curve',midk:0.70,label:'Selo temporal'},
- {from:9,to:7,w:.5,hub:0,kind:'curve',midk:0.70,label:'Pacto teleológico'},
- {from:9,to:9,w:1.0,kind:'orbit',pts:64,n:110,label:'Circuito de Papez (θ)'},
- {from:8,to:8,w:.9,kind:'helix',phase:0,pts:40,n:60,label:'Radiação talâmica α'},
- {from:8,to:8,w:.9,kind:'helix',phase:Math.PI,pts:40,n:60,label:'Radiação talâmica β'},
- {from:8,to:10,w:.8,hub:1,kind:'curve',midk:0.60,label:'Pedúnculo cerebelar superior'},
- {from:11,to:8,w:.7,hub:1,kind:'curve',midk:0.55,label:'Via tálamo-troncal'},
-];
-TRACTS.forEach(T=>{T.ch=0;T.len=120;if(!T.n)T.n=Math.round(26+T.w*78);if(!T.pts)T.pts=22;});
-const NT=TRACTS.length; // 28
-const SHORT=REGIONS.map(r=>r.short);
-
-const SCRIPTS=[
- {name:'Consenso global',desc:'tálamo → córtex → tálamo',seq:[
-  [0,'b',8,1],[.3,'t',0,1,1],[.3,'t',2,1,1],[.3,'t',5,1,1],[.3,'t',7,1,1],
-  [.8,'b',0,.6],[.8,'b',2,.6],[.8,'b',5,.7],[.8,'b',7,.6],
-  [1.3,'t',0,-1,.8],[1.3,'t',7,-1,.8],[1.55,'b',8,.9],[1.95,'t',24,1,.9],[2.6,'b',8,.5]]},
- {name:'Evocação total',desc:'papez → córtex → tálamo',seq:[
-  [0,'b',9,.9],[.35,'t',23,1,1],[.6,'t',20,1,.8],[.85,'b',1,.7],[1.25,'t',15,1,.7],
-  [1.45,'b',0,.7],[1.85,'t',0,-1,.9],[2.05,'b',8,.85],[2.45,'t',23,1,.85]]},
- {name:'Simulação contrafactual',desc:'occipital → temporal → parietal → TPJ → tálamo',seq:[
-  [0,'b',4,1],[.4,'b',4,.6],[.55,'t',9,1,.8],[.8,'b',6,.65],[1.2,'t',10,1,.8],[1.4,'b',2,.75],
-  [1.8,'t',18,1,.8],[2.0,'b',5,.7],[2.4,'t',13,-1,.7],[2.6,'b',7,.6],[3.0,'t',7,-1,.9],
-  [3.2,'b',8,.7],[3.6,'t',19,1,.7],[3.8,'b',9,.5]]},
- {name:'Decisão teleológica',desc:'órbito-frontal → cingulado → tálamo → pré-frontal',seq:[
-  [0,'b',7,1],[.35,'t',12,-1,.7],[.55,'b',3,.8],[.95,'t',11,-1,.7],[1.15,'b',2,.6],
-  [1.55,'t',2,-1,.9],[1.75,'b',8,.95],[2.15,'t',4,1,1],[2.35,'b',4,.7],[2.75,'t',8,-1,.7],
-  [2.95,'b',0,.7],[3.35,'t',0,-1,.8],[3.55,'b',8,.65]]},
- {name:'Síntese criativa',desc:'parietal → temporal → pré-frontal → tálamo',seq:[
-  [0,'b',2,1],[.35,'t',10,-1,.8],[.55,'b',6,.6],[.95,'t',9,-1,.8],[1.15,'b',4,.65],
-  [1.55,'t',8,-1,.7],[1.75,'b',0,.7],[2.15,'t',15,-1,.7],[2.35,'b',1,.75],[2.75,'t',1,-1,.9],
-  [2.95,'b',8,.85],[3.35,'t',25,1,.9],[4.0,'b',8,.5]]},
-];
-
-/* ============================================================
-   2 · CENA E PÓS-PROCESSAMENTO
-   ============================================================ */
-const canvas=document.getElementById('gl');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
-const PR=Math.min(devicePixelRatio,2);
-renderer.setPixelRatio(PR); renderer.setSize(innerWidth,innerHeight);
-renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.95;
-renderer.setClearColor(0x04070b);
-
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,5,2500);
-const HOME=new THREE.Vector3(0,-8,0);
-const CAM0={p:new THREE.Vector3(150,95,235),t:HOME.clone()};
-camera.position.copy(CAM0.p);
-
-const controls=new OrbitControls(camera,canvas);
-controls.target.copy(HOME);
-controls.enableDamping=true; controls.dampingFactor=0.06;
-controls.minDistance=60; controls.maxDistance=700;
-controls.autoRotate=true; controls.autoRotateSpeed=0.4;
-
-const composer=new EffectComposer(renderer);
-composer.setPixelRatio(PR); composer.setSize(innerWidth,innerHeight);
-composer.addPass(new RenderPass(scene,camera));
-const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.40,0.5,0.80);
-composer.addPass(bloom);
-composer.addPass(new OutputPass());
-
-const uni={
-  uTime:{value:0},
-  uRate:{value:new Float32Array(NR)},
-  uIntensity:{value:2},
-  uFocus:{value:-1},
-  uClipOn:{value:0}, uClipX:{value:0},
-  uPixelRatio:{value:PR},
-  uColors:{value:REGIONS.map(r=>new THREE.Color(r.color))},
-};
-let surfOn=false;
-
-/* ============================================================
-   3 · MATERIAIS DE ESTRUTURA (envoltórios + gaiolas)
-   ============================================================ */
-const deepMats=[], ghosts=[], pickMeshes=[];
-const _v=new THREE.Vector3(), _v2=new THREE.Vector3(), _v3=new THREE.Vector3();
-
-function makeDeepMat(hex,alpha,regionIdx){
-  const m=new THREE.ShaderMaterial({
-    uniforms:{uTime:uni.uTime,uClipOn:uni.uClipOn,uClipX:uni.uClipX,
-      uRate:{value:0},uColor:{value:new THREE.Color(hex)},uAlpha:{value:alpha}},
-    vertexShader:`
-      varying vec3 vN; varying vec3 vP;
-      void main(){
-        vN=normalize(mat3(modelMatrix)*normal);
-        vP=(modelMatrix*vec4(position,1.0)).xyz;
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader:`
-      uniform float uTime,uClipOn,uClipX,uRate,uAlpha; uniform vec3 uColor;
-      varying vec3 vN; varying vec3 vP;
-      void main(){
-        if(uClipOn>0.5 && vP.x>uClipX) discard;
-        vec3 N=normalize(vN); if(!gl_FrontFacing) N=-N;
-        vec3 V=normalize(cameraPosition-vP);
-        float fres=pow(1.0-abs(dot(N,V)),2.0);
-        float diff=max(dot(N,normalize(vec3(0.45,0.75,0.35))),0.0);
-        float diff2=max(dot(N,normalize(vec3(-0.55,0.10,0.60))),0.0)*0.28;
-        float pulse=0.8+0.45*min(uRate,1.3)*(0.5+0.5*sin(uTime*2.7));
-        vec3 col=uColor*(0.38+0.72*diff+diff2)+uColor*fres*0.55+vec3(1.0,0.85,0.55)*0.07*min(uRate,1.5);
-        float a=uAlpha*(0.62+0.38*fres)*pulse;
-        gl_FragColor=vec4(col,a);
-      }`,
-    transparent:true,depthWrite:false,side:THREE.DoubleSide});
-  m.userData.region=regionIdx; deepMats.push(m); return m;
-}
-function pulseLineMat(hex,alpha,regionIdx){
-  const m=new THREE.ShaderMaterial({
-    uniforms:{uTime:uni.uTime,uClipOn:uni.uClipOn,uClipX:uni.uClipX,
-      uRate:{value:0},uColor:{value:new THREE.Color(hex)},uAlpha:{value:alpha}},
-    vertexShader:`
-      varying vec3 vP;
-      void main(){
-        vP=(modelMatrix*vec4(position,1.0)).xyz;
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader:`
-      uniform float uTime,uClipOn,uClipX,uRate,uAlpha; uniform vec3 uColor;
-      varying vec3 vP;
-      void main(){
-        if(uClipOn>0.5 && vP.x>uClipX) discard;
-        float r=min(uRate,1.2);
-        float pulse=0.72+0.28*sin(uTime*2.5);
-        vec3 col=uColor*(0.75+0.7*r)+vec3(1.0,0.9,0.65)*0.15*r;
-        float a=uAlpha*(0.5+0.5*r)*pulse;
-        gl_FragColor=vec4(col,a);
-      }`,
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-  m.userData.region=regionIdx; deepMats.push(m); return m;
-}
-const pickMat=new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false});
-function addPick(geo,region,position,quaternion){
-  const m=new THREE.Mesh(geo,pickMat);
-  if(position)m.position.copy(position);
-  if(quaternion)m.quaternion.copy(quaternion);
-  m.userData={name:REGIONS[region].name,region};
-  scene.add(m); pickMeshes.push(m); return m;
-}
-function capGeometry(i){
-  const a=ANCH[i], ad=new THREE.Vector3(...a.d).normalize();
-  let t1=new THREE.Vector3(0,1,0).cross(ad); if(t1.lengthSq()<0.01)t1.set(1,0,0); t1.normalize();
-  const t2=new THREE.Vector3().crossVectors(ad,t1);
-  const rows=12,cols=20,pts=[],idx=[];
-  const d=new THREE.Vector3(),p=new THREE.Vector3();
-  for(let r=0;r<=rows;r++)for(let c=0;c<=cols;c++){
-    const th=a.rad*(r/rows), ph=c/cols*Math.PI*2;
-    d.copy(ad).multiplyScalar(Math.cos(th))
-     .addScaledVector(t1,Math.sin(th)*Math.cos(ph))
-     .addScaledVector(t2,Math.sin(th)*Math.sin(ph));
-    cortexSurf(d,p);
-    pts.push(p.x,p.y,p.z);
-  }
-  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
-    const A=r*(cols+1)+c,B=A+1,Cc=A+cols+1,D=Cc+1;
-    idx.push(A,Cc,B, B,Cc,D);
-  }
-  const n=pts.length/3, il=idx.length;
-  for(let k=0;k<n;k++) pts.push(-pts[k*3],pts[k*3+1],pts[k*3+2]);
-  for(let k=0;k<il;k+=3) idx.push(idx[k]+n,idx[k+1]+n,idx[k+2]+n);
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.Float32BufferAttribute(pts,3));
-  g.setIndex(idx); g.computeVertexNormals();
-  return g;
-}
-let outerIco=null, icoIn=null;
-function buildStructures(){
-  for(let i=0;i<8;i++){
-    const geo=capGeometry(i);
-    const ghost=new THREE.Mesh(geo,makeDeepMat(REGIONS[i].color,0.12,i));
-    ghost.visible=surfOn; ghost.renderOrder=5;
-    scene.add(ghost); ghosts.push(ghost);
-    addPick(geo,i);
-  }
-  icoIn=new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(16,0)),
-    pulseLineMat(REGIONS[8].color,0.80,8));
-  icoIn.renderOrder=4; scene.add(icoIn);
-  outerIco=new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(22,0)),
-    pulseLineMat(REGIONS[8].color,0.26,8));
-  outerIco.renderOrder=4; scene.add(outerIco);
-  addPick(new THREE.SphereGeometry(17,16,12),8);
-  [28,31,34].forEach((rad,k)=>{
-    const pts=[];
-    for(let i=0;i<=128;i++){const a=i/128*Math.PI*2;
-      pts.push(new THREE.Vector3(Math.cos(a)*rad,0,Math.sin(a)*rad));}
-    const g=new THREE.BufferGeometry().setFromPoints(pts);
-    const ring=new THREE.Line(g,pulseLineMat(REGIONS[9].color,0.5-k*0.12,9));
-    ring.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),TOR.n);
-    ring.position.copy(TOR.C);
-    ring.renderOrder=4; scene.add(ring);
-  });
-  const torGeo=new THREE.TorusGeometry(31,10,10,72);
-  const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),TOR.n);
-  addPick(torGeo,9,TOR.C,q);
-  const cerGeo=new THREE.SphereGeometry(1,14,10); cerGeo.scale(34,16,24);
-  addPick(cerGeo,10,CER.C);
-  addPick(new THREE.CapsuleGeometry(9,44,4,12),11,new THREE.Vector3(0,-56,-19));
-}
-
-/* ============================================================
-   4 · 100.000 NEURÔNIOS VISÍVEIS — somatas + neurites
-   ============================================================ */
-const somaPos=new Float32Array(VISIBLE*3), somaReg=new Float32Array(VISIBLE),
-      somaRnd=new Float32Array(VISIBLE), somaSize=new Float32Array(VISIBLE);
-const denPos=new Float32Array(VISIBLE*9), denT=new Float32Array(VISIBLE*3),
-      denReg=new Float32Array(VISIBLE*3), denSeed=new Float32Array(VISIBLE*3);
-const denIdx=new Uint32Array(VISIBLE*4);
-const somaData=[];
-let somaCursor=0;
-
-function sampleSphere(u,v,out){
-  const y=2*u-1, a=Math.sqrt(Math.max(0,1-y*y)), an=2*Math.PI*v;
-  return out.set(Math.cos(an)*a,y,Math.sin(an)*a);
-}
-function storeNeuron(r,pos,normal,helixDir){
-  const gi=somaCursor++;
-  somaPos[gi*3]=pos.x;somaPos[gi*3+1]=pos.y;somaPos[gi*3+2]=pos.z;
-  somaReg[gi]=r; somaRnd[gi]=R();
-  somaSize[gi]=0.55+Math.pow(R(),2)*1.15;
-  let t1;
-  if(helixDir){ t1=helixDir; }
-  else{
-    t1=new THREE.Vector3(R()*2-1,R()*2-1,R()*2-1);
-    if(Math.abs(normal.y)<0.95) t1.crossVectors(normal,t1);
-    if(t1.lengthSq()<1e-6) t1.set(1,0,0);
-    t1.normalize();
-  }
-  const L=2.5+R()*(helixDir?6.5:5);
-  const s=R()*100, base=gi*3;
-  const bx=pos.x,by=pos.y,bz=pos.z;
-  const jx=(R()-0.5)*L*0.5,jy=(R()-0.5)*L*0.5,jz=(R()-0.5)*L*0.5;
-  const mx=bx+t1.x*L*0.5+jx,my=by+t1.y*L*0.5+jy,mz=bz+t1.z*L*0.5+jz;
-  const t2x=t1.x+(R()-0.5)*1.6,t2y=t1.y+(R()-0.5)*1.6,t2z=t1.z+(R()-0.5)*1.6;
-  const nl=Math.hypot(t2x,t2y,t2z)||1;
-  denPos.set([bx,by,bz, mx,my,mz, mx+t2x/nl*L*0.65, my+t2y/nl*L*0.65, mz+t2z/nl*L*0.65],base*3);
-  denT.set([0,0.5,1],base); denReg.set([r,r,r],base); denSeed.set([s,s,s],base);
-  denIdx.set([base,base+1,base+1,base+2],gi*4);
-}
-function genCortex(i,cnt){
-  const a=ANCH[i], ad=new THREE.Vector3(...a.d).normalize(), cosLim=Math.cos(a.rad);
-  for(let n=0;n<cnt;n++){
-    let d=null;
-    for(let t=0;t<80;t++){
-      sampleSphere(R(),R(),_v);
-      if(_v.dot(ad)>cosLim){d=_v.clone();break;}
-    }
-    if(!d) d=ad.clone();
-    if(R()<0.5) d.x*=-1;
-    cortexSurf(d,_v2);
-    const dep=0.4+Math.pow(R(),1.6)*3.0;
-    const q=new THREE.Vector3(_v2.x-d.x*dep,_v2.y-d.y*dep,_v2.z-d.z*dep);
-    storeNeuron(i,q,d.clone(),null);
-  }
-}
-function genArconte(cnt){
-  for(let n=0;n<cnt;n++){
-    const d=sampleSphere(R(),R(),_v);
-    const k=15*Math.cbrt(R())*(0.9+0.2*vnoise(d.x*4,d.y*4,d.z*4));
-    storeNeuron(8,new THREE.Vector3(d.x*k,d.y*k*0.8,d.z*k*1.25),d.clone(),null);
-  }
-}
-function genLaco(cnt){
-  for(let n=0;n<cnt;n++){
-    const th=R()*Math.PI*2, ph=R()*Math.PI*2, rr=TOR.r*(0.7+0.3*R());
-    const ct=Math.cos(th), st=Math.sin(th), cp=Math.cos(ph), sp=Math.sin(ph);
-    const rx=TOR.u1.x*ct+TOR.u2.x*st, ry=TOR.u1.y*ct+TOR.u2.y*st, rz=TOR.u1.z*ct+TOR.u2.z*st;
-    const q=new THREE.Vector3(
-      rx*(TOR.R+cp*rr)+TOR.n.x*sp*rr+TOR.C.x,
-      ry*(TOR.R+cp*rr)+TOR.n.y*sp*rr+TOR.C.y,
-      rz*(TOR.R+cp*rr)+TOR.n.z*sp*rr+TOR.C.z);
-    const tan=new THREE.Vector3(-TOR.u1.x*st+TOR.u2.x*ct,-TOR.u1.y*st+TOR.u2.y*ct,-TOR.u1.z*st+TOR.u2.z*ct);
-    const nor=new THREE.Vector3(rx*cp+TOR.n.x*sp, ry*cp+TOR.n.y*sp, rz*cp+TOR.n.z*sp);
-    storeNeuron(9,q,nor,tan);
-  }
-}
-function genCerebelo(cnt){
-  let n=0;
-  while(n<cnt){
-    sampleSphere(R(),R(),_v);
-    const r=1/Math.sqrt((_v.x/CER.a)**2+(_v.y/CER.b)**2+(_v.z/CER.c)**2);
-    const y=_v.y*r, z=_v.z*r;
-    if(y>10&&z>-12&&R()<0.85) continue;
-    const folia=1.5*Math.sin(y*0.9)+0.8*vnoise(_v.x*2.2,_v.y*2.2,_v.z*2.2);
-    const k=r-1.4+folia;
-    storeNeuron(10,new THREE.Vector3(_v.x*k,_v.y*k,_v.z*k).add(CER.C),_v.clone(),null);
-    n++;
-  }
-}
-function genTronco(cnt){
-  for(let n=0;n<cnt;n++){
-    const t=Math.pow(R(),0.8), a=R()*Math.PI*2;
-    const rad=lerp(TRK.r0,TRK.r1,t)*(0.75+0.35*R());
-    const y=lerp(TRK.C0.y,TRK.C1.y,t)+(R()-0.5)*5;
-    const z=lerp(TRK.C0.z,TRK.C1.z,t)+Math.sin(a)*rad*0.3;
-    storeNeuron(11,new THREE.Vector3(Math.cos(a)*rad,y,z),
-      new THREE.Vector3(0,0.85,0.5).normalize(),null);
-  }
-}
-let somaPoints=null, dendLines=null;
-function assembleNeuronMeshes(){
-  const g1=new THREE.BufferGeometry();
-  g1.setAttribute('position',new THREE.BufferAttribute(somaPos,3));
-  g1.setAttribute('aRegion',new THREE.BufferAttribute(somaReg,1));
-  g1.setAttribute('aRand',new THREE.BufferAttribute(somaRnd,1));
-  g1.setAttribute('aSize',new THREE.BufferAttribute(somaSize,1));
-  const m1=new THREE.ShaderMaterial({
-    uniforms:{...uni},
-    vertexShader:`
-      attribute float aRegion,aRand,aSize;
-      uniform float uTime,uIntensity,uPixelRatio,uFocus,uClipOn,uClipX;
-      uniform float uRate[${NR}];
-      varying float vFlash,vDim; varying vec3 vCol;
-      uniform vec3 uColors[${NR}];
-      void main(){
-        if(uClipOn>0.5&&position.x>uClipX){gl_Position=vec4(0.,0.,2.,1.);vFlash=0.;vDim=0.;vCol=vec3(0.);return;}
-        int r=int(aRegion+0.5);
-        float rate=uRate[r];
-        float per=0.9+2.6*aRand;
-        float ph=fract(uTime/per+aRand*13.7);
-        float p=min(0.05+0.85*rate,0.92);
-        float fl=ph<p?pow(1.0-ph/p,8.0):0.0;
-        vFlash=fl;
-        vCol=uColors[r];
-        vDim=uFocus<-0.5?1.0:(abs(aRegion-uFocus)<0.5?1.0:0.10);
-        vec4 mv=modelViewMatrix*vec4(position,1.0);
-        gl_PointSize=clamp(aSize*uPixelRatio*(1.0+fl*1.5*uIntensity)*(240.0/max(1.0,-mv.z)),0.5,14.0);
-        gl_Position=projectionMatrix*mv;
-      }`,
-    fragmentShader:`
-      uniform float uIntensity;
-      varying float vFlash,vDim; varying vec3 vCol;
-      void main(){
-        float d=length(gl_PointCoord-0.5);
-        float disk=smoothstep(0.5,0.08,d);
-        vec3 col=mix(vCol*0.5,vec3(1.0,0.9,0.62),vFlash);
-        float a=disk*(0.16+vFlash*1.0*uIntensity)*vDim;
-        if(a<0.004) discard;
-        gl_FragColor=vec4(col*(0.5+vFlash*1.5),a);
-      }`,
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-  somaPoints=new THREE.Points(g1,m1); somaPoints.renderOrder=1; scene.add(somaPoints);
-
-  const g2=new THREE.BufferGeometry();
-  g2.setAttribute('position',new THREE.BufferAttribute(denPos,3));
-  g2.setAttribute('aT',new THREE.BufferAttribute(denT,1));
-  g2.setAttribute('aRegion',new THREE.BufferAttribute(denReg,1));
-  g2.setAttribute('aSeed',new THREE.BufferAttribute(denSeed,1));
-  g2.setIndex(new THREE.BufferAttribute(denIdx,1));
-  const m2=new THREE.ShaderMaterial({
-    uniforms:{...uni},
-    vertexShader:`
-      attribute float aT,aRegion,aSeed;
-      uniform float uTime,uFocus,uClipOn,uClipX;
-      uniform float uRate[${NR}]; uniform vec3 uColors[${NR}];
-      varying vec3 vColor; varying float vSpark,vDim,vThick;
-      void main(){
-        if(uClipOn>0.5&&position.x>uClipX){gl_Position=vec4(0.,0.,2.,1.);vColor=vec3(0.);vSpark=0.;vDim=0.;vThick=0.;return;}
-        int r=int(aRegion+0.5);
-        float rate=uRate[r];
-        float wv=sin(uTime*1.5+aSeed*43.0+aT*7.0)*0.5+0.5;
-        vSpark=pow(wv,5.0)*min(rate*1.5,1.0);
-        vColor=uColors[r];
-        vDim=uFocus<-0.5?1.0:(abs(aRegion-uFocus)<0.5?1.0:0.10);
-        vThick=0.35+0.65*fract(aSeed*9.7);
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
-      }`,
-    fragmentShader:`
-      uniform float uIntensity;
-      varying vec3 vColor; varying float vSpark,vDim,vThick;
-      void main(){
-        vec3 col=mix(vColor*0.35,vec3(1.0,0.85,0.55),vSpark*0.8);
-        float a=(0.05+0.16*vSpark*uIntensity)*vDim*vThick;
-        if(a<0.003) discard;
-        gl_FragColor=vec4(col,a);
-      }`,
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-  dendLines=new THREE.LineSegments(g2,m2); dendLines.renderOrder=2; scene.add(dendLines);
-
-  let off=0;
-  for(let r=0;r<NR;r++){
-    const arr=new Float32Array(visCount[r]*3);
-    arr.set(somaPos.subarray(off*3,(off+visCount[r])*3));
-    somaData.push(arr); off+=visCount[r];
-  }
-}
-
-/* ============================================================
-   5 · FEIXES DE SUBSTÂNCIA BRANCA
-   ============================================================ */
-let tractLines=null;
-const uniTr={
-  uTStart:{value:TRACTS.map(()=>new THREE.Vector2(-9999,-9999))},
-  uTDir:{value:TRACTS.map(()=>new THREE.Vector2(1,1))},
-  uTAmp:{value:TRACTS.map(()=>new THREE.Vector2(0,0))},
-  uTColA:{value:TRACTS.map(t=>new THREE.Color(REGIONS[t.from].color))},
-  uTColB:{value:TRACTS.map(t=>new THREE.Color(REGIONS[t.to].color))},
-  uTSel:{value:new Float32Array(NT).fill(1)},
-  uSpeed:{value:0.95},
-};
-function regionCenter(r){
-  if(r<8) return GANG[r].C;
-  if(r===9) return TOR.C;
-  if(r===10) return CER.C;
-  if(r===11) return new THREE.Vector3(0,-56,-19);
-  return new THREE.Vector3(0,0,0);
-}
-function pickSoma(r,filter){
-  const a=somaData[r]; if(!a||!a.length)return new THREE.Vector3();
-  for(let t=0;t<60;t++){
-    const i=(R()*a.length/3|0)*3;
-    const p=new THREE.Vector3(a[i],a[i+1],a[i+2]);
-    if(!filter||filter(p)) return p;
-  }
-  const i=(R()*a.length/3|0)*3;
-  return new THREE.Vector3(a[i],a[i+1],a[i+2]);
-}
-function endpointFor(r,towardPos){
-  const dir=_v2.subVectors(towardPos,regionCenter(r));
-  if(dir.lengthSq()<1) dir.set(0,1,0); dir.normalize();
-  if(r<8){
-    const C=GANG[r].C;
-    return pickSoma(r,p=>(p.x-C.x)*dir.x+(p.y-C.y)*dir.y+(p.z-C.z)*dir.z>10);
-  }
-  if(r===8) return pickSoma(8,p=>p.x*dir.x+p.y*dir.y+p.z*dir.z>6);
-  if(r===10) return pickSoma(10,p=>(p.x-CER.C.x)*dir.x+(p.y-CER.C.y)*dir.y+(p.z-CER.C.z)*dir.z>14);
-  if(r===11) return pickSoma(11,p=>(p.y-TRK.C0.y)*dir.y>6);
-  return pickSoma(9,null);
-}
-function curveSampler(T){
-  const Ac=regionCenter(T.from), Bc=regionCenter(T.to);
-  const A=endpointFor(T.from,Bc), B=endpointFor(T.to,Ac);
-  const mid=new THREE.Vector3().addVectors(A,B)
-    .multiplyScalar(0.5*(typeof T.midk==='number'?T.midk:0.62));
-  mid.x+=(R()-0.5)*9; mid.y+=(R()-0.5)*9; mid.z+=(R()-0.5)*9;
-  const c1=A.clone().lerp(mid,0.45).add(new THREE.Vector3((R()-0.5)*6,(R()-0.5)*6,(R()-0.5)*6));
-  const c2=B.clone().lerp(mid,0.45).add(new THREE.Vector3((R()-0.5)*6,(R()-0.5)*6,(R()-0.5)*6));
-  const curve=new THREE.CatmullRomCurve3([A,c1,mid,c2,B]);
-  return t=>curve.getPoint(t);
-}
-function orbitSampler(){
-  const rOff=(R()-0.5)*6, aOff=R()*0.25, wob=R()*12;
-  return t=>{
-    const a=aOff+t*Math.PI*2;
-    const rx=TOR.u1.x*Math.cos(a)+TOR.u2.x*Math.sin(a),
-          ry=TOR.u1.y*Math.cos(a)+TOR.u2.y*Math.sin(a),
-          rz=TOR.u1.z*Math.cos(a)+TOR.u2.z*Math.sin(a);
-    const k=TOR.R+rOff;
-    return new THREE.Vector3(
-      rx*k+TOR.n.x*Math.sin(t*14+wob)*1.2+TOR.C.x,
-      ry*k+TOR.n.y*Math.sin(t*14+wob)*1.2+TOR.C.y,
-      rz*k+TOR.n.z*Math.sin(t*14+wob)*1.2+TOR.C.z);
+axesGrp = new THREE.Group(); scene.add(axesGrp);
+(function makeAxes(){
+  const len = 60, mk = (a,b,col)=>{
+    const g = new THREE.BufferGeometry().setFromPoints([a,b]);
+    return new THREE.Line(g, new THREE.LineBasicMaterial({color:col}));
   };
+  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(len,0,0), 0xff5577)); // X
+  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(0,len,0), 0x77ff99)); // Y
+  axesGrp.add(mk(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,len), 0x5599ff)); // Z
+})();
+axesGrp.visible = false;
+
+function b64ToF32(b64){
+  const bin = atob(b64), n = bin.length/4;
+  const u8 = new Uint8Array(n*4);
+  for(let i=0;i<n*4;i++) u8[i] = bin.charCodeAt(i);
+  return new Float32Array(u8.buffer);
 }
-function helixSampler(T){
-  const az=R()*Math.PI*2;
-  const dTop=new THREE.Vector3(Math.cos(az)*0.42,0.9,Math.sin(az)*0.42).normalize();
-  const R1=cortexSurf(dTop,_v3).length();
-  const d0=new THREE.Vector3(Math.cos(az),0.18,Math.sin(az)).normalize();
-  return t=>{
-    const s=smooth(0,1,t);
-    const dx=lerp(d0.x,dTop.x,s),dy=lerp(d0.y,dTop.y,s),dz=lerp(d0.z,dTop.z,s);
-    const inv=1/Math.hypot(dx,dy,dz);
-    const rr=lerp(14,R1,s)*inv;
-    return new THREE.Vector3(dx*rr,dy*rr,dz*rr);
-  };
-}
-function buildTracts(){
-  let totalV=0,totalI=0;
-  TRACTS.forEach(T=>{totalV+=T.n*T.pts; totalI+=T.n*(T.pts-1)*2;});
-  const pos=new Float32Array(totalV*3), aT=new Float32Array(totalV),
-        aTr=new Float32Array(totalV), aSeed=new Float32Array(totalV), aBase=new Float32Array(totalV);
-  const idx=new Uint32Array(totalI);
-  let vi=0,ii=0;
-  TRACTS.forEach((T,ti)=>{
-    const baseA=T.hub?0.055:0.04;
-    let lenSum=0, prev=null;
-    for(let l=0;l<T.n;l++){
-      const s=T.kind==='orbit'?orbitSampler():T.kind==='helix'?helixSampler(T):curveSampler(T);
-      const seed=R()*100;
-      for(let k=0;k<T.pts;k++){
-        const p=s(k/(T.pts-1));
-        pos[vi*3]=p.x;pos[vi*3+1]=p.y;pos[vi*3+2]=p.z;
-        aT[vi]=k/(T.pts-1); aTr[vi]=ti; aSeed[vi]=seed; aBase[vi]=baseA; vi++;
-        if(l===0&&prev) lenSum+=p.distanceTo(prev);
-        if(l===0) prev=p;
-      }
-      const b=(vi-T.pts);
-      for(let k=0;k<T.pts-1;k++){ idx[ii++]=b+k; idx[ii++]=b+k+1; }
+
+function buildMeshes(){
+  const data = window.__DATA__;
+  const unit = new THREE.BoxGeometry(1,1,1);
+  data.models.forEach((m, mi)=>{
+    const pos=b64ToF32(m.pos), siz=b64ToF32(m.siz), col=b64ToF32(m.col),
+          qua=b64ToF32(m.qua), tix=b64ToF32(m.typeIdx);
+    const geo = unit;
+    const mat = new THREE.MeshStandardMaterial({roughness:.82, metalness:.18});
+    const mesh = new THREE.InstancedMesh(geo, mat, m.n);
+    mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
+    const M = new THREE.Matrix4(), Q = new THREE.Quaternion(),
+          P = new THREE.Vector3(), S = new THREE.Vector3(), C = new THREE.Color();
+    for(let i=0;i<m.n;i++){
+      P.set(pos[3*i],pos[3*i+1],pos[3*i+2]);
+      S.set(Math.max(siz[3*i],.01),Math.max(siz[3*i+1],.01),Math.max(siz[3*i+2],.01));
+      Q.set(qua[4*i],qua[4*i+1],qua[4*i+2],qua[4*i+3]);
+      M.compose(P,Q,S); mesh.setMatrixAt(i,M);
+      C.setRGB(col[3*i],col[3*i+1],col[3*i+2]);
+      mesh.setColorAt(i,C);
     }
-    T.len=Math.max(40,lenSum);
-  });
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  g.setAttribute('aT',new THREE.BufferAttribute(aT,1));
-  g.setAttribute('aTract',new THREE.BufferAttribute(aTr,1));
-  g.setAttribute('aSeed',new THREE.BufferAttribute(aSeed,1));
-  g.setAttribute('aBase',new THREE.BufferAttribute(aBase,1));
-  g.setIndex(new THREE.BufferAttribute(idx,1));
-  const m=new THREE.ShaderMaterial({
-    uniforms:{...uni,...uniTr},
-    vertexShader:`
-      attribute float aT,aTract,aSeed,aBase;
-      uniform float uTime,uSpeed,uClipOn,uClipX;
-      uniform vec2 uTStart[${NT}],uTDir[${NT}],uTAmp[${NT}];
-      uniform vec3 uTColA[${NT}],uTColB[${NT}];
-      uniform float uTSel[${NT}];
-      varying float vGlow,vSel,vBase; varying vec3 vColor;
-      void main(){
-        if(uClipOn>0.5&&position.x>uClipX){gl_Position=vec4(0.,0.,2.,1.);vGlow=0.;vSel=0.;vBase=0.;vColor=vec3(0.);return;}
-        int t=int(aTract+0.5);
-        float tt=aT;
-        float spd=uSpeed*(0.85+0.3*fract(aSeed*7.13));
-        float glow=0.0;
-        float st=uTStart[t].x;
-        if(st>-900.0){
-          float pp=(uTime-st)*spd;
-          float pt=uTDir[t].x>0.0?tt:1.0-tt;
-          float env=smoothstep(-0.18,-0.02,pp)*smoothstep(1.28,1.03,pp);
-          glow+=exp(-pow((pt-pp)*5.0,2.0))*env*uTAmp[t].x*exp(-(uTime-st)*0.55);
-        }
-        st=uTStart[t].y;
-        if(st>-900.0){
-          float pp=(uTime-st)*spd;
-          float pt=uTDir[t].y>0.0?tt:1.0-tt;
-          float env=smoothstep(-0.18,-0.02,pp)*smoothstep(1.28,1.03,pp);
-          glow+=exp(-pow((pt-pp)*5.0,2.0))*env*uTAmp[t].y*exp(-(uTime-st)*0.55);
-        }
-        vGlow=glow; vSel=uTSel[t]; vBase=aBase;
-        vColor=mix(uTColA[t],uTColB[t],tt);
-        gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
-      }`,
-    fragmentShader:`
-      uniform float uIntensity;
-      varying float vGlow,vSel,vBase; varying vec3 vColor;
-      void main(){
-        vec3 col=mix(vColor*0.45,vec3(1.0,0.88,0.62),clamp(vGlow,0.0,1.0));
-        float a=(vBase+vGlow*0.85)*vSel*(0.5+0.5*uIntensity);
-        if(a<0.004) discard;
-        gl_FragColor=vec4(col*(0.5+1.2*vGlow),a);
-      }`,
-    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
-  tractLines=new THREE.LineSegments(g,m); tractLines.renderOrder=3; scene.add(tractLines);
-}
-
-/* ============================================================
-   6 · SIMULAÇÃO COGNITIVA
-   ============================================================ */
-const rate=REGIONS.map(r=>r.base);
-let simTime=0,paused=false,simSpeed=1,stateIdx=0,autoCycles=true;
-let nextCycle=4,nextPfc=0,excite=0,lastSpikeLog=-9,lastNavLog=-9,nextOrbit=2.5,orbitLog=-9;
-const pend=[];
-const schedule=(dt,fn)=>pend.push({t:simTime+dt,fn});
-const phaseEl=document.getElementById('phaseTxt');
-
-function fireTract(i,dir,amp,quiet){
-  const T=TRACTS[i]; const ch=T.ch^=1;
-  uniTr.uTStart.value[i].setComponent(ch,simTime);
-  uniTr.uTDir.value[i].setComponent(ch,dir>0?1:-1);
-  uniTr.uTAmp.value[i].setComponent(ch,amp);
-  const arrive=dir>0?T.to:T.from, dep=dir>0?T.from:T.to;
-  schedule(T.len/CONDUCT*0.8,()=>{rate[arrive]=clamp(rate[arrive]+0.30*T.w*amp,0.05,2.2);});
-  if(!quiet&&amp>0.7&&simTime-lastSpikeLog>1.6){
-    lastSpikeLog=simTime;
-    log('spike',`${T.label} — ${SHORT[dep]} → ${SHORT[arrive]} · ${T.n} axônios`);
-  }
-}
-function burst(r,amp,quiet){
-  rate[r]=clamp(rate[r]+amp*0.55,0.05,2.2);
-  if(!quiet) log('burst',`BURST · ${REGIONS[r].name} → ${rate[r].toFixed(2).replace('.',',')}×`);
-}
-function runScript(s){
-  log('ev',`CICLO · ${s.name} — ${s.desc}`);
-  phaseEl.textContent=s.name.toLowerCase();
-  s.seq.forEach(st=>schedule(st[0],()=>{
-    if(st[1]==='b') burst(st[2],st[3],false); else fireTract(st[2],st[3],st[4],false);
-  }));
-  schedule(s.seq[s.seq.length-1][0]+3.5,()=>{ if(stateIdx<2) phaseEl.textContent=['quiescência','foco','superposição'][stateIdx]; });
-}
-function tickSim(sdt){
-  for(let i=pend.length-1;i>=0;i--) if(pend[i].t<=simTime){ const e=pend[i]; pend.splice(i,1); e.fn(); }
-  const stateMul=[0.65,1.0,1.3][stateIdx];
-  for(let r=0;r<NR;r++){
-    rate[r]+=(REGIONS[r].base*stateMul-rate[r])*sdt/1.1;
-    rate[r]+=(R()-0.5)*0.35*sdt;
-    rate[r]=clamp(rate[r],0.05,2.2);
-  }
-  if(excite>0.002){
-    rate[8]+=excite*1.1*sdt;
-    for(let r=0;r<8;r++) rate[r]+=excite*0.20*sdt;
-    if(excite>0.25&&simTime-lastNavLog>6){lastNavLog=simTime;log('spike','entrada sensorial — coerência talâmica');}
-    excite*=Math.exp(-sdt*2.2);
-  }
-  if(simTime>nextOrbit){
-    nextOrbit=simTime+4.5+R()*3;
-    fireTract(23,1,1.0,true);
-    if(simTime-orbitLog>9){orbitLog=simTime;log('spike','circuito de Papez — pulso de recordação em circulação perpétua');}
-  }
-  if(rate[8]>0.85){
-    if(R()<sdt*rate[8]*0.5) fireTract(24,1,0.8,true);
-    if(R()<sdt*rate[8]*0.5) fireTract(25,1,0.8,true);
-  }
-  const k=0.5*[0.6,1.0,1.35][stateIdx];
-  for(let i=0;i<NT;i++){
-    const T=TRACTS[i];
-    if(T.kind==='orbit'||T.kind==='helix') continue;
-    if(R()<k*rate[T.from]*T.w*sdt) fireTract(i,1,0.45+R()*0.5,true);
-    if(R()<k*rate[T.to]  *T.w*sdt) fireTract(i,-1,0.45+R()*0.5,true);
-  }
-  if(stateIdx===2&&simTime>nextPfc){
-    nextPfc=simTime+2.8; burst(8,0.45,true); fireTract(0,1,0.8,true); fireTract(2,1,0.7,true);
-  }
-  if(autoCycles&&simTime>nextCycle){
-    nextCycle=simTime+9+R()*5; runScript(SCRIPTS[R()*SCRIPTS.length|0]);
-  }
-}
-
-/* ============================================================
-   7 · UI — lista, foco, rótulos, registro
-   ============================================================ */
-const logBody=document.getElementById('logBody');
-function log(kind,msg){
-  const div=document.createElement('div');
-  div.className='logline'+(kind==='ev'?' ev':kind==='burst'?' burst':'');
-  const mm=String(Math.floor(simTime/60)).padStart(2,'0'), ss=String(Math.floor(simTime%60)).padStart(2,'0');
-  div.innerHTML=`<span class="t">${mm}:${ss}</span>${msg}`;
-  logBody.prepend(div);
-  while(logBody.children.length>26) logBody.lastChild.remove();
-  [...logBody.children].forEach((c,i)=>c.classList.toggle('old',i>7));
-}
-const regionsList=document.getElementById('regionsList'), rgEls=[];
-const labelsBox=document.getElementById('labels'), labelEls=[];
-const focusPanel=document.getElementById('focusPanel');
-const desiredTarget=HOME.clone(), camTarget=HOME.clone();
-let focusIdx=-1, ready=false;
-const hintEl=document.getElementById('hint');
-const fadeHint=()=>{hintEl.style.opacity='0';};
-setTimeout(fadeHint,18000);
-
-function anchorCenter(i,out){
-  if(i<8) return out.copy(GANG[i].C);
-  if(i===9) return out.copy(TOR.C);
-  if(i===10) return out.copy(CER.C);
-  if(i===11) return out.set(0,-56,-19);
-  return out.set(0,0,0);
-}
-function labelAnchor(i,out){
-  if(i<8) return out.copy(GANG[i].C).addScaledVector(GANG[i].f,14);
-  if(i===8) return out.set(0,10,0);
-  if(i===9) return out.copy(TOR.C).addScaledVector(TOR.u1,38);
-  if(i===10) return out.copy(CER.C).add(_v3.set(0,18,4));
-  return out.set(16,-64,-19);
-}
-const hex=c=>'#'+c.toString(16).padStart(6,'0');
-function buildUI(){
-  REGIONS.forEach((rg,i)=>{
-    const el=document.createElement('div'); el.className='rg-item';
-    el.innerHTML=`<div class="rg-top"><span class="rg-sw" style="background:${hex(rg.color)}"></span>
-      <span class="rg-name">${rg.name}</span><span class="rg-count">${fmtBR(totCount[i])}</span></div>
-      <div class="rg-bar"><div class="rg-fill" style="background:${hex(rg.color)}"></div></div>
-      <div class="rg-hz">— Hz</div>`;
-    el.onclick=()=>focusRegion(i);
-    regionsList.appendChild(el); rgEls.push(el);
-    const lb=document.createElement('div'); lb.className='blabel';
-    lb.textContent=rg.short.toUpperCase();
-    lb.onclick=()=>focusRegion(i);
-    labelsBox.appendChild(lb); labelEls.push(lb);
+    mesh.instanceMatrix.needsUpdate = true;
+    if(mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.visible = (mi === currentModel);
+    scene.add(mesh);
+    meshes.push({mesh, model:m, tix});
   });
 }
-function fillFocusTracts(r){
-  const box=document.getElementById('focusTracts'); box.innerHTML='';
-  TRACTS.forEach(T=>{
-    if(T.from!==r&&T.to!==r) return;
-    const other=T.from===r?T.to:T.from;
-    const div=document.createElement('div'); div.className='ft';
-    div.innerHTML=`<span>${T.label}</span><i>${SHORT[other]}</i><span class="fw"><b style="width:${Math.round(T.w*100)}%"></b></span>`;
-    box.appendChild(div);
-  });
-}
-function setListActive(){ rgEls.forEach((el,i)=>el.classList.toggle('active',i===focusIdx)); }
-function focusRegion(r){
-  focusIdx=r; uni.uFocus.value=r;
-  for(let i=0;i<NT;i++){const T=TRACTS[i];uniTr.uTSel.value[i]=(T.from===r||T.to===r)?1:0.10;}
-  anchorCenter(r,desiredTarget);
-  controls.autoRotate=false;
-  const rg=REGIONS[r];
-  document.getElementById('focusName').textContent=rg.name;
-  document.getElementById('focusDesc').textContent=rg.desc;
-  document.getElementById('focusStats').innerHTML=
-    `neurônios: <span>${fmtBR(totCount[r])}</span> · renderizados: <span>${fmtBR(visCount[r])}</span><br>`+
-    `taxa atual: <span>${rate[r].toFixed(2).replace('.',',')}×</span> · base: <span>${rg.base.toFixed(2).replace('.',',')}×</span> · via: <span>${TRACTS.filter(T=>T.from===r||T.to===r).length}</span>`;
-  fillFocusTracts(r);
-  focusPanel.classList.add('show');
-  setListActive(); fadeHint();
-}
-function clearFocus(){
-  focusIdx=-1; uni.uFocus.value=-1;
-  uniTr.uTSel.value.fill(1);
-  focusPanel.classList.remove('show');
-  desiredTarget.copy(HOME);
-  controls.autoRotate=true;
-  setListActive();
+
+function fmt(n){ return n.toFixed(1); }
+function updateInfo(){
+  const m = meshes[currentModel].model;
+  const b = m.bbox;
+  const L = b.z[1]-b.z[0], S = b.x[1]-b.x[0], H = b.y[1]-b.y[0];
+  document.getElementById('info').innerHTML =
+    `<b>${m.name}</b><br>${m.n.toLocaleString('pt-BR')} blocos · ${m.types.length} tipos<br>` +
+    `Compr (Z): ${fmt(L)} · Enverg (X): ${fmt(S)} · Alt (Y): ${fmt(H)}<br>` +
+    `Z: [${fmt(b.z[0])}, ${fmt(b.z[1])}] · X: [${fmt(b.x[0])}, ${fmt(b.x[1])}] · Y: [${fmt(b.y[0])}, ${fmt(b.y[1])}]`;
 }
 
-/* ============================================================
-   8 · INTERAÇÃO — picking, tooltip, controles
-   ============================================================ */
-const ray=new THREE.Raycaster(), mouse=new THREE.Vector2();
-const tooltip=document.getElementById('tooltip'),
-      ttName=tooltip.querySelector('.tt-name'), ttSub=tooltip.querySelector('.tt-sub');
-function castAt(x,y){
-  if(!ready) return null;
-  mouse.x=(x/innerWidth)*2-1; mouse.y=-(y/innerHeight)*2+1;
-  ray.setFromCamera(mouse,camera);
-  const hits=ray.intersectObjects(pickMeshes,false);
-  return hits.length?hits[0].object:null;
-}
-const ptr={x:0,y:0,dirty:false,downX:0,downY:0,moved:false};
-let navActive=false;
-canvas.addEventListener('pointerdown',e=>{ptr.downX=e.clientX;ptr.downY=e.clientY;ptr.moved=false;navActive=true;excite=Math.min(excite+0.2,1.2);});
-canvas.addEventListener('pointermove',e=>{
-  ptr.x=e.clientX;ptr.y=e.clientY;ptr.dirty=true;
-  if(navActive&&e.buttons&1){excite=Math.min(excite+0.02,1.2);if(Math.hypot(e.clientX-ptr.downX,e.clientY-ptr.downY)>6)ptr.moved=true;}
-});
-addEventListener('pointerup',()=>navActive=false);
-canvas.addEventListener('wheel',()=>{excite=Math.min(excite+0.25,1.2);},{passive:true});
-canvas.addEventListener('pointerup',e=>{
-  if(ptr.moved) return;
-  const hit=castAt(e.clientX,e.clientY);
-  if(hit) focusRegion(hit.userData.region); else clearFocus();
-});
-
-document.querySelectorAll('.chev').forEach(c=>c.onclick=()=>document.getElementById(c.dataset.for).classList.toggle('collapsed'));
-const segState=document.getElementById('segState');
-segState.querySelectorAll('button').forEach(b=>b.onclick=()=>{
-  segState.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
-  stateIdx=+b.dataset.s;
-  phaseEl.textContent=['quiescência','foco','superposição'][stateIdx];
-});
-document.querySelectorAll('[data-sc]').forEach(b=>b.onclick=()=>{ if(!paused) runScript(SCRIPTS[+b.dataset.sc]); });
-const bindTgl=(id,fn)=>{const el=document.getElementById(id);el.addEventListener('change',()=>fn(el.checked));};
-bindTgl('cycAuto',v=>autoCycles=v);
-bindTgl('tgDend',v=>{if(dendLines)dendLines.visible=v;});
-bindTgl('tgTract',v=>{if(tractLines)tractLines.visible=v;});
-bindTgl('tgSurf',v=>{surfOn=v;ghosts.forEach(g=>g.visible=v);});
-bindTgl('tgBloom',v=>bloom.enabled=v);
-const rgInt=document.getElementById('rgInt'),rgSpd=document.getElementById('rgSpd');
-rgInt.addEventListener('input',()=>{uni.uIntensity.value=+rgInt.value;document.getElementById('vInt').textContent=(+rgInt.value).toFixed(1).replace('.',',')+'×';});
-rgSpd.addEventListener('input',()=>{simSpeed=+rgSpd.value;document.getElementById('vSpd').textContent=(+rgSpd.value).toFixed(1).replace('.',',')+'×';});
-const tgClip=document.getElementById('tgClip'),rgClip=document.getElementById('rgClip');
-tgClip.addEventListener('change',()=>uni.uClipOn.value=tgClip.checked?1:0);
-rgClip.addEventListener('input',()=>{uni.uClipX.value=+rgClip.value;document.getElementById('vClip').textContent=`x = ${rgClip.value} mm`;});
-const btnPause=document.getElementById('btnPause');
-btnPause.onclick=()=>{paused=!paused;btnPause.textContent=paused?'RETOMAR SIM':'PAUSAR SIM';};
-document.getElementById('btnResetCam').onclick=()=>{
-  clearFocus();
-  camera.position.copy(CAM0.p);
-  desiredTarget.copy(HOME); camTarget.copy(HOME); controls.target.copy(HOME);
-};
-document.getElementById('btnOverview').onclick=clearFocus;
-
-/* ============================================================
-   9 · HUD — telemetria, sparkline, régua, rótulos
-   ============================================================ */
-const teleSpk=document.getElementById('teleSpk'),teleHz=document.getElementById('teleHz'),teleFps=document.getElementById('teleFps');
-const sparkC=document.getElementById('spark'),sctx=sparkC.getContext('2d');
-const hist=new Array(66).fill(0);
-function drawSpark(){
-  sctx.clearRect(0,0,132,24);
-  sctx.strokeStyle='rgba(217,142,116,.22)';sctx.lineWidth=1;
-  sctx.beginPath();sctx.moveTo(0,20.5);sctx.lineTo(132,20.5);sctx.stroke();
-  sctx.strokeStyle='#d98e74';sctx.lineWidth=1.2;sctx.beginPath();
-  for(let i=0;i<66;i++){const x=i*132/65,y=22-hist[i]*19;i?sctx.lineTo(x,y):sctx.moveTo(x,y);}
-  sctx.stroke();
-}
-const hzOf=r=>Math.min(0.05+0.85*Math.min(rate[r],1.08),0.92)/2.2;
-let hudAcc=0;
-function updateHUD(dt){
-  hudAcc+=dt; if(hudAcc<0.25) return; hudAcc=0;
-  let sum=0,wsum=0;
-  for(let r=0;r<NR;r++){
-    sum+=hzOf(r)*visCount[r]; wsum+=rate[r];
-    const el=rgEls[r]; if(!el) continue;
-    el.querySelector('.rg-fill').style.transform=`scaleX(${clamp(rate[r]/2.2,0,1)})`;
-    el.querySelector('.rg-hz').textContent=hzOf(r).toFixed(2).replace('.',',')+' Hz';
-  }
-  const hzVis=sum/VISIBLE;
-  teleSpk.textContent=(hzVis*TOTAL/1e6).toFixed(1).replace('.',',');
-  teleHz.textContent=hzVis.toFixed(2).replace('.',',');
-  teleFps.textContent=Math.round(fps);
-  hist.push(clamp(wsum/NR/1.1,0,1)); hist.shift(); drawSpark();
-}
-const rulerBar=document.getElementById('rulerBar'),rulerLabel=document.getElementById('rulerLabel');
-function updateRuler(){
-  const dist=camera.position.distanceTo(controls.target);
-  const ppmm=(innerHeight*0.5)/(Math.tan(camera.fov*Math.PI/360)*dist);
-  const val=[100,50,20,10,5].find(v=>v*ppmm<=170)||5;
-  rulerBar.style.width=(val*ppmm).toFixed(1)+'px';
-  rulerLabel.textContent=val+' mm';
-}
-function updateLabels(){
-  const on=document.getElementById('tgLabels').checked;
-  for(let i=0;i<NR;i++){
-    const el=labelEls[i]; if(!el) continue;
-    if(!on){el.style.visibility='hidden';continue;}
-    labelAnchor(i,_v3).project(camera);
-    if(_v3.z>1||_v3.z<-1){el.style.visibility='hidden';continue;}
-    el.style.visibility='visible';
-    el.style.left=((_v3.x*0.5+0.5)*innerWidth)+'px';
-    el.style.top=((-_v3.y*0.5+0.5)*innerHeight)+'px';
-    el.classList.toggle('hl',i===focusIdx);
-    el.classList.toggle('dim',focusIdx>=0&&i!==focusIdx);
-  }
-}
-
-/* ============================================================
-   10 · CÓRTEX DE LINGUAGEM — GRU 128·128 · ~100k sinapses
-   n-gramas de contexto 1–3 chars · sem palavra predefinida
-   ============================================================ */
-const LN={E:24,C:128,H:128,VMAX:160};
-const SEED=' abcdefghijklmnopqrstuvwxyzáàâãéêíóôõúç0123456789.,!?;:-';
-const D=LN.E+LN.C, H=LN.H;
-const PARAM_KEYS=['Wz','bz','Wr','br','Wn','bn','Un','bhn','Wc','bc','Wo','bo','Emb'];
-const LKEY='menteOmegaLangV2';
-let chars=[], V=2, P={}, AM={}, AV={}, Gg={};
-let stepCount=0, emaLoss=null, AdamT=0, genTemp=0.9;
-let pairs=[], trainQ=[], training=false, brainMsgs=[], pendingTeach=null;
-let lastConsLog=0, lastGenLog=0, saveTimer=null;
-
-const zeros=n=>new Float32Array(n);
-const fresh=(n,s)=>{const a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=(Math.random()*2-1)*s;return a;};
-const norm=s=>s.normalize('NFC').toLowerCase().slice(0,160);
-const cmap=new Map();
-const rebuildMap=()=>{cmap.clear();chars.forEach((c,i)=>cmap.set(c,i+2));};
-
-function initParams(){
-  V=2+chars.length;
-  P.Wz=fresh(H*D,0.12); P.bz=zeros(H);
-  P.Wr=fresh(H*D,0.12); P.br=zeros(H);
-  P.Wn=fresh(H*D,0.18); P.bn=zeros(H);
-  P.Un=fresh(H*H,0.12); P.bhn=zeros(H);
-  P.Wc=fresh(H*LN.C,0.15); P.bc=zeros(H);
-  P.Wo=fresh(V*H,0.12); P.bo=zeros(V);
-  P.Emb=fresh(V*LN.E,0.35);
-  AM={};AV={};Gg={};
-  for(const k of PARAM_KEYS){AM[k]=zeros(P[k].length);AV[k]=zeros(P[k].length);Gg[k]=zeros(P[k].length);}
-}
-function growChar(c){
-  if(cmap.has(c))return;
-  if(V>=2+LN.VMAX){return;}
-  chars.push(c); const oldV=V; V++;
-  const ext=(a,n)=>{const nu=new Float32Array(n);nu.set(a);return nu;};
-  const growRow=(key,rowLen,init)=>{
-    const nu=new Float32Array(V*rowLen);nu.set(P[key]);
-    for(let i=oldV*rowLen;i<nu.length;i++)nu[i]=(Math.random()*2-1)*init;
-    P[key]=nu;AM[key]=ext(AM[key],V*rowLen);AV[key]=ext(AV[key],V*rowLen);Gg[key]=ext(Gg[key],V*rowLen);
-  };
-  const growVec=key=>{
-    const nu=new Float32Array(V);nu.set(P[key]);
-    P[key]=nu;AM[key]=ext(AM[key],V);AV[key]=ext(AV[key],V);Gg[key]=ext(Gg[key],V);
-  };
-  growRow('Emb',LN.E,0.35); growRow('Wo',H,0.12); growVec('bo');
-  cmap.set(c,V-1);
-}
-// contexto: hashing espalhado de n-gramas 1, 2 e 3 (bigramas + trigramas)
-function encodeCtx(str){
-  const v=new Float32Array(LN.C);
-  const s=' '+str+' ';
-  for(let n=1;n<=3;n++){
-    for(let i=0;i+n<=s.length;i++){
-      let h=2166136261>>>0;
-      for(let k=0;k<n;k++){h^=s.charCodeAt(i+k);h=Math.imul(h,16777619)>>>0;}
-      const bin=h%LN.C, sign=((h>>>7)&1)?0.42:-0.42;
-      v[bin]+=sign;
-    }
-  }
-  for(let i=0;i<LN.C;i++)v[i]=Math.tanh(v[i]);
-  return v;
-}
-function matvec(W,x,nR,nC){
-  const o=new Float32Array(nR);
-  for(let i=0;i<nR;i++){let s=0;const r=i*nC;for(let j=0;j<nC;j++)s+=W[r+j]*x[j];o[i]=s;}
-  return o;
-}
-function gruStep(x,hPrev,cache){
-  const az=matvec(P.Wz,x,H,D), ar=matvec(P.Wr,x,H,D), an=matvec(P.Wn,x,H,D),
-        au=matvec(P.Un,hPrev,H,H);
-  const z=new Float32Array(H), r=new Float32Array(H), n=new Float32Array(H), h=new Float32Array(H);
-  for(let i=0;i<H;i++){
-    z[i]=1/(1+Math.exp(-(az[i]+P.bz[i])));
-    r[i]=1/(1+Math.exp(-(ar[i]+P.br[i])));
-    const u=au[i]+P.bhn[i];
-    n[i]=Math.tanh(an[i]+P.bn[i]+r[i]*u);
-    h[i]=(1-z[i])*hPrev[i]+z[i]*n[i];
-    if(cache){cache.z[i]=z[i];cache.r[i]=r[i];cache.au[i]=u;cache.n[i]=n[i];}
-  }
-  return h;
-}
-function softmaxSample(logits,temp){
-  let mx=-1e30; for(let i=0;i<logits.length;i++)if(logits[i]>mx)mx=logits[i];
-  const p=new Float32Array(logits.length); let s=0;
-  for(let i=0;i<logits.length;i++){p[i]=Math.exp((logits[i]-mx)/temp);s+=p[i];}
-  let r=Math.random()*s;
-  for(let i=0;i<p.length;i++){r-=p[i];if(r<=0)return i;}
-  return p.length-1;
-}
-function netGenerate(ctxStr){
-  const ctx=encodeCtx(ctxStr);
-  const a0=matvec(P.Wc,ctx,H,LN.C);
-  let h=new Float32Array(H);
-  for(let i=0;i<H;i++)h[i]=Math.tanh(a0[i]+P.bc[i]);
-  let prev=0, out='';
-  for(let s=0;s<80;s++){
-    const x=new Float32Array(D);
-    for(let e=0;e<LN.E;e++)x[e]=P.Emb[prev*LN.E+e];
-    for(let c=0;c<LN.C;c++)x[LN.E+c]=ctx[c];
-    h=gruStep(x,h,null);
-    const logits=matvec(P.Wo,h,V,H);
-    for(let i=0;i<V;i++)logits[i]+=P.bo[i];
-    logits[0]=-1e9;
-    const id=softmaxSample(logits,genTemp);
-    if(id===1)break;
-    out+=chars[id-2]; prev=id;
-  }
-  return out;
-}
-// —— forward com cache + backward (BPTT) + Adam ——
-function trainOne(p,lr){
-  const ids=[];
-  for(const ch of p.tgt){const id=cmap.get(ch);if(id===undefined)return 0;ids.push(id);}
-  if(!ids.length)return 0;
-  const T=ids.length+1;                      // alvos: chars + EOS
-  const a0=matvec(P.Wc,p.ctx,H,LN.C);
-  const h0=new Float32Array(H);
-  for(let i=0;i<H;i++)h0[i]=Math.tanh(a0[i]+P.bc[i]);
-  let hPrev=h0;
-  const caches=[];
-  for(let t=0;t<T;t++){
-    const prev=t===0?0:ids[t-1];
-    const x=new Float32Array(D);
-    for(let e=0;e<LN.E;e++)x[e]=P.Emb[prev*LN.E+e];
-    for(let c=0;c<LN.C;c++)x[LN.E+c]=p.ctx[c];
-    const cache={x,hPrev,z:new Float32Array(H),r:new Float32Array(H),au:new Float32Array(H),
-                 n:new Float32Array(H),h:null,logits:null};
-    const h=gruStep(x,hPrev,cache);
-    cache.h=h;
-    cache.logits=matvec(P.Wo,h,V,H);
-    for(let i=0;i<V;i++)cache.logits[i]+=P.bo[i];
-    caches.push(cache); hPrev=h;
-  }
-  let loss=0;
-  const dh=new Float32Array(H), dxT=new Float32Array(D), tmpH=new Float32Array(H);
-  for(let t=T-1;t>=0;t--){
-    const c=caches[t], tgt=t===T-1?1:ids[t];
-    let mx=-1e30;for(let i=0;i<V;i++)if(c.logits[i]>mx)mx=c.logits[i];
-    let se=0; const psm=new Float32Array(V);
-    for(let i=0;i<V;i++){psm[i]=Math.exp(c.logits[i]-mx);se+=psm[i];}
-    loss+=-Math.log(Math.max(psm[tgt]/se,1e-9));
-    const dl=new Float32Array(V);
-    for(let i=0;i<V;i++)dl[i]=psm[i]/se;
-    dl[tgt]-=1;
-    for(let i=0;i<V;i++){
-      const di=dl[i]; if(Math.abs(di)<1e-12)continue;
-      const row=i*H;
-      for(let j=0;j<H;j++){Gg.Wo[row+j]+=di*c.h[j];dh[j]+=di*P.Wo[row+j];}
-      Gg.bo[i]+=di;
-    }
-    const z=c.z,r=c.r,au=c.au,n=c.n,hp=c.hPrev;
-    tmpH.fill(0);
-    for(let j=0;j<H;j++){
-      const d=dh[j];
-      const dzp=d*(n[j]-hp[j])*z[j]*(1-z[j]);
-      const dn=d*z[j];
-      const dna=dn*(1-n[j])*(1-n[j]);
-      const dr=dna*au[j];
-      const du=dna*r[j];
-      const drp=dr*r[j]*(1-r[j]);
-      for(let jj=0;jj<H;jj++){
-        Gg.Un[j*H+jj]+=du*hp[jj];
-        tmpH[jj]+=P.Un[j*H+jj]*du;
-      }
-      for(let jj=0;jj<D;jj++){
-        Gg.Wn[j*D+jj]+=dna*c.x[jj];
-        Gg.Wr[j*D+jj]+=drp*c.x[jj];
-        Gg.Wz[j*D+jj]+=dzp*c.x[jj];
-        dxT[jj]+=P.Wn[j*D+jj]*dna+P.Wr[j*D+jj]*drp+P.Wz[j*D+jj]*dzp;
-      }
-      Gg.bn[j]+=dna;Gg.br[j]+=drp;Gg.bz[j]+=dzp;
-      tmpH[j]+=d*(1-z[j]);
-    }
-    const prev=t===0?0:ids[t-1];
-    for(let e=0;e<LN.E;e++)Gg.Emb[prev*LN.E+e]+=dxT[e];
-    dxT.fill(0);
-    dh.set(tmpH);
-  }
-  for(let i=0;i<H;i++){
-    const g=dh[i]*(1-h0[i]*h0[i]);
-    for(let j=0;j<LN.C;j++)Gg.Wc[i*LN.C+j]+=g*p.ctx[j];
-    Gg.bc[i]+=g;
-  }
-  const invT=1/T;
-  let sq=0;
-  for(const k of PARAM_KEYS){const g=Gg[k];for(let i=0;i<g.length;i++){g[i]*=invT;sq+=g[i]*g[i];}}
-  const nrm=Math.sqrt(sq), clip=nrm>5?5/nrm:1;
-  AdamT++;
-  if(lr>=0){
-    const b1=0.9,b2=0.999;
-    for(const k of PARAM_KEYS){
-      const w=P[k],g=Gg[k],m=AM[k],vv=AV[k];
-      const c1=1-Math.pow(b1,AdamT), c2=1-Math.pow(b2,AdamT);
-      for(let i=0;i<w.length;i++){
-        const gi=g[i]*clip;
-        m[i]=b1*m[i]+(1-b1)*gi; vv[i]=b2*vv[i]+(1-b2)*gi*gi;
-        w[i]-=lr*(m[i]/c1)/(Math.sqrt(vv[i]/c2)+1e-8);
-      }
-    }
-  }else{ // desaprendizado: subida de gradiente leve (SGD)
-    const s=-lr;
-    for(const k of PARAM_KEYS){
-      const w=P[k],g=Gg[k];
-      for(let i=0;i<w.length;i++)w[i]+=s*g[i]*clip;
-    }
-  }
-  stepCount++;
-  emaLoss=emaLoss==null?loss/T:emaLoss*0.9+(loss/T)*0.1;
-  return loss/T;
-}
-function teachPair(user,target,mode){
-  const ctxStr=norm(user), tgtStr=norm(target).trim();
-  if(!tgtStr)return;
-  for(const ch of new Set(ctxStr+tgtStr)){if(!cmap.has(ch))growChar(ch);}
-  const pair={ctxStr,tgt:tgtStr,ctx:encodeCtx(ctxStr)};
-  pairs.push(pair); if(pairs.length>120)pairs.shift();
-  const cfg={teach:[50,0.015],reinforce:[20,0.008],punish:[8,-0.0035]}[mode];
-  trainQ.push({pair,left:cfg[0],lr:cfg[1],mode});
-  pumpTraining();
-}
-function pumpTraining(){
-  if(training)return;
-  const job=trainQ[0]; if(!job)return;
-  training=true; setLnStatus('treinando…');
-  const tick=()=>{
-    const t0=performance.now();
-    while(job.left>0 && performance.now()-t0<12){   // orçamento de 12 ms/frame
-      const p=(pairs.length>1&&Math.random()<0.3)?pairs[(Math.random()*pairs.length)|0]:job.pair;
-      trainOne(p,job.lr); job.left--;
-    }
-    updLnStats();
-    if(job.left>0)requestAnimationFrame(tick);
-    else{
-      trainQ.shift(); training=false;
-      onTrainDone(job);
-      pumpTraining();
-    }
-  };
-  requestAnimationFrame(tick);
-}
-function onTrainDone(job){
-  saveSoon();
-  if(ready){
-    burst(0,0.5,true); burst(9,0.6,true); fireTract(23,1,0.9,true);
-    const now=performance.now();
-    if(now-lastConsLog>6000){
-      lastConsLog=now;
-      log('ev',`consolidação — ${job.mode==='teach'?'imitação':job.mode==='reinforce'?'reforço':'desaprendizado'} · perda ${emaLoss.toFixed(3)}`);
-    }
-  }
-  if(job.mode==='teach')addSysMsg('aprendido ✓ — 50 passos de gradiente');
-  if(job.mode==='reinforce')addSysMsg('reforço consolidado ✓');
-  if(job.mode==='punish')addSysMsg('desaprendizado aplicado');
-  setLnStatus(stepCount>0?'plasticidade ativa':'virgem');
-}
-function setLnStatus(s){document.getElementById('lnStatus').textContent=s;}
-function updLnStats(){
-  let n=0; for(const k of PARAM_KEYS)n+=P[k].length;
-  document.getElementById('lnStats').innerHTML=
-    `<span>${fmtBR(n)}</span> sinapses · GRU <span>128×128</span> · ctx <span>128</span> bins · <span>${fmtBR(stepCount)}</span> passos · perda <span>${emaLoss==null?'—':emaLoss.toFixed(3)}</span> · vocab <span>${chars.length}</span>`;
-}
-function saveLang(){
-  try{
-    const o={chars,steps:stepCount,loss:emaLoss,t:AdamT,dims:{E:LN.E,C:LN.C,H:LN.H},
-      pairs:pairs.slice(-60).map(p=>({c:p.ctxStr,t:p.tgt}))};
-    for(const k of PARAM_KEYS)o[k]=Array.from(P[k],x=>+x.toFixed(5));
-    localStorage.setItem(LKEY,JSON.stringify(o));
-  }catch(e){}
-}
-function saveSoon(){clearTimeout(saveTimer);saveTimer=setTimeout(saveLang,2000);}
-function loadLang(){
-  try{
-    const o=JSON.parse(localStorage.getItem(LKEY));
-    if(!o||!o.chars||!o.dims)return false;
-    if(o.dims.E!==LN.E||o.dims.C!==LN.C||o.dims.H!==LN.H)return false; // arquitetura divergente
-    chars=o.chars; V=2+chars.length;
-    for(const k of PARAM_KEYS){
-      P[k]=Float32Array.from(o[k]);
-      AM[k]=zeros(P[k].length);AV[k]=zeros(P[k].length);Gg[k]=zeros(P[k].length);
-    }
-    stepCount=o.steps||0; emaLoss=o.loss??null; AdamT=o.t||0;
-    pairs=(o.pairs||[]).map(p=>({ctxStr:p.c,tgt:p.t,ctx:encodeCtx(p.c)}));
-    return true;
-  }catch(e){return false;}
-}
-function lesion(){
-  localStorage.removeItem(LKEY);
-  chars=[...SEED]; rebuildMap(); initParams();
-  stepCount=0; emaLoss=null; AdamT=0; pairs=[]; trainQ.length=0;
-  addSysMsg('lesão total — tecido rerandomizado, tudo esquecido');
-  setLnStatus('virgem'); updLnStats();
-  log('ev','lesão total — sinapses do córtex de linguagem rerandomizadas');
-}
-// —— chat UI ——
-const chatScroll=document.getElementById('chatScroll');
-function scrollChat(){chatScroll.scrollTop=chatScroll.scrollHeight;}
-function addSysMsg(t){
-  const d=document.createElement('div'); d.className='msg sys'; d.textContent=t;
-  chatScroll.appendChild(d); scrollChat();
-}
-function addUserMsg(t){
-  const d=document.createElement('div'); d.className='msg user'; d.textContent=t;
-  chatScroll.appendChild(d); scrollChat();
-}
-function addBrainMsg(t,idx){
-  const d=document.createElement('div'); d.className='msg brain';
-  d.textContent=t;
-  const act=document.createElement('div'); act.className='msg-actions';
-  const mk=(label,title,fn)=>{const b=document.createElement('button');b.textContent=label;b.title=title;b.onclick=fn;act.appendChild(b);};
-  mk('✓ reforçar','treinar na resposta que dei',()=>{
-    const m=brainMsgs[idx]; if(m&&m.out){teachPair(m.ctxStr,m.out,'reinforce');if(ready)burst(7,0.5,true);}
-  });
-  mk('✗ punir','desaprender essa resposta',()=>{
-    const m=brainMsgs[idx]; if(m&&m.out){teachPair(m.ctxStr,m.out,'punish');if(ready)burst(3,0.6,true);}
-  });
-  mk('✎ ensinar','digitar a resposta certa',()=>{
-    const m=brainMsgs[idx]; if(!m)return;
-    pendingTeach=m;
-    document.getElementById('teachQuote').textContent=`ensinar resposta para: "${m.ctxStr}"`;
-    document.getElementById('teachBox').style.display='block';
-    document.getElementById('teachInput').focus();
-  });
-  d.appendChild(act);
-  chatScroll.appendChild(d); scrollChat();
-}
-function sendChat(){
-  const inp=document.getElementById('chatInput');
-  const v=inp.value.trim(); if(!v)return;
-  inp.value='';
-  addUserMsg(v);
-  if(ready)excite=Math.min(excite+0.3,1.2);
-  const ctxStr=norm(v);
-  const out=netGenerate(ctxStr);
-  const idx=brainMsgs.push({ctxStr,out})-1;
-  addBrainMsg(out||'…',idx);
-  if(ready){
-    burst(6,0.5,true); burst(8,0.3,true); fireTract(21,1,0.8,true);
-    const now=performance.now();
-    if(now-lastGenLog>8000){lastGenLog=now;log('spike','córtex temporal → tálamo — token emitido pelo córtex de linguagem');}
-  }
-}
-function submitTeach(){
-  const inp=document.getElementById('teachInput');
-  const v=inp.value.trim();
-  if(!v||!pendingTeach)return;
-  inp.value='';
-  document.getElementById('teachBox').style.display='none';
-  addSysMsg('treinando…');
-  teachPair(pendingTeach.ctxStr,v,'teach');
-  pendingTeach=null;
-}
-document.getElementById('btnSend').onclick=sendChat;
-document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
-document.getElementById('btnTeach').onclick=submitTeach;
-document.getElementById('teachInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitTeach();});
-document.getElementById('btnLesion').onclick=()=>{
-  if(confirm('LESÃO TOTAL: apaga todo o treinamento do córtex de linguagem. Continuar?'))lesion();
-};
-const rgTemp=document.getElementById('rgTemp');
-rgTemp.addEventListener('input',()=>{
-  genTemp=+rgTemp.value;
-  document.getElementById('vTemp').textContent=genTemp.toFixed(1).replace('.',',');
-});
-function initLang(){
-  chars=[...SEED]; rebuildMap(); initParams();
-  const loaded=loadLang();
-  rebuildMap();
-  updLnStats();
-  if(loaded){
-    setLnStatus(stepCount>0?'plasticidade ativa':'virgem');
-    addSysMsg(`memória restaurada — ${fmtBR(stepCount)} passos de treino sobreviveram ao reload`);
-  }else{
-    addSysMsg('rede aleatória: ~100 mil sinapses virgens. fale — e ensine com ✎ sob cada resposta.');
-  }
-}
-
-/* ============================================================
-   11 · CONSTRUÇÃO ASSÍNCRONA E LOOP
-   ============================================================ */
-const frame=()=>new Promise(r=>requestAnimationFrame(r));
-const bootFill=document.getElementById('bootFill'),bootMsg=document.getElementById('bootMsg'),
-      bootCount=document.getElementById('bootCount');
-const setProg=(m,f)=>{bootMsg.textContent=m;bootFill.style.width=(f*100).toFixed(0)+'%';};
-async function build(){
-  setProg('Territórios corticais — envoltórios e volumes de toque…',0.05); await frame(); buildStructures();
-  const jobs=[
-    ['Córtex pré-frontal',()=>genCortex(0,visCount[0])],
-    ['Córtex pré-motor',()=>genCortex(1,visCount[1])],
-    ['Córtex parietal',()=>genCortex(2,visCount[2])],
-    ['Córtex cingulado',()=>genCortex(3,visCount[3])],
-    ['Córtex occipital',()=>genCortex(4,visCount[4])],
-    ['Junção temporoparietal',()=>genCortex(5,visCount[5])],
-    ['Córtex temporal',()=>genCortex(6,visCount[6])],
-    ['Córtex órbito-frontal',()=>genCortex(7,visCount[7])],
-    ['Tálamo — núcleo coerente',()=>genArconte(visCount[8])],
-    ['Circuito de Papez',()=>genLaco(visCount[9])],
-    ['Cerebelo — folia',()=>genCerebelo(visCount[10])],
-    ['Tronco encefálico',()=>genTronco(visCount[11])],
-  ];
-  let alloc=0;
-  for(let i=0;i<jobs.length;i++){
-    setProg('Povoando — '+jobs[i][0],0.08+0.60*(i/jobs.length)); await frame();
-    jobs[i][1](); alloc+=visCount[i];
-    bootCount.textContent=`${fmtBR(alloc)} / ${fmtBR(TOTAL)} alocados`;
-  }
-  setProg('Somatas e neurites — montando malhas…',0.72); await frame(); assembleNeuronMeshes();
-  setProg('Feixes de substância branca…',0.80); await frame(); buildTracts();
-  setProg('Neurônios ocultos — índice de dados…',0.86); await frame();
-  alloc+=HIDDEN; bootCount.textContent=`${fmtBR(alloc)} / ${fmtBR(TOTAL)} alocados`;
-  setProg('Painéis e rótulos…',0.92); await frame(); buildUI();
-  setProg('Córtex de linguagem — 100k sinapses aleatórias…',0.97); await frame(); initLang();
-  setProg('pronto',1); await frame();
-  document.getElementById('topTotal').textContent=fmtBR(TOTAL);
-  document.getElementById('boot').classList.add('done');
-  ready=true;
-  log('ev','encéfalo montado — 12 estruturas · 28 vias · 1 rede linguística');
-  log('spike','quiescência inicial — ritmo de fundo talâmico');
-  animate();
-}
-
-const clock=new THREE.Clock();
-let fps=60;
-function animate(){
-  requestAnimationFrame(animate);
-  const dt=Math.min(clock.getDelta(),0.05);
-  fps=lerp(fps,1/Math.max(dt,1e-4),0.06);
+function fitCamera(view){
+  const m = meshes[currentModel].model;
+  const b = m.bbox;
+  const cx=(b.x[0]+b.x[1])/2, cy=(b.y[0]+b.y[1])/2, cz=(b.z[0]+b.z[1])/2;
+  const S=(b.x[1]-b.x[0]), L=(b.z[1]-b.z[0]), H=(b.y[1]-b.y[0]);
+  const R = Math.max(S, L, H);
+  controls.target.set(cx, cy, cz);
+  let p;
+  if(view==='side')       p=[cx + R*1.55, cy+R*.03, cz];
+  else if(view==='front') p=[cx, cy+R*.08, cz + R*1.55];
+  else if(view==='rear')  p=[cx, cy+R*.08, cz - R*1.55];
+  else if(view==='top')   p=[cx, cy + R*1.6, cz+0.001];
+  else                    p=[cx + R*1.15, cy + R*.62, cz + R*1.15]; // ¾
+  camera.position.set(p[0],p[1],p[2]);
   controls.update();
-  if(!paused){ simTime+=dt*simSpeed; tickSim(dt*simSpeed); }
-  uni.uTime.value=simTime;
-  uni.uRate.value.set(rate);
-  for(let i=0;i<deepMats.length;i++) deepMats[i].uniforms.uRate.value=rate[deepMats[i].userData.region];
-  if(outerIco){outerIco.rotation.y+=dt*0.10;outerIco.rotation.x+=dt*0.04;}
-  if(icoIn){icoIn.rotation.y-=dt*0.16;}
-  camTarget.lerp(desiredTarget,1-Math.exp(-dt*3));
-  controls.target.copy(camTarget);
-  if(ptr.dirty){
-    ptr.dirty=false;
-    const hit=castAt(ptr.x,ptr.y);
-    if(hit){
-      const reg=hit.userData.region;
-      ttName.textContent=hit.userData.name;
-      ttSub.innerHTML=`${fmtBR(totCount[reg])} neurônios · ${fmtBR(visCount[reg])} renderizados<br>taxa ${rate[reg].toFixed(2).replace('.',',')}× · ${hzOf(reg).toFixed(2).replace('.',',')} Hz`;
-      tooltip.style.display='block';
-      tooltip.style.left=Math.min(ptr.x+16,innerWidth-250)+'px';
-      tooltip.style.top=Math.min(ptr.y+16,innerHeight-90)+'px';
-      canvas.style.cursor='pointer';
-    }else{
-      tooltip.style.display='none';
-      canvas.style.cursor='grab';
-    }
-  }
-  updateLabels(); updateHUD(dt); updateRuler();
-  composer.render();
 }
-addEventListener('resize',()=>{
-  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight); composer.setSize(innerWidth,innerHeight);
+
+function applyVisibility(){
+  meshes.forEach((o,i)=>{
+    if(i===currentModel) o.mesh.visible = true;
+    else o.mesh.visible = ghost;
+    if(o.mesh.material){
+      o.mesh.material.transparent = (i!==currentModel) && ghost;
+      o.mesh.material.opacity = (i!==currentModel) ? 0.10 : 1.0;
+      o.mesh.material.depthWrite = (i===currentModel);
+    }
+  });
+}
+
+function setModel(i){
+  currentModel = i;
+  applyVisibility();
+  document.querySelectorAll('#modelBtns button').forEach((b,bi)=>b.classList.toggle('on', bi===i));
+  fitCamera('q'); updateInfo();
+}
+
+// UI
+const data = window.__DATA__;
+const mBtns = document.getElementById('modelBtns');
+data.models.forEach((m,i)=>{
+  const b = document.createElement('button');
+  b.textContent = m.name; b.onclick = ()=>setModel(i);
+  mBtns.appendChild(b);
 });
-build();
+document.querySelectorAll('[data-cam]').forEach(b=>{
+  b.onclick = ()=>{ fitCamera(b.dataset.cam);
+    document.querySelectorAll('[data-cam]').forEach(x=>x.classList.remove('on')); b.classList.add('on'); };
+});
+const bG=document.getElementById('btnGhost'), bGr=document.getElementById('btnGrid'), bA=document.getElementById('btnAxes');
+bG.onclick=()=>{ ghost=!ghost; bG.classList.toggle('on',ghost); applyVisibility(); };
+bGr.onclick=()=>{ showGrid=!showGrid; grid.visible=showGrid; bGr.classList.toggle('on',showGrid); };
+bA.onclick=()=>{ axesGrp.visible=!axesGrp.visible; bA.classList.toggle('on',axesGrp.visible); };
+
+function resize(){
+  const w=innerWidth, h=innerHeight;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+let t0=performance.now();
+function loop(t){
+  requestAnimationFrame(loop);
+  controls.update();
+  renderer.render(scene,camera);
+}
+
+buildMeshes();
+resize();
+setModel(0);
+document.getElementById('loading').style.display='none';
+loop(t0);
+})();
 </script>
 </body>
 </html>
