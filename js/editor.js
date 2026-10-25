@@ -101,14 +101,23 @@ export function clearDesign() {
 
 // ---------- canvas ----------
 export function renderEditor(ctx, W, H, time) {
-  ctx.fillStyle = '#0d1017';
+  // hangar backdrop: deep navy with a soft spotlight
+  const bg = ctx.createRadialGradient(W / 2, H * 0.42, 40, W / 2, H * 0.42, Math.max(W, H) * 0.75);
+  bg.addColorStop(0, '#151b29');
+  bg.addColorStop(1, '#0a0d14');
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
-  // grid
-  ctx.strokeStyle = 'rgba(90,110,150,0.09)';
+  // blueprint grid
+  ctx.strokeStyle = 'rgba(90,130,190,0.10)';
   ctx.lineWidth = 1;
   const g = 40;
   for (let x = (W / 2) % g; x < W; x += g) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
   for (let y = (H / 2) % g; y < H; y += g) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  // centerline
+  ctx.strokeStyle = 'rgba(127,212,255,0.14)';
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+  ctx.setLineDash([]);
 
   const stack = editor.design.stack;
   if (!stack.length) {
@@ -126,6 +135,13 @@ export function renderEditor(ctx, W, H, time) {
   const fit = (H * 0.7) / Math.max(geom.height, 4);
   const S = Math.min(editor.zoom, fit);
   const cx = W / 2, cy = H / 2 + editor.panY;
+
+  // glow pool under the rocket
+  const pool = ctx.createRadialGradient(cx, cy + geom.height * S / 2 + 20, 4, cx, cy + geom.height * S / 2 + 20, 140);
+  pool.addColorStop(0, 'rgba(127,212,255,0.10)');
+  pool.addColorStop(1, 'rgba(127,212,255,0)');
+  ctx.fillStyle = pool;
+  ctx.fillRect(cx - 150, cy + geom.height * S / 2 - 60, 300, 220);
 
   ctx.save();
   ctx.translate(cx, cy);
@@ -212,14 +228,28 @@ export function buildPalette(game) {
       const el = document.createElement('div');
       el.className = 'pal-part' + (locked ? ' locked' : '');
       el.innerHTML = `
-        <div class="pp-name">${p.name}${locked ? ' 🔒' : ''}</div>
+        <div class="pp-head"><canvas class="pp-icon" width="40" height="40"></canvas>
+        <span class="pp-name">${p.name}${locked ? ' 🔒' : ''}</span></div>
         <div class="pp-meta">${partMeta(p)}</div>
         <div class="pp-desc">${locked ? `Unlock: ${TECH_TIERS[p.tier].name} (R&D)` : p.desc}</div>
         <div class="pp-cost">$${p.cost}</div>`;
+      drawPartIcon(el.querySelector('canvas'), p);
       if (!locked) el.addEventListener('click', () => onPaletteClick && onPaletteClick(p.id));
       pal.appendChild(el);
     }
   }
+}
+
+// Draws a mini preview of a part into a palette icon canvas.
+function drawPartIcon(cv, p) {
+  const c2 = cv.getContext('2d');
+  c2.clearRect(0, 0, 40, 40);
+  c2.save();
+  c2.translate(20, 20);
+  const s = Math.min(30 / Math.max(p.w, p.h), 15);
+  const fake = { ...p, w: p.w * s, h: p.h * s }; // drawPart multiplies by S=1
+  try { drawPart(c2, fake, 1, null, 0); } catch (e) { /* never block the palette */ }
+  c2.restore();
 }
 
 function partMeta(p) {
