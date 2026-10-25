@@ -5,6 +5,7 @@
 // Positions/velocities are relative to the current SOI body. Angle 0 = +x, CCW.
 
 import { BODIES, childrenOf, bodyLocalPos, bodyLocalVel, atmoDensity, G0 } from './universe.js';
+import { terrainAtLaunchSite, terrainSlope } from './terrain.js';
 import { PARTS } from './parts.js';
 import * as V from './vessel.js';
 
@@ -161,29 +162,55 @@ export function stepFlight(flight, dt, t) {
   flight.pos.x += flight.vel.x * dt;
   flight.pos.y += flight.vel.y * dt;
 
+  // --- engine exhaust & pad dust (visual particles, real momentum-free puffs) ---
+  if (thrust > 0 && (flight.warp || 1) <= 4) {
+    const bdE = geom.height / 2 + geom.com;
+    const bx = flight.pos.x - dir.x * bdE, by = flight.pos.y - dir.y * bdE;
+    const n = Math.min(3, 1 + (Math.random() * 2 | 0));
+    for (let i = 0; i < n; i++) {
+      const spread = (Math.random() - 0.5) * 0.5;
+      const sp = 25 + Math.random() * 40;
+      world.particles.push({
+        bodyKey: flight.bodyKey,
+        x: bx, y: by,
+        vx: flight.vel.x - dir.x * sp + sideDir(flight).x * spread * 30,
+        vy: flight.vel.y - dir.y * sp + sideDir(flight).y * spread * 30,
+        life: 0.5 + Math.random() * 0.7, maxLife: 1.2,
+        size: 1 + Math.random() * 2.5,
+        color: alt < 400 && rho > 0.05 ? '#c9b9a2' : (Math.random() < 0.5 ? '#aab4c2' : '#8892a2'),
+      });
+    }
+  }
+
   // --- heating / stats ---
   flight.maxAlt = Math.max(flight.maxAlt || 0, alt);
   flight.maxSpd = Math.max(flight.maxSpd || 0, spd);
 
-  // --- ground contact ---
+  // --- ground contact (real terrain, not a smooth sphere) ---
   const bd = bottomDistance(stack);
   const r2 = Math.hypot(flight.pos.x, flight.pos.y);
-  if (r2 - body.radius <= bd) {
+  const upA = Math.atan2(flight.pos.y, flight.pos.x);
+  const groundR = body.radius + terrainAtLaunchSite(body.key, upA);
+  if (r2 - groundR <= bd) {
     const vSpeed = Math.abs((flight.vel.x * flight.pos.x + flight.vel.y * flight.pos.y) / r2);
     const speed = Math.hypot(flight.vel.x, flight.vel.y);
     const safe = V.landingSafeSpeed(stack);
     const upAng = Math.atan2(flight.pos.y, flight.pos.x);
     const tilt = Math.abs(normAngle(flight.angle - upAng));
-    if (speed <= safe && tilt < 0.6) {
+    // local terrain tilt is allowed (land on gentle slopes)
+    const tSlope = terrainSlope(body.key, upAng);
+    const slopeTilt = Math.abs(normAngle(tilt + Math.atan(tSlope)));
+    if (speed <= safe && slopeTilt < 0.6) {
       // touchdown
       flight.landed = true;
-      const rr = body.radius + bd;
+      const rr = groundR + bd; // rest on the terrain surface
       const k = rr / r2;
       flight.pos.x *= k; flight.pos.y *= k;
       flight.vel.x = 0; flight.vel.y = 0;
       flight.angVel = 0;
-      flight.angle = upAng;
-      flight.sasTarget = upAng;
+      flight.angle = upAng + Math.atan(tSlope); // rest aligned with the slope
+      flight.sasTarget = flight.angle;
+      flight.groundTheta = upAng;
     } else {
       destroyVessel(flight, speed > safe
         ? `Impact at ${speed.toFixed(0)} m/s (max survivable: ${safe.toFixed(0)} m/s)`
@@ -273,6 +300,10 @@ export function executeNextStage(flight) {
     }
   }
   return step;
+}
+
+function sideDir(flight) {
+  return { x: -Math.sin(flight.angle), y: Math.cos(flight.angle) };
 }
 
 function spawnDebris(flight, stack, yOffset, sideKick = 0, axialKick = 0) {
