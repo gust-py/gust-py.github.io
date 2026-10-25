@@ -260,14 +260,14 @@ function update(dtReal) {
   evTimer += dtReal;
   if (evTimer > 0.25 && !f.destroyed) {
     evTimer = 0;
-    const { events, alt } = detectEvents(f, game.t);
+    const { events, alt, orbit } = detectEvents(f, game.t);
     const spd = PHY.surfaceSpeed(f);
-    const newFirsts = awardFirsts(game, f, events);
+    const newFirsts = awardFirsts(game, f, events, orbit);
     for (const nf of newFirsts) {
       f.gains.sci += nf.sci;
       toast(`🔬 <b>${nf.label}</b> +${nf.sci} science`, 'sci');
     }
-    const done = checkMissions(game, { game, flight: f, events, alt, spd });
+    const done = checkMissions(game, { game, flight: f, events, alt, spd, orbit });
     for (const m of done) {
       f.gains.missions.push(m.name);
       toast(`✅ Mission complete: <b>${m.name}</b> +$${m.funds.toLocaleString()} +${m.sci} sci`, 'good');
