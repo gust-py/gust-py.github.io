@@ -190,9 +190,9 @@ function biomePalette(body) {
   const kind = body.ice ? 'ice' : body.lava ? 'lava' : body.ocean === false ? 'dry' : 'terra';
   return {
     kind,
-    deep: kind === 'lava' ? [120, 20, 5] : kind === 'ice' ? [10, 40, 80] : [12, 28, 62],
-    shallow: kind === 'lava' ? [220, 90, 20] : kind === 'ice' ? [40, 90, 140] : [30, 90, 140],
-    water: kind === 'lava' ? [255, 140, 40] : kind === 'ice' ? [70, 130, 180] : [38, 118, 158],
+    deep: kind === 'lava' ? [150, 40, 12] : kind === 'ice' ? [24, 66, 118] : [22, 62, 108],
+    shallow: kind === 'lava' ? [235, 110, 30] : kind === 'ice' ? [70, 130, 190] : [55, 130, 180],
+    water: kind === 'lava' ? [255, 140, 40] : kind === 'ice' ? [100, 160, 210] : [62, 145, 185],
     sand: kind === 'ice' ? [190, 205, 220] : [206, 186, 130],
     land: kind === 'ice' ? [170, 195, 215] : base,
     land2: kind === 'ice' ? [225, 238, 248] : darken(base, 0.72),
@@ -203,18 +203,36 @@ function biomePalette(body) {
 }
 
 // Texture cache: bodyKey -> { terrain: canvas, clouds: canvas|null, size }
-const TEX_SIZE = 384;
+const TEX_SIZE = 256;
+// Texture is only worth drawing when the disc is between these pixel radii:
+// below MIN -> plain disc is cheaper; above MAX a single drawImage of a tiny
+// texture stretched over thousands of px is both ugly and expensive.
+const TEX_MIN_RPX = 5, TEX_MAX_RPX = 2000;
 const texCache = new Map();
 
 function getBodyTextures(body) {
-  let c = texCache.get(body.key || body.name);
+  const cacheKey = body.key || body.name || String(Math.abs(body.mu || 1));
+  let c = texCache.get(cacheKey);
   if (c) return c;
+  if (c === null) return null; // previously failed -> don't retry every frame
 
+  try {
+    return buildBodyTextures(body, cacheKey);
+  } catch (err) {
+    console.warn('[map] terrain generation failed for', body.name, err);
+    texCache.set(cacheKey, null);
+    return null;
+  }
+}
+
+function buildBodyTextures(body, cacheKey) {
   const S = TEX_SIZE, R = S / 2;
   const seed = hashStr(body.name || body.key || 'body');
   const noise = makeNoise(seed);
   const noise2 = makeNoise(seed ^ 0x9e3779b9);
   const pal = biomePalette(body);
+  // brighten deep colors once so oceans never read as black holes
+  pal.deep = [pal.deep[0] * 0.75 + 55, pal.deep[1] * 0.75 + 62, pal.deep[2] * 0.75 + 85];
   const canvas = document.createElement('canvas');
   canvas.width = S; canvas.height = S;
   const ctx = canvas.getContext('2d');
@@ -266,7 +284,7 @@ function getBodyTextures(body) {
         const lat = Math.abs(dy);
         const cap = lat > 0.62 + fbm(noise, nx * 2, ny * 2, 3) * 0.14 ? 1 : 0;
 
-        const seaLevel = pal.kind === 'dry' ? -1 : pal.kind === 'ice' ? 0.34 : 0.44;
+        const seaLevel = pal.kind === 'dry' ? -1 : pal.kind === 'ice' ? 0.34 : 0.46;
         if (h < seaLevel) {
           const depth = clamp((seaLevel - h) / 0.25, 0, 1);
           color = mixRGB(pal.shallow, pal.deep, depth);
@@ -352,8 +370,8 @@ function getBodyTextures(body) {
     cc.putImageData(ci, 0, 0);
   }
 
-  c = { terrain: canvas, clouds, size: S };
-  texCache.set(body.key || body.name, c);
+  const c = { terrain: canvas, clouds, size: S };
+  texCache.set(cacheKey, c);
   return c;
 }
 
@@ -367,9 +385,10 @@ function drawBody(ctx, body, sx, sy, rPx, t) {
     ctx.beginPath(); ctx.arc(sx, sy, rPx * 3, 0, 7); ctx.fill();
   }
 
-  if (rPx >= 5) {
+  if (rPx >= TEX_MIN_RPX && rPx <= TEX_MAX_RPX) {
     // textured body: clip to circle, draw the cached terrain, then rotating clouds
     const tex = getBodyTextures(body);
+    if (!tex) { drawPlainBody(ctx, body, sx, sy, rPx); return; }
     ctx.save();
     ctx.beginPath();
     ctx.arc(sx, sy, rPx, 0, 7);
@@ -401,10 +420,24 @@ function drawBody(ctx, body, sx, sy, rPx, t) {
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.arc(sx, sy, rPx, 0, 7); ctx.stroke();
   } else {
-    // far away: plain colored disc (cheap)
-    ctx.fillStyle = body.color;
-    ctx.beginPath(); ctx.arc(sx, sy, Math.max(rPx, 2), 0, 7); ctx.fill();
+    drawPlainBody(ctx, body, sx, sy, rPx);
   }
+}
+
+// Cheap shaded disc: vertical gradient from a lightened to a darkened body
+// color — looks like a lit sphere without any texture work.
+function drawPlainBody(ctx, body, sx, sy, rPx) {
+  const r = rPx;
+  let base = body.color || '#888888';
+  let n = parseInt(base.slice(1), 16);
+  const cr = (n >> 16) & 255, cg = (n >> 8) & 255, cb = n & 255;
+  const lit = `rgb(${Math.min(255, cr * 1.35 + 30) | 0},${Math.min(255, cg * 1.35 + 30) | 0},${Math.min(255, cb * 1.35 + 30) | 0})`;
+  const dark = `rgb(${(cr * 0.35) | 0},${(cg * 0.35) | 0},${(cb * 0.35) | 0})`;
+  const g = ctx.createRadialGradient(sx - r * 0.35, sy - r * 0.35, r * 0.15, sx, sy, r);
+  g.addColorStop(0, lit);
+  g.addColorStop(1, dark);
+  ctx.fillStyle = body.star ? base : g;
+  ctx.beginPath(); ctx.arc(sx, sy, Math.max(r, 2), 0, 7); ctx.fill();
 }
 
 // ---------- map state ----------
