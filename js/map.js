@@ -203,7 +203,7 @@ function biomePalette(body) {
 }
 
 // Texture cache: bodyKey -> { terrain: canvas, clouds: canvas|null, size }
-const TEX_SIZE = 256;
+const TEX_SIZE = 512;
 // Texture is only worth drawing when the disc is between these pixel radii:
 // below MIN -> plain disc is cheaper; above MAX a single drawImage of a tiny
 // texture stretched over thousands of px is both ugly and expensive.
@@ -247,7 +247,7 @@ function buildBodyTextures(body, cacheKey) {
       const dx = (px - R) / R, dy = (py - R) / R;
       const d = Math.hypot(dx, dy);
       const idx = (py * S + px) * 4;
-      if (d > 1.0) { data[idx + 3] = 0; continue; }
+      if (d > 1.08) { data[idx + 3] = 0; continue; } // margin so displaced limbs still have terrain
       const inside = clamp((1 - d) * R, 0, R); // px from limb toward center
       // sample noise on the disc plane (spatially coherent across the disc)
       const nx = px / S * 6, ny = py / S * 6;
@@ -327,12 +327,12 @@ function buildBodyTextures(body, cacheKey) {
       if (d2[idx + 3] === 0) continue;
       const strength = pal.kind === 'gas' ? 0 : pal.kind === 'star' ? 0 : 1;
       if (!strength) continue;
-      const dzx = (H(px + 1, py) - H(px - 1, py)) * 14;
-      const dzy = (H(px, py + 1) - H(px, py - 1)) * 14;
+      const dzx = (H(px + 1, py) - H(px - 1, py)) * 34;   // strong relief
+      const dzy = (H(px, py + 1) - H(px, py - 1)) * 34;
       // surface normal of the height field
       const nl = Math.hypot(dzx, dzy, 1);
       const dot = clamp((-dzx * Lx + -dzy * Ly + Lz) / nl, 0, 1);
-      const f = 0.62 + 0.75 * dot; // 0.62 shadow .. 1.37 highlight
+      const f = 0.48 + 0.95 * dot; // deep shadows .. strong highlights
       d2[idx] = clamp(d2[idx] * f, 0, 255);
       d2[idx + 1] = clamp(d2[idx + 1] * f, 0, 255);
       d2[idx + 2] = clamp(d2[idx + 2] * f, 0, 255);
@@ -356,13 +356,13 @@ function buildBodyTextures(body, cacheKey) {
         const dx = (px - R) / R, dy = (py - R) / R;
         const d = Math.hypot(dx, dy);
         const idx = (py * S + px) * 4;
-        if (d > 0.985) { cd[idx + 3] = 0; continue; }
+        if (d > 1.08) { cd[idx + 3] = 0; continue; }
         // swirl-distorted fBm clouds, banded like trade winds
         const warp = fbm(swirl, px / S * 4, py / S * 4, 3) * 0.8;
         const n = fbm(noise2, px / S * 7 + warp, py / S * 5, 5) * 0.5 + 0.5;
         const bandBoost = 0.12 * Math.sin((py / S) * Math.PI * 5);
         const cov = clamp(n + bandBoost - 0.52, 0, 1);
-        const a = clamp(cov * 3.2, 0, 1) * 235 * clamp((0.985 - d) * 18, 0, 1);
+        const a = clamp(cov * 3.2, 0, 1) * 235 * clamp((1.08 - d) * 18, 0, 1);
         cd[idx] = 255; cd[idx + 1] = 255; cd[idx + 2] = 255;
         cd[idx + 3] = a;
       }
@@ -370,9 +370,28 @@ function buildBodyTextures(body, cacheKey) {
     cc.putImageData(ci, 0, 0);
   }
 
-  const c = { terrain: canvas, clouds, size: S };
+  const c = { terrain: canvas, clouds, size: S, edge: edgeProfile(height, S) };
   texCache.set(cacheKey, c);
   return c;
+}
+
+// Sample the height field along a ring near the limb (d = 0.97) and return a
+// normalized 180-entry radial profile used to displace the body silhouette.
+function edgeProfile(height, S) {
+  const N = 180, out = new Float32Array(N);
+  const R = S / 2, ring = 0.97;
+  for (let i = 0; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const x = R + Math.cos(a) * (R - 1) * ring;
+    const y = R + Math.sin(a) * (R - 1) * ring;
+    out[i] = height[(y | 0) * S + (x | 0)] || 0;
+  }
+  // normalize to 0..1
+  let mn = Infinity, mx = -Infinity;
+  for (const v of out) { if (v < mn) mn = v; if (v > mx) mx = v; }
+  const span = Math.max(mx - mn, 1e-4);
+  for (let i = 0; i < N; i++) out[i] = (out[i] - mn) / span;
+  return out;
 }
 
 // Draw a body with terrain, clouds, atmosphere and star glow.
@@ -386,20 +405,21 @@ function drawBody(ctx, body, sx, sy, rPx, t) {
   }
 
   if (rPx >= TEX_MIN_RPX && rPx <= TEX_MAX_RPX) {
-    // textured body: clip to circle, draw the cached terrain, then rotating clouds
+    // textured body: clip to a TERRAIN-DISPLACED silhouette (mountains poke
+    // out of the limb), draw the cached relief, then rotating clouds
     const tex = getBodyTextures(body);
     if (!tex) { drawPlainBody(ctx, body, sx, sy, rPx); return; }
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(sx, sy, rPx, 0, 7);
+    bodyPath(ctx, body, tex, sx, sy, rPx);
     ctx.clip();
-    ctx.drawImage(tex.terrain, sx - rPx, sy - rPx, rPx * 2, rPx * 2);
+    // draw 8% oversized so terrain exists even beyond the mean-radius limb
+    ctx.drawImage(tex.terrain, sx - rPx * 1.08, sy - rPx * 1.08, rPx * 2.16, rPx * 2.16);
     if (tex.clouds) {
       const rot = (t * 0.02) % (Math.PI * 2); // slow cloud drift
       ctx.translate(sx, sy);
       ctx.rotate(rot);
       ctx.globalAlpha = 0.85;
-      ctx.drawImage(tex.clouds, -rPx, -rPx, rPx * 2, rPx * 2);
+      ctx.drawImage(tex.clouds, -rPx * 1.08, -rPx * 1.08, rPx * 2.16, rPx * 2.16);
       ctx.globalAlpha = 1;
       ctx.rotate(-rot);
       ctx.translate(-sx, -sy);
@@ -415,13 +435,32 @@ function drawBody(ctx, body, sx, sy, rPx, t) {
       ctx.fillRect(sx - rPx, sy - rPx, rPx * 2, rPx * 2);
     }
     ctx.restore();
-    // crisp limb
-    ctx.strokeStyle = 'rgba(200,220,255,0.25)';
+    // crisp limb follows the same displaced silhouette
+    bodyPath(ctx, body, tex, sx, sy, rPx);
+    ctx.strokeStyle = 'rgba(210,228,255,0.3)';
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(sx, sy, rPx, 0, 7); ctx.stroke();
+    ctx.stroke();
   } else {
     drawPlainBody(ctx, body, sx, sy, rPx);
   }
+}
+
+// Build the body silhouette path: a circle for stars/gas giants, terrain-
+// displaced for solid worlds. Returns false when no displacement applies.
+function bodyPath(ctx, body, tex, sx, sy, rPx) {
+  ctx.beginPath();
+  const hasRelief = tex && tex.edge && !body.star && !body.gas;
+  if (!hasRelief) { ctx.arc(sx, sy, rPx, 0, 7); return; }
+  const N = tex.edge.length;
+  const amp = rPx * 0.06; // max mountain protrusion beyond mean radius
+  for (let i = 0; i <= N; i++) {
+    const a = (i % N) / N * Math.PI * 2;
+    const r = rPx + (tex.edge[i % N] - 0.45) * amp;
+    const x = sx + Math.cos(a) * r, y = sy + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  return true;
 }
 
 // Cheap shaded disc: vertical gradient from a lightened to a darkened body
