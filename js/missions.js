@@ -1,156 +1,108 @@
-// missions.js — contracts and science "firsts".
-//
-// Missions are checked every frame against the live flight + program state.
-// Firsts are one-time science awards for reaching new situations.
+// missions.js — contracts, science "firsts", and flight event detection.
 
 import { BODIES } from './universe.js';
 import { orbitFromState } from './orbits.js';
-import { scienceMultiplier } from './vessel.js';
+
+// ---------- mission board ----------
+export const MISSIONS = [
+  { id: 'm1', name: 'Break the Sound Barrier', desc: 'Pass 340 m/s in flight.', funds: 3000, sci: 2,
+    test: c => c.spd > 340 },
+  { id: 'm2', name: 'Kilometer High Club', desc: 'Reach 1 km altitude.', funds: 3000, sci: 2,
+    test: c => c.alt > 1000 },
+  { id: 'm3', name: 'Edge of Space', desc: 'Leave the atmosphere (70 km).', funds: 6000, sci: 5,
+    test: c => c.alt > BODIES.gaia.atmoHeight },
+  { id: 'm4', name: 'Orbit Achieved', desc: 'Reach a stable orbit of Gaia (Pe > 70 km).', funds: 12000, sci: 10,
+    test: c => c.orbit && c.orbit.e < 1 && c.orbit.rPe > BODIES.gaia.radius + BODIES.gaia.atmoHeight && !c.flight.landed },
+  { id: 'm5', name: 'Safe Return', desc: 'Land intact on Gaia after flying above 70 km.', funds: 8000, sci: 6,
+    test: c => c.flight.landed && c.flight.bodyKey === 'gaia' && (c.flight.maxAlt || 0) > BODIES.gaia.atmoHeight && c.flight.hasFlown },
+  { id: 'm6', name: 'Crumb Encounter', desc: 'Enter the sphere of influence of Crumb.', funds: 15000, sci: 12,
+    test: c => c.flight.bodyKey === 'crumb' || c.flight.visited.includes('crumb') },
+  { id: 'm7', name: 'Moonlighting', desc: 'Achieve orbit around Crumb.', funds: 20000, sci: 15,
+    test: c => c.flight.bodyKey === 'crumb' && c.orbit && c.orbit.e < 1 && !c.flight.landed &&
+      c.orbit.rPe > BODIES.crumb.radius + 2000 },
+  { id: 'm8', name: 'One Small Step', desc: 'Land on Crumb and stay intact.', funds: 30000, sci: 25,
+    test: c => c.flight.landed && c.flight.bodyKey === 'crumb' },
+  { id: 'm9', name: 'Homecoming', desc: 'Return from Crumb and land safely on Gaia.', funds: 40000, sci: 30,
+    test: c => c.flight.landed && c.flight.bodyKey === 'gaia' && c.flight.visited.includes('crumb') },
+  { id: 'm10', name: 'Scorched', desc: 'Fly past Scorch (enter its SOI).', funds: 25000, sci: 18,
+    test: c => c.flight.bodyKey === 'scorch' || c.flight.visited.includes('scorch') },
+  { id: 'm11', name: 'Red Horizon', desc: 'Enter the SOI of Rusty.', funds: 35000, sci: 22,
+    test: c => c.flight.bodyKey === 'rusty' || c.flight.visited.includes('rusty') },
+  { id: 'm12', name: 'Rusty Tourist', desc: 'Achieve orbit around Rusty.', funds: 50000, sci: 30,
+    test: c => c.flight.bodyKey === 'rusty' && c.orbit && c.orbit.e < 1 && !c.flight.landed &&
+      c.orbit.rPe > BODIES.rusty.radius + BODIES.rusty.atmoHeight },
+  { id: 'm13', name: 'Interplanetary Landing', desc: 'Land intact on any world other than Gaia.', funds: 60000, sci: 40,
+    test: c => c.flight.landed && c.flight.bodyKey !== 'gaia' },
+  { id: 'm14', name: 'Escape Velocity', desc: 'Leave the Helios system (escape its SOI).', funds: 80000, sci: 50,
+    test: c => c.events.includes('helios_escape') },
+  { id: 'm15', name: 'Grand Tour', desc: 'Visit Scorch, Crumb and Rusty in one career.', funds: 100000, sci: 60,
+    test: c => c.game.firsts.includes('visited_scorch') && c.game.firsts.includes('visited_crumb') &&
+      c.game.firsts.includes('visited_rusty') },
+];
 
 // ---------- science firsts ----------
-// key: `${event}:${bodyKey}` stored in game.firsts
-export const FIRST_SCIENCE = {
-  'space:gaia': { sci: 8, label: 'First taste of space' },
-  'orbit:gaia': { sci: 12, label: 'Orbiting Gaia' },
-  'highalt:gaia': { sci: 4, label: 'Above 20 km' },
-  'soi:crumb': { sci: 15, label: 'Entered Crumb\'s sphere of influence' },
-  'orbit:crumb': { sci: 20, label: 'Orbiting Crumb' },
-  'land:crumb': { sci: 40, label: 'Standing on Crumb!' },
-  'soi:helios': { sci: 20, label: 'Interplanetary space' },
-  'soi:scorch': { sci: 35, label: 'Visiting Scorch' },
-  'orbit:scorch': { sci: 30, label: 'Orbiting Scorch' },
-  'land:scorch': { sci: 70, label: 'Landed on Scorch' },
-  'soi:rusty': { sci: 35, label: 'Visiting Rusty' },
-  'orbit:rusty': { sci: 30, label: 'Orbiting Rusty' },
-  'land:rusty': { sci: 70, label: 'Landed on Rusty' },
-};
+const FIRSTS = [
+  { ev: 'launch', label: 'First Launch', sci: 3, test: c => c.events.includes('launch') },
+  { ev: 'alt_5000', label: '5 km Altitude', sci: 3, test: c => c.alt > 5000 },
+  { ev: 'space', label: 'Reached Space', sci: 8, test: c => c.alt > BODIES.gaia.atmoHeight },
+  { ev: 'orbit', label: 'First Orbit', sci: 12, test: c =>
+    c.orbit && c.orbit.e < 1 && c.orbit.rPe > BODIES.gaia.radius + BODIES.gaia.atmoHeight && !c.flight.landed },
+  { ev: 'supersonic', label: 'Supersonic Flight', sci: 2, test: c => c.spd > 340 },
+  { ev: 'reentry', label: 'Atmospheric Reentry', sci: 5, test: c => c.events.includes('reentry') },
+  { ev: 'visited_crumb', label: 'Crumb Flyby', sci: 15, test: c => c.flight.bodyKey === 'crumb' },
+  { ev: 'visited_scorch', label: 'Scorch Flyby', sci: 15, test: c => c.flight.bodyKey === 'scorch' },
+  { ev: 'visited_rusty', label: 'Rusty Flyby', sci: 18, test: c => c.flight.bodyKey === 'rusty' },
+  { ev: 'landed_crumb', label: 'Landed on Crumb', sci: 25, test: c => c.flight.landed && c.flight.bodyKey === 'crumb' },
+  { ev: 'landed_scorch', label: 'Landed on Scorch', sci: 30, test: c => c.flight.landed && c.flight.bodyKey === 'scorch' },
+  { ev: 'landed_rusty', label: 'Landed on Rusty', sci: 35, test: c => c.flight.landed && c.flight.bodyKey === 'rusty' },
+  { ev: 'helios_escape', label: 'Escaped Helios', sci: 50, test: c => c.events.includes('helios_escape') },
+];
 
-// Determine current situation flags for the active flight.
+// ---------- event detection ----------
+// events: transient facts about this instant, used by missions + firsts.
 export function detectEvents(flight, t) {
   const body = BODIES[flight.bodyKey];
   const alt = Math.hypot(flight.pos.x, flight.pos.y) - body.radius;
+  const spd = Math.hypot(flight.vel.x, flight.vel.y);
+  const o = orbitFromState(body.mu, flight.pos.x, flight.pos.y, flight.vel.x, flight.vel.y, t);
   const events = [];
 
-  events.push(`soi:${flight.bodyKey}`);
-  if (alt > 20_000) events.push(`highalt:${flight.bodyKey}`);
-  if (alt > (body.atmoHeight || 20_000)) events.push(`space:${flight.bodyKey}`);
+  if (game_justLaunched(flight)) events.push('launch');
+  if (flight.qNow > 0 && alt < body.atmoHeight * 1.1 &&
+      flight.prevAlt !== undefined && flight.prevAlt > body.atmoHeight * 1.1) events.push('reentry');
+  if (body.key === 'helios' && Math.hypot(flight.pos.x, flight.pos.y) > body.soi) events.push('helios_escape');
+  flight.prevAlt = alt;
+  flight._lastOrbit = o;
 
-  // orbit: periapsis above atmosphere (or 10 km for airless), closed orbit
-  const o = orbitFromState(body.mu, flight.pos.x, flight.pos.y, flight.vel.x, flight.vel.y, t);
-  const minPe = body.radius + (body.atmoHeight || 10_000);
-  if (o.e < 1 && o.rPe > minPe) events.push(`orbit:${flight.bodyKey}`);
-
-  if (flight.landed && flight.bodyKey !== 'gaia') events.push(`land:${flight.bodyKey}`);
-  if (flight.landed && flight.bodyKey === 'gaia' && flight.hasFlown) events.push(`landed-back:gaia`);
-
-  return { events, alt, orbit: o };
+  return { events, alt, spd, orbit: o };
 }
 
-// Awards new firsts; returns [{label, sci}] for toasts.
-export function awardFirsts(game, flight, events) {
+function game_justLaunched(flight) {
+  return !flight.launchSeen && (flight.thrustNow > 0 || !flight.landed) &&
+    (flight.launchSeen = true);
+}
+
+// Returns the list of newly-earned firsts (and records them on game).
+export function awardFirsts(game, flight, events, orbit) {
+  const ctx = { events, flight, game, alt: flight.maxAlt || 0, spd: flight.maxSpd || 0,
+    orbit: orbit || flight._lastOrbit || null };
   const out = [];
-  const mult = scienceMultiplier(flight.stack);
-  for (const ev of events) {
-    if (game.firsts.includes(ev)) continue;
-    game.firsts.push(ev);
-    const f = FIRST_SCIENCE[ev];
-    if (f) {
-      const sci = Math.round(f.sci * mult);
-      game.science += sci;
-      out.push({ label: f.label, sci });
+  for (const f of FIRSTS) {
+    if (game.firsts.includes(f.ev)) continue;
+    if (f.test(ctx)) {
+      game.firsts.push(f.ev);
+      out.push({ label: f.label, sci: f.sci });
     }
   }
   return out;
 }
 
-// ---------- missions ----------
-// check(ctx) where ctx = { game, flight, events, alt, orbit, spd }
-export const MISSIONS = [
-  {
-    id: 'pad', name: 'Off the Pad', funds: 4000, sci: 3,
-    desc: 'Reach an altitude of 1 km. Baby steps.',
-    check: c => c.flight && c.alt > 1000,
-  },
-  {
-    id: 'sound', name: 'Breaking the Sound Barrier', funds: 5000, sci: 4,
-    desc: 'Exceed 340 m/s while below 20 km.',
-    check: c => c.flight && c.spd > 340 && c.alt < 20_000,
-  },
-  {
-    id: 'space', name: 'Kiss of Space', funds: 12_000, sci: 8,
-    desc: 'Leave the atmosphere: pass 70 km altitude.',
-    check: c => c.flight && c.flight.bodyKey === 'gaia' && c.alt > 70_000,
-  },
-  {
-    id: 'orbit', name: 'Stay Awhile', funds: 25_000, sci: 15,
-    desc: 'Achieve a stable orbit of Gaia (periapsis above 70 km).',
-    check: c => c.events.includes('orbit:gaia'),
-  },
-  {
-    id: 'high', name: 'The High Ground', funds: 15_000, sci: 8,
-    desc: 'Reach an altitude of 1,000 km above Gaia.',
-    check: c => c.flight && c.flight.bodyKey === 'gaia' && c.alt > 1_000_000,
-  },
-  {
-    id: 'recover', name: 'Bring It Home', funds: 10_000, sci: 5,
-    desc: 'Land safely back on Gaia after reaching space.',
-    check: c => c.events.includes('landed-back:gaia') && c.flight.maxAlt > 70_000,
-  },
-  {
-    id: 'crumbsoi', name: 'Moon Shot', funds: 30_000, sci: 15,
-    desc: 'Enter Crumb\'s sphere of influence.',
-    check: c => c.events.includes('soi:crumb'),
-  },
-  {
-    id: 'crumborbit', name: 'Crumb Orbiter', funds: 40_000, sci: 20,
-    desc: 'Achieve orbit around Crumb.',
-    check: c => c.events.includes('orbit:crumb'),
-  },
-  {
-    id: 'crumbland', name: 'One Small Squish', funds: 80_000, sci: 40,
-    desc: 'Land on Crumb in one piece.',
-    check: c => c.events.includes('land:crumb'),
-  },
-  {
-    id: 'crumbreturn', name: 'There and Back Again', funds: 100_000, sci: 50,
-    desc: 'Visit Crumb\'s SOI, then land safely back on Gaia.',
-    check: c => c.events.includes('landed-back:gaia') && c.flight.visited && c.flight.visited.includes('crumb'),
-  },
-  {
-    id: 'escape', name: "Sun's Out", funds: 50_000, sci: 25,
-    desc: 'Escape Gaia entirely and orbit Helios.',
-    check: c => c.events.includes('soi:helios'),
-  },
-  {
-    id: 'scorchsoi', name: 'Toasty', funds: 120_000, sci: 40,
-    desc: 'Reach Scorch, the scorched inner world.',
-    check: c => c.events.includes('soi:scorch'),
-  },
-  {
-    id: 'rustysoi', name: 'Rust Never Sleeps', funds: 120_000, sci: 40,
-    desc: 'Reach Rusty, the red outer world.',
-    check: c => c.events.includes('soi:rusty'),
-  },
-  {
-    id: 'rustyland', name: 'Red Rover', funds: 250_000, sci: 80,
-    desc: 'Land on Rusty. Bonus points for style (not really).',
-    check: c => c.events.includes('land:rusty'),
-  },
-  {
-    id: 'tour', name: 'The Grand Tour', funds: 500_000, sci: 100,
-    desc: 'Visit the SOI of every world: Crumb, Scorch, Rusty and Helios.',
-    check: c => ['soi:crumb', 'soi:scorch', 'soi:rusty', 'soi:helios'].every(e => c.game.firsts.includes(e)),
-  },
-];
-
-// Returns newly completed missions.
+// Returns missions completed this instant (and records them on game).
 export function checkMissions(game, ctx) {
   const done = [];
   for (const m of MISSIONS) {
     if (game.missionsDone.includes(m.id)) continue;
-    let ok = false;
-    try { ok = m.check(ctx); } catch (e) { ok = false; }
-    if (ok) {
+    if (m.test(ctx)) {
       game.missionsDone.push(m.id);
       game.funds += m.funds;
       game.science += m.sci;
@@ -160,6 +112,7 @@ export function checkMissions(game, ctx) {
   return done;
 }
 
-export function activeMissions(game, n = 4) {
+// Missions to show on the flight HUD.
+export function activeMissions(game, n = 3) {
   return MISSIONS.filter(m => !game.missionsDone.includes(m.id)).slice(0, n);
 }
