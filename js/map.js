@@ -479,7 +479,31 @@ function drawPlainBody(ctx, body, sx, sy, rPx) {
   ctx.beginPath(); ctx.arc(sx, sy, Math.max(r, 2), 0, 7); ctx.fill();
 }
 
-// ---------- map state ----------
+// ---------- flight-view surface elevation ----------
+// 1D elevation profile (meters) used by render.js to draw the near-surface
+// ground. Uses the SAME noise seeds as the map texture, so both views show
+// the "same" planet. Returns roughly ±amp meters (amp capped at 3.5 km).
+const surfCache = new Map();
+export function surfaceElevationM(body, theta) {
+  const key = body.key || body.name || 'b';
+  let s = surfCache.get(key);
+  if (!s) {
+    const seed = hashStr(body.name || key);
+    s = {
+      n1: makeNoise(seed), n2: makeNoise(seed ^ 0x9e3779b9),
+      amp: Math.min(body.radius * 0.004, 3500),
+    };
+    surfCache.set(key, s);
+  }
+  const th = theta + Math.PI;
+  // base freq 300 rad⁻¹ + 10 octaves → features from ~continental scale down
+  // to ~100 m arcs, so relief is visible both from orbit and on the pad
+  const base = fbm(s.n1, th * 300, 0.55, 10);
+  const mtn = ridged(s.n2, th * 150, 0.35, 9);
+  return (base * 0.6 + (mtn - 0.5) * 0.8) * s.amp;
+}
+
+export { drawBody };
 export const mapState = {
   open: false,
   zoom: 50_000,       // meters per pixel
