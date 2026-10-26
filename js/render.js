@@ -16,7 +16,7 @@
 // v5 — relevo em TODA a escala + plataforma ancorada + árvores realistas:
 //  • MICRO_WAVES: oitavas de colina (λ ≈ 40 m – 2,4 km) que aparecem DE PERTO
 //    (antes o terreno da Gaia só tinha ondas de dezenas de km — plano no chão).
-//  • Plataforma + torre de serviço ancoradas no ÂNGULO FIXO de spawn (mundo);
+//  • Base de lançamento simples ancorada no ÂNGULO FIXO de spawn (mundo);
 //    antes eram desenhadas sempre abaixo do foguete (seguindo-o pelo céu).
 //  • Árvores refritas: tronco afilado com casca e abaflamento, galhos, copa em
 //    camadas com variação de cor por indivíduo, pinheiros, sombra e LOD.
@@ -78,9 +78,9 @@ const LOOKS = {
     atmo: [120, 180, 255], atmoA: 0.35,
     farCore: [26, 58, 104],
     pal: {
-      grass: [106, 168, 64], grassDark: [56, 102, 34],
-      dirt: [140, 100, 62], dirtDark: [108, 76, 46],
-      sand: [216, 196, 132], sandWet: [172, 152, 98],
+      grass: [104, 162, 66], grassDark: [58, 100, 36],
+      dirt: [136, 100, 64], dirtDark: [106, 78, 48],
+      sand: [206, 192, 146], sandWet: [164, 150, 106],
       stone: [128, 124, 118], stoneLight: [162, 158, 152], stoneDark: [92, 88, 84],
       shallow: [96, 178, 202], deep: [20, 56, 106], foam: [234, 246, 250],
     },
@@ -316,24 +316,36 @@ function biomeKey(eN, sl, sea) {
   return 'grass';
 }
 
-// Cor contínua do solo por elevação + inclinação (com transições suaves).
+// Cor contínua do solo por elevação + inclinação. SEM FAIXAS: cada material
+// (areia/grama/terra/pedra) é um PESO suave (smoothstep) sobre faixas que se
+// sobrepõem — a cor flui de uma praia a um campo sem degrau visível.
 function groundColor(eN, sl, sea, pal) {
   if (eN < sea) {
-    const depth = Math.min(1, (sea - eN) / 0.5);
-    return mixC(pal.shallow, pal.deep, depth);
+    const depth = clampN((sea - eN) / 0.55, 0, 1);
+    return mixC(pal.shallow, pal.deep, depth * depth * (3 - 2 * depth));
   }
-  const above = eN - sea;
-  let c;
-  if (above < 0.018) c = mixC(pal.sandWet, pal.sand, above / 0.018);       // areia molhada
-  else if (above < 0.05) c = pal.sand;                                     // areia
-  else if (above < 0.11) c = mixC(pal.sand, pal.grass, (above - 0.05) / 0.06);
-  else if (eN < 0.4) c = pal.grass;                                        // planície
-  else if (eN < 0.56) c = mixC(pal.grass, pal.dirt, (eN - 0.4) / 0.16);
-  else if (eN < 0.72) c = pal.dirt;                                        // subsolo
-  else c = mixC(pal.dirt, pal.stone, Math.min(1, (eN - 0.72) / 0.16));     // pedra
-  // encostas íngremes expõem pedra
-  const st = Math.min(1, Math.max(0, (Math.abs(sl) - 0.55) / 0.9));
-  if (above > 0.02) c = mixC(c, pal.stone, st * 0.8);
+  const above = Math.max(0, eN - sea);
+  const S = (a, b2, x) => {           // smoothstep entre a e b2
+    const tt = clampN((x - a) / (b2 - a), 0, 1);
+    return tt * tt * (3 - 2 * tt);
+  };
+  // pesos que se misturam em janelas largas (nunca mudam de material de uma vez)
+  const wSand = 1 - S(0.05, 0.18, above);
+  const wGrass = S(0.04, 0.15, above) * (1 - S(0.40, 0.64, above));
+  const wDirt = S(0.38, 0.62, above) * (1 - S(0.66, 0.88, above));
+  const wStone = S(0.64, 0.90, above);
+  const sum = wSand + wGrass + wDirt + wStone + 1e-6;
+  let c = [
+    (pal.sand[0] * wSand + pal.grass[0] * wGrass + pal.dirt[0] * wDirt + pal.stone[0] * wStone) / sum,
+    (pal.sand[1] * wSand + pal.grass[1] * wGrass + pal.dirt[1] * wDirt + pal.stone[1] * wStone) / sum,
+    (pal.sand[2] * wSand + pal.grass[2] * wGrass + pal.dirt[2] * wDirt + pal.stone[2] * wStone) / sum,
+  ];
+  // faixa molhada junto à água (transição areia→água sem linha dura)
+  const wet = 1 - S(0.002, 0.035, above);
+  c = mixC(c, pal.sandWet, wet * 0.7);
+  // encostas íngremes expõem pedra — devagar e com teto baixo (sem manchas)
+  const st = S(0.85, 1.75, Math.abs(sl));
+  if (above > 0.03) c = mixC(c, pal.stone, st * 0.4);
   return c;
 }
 
@@ -624,13 +636,21 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
     H / 2 - (wy - flight.pos.y) / zoom,
   ];
 
-  // background: blend sky by atmospheric density (céu de CADA corpo)
+  // background: blend sky by atmospheric density (céu de CADA corpo), com
+  // PROFUNDIDADE: gradiente vertical — zênite mais escuro, horizonte com
+  // neblina mais clara e quente (dissecação atmosférica de verdade)
   const rho = atmoDensity(body, Math.max(alt, 0));
   const skyF = body.rho0 ? Math.pow(rho / body.rho0, 0.35) : 0;
   const sky = bodyLook(body).sky || [220, 160, 120];
   const spaceC = [8, 10, 18];
-  const bg = sky.map((c, i) => Math.round(spaceC[i] + (c - spaceC[i]) * skyF));
-  ctx.fillStyle = `rgb(${bg[0]},${bg[1]},${bg[2]})`;
+  const lerp3 = (a, b2, tt) => a.map((c, i) => Math.round(c + (b2[i] - c) * tt));
+  const zen = lerp3(spaceC, sky.map((c) => c * 0.78), skyF);           // topo
+  const hor = lerp3(spaceC, lerp3(sky, [255, 246, 228], 0.24), skyF);  // horizonte
+  const bg = hor;
+  const gSky = ctx.createLinearGradient(0, 0, 0, H);
+  gSky.addColorStop(0, `rgb(${zen[0]},${zen[1]},${zen[2]})`);
+  gSky.addColorStop(1, `rgb(${hor[0]},${hor[1]},${hor[2]})`);
+  ctx.fillStyle = gSky;
   ctx.fillRect(0, 0, W, H);
 
   drawStars(ctx, W, H, num(flight.pos.x / zoom), num(-flight.pos.y / zoom), 1 - skyF);
@@ -651,7 +671,7 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
       // o terreno NUNCA pode derrubar o loop de render (um throw aqui
       // congelava o jogo inteiro — inclusive a tela de fabricar foguetes)
       try {
-        drawNearSurface(ctx, W, H, flight, b, zoom, t, bg);
+        drawNearSurface(ctx, W, H, flight, b, zoom, t, hor);
       } catch (err) {
         drawFlatGround(ctx, W, H);
       }
@@ -695,7 +715,7 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
     }
   }
 
-  // a plataforma + torre de serviço são desenhadas DENTRO de drawNearSurface,
+  // a base de lançamento é desenhada DENTRO de drawNearSurface,
   // ancoradas ao ângulo fixo de spawn (PAD_ANG) — ficam no lugar no mundo
   // enquanto o foguete sobe/afasta (antes seguiam o foguete — bug)
 
@@ -772,6 +792,23 @@ function rgbS(c) {
 function mixC(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
 function mulC(c, f) { return [Math.min(255, c[0] * f), Math.min(255, c[1] * f), Math.min(255, c[2] * f)]; }
 
+// Oclusão ambiente SUAVE: gradiente radial que some até o transparente —
+// profundidade de verdade, sem "blocos semi-transparentes" no chão.
+// x,y = centro (px), rx/ry = raios (px), col = "r,g,b", aM = alpha no centro.
+function aoBlob(ctx, x, y, rx, ry, col, aM) {
+  if (!(rx > 0.5) || !(ry > 0.3) || !Number.isFinite(x) || !Number.isFinite(y)) return;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, rx * 0.08, 0, 0, rx);
+  g.addColorStop(0, `rgba(${col},${aM.toFixed(3)})`);
+  g.addColorStop(0.5, `rgba(${col},${(aM * 0.55).toFixed(3)})`);
+  g.addColorStop(1, `rgba(${col},0)`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
 // Desenha o solo como um perfil de terreno amostrado, com biomas do corpo
 // (grama/regolito, areia, subsolo, pedra, água), sombreamento por inclinação,
 // névoa de distância (que respeita a altitude) e detalhes de superfície.
@@ -789,7 +826,7 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
   const look = bodyLook(b);
   const diag = Math.hypot(W, H);
   const halfWin = (diag * 0.75) * zoom / b.radius; // radians covering the screen
-  const N = Math.max(80, Math.min(260, Math.round(diag / 6)));
+  const N = Math.max(80, Math.min(340, Math.round(diag / 4.5)));
   const arcStep = (b.radius * halfWin * 2) / N + 1e-9;
   const minWL = arcStep;                           // anti-aliasing: 1 amostra ≈ arcStep
   const h0 = num(elevAt(b, fr.a0, minWL));         // terrain height at the vessel
@@ -828,9 +865,11 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
     for (let j = Math.max(0, i - r), J = Math.min(N, i + r); j <= J; j++) { s += arr[j]; c++; }
     return s / c;
   });
-  const eNsS = smoothW(eNs, 4);
-  const slS = smoothW(slV, 12);  // luz só do relevo MACRO (≥300 m): janela larga
-                                 // evita listras verticais das oitavas finas
+  const eNsS = smoothW(eNs, 6);
+  // luz: inclinação MUITO suavizada (±18 amostras ≈ 120 px) e contribuição
+  // baixa — profundidade vem do gradiente de solo/água e da névoa; luz forte
+  // por inclinação vira listras verticais nas encostas
+  const slS = smoothW(slV, 18);
 
   const down = { x: -fr.up.x, y: -fr.up.y };
   const far = diag * 2 + fr.altV / zoom * 2;
@@ -852,7 +891,7 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
   const colV = [];
   for (let i = 0; i <= N; i++) {
     let c = groundColor(eNsS[i], slS[i], sea, pal);
-    c = mulC(c, Math.max(0.7, Math.min(1.25, 1 - slS[i] * 1.6)));   // luz suave
+    c = mulC(c, Math.max(0.9, Math.min(1.08, 1 - slS[i] * 0.55)));   // luz suave
     const distPx = Math.abs(pts[i][0] - W / 2);
     const hz = Math.min(0.42 * fogK, (distPx / (diag * 0.72)) * 0.5);
     if (hz > 0.01) c = mixC(c, sky, hz);
@@ -887,13 +926,36 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
     ctx.stroke();
   }
 
-  // contorno sutil do relevo
-  ctx.strokeStyle = 'rgba(18,22,28,0.22)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(pts[0][0], pts[0][1]);
-  for (let i = 1; i <= N; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-  ctx.stroke();
+  // PROFUNDIDADE: gradiente vertical por quad da superfície para baixo —
+  // o solo escurece com a profundidade (perfil de terra) e a água funda
+  // escurece em direção ao leito. Gradiente contínuo (começa em alpha 0 na
+  // própria superfície) — nada de blocos chapados semi-transparentes.
+  const depthLen = clampN(diag * 0.55, 420, 1500);
+  for (let i = 0; i < N; i++) {
+    const x0 = pts[i][0], y0 = pts[i][1], x1 = pts[i + 1][0], y1 = pts[i + 1][1];
+    if (!Number.isFinite(x0) || !Number.isFinite(y0) || !Number.isFinite(x1) || !Number.isFinite(y1)) continue;
+    const water = eNsS[i] < sea;
+    const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+    const ex = mx + down.x * depthLen, ey = my + down.y * depthLen;
+    const g = ctx.createLinearGradient(mx, my, ex, ey);
+    if (water) {
+      g.addColorStop(0, 'rgba(8,22,40,0)');
+      g.addColorStop(0.34, 'rgba(8,22,40,0.26)');
+      g.addColorStop(1, 'rgba(6,14,28,0.5)');
+    } else {
+      g.addColorStop(0, 'rgba(20,16,10,0)');
+      g.addColorStop(0.3, 'rgba(20,16,10,0.22)');
+      g.addColorStop(1, 'rgba(12,10,7,0.48)');
+    }
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.lineTo(x1 + down.x * far, y1 + down.y * far);
+    ctx.lineTo(x0 + down.x * far, y0 + down.y * far);
+    ctx.closePath();
+    ctx.fill();
+  }
 
   // brilho na linha da superfície da água
   if (sea > -Infinity) {
@@ -913,18 +975,19 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
   }
 
   drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, halfWin, N, eNs, slV, minWL);
-  // plataforma + torre de serviço (só na Gaia): ancoradas ao mundo, por cima
-  // do terreno e por baixo do foguete — herdam o try/catch da chamada acima
+  // base de lançamento (só na Gaia): ancorada ao mundo, por cima do terreno
+  // e por baixo do foguete — herda o try/catch da chamada acima
   if (b.key === 'gaia' && look.pad !== undefined) {
     drawLaunchPad(ctx, W, H, b, zoom, t, fr, h0, minWL);
   }
 }
 
-// ---------- plataforma de lançamento + torre de serviço ----------
+// ---------- base de lançamento SIMPLES ----------
 // ANCORADA AO MUNDO: desenhada no ângulo fixo de spawn (PAD_ANG = π/2, onde o
 // jogo nasce: pos (0, R)), sobre o terreno achatado do pad. NÃO segue o
-// foguete — quando ele sobe ou afasta, a torre fica no lugar. Medidas em
-// metros; lod converte para px.
+// foguete — quando ele sobe ou afasta, a base fica no lugar. Sem torre: só a
+// laje de concreto com o pátio de cascalho e uma sombra de contato SUAVE
+// (gradiente que some — nada de bloco chapado semi-transparente).
 const PAD_ANG = Math.PI / 2;
 function drawLaunchPad(ctx, W, H, b, zoom, t, fr, h0, minWL) {
   const lod = 1 / zoom;                          // px por metro
@@ -939,70 +1002,31 @@ function drawLaunchPad(ctx, W, H, b, zoom, t, fr, h0, minWL) {
   if (!Number.isFinite(px) || !Number.isFinite(py)) return;
   const up = fr.up, perp = fr.perp;
   const P = (d, h) => [px + perp.x * d * lod + up.x * h * lod, py + perp.y * d * lod + up.y * h * lod];
-  const line = (d1, h1, d2, h2) => {
-    ctx.beginPath(); ctx.moveTo(...P(d1, h1)); ctx.lineTo(...P(d2, h2)); ctx.stroke();
-  };
   const box = (d0, hv, w, h, fill) => {
     const a = P(d0, hv + h), c = P(d0 + w, hv);
     ctx.fillStyle = fill;
     ctx.fillRect(Math.min(a[0], c[0]), Math.min(a[1], c[1]), Math.abs(c[0] - a[0]), Math.abs(c[1] - a[1]));
   };
 
-  // sombra suave no chão
-  const sc = P(0, -0.55);
-  ctx.fillStyle = 'rgba(16,20,26,0.18)';
-  ctx.beginPath();
-  ctx.ellipse(sc[0], sc[1], Math.max(2, 15 * lod), Math.max(0.8, 1.1 * lod), 0, 0, 7);
-  ctx.fill();
+  // sombra de contato: oclusão suave ao redor da laje (gradiente radial que
+  // some sozinho — profundidade sem mancha chapada)
+  const sc = P(0, -0.8);
+  aoBlob(ctx, sc[0], sc[1], Math.max(3, 19 * lod), Math.max(1, 2.4 * lod), '14,18,24', 0.32);
 
-  // laje de concreto (topo em h=0 — é onde os pés do foguete encostam)
+  // base simples: pátio de cascalho + laje de concreto (topo em h=0 — é onde
+  // os pés do foguete encostam)
   box(-16, -0.5, 32, 0.5, '#4c5361');            // apron de cascalho
   box(-13, -1.2, 26, 1.2, '#3d4450');            // frente/lateral escura
   box(-13, -0.22, 26, 0.22, '#6e7987');          // face superior clara
-  if (lod > 1) {                                 // faixas de perigo
+  if (lod > 1) {                                 // faixas de perigo na borda
     for (let d = -12; d <= 11; d += 2.4) box(d, -0.42, 1.2, 0.2, '#c9a636');
   }
-  if (lod > 1.4) {                               // trilho-guia e olhais no piso
-    box(-0.18, -0.1, 0.36, 0.1, '#39404b');
-    for (const d of [-11.5, -5, 5, 11.5]) {
+  if (lod > 1.4) {                               // olhais de fixação no piso
+    for (const d of [-9, -3, 3, 9]) {
       const c = P(d, -0.5);
-      ctx.fillStyle = '#39404b';
-      ctx.beginPath(); ctx.arc(c[0], c[1], Math.max(0.8, 0.28 * lod), 0, 7); ctx.fill();
+      ctx.fillStyle = '#454c58';
+      ctx.beginPath(); ctx.arc(c[0], c[1], Math.max(0.8, 0.26 * lod), 0, 7); ctx.fill();
     }
-  }
-
-  // torre de serviço em treliça — ao lado do foguete, presa ao chão
-  const tx = 9.6, tw2 = 0.7;                     // centro e meia-largura (m)
-  const thT = 19;                                // altura (m)
-  box(tx - tw2 - 0.5, -1, 2 * tw2 + 1, 1.4, '#4a515c');  // fundação
-  ctx.strokeStyle = '#31363f';
-  ctx.lineWidth = Math.max(1, 0.17 * lod);
-  line(tx - tw2, 0.4, tx - tw2, thT);            // trilho esquerdo
-  line(tx + tw2, 0.4, tx + tw2, thT);            // trilho direito
-  if (lod > 0.9) {                               // diagonais + estrutos
-    ctx.lineWidth = Math.max(0.8, 0.09 * lod);
-    for (let h = 0.4, i = 0; h < thT - 2.2; h += 2.2, i++) {
-      if (i % 2) line(tx - tw2, h, tx + tw2, h + 2.2);
-      else line(tx + tw2, h, tx - tw2, h + 2.2);
-      if (i % 2 === 0) line(tx - tw2, h + 2.2, tx + tw2, h + 2.2);
-    }
-  }
-  if (lod > 0.8) {                               // braços de serviço
-    for (const ha of [5.5, 10.5, 15.5]) {
-      box(tx - tw2 - 5.2, ha, 5.2, 0.45, '#3d4450');
-      box(tx - tw2 - 5.4, ha, 0.22, 1.3, '#3d4450');   // guarda-corpo na ponta
-    }
-  }
-  // mastro + luz vermelha pulsante no topo
-  ctx.lineWidth = Math.max(0.8, 0.12 * lod);
-  line(tx, thT, tx, thT + 0.9);
-  const bp = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * 4.2));
-  const bc = P(tx, thT + 1.15);
-  ctx.fillStyle = `rgba(255,72,56,${bp.toFixed(3)})`;
-  ctx.beginPath(); ctx.arc(bc[0], bc[1], Math.max(1.2, 0.34 * lod), 0, 7); ctx.fill();
-  if (lod > 1.6) {                               // halo da luz
-    ctx.fillStyle = `rgba(255,72,56,${(bp * 0.22).toFixed(3)})`;
-    ctx.beginPath(); ctx.arc(bc[0], bc[1], Math.max(2.2, 0.9 * lod), 0, 7); ctx.fill();
   }
 }
 
@@ -1093,9 +1117,9 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
           }
         }
       } else {
-        // planície árida (regolito/poeira): pontinhos e pedrinhas
-        ctx.fillStyle = rgbS(mulC(pal.grassDark, 0.9));
-        ctx.globalAlpha = 0.55;
+        // planície árida (regolito/poeira): pontinhos e pedrinhas (cor MISTURADA,
+        // opaca — sem manchas translúcidas)
+        ctx.fillStyle = rgbS(mixC(pal.grass, pal.grassDark, 0.55));
         for (let j = 0; j < 3; j++) {
           const d2 = (rnd() - 0.5) * 0.8 * lod;
           const dy2 = -(rnd() * 0.3) * lod;
@@ -1104,18 +1128,16 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
             Math.max(0.8, lod * (0.07 + rnd() * 0.12)), 0, 7);
           ctx.fill();
         }
-        ctx.globalAlpha = 1;
         if (rnd() < 0.14) {
           const pr = Math.max(1, lod * 0.15);
-          ctx.fillStyle = rgbS(pal.stoneDark);
+          ctx.fillStyle = rgbS(mixC(pal.stone, pal.stoneDark, 0.6));
           ctx.beginPath();
           ctx.arc(ox2 + up.x * pr * 0.4, oy2 + up.y * pr * 0.4, pr, 0, 7);
           ctx.fill();
         }
       }
     } else if (key === 'dirt') {
-      ctx.fillStyle = rgbS(pal.dirtDark);
-      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = rgbS(mixC(pal.dirt, pal.dirtDark, 0.55));
       for (let j = 0; j < 2; j++) {                // pontinhos de solo
         const d2 = (rnd() - 0.5) * 0.8 * lod;
         const dy2 = -(rnd() * 0.3) * lod;
@@ -1124,10 +1146,9 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
           Math.max(0.8, lod * (0.07 + rnd() * 0.09)), 0, 7);
         ctx.fill();
       }
-      ctx.globalAlpha = 1;
       if (rnd() < 0.14) {                          // pedrinha solta
         const pr = Math.max(1, lod * 0.16);
-        ctx.fillStyle = rgbS(pal.stoneDark);
+        ctx.fillStyle = rgbS(mixC(pal.stone, pal.stoneDark, 0.6));
         ctx.beginPath();
         ctx.arc(ox2 + up.x * pr * 0.4, oy2 + up.y * pr * 0.4, pr, 0, 7);
         ctx.fill();
@@ -1137,17 +1158,15 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
         const len = (0.45 + rnd() * 0.7) * lod;
         if (len >= 2 && rnd() >= 0.35) {
           const dyp = (0.06 + rnd() * 0.22) * lod; // ondulação acima do solo
-          ctx.strokeStyle = rgbS(mulC(pal.sandWet, 0.9));
-          ctx.globalAlpha = 0.55;
+          ctx.strokeStyle = rgbS(mixC(pal.sand, pal.sandWet, 0.55));
           ctx.lineWidth = Math.max(1, lod * 0.06);
           ctx.beginPath();
           ctx.moveTo(ox2 - perp.x * len / 2 + up.x * dyp, oy2 - perp.y * len / 2 + up.y * dyp);
           ctx.lineTo(ox2 + perp.x * len / 2 + up.x * dyp, oy2 + perp.y * len / 2 + up.y * dyp);
           ctx.stroke();
-          ctx.globalAlpha = 1;
           if (rnd() < 0.3) {                       // grão claro / conchinha
             const d3 = (rnd() - 0.5) * 0.6 * lod;
-            ctx.fillStyle = 'rgba(240,232,200,0.8)';
+            ctx.fillStyle = rgbS(mixC(pal.sand, [246, 238, 208], 0.6));
             ctx.beginPath();
             ctx.arc(ox2 + perp.x * d3 + up.x * lod * 0.05, oy2 + perp.y * d3 + up.y * lod * 0.05,
               Math.max(0.8, lod * 0.05), 0, 7);
@@ -1156,22 +1175,19 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
         }
       } else {
         // areia árida: grãos soltos
-        ctx.fillStyle = rgbS(mulC(pal.sandWet, 0.85));
-        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = rgbS(mixC(pal.sand, pal.sandWet, 0.5));
         const d2 = (rnd() - 0.5) * 0.8 * lod;
         ctx.beginPath();
         ctx.arc(ox2 + perp.x * d2 + up.x * lod * 0.06, oy2 + perp.y * d2 + up.y * lod * 0.06,
           Math.max(0.8, lod * (0.05 + rnd() * 0.07)), 0, 7);
         ctx.fill();
-        ctx.globalAlpha = 1;
       }
     } else if (key === 'stone') {
       const len = (0.3 + rnd() * 0.5) * lod;
       if (len >= 2 && rnd() >= 0.25) {
         const dir = rnd() < 0.5 ? -1 : 1;
         const dyp = (0.1 + rnd() * 0.3) * lod;
-        ctx.strokeStyle = rgbS(mulC(pal.stoneDark, 0.95));
-        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = rgbS(mixC(pal.stone, pal.stoneDark, 0.55));
         ctx.lineWidth = Math.max(1, lod * 0.05);
         ctx.beginPath();                           // rachadura
         ctx.moveTo(ox2 - perp.x * len * 0.5 * dir + up.x * dyp,
@@ -1179,13 +1195,10 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
         ctx.lineTo(ox2 + perp.x * len * 0.5 * dir + up.x * (dyp - len * 0.25),
           oy2 + perp.y * len * 0.5 * dir + up.y * (dyp - len * 0.25));
         ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = rgbS(pal.stoneLight);      // brilho no topo
-        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = rgbS(mixC(pal.stone, pal.stoneLight, 0.55)); // brilho no topo
         ctx.beginPath();
         ctx.arc(ox2 + up.x * lod * 0.12, oy2 + up.y * lod * 0.12, Math.max(1, lod * 0.07), 0, 7);
         ctx.fill();
-        ctx.globalAlpha = 1;
       }
     } else if (key === 'water') {
       if (lod >= 1.5) {
@@ -1235,13 +1248,11 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
         }
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = rgbS(pal.stoneLight);      // brilho no topo
-        ctx.globalAlpha = 0.45;
+        ctx.fillStyle = rgbS(mixC(pal.stone, pal.stoneLight, 0.5)); // brilho no topo
         ctx.beginPath();
         ctx.arc(bx2 + up.x * br * squash * 0.3, by2 + up.y * br * squash * 0.3,
           Math.max(1, br * 0.3), 0, 7);
         ctx.fill();
-        ctx.globalAlpha = 1;
       }
     }
 
@@ -1299,12 +1310,10 @@ function drawTree(ctx, x, y, up, perp, lod, rnd, pal, t, ac) {
   const trunkD = mulC(trunkC, 0.6);
   const lean = (rnd() - 0.5) * 0.14 * th;        // inclinação individual
   const topD = lean + sway * 0.4;
-  // sombra projetada no chão
-  const sh = P(M(0.45), M(0.06));
-  ctx.fillStyle = 'rgba(22,28,14,0.17)';
-  ctx.beginPath();
-  ctx.ellipse(sh[0], sh[1], Math.max(1.5, M(hM * 0.16)), Math.max(0.8, M(hM * 0.05)), 0, 0, 7);
-  ctx.fill();
+  // sombra de contato no chão: oclusão suave em gradiente (some sozinha —
+  // sem elipse chapada semi-transparente)
+  const sh = P(M(0.45), M(0.05));
+  aoBlob(ctx, sh[0], sh[1], Math.max(1.5, M(hM * 0.22)), Math.max(0.8, M(hM * 0.06)), '18,26,10', 0.3);
   // tronco afilado com abaflamento na base (raiz abre no chão)
   const wb = Math.max(0.9, M(0.17));             // meia-largura na base
   const wt = Math.max(0.5, M(0.06));             // meia-largura no topo
@@ -1481,7 +1490,7 @@ function drawBodyFar(ctx, b, sx, sy, rPx, t, W, H) {
       rI0 = surfPx(i); rI1 = surfPx(i + 1);  // leito
     } else {
       c = groundColor(eNs[i], slS[i], sea, pal);
-      c = mulC(c, clampN(1 - slS[i] * 1.1, 0.72, 1.16)); // luz pela inclinação
+      c = mulC(c, clampN(1 - slS[i] * 1.0, 0.82, 1.12)); // luz pela inclinação (suave)
       rO0 = surfPx(i); rO1 = surfPx(i + 1);
       rI0 = rI1 = bandIn;
     }
