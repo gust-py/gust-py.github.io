@@ -12,6 +12,14 @@
 //  • Calotas polares removidas. Oceano só onde deve existir (Gaia).
 //  • Mais detalhes reais de perto: árvores, pedregulhos, rachaduras de lava,
 //    regolito, e névoa que respeita a altitude.
+//
+// v5 — relevo em TODA a escala + plataforma ancorada + árvores realistas:
+//  • MICRO_WAVES: oitavas de colina (λ ≈ 40 m – 2,4 km) que aparecem DE PERTO
+//    (antes o terreno da Gaia só tinha ondas de dezenas de km — plano no chão).
+//  • Plataforma + torre de serviço ancoradas no ÂNGULO FIXO de spawn (mundo);
+//    antes eram desenhadas sempre abaixo do foguete (seguindo-o pelo céu).
+//  • Árvores refritas: tronco afilado com casca e abaflamento, galhos, copa em
+//    camadas com variação de cor por indivíduo, pinheiros, sombra e LOD.
 
 import { BODIES, bodyWorldPos, atmoDensity } from './universe.js';
 import { PARTS } from './parts.js';
@@ -64,6 +72,8 @@ const LOOKS = {
     ampF: 0.004,
     waves: DEFAULT_WAVES,
     craters: 0,
+    pad: Math.PI / 2,        // ângulo mundial do centro da plataforma (spawn)
+    padFlat: 0.0006,         // meia-largura achatada (~360 m) p/ o pad
     flora: true, trees: true, clouds: true, ripples: true,
     atmo: [120, 180, 255], atmoA: 0.35,
     farCore: [26, 58, 104],
@@ -154,6 +164,19 @@ const LOOKS = {
   },
 };
 
+// Oitavas de MICRORELEVO: colinas/ondulações visíveis de perto. As
+// frequências são angulares (λ = 2π·r/f metros), então o MESMO conjunto dá
+// colinas proporcionais em qualquer corpo — pequeno no Crumb, grande na Gaia.
+// Amplitudes baixas: de longe somem abaixo de 1 px (disco continua limpo),
+// de perto desenham colinas reais de ±3 a ±70 m.
+const MICRO_WAVES = [
+  { f: 1571, p: 31, w: 0.032 },   // λ ≈ 2,4 km (Gaia) — colinas rolantes
+  { f: 4189, p: 47, w: 0.014 },   // λ ≈ 900 m
+  { f: 12243, p: 61, w: 0.0055 }, // λ ≈ 310 m
+  { f: 33659, p: 73, w: 0.0018 }, // λ ≈ 112 m
+  { f: 87011, p: 89, w: 0.0007 }, // λ ≈ 43 m
+];
+
 function genericLook(b) {
   const base = hexRGBc((b && b.color) || '#8a8f98');
   const land = (b && b.land) ? hexRGBc(b.land) : mulC(base, 0.78);
@@ -225,25 +248,51 @@ function craterShape(d) {
 // Terreno procedural determinístico (soma de senoides + crateras, fases por
 // corpo). e = 0 é a altitude física (raio do corpo); a média fica um pouco
 // abaixo, gerando oceanos/beiras na Gaia. A GAIA mantém EXATAMENTE a mesma
-// função de antes (mesmas frequências/fases) — nada muda para a física/jogo.
-function elevLocal(body, a) {
+// base de antes (mesmas frequências/fases) — nada muda para a física/jogo.
+//
+// minWL (opcional): menor escala visível em metros, para ANTI-ALIASING — cada
+// visão passa o próprio passo de amostragem e oitavas com λ < 2·minWL somem
+// com fade suave (completas só a partir de 3·minWL). Assim o disco de longe
+// nunca vira ruído listrado e o solo de perto mantém TODOS os detalhes; as
+// duas escalas mostram exatamente o que cabe nelas, da MESMA função.
+function elevLocal(body, a, minWL) {
   const r = num(body && body.radius, 600000);
   const look = bodyLook(body);
   const amp = Math.min(r * (look.ampF || 0.004), 3500) || 1;
   const seed = hashSeed(body && body.key);
   const waves = look.waves || DEFAULT_WAVES;
+  const fadeK = (lam) => {                     // 0 abaixo de 2·minWL, 1 acima de 3·minWL
+    if (!(minWL > 0)) return 1;
+    const k = clampN(lam / minWL - 2, 0, 1);
+    return k * k * (3 - 2 * k);
+  };
   let e = 0;
   for (let i = 0; i < waves.length; i++) {
     const wv = waves[i];
-    e += Math.sin(a * wv.f + (seed % wv.p) * 0.11) * wv.w;
+    e += Math.sin(a * wv.f + (seed % wv.p) * 0.11) * wv.w * fadeK((2 * Math.PI / wv.f) * r);
   }
   e = (e * 0.85 - 0.12) * amp;
+  // microrelevo (colinas de perto). Perto da plataforma de lançamento as
+  // oitavas finas são suavizadas até zero — sítio construído, chão plano —
+  // e a elevação no spawn fica IDÊNTICA à da versão anterior.
+  let microK = 1;
+  if (look.padFlat) {
+    const dd = Math.abs(wrapPi(a - (look.pad || 0)));
+    const tF = clampN((dd - look.padFlat * 0.3) / (look.padFlat * 0.7), 0, 1);
+    microK = tF * tF * (3 - 2 * tF);
+  }
+  if (microK > 0.001) {
+    for (let i = 0; i < MICRO_WAVES.length; i++) {
+      const wv = MICRO_WAVES[i];
+      e += Math.sin(a * wv.f + (seed % wv.p) * 0.11) * wv.w * microK * fadeK((2 * Math.PI / wv.f) * r) * amp;
+    }
+  }
   const crs = cratersOf(body);
   for (let i = 0; i < crs.length; i++) {
     const cr = crs[i];
     const dd = Math.abs(wrapPi(a - cr.c));
     if (dd > cr.w * 1.18) continue;
-    e += craterShape(dd / cr.w) * cr.d * amp;
+    e += craterShape(dd / cr.w) * cr.d * fadeK(cr.w * 2 * r) * amp;
   }
   return Number.isFinite(e) ? e : 0;
 }
@@ -646,24 +695,9 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
     }
   }
 
-  // launch pad on Gaia (at the north pole spawn point)
-  if (flight.bodyKey === 'gaia' && alt < 30_000) {
-    const fr = vesselFrame(flight, body);
-    // pad sits at sea level directly below the spawn point
-    const px = W / 2 + fr.up.x * (-fr.altV / zoom);
-    const py = H / 2 + fr.up.y * (-fr.altV / zoom);
-    const wpx = 30 / zoom;
-    if (wpx > 2) {
-      ctx.save();
-      ctx.translate(px, py);
-      ctx.rotate(Math.atan2(fr.up.x, -fr.up.y) + Math.PI / 2); // align pad with local ground
-      ctx.fillStyle = '#39404f';
-      ctx.fillRect(-wpx / 2, -3 / zoom, wpx, 5 / zoom);
-      ctx.fillStyle = '#59637a';
-      ctx.fillRect(-wpx / 2 - 8 / zoom, 2 / zoom, wpx + 16 / zoom, 12 / zoom);
-      ctx.restore();
-    }
-  }
+  // a plataforma + torre de serviço são desenhadas DENTRO de drawNearSurface,
+  // ancoradas ao ângulo fixo de spawn (PAD_ANG) — ficam no lugar no mundo
+  // enquanto o foguete sobe/afasta (antes seguiam o foguete — bug)
 
   // debris
   for (const d of world.debris) {
@@ -753,18 +787,20 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
     return;
   }
   const look = bodyLook(b);
-  const h0 = num(elevAt(b, fr.a0));                // terrain height at the vessel
+  const diag = Math.hypot(W, H);
+  const halfWin = (diag * 0.75) * zoom / b.radius; // radians covering the screen
+  const N = Math.max(80, Math.min(260, Math.round(diag / 6)));
+  const arcStep = (b.radius * halfWin * 2) / N + 1e-9;
+  const minWL = arcStep;                           // anti-aliasing: 1 amostra ≈ arcStep
+  const h0 = num(elevAt(b, fr.a0, minWL));         // terrain height at the vessel
   const amp = ampOf(b);
   const sea = look.ocean ? -0.28 : -Infinity;      // oceano SÓ em corpos com água
   const pal = biomePalette(b);
 
-  const diag = Math.hypot(W, H);
-  const halfWin = (diag * 0.75) * zoom / b.radius; // radians covering the screen
-  const N = Math.max(80, Math.min(260, Math.round(diag / 6)));
   const pts = [], hs = [], eNs = [];
   for (let i = 0; i <= N; i++) {
     const a = fr.a0 - halfWin + (2 * halfWin) * i / N;
-    const e = num(elevAt(b, a));                   // reserva local cobre NaN/undefined
+    const e = num(elevAt(b, a, minWL));            // reserva local cobre NaN/undefined
     const eN = e / amp;
     const hDraw = eN < sea ? sea * amp : e;        // water surface is flat
     const relY = (hDraw - h0 - fr.altV) / zoom;    // px above vessel, along up
@@ -778,22 +814,23 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
   }
 
   // inclinação por vértice (variação de altura por metro de arco), suavizada
-  const arcStep = (b.radius * halfWin * 2) / N + 1e-9;
   const slV = [];
   for (let i = 0; i <= N; i++) {
     const i0 = Math.max(0, i - 1), i1 = Math.min(N, i + 1);
     slV.push((hs[i1] - hs[i0]) / ((i1 - i0) * arcStep + 1e-9));
   }
 
-  // média móvel (±2) da elevação/inclinação só para a COR, evita bandas
-  // visíveis entre quads vizinhos (geomtria continua nítida)
-  const smooth = (arr) => arr.map((_, i) => {
+  // média móvel da elevação/inclinação SÓ para a COR. Janela larga (±4/±7
+  // amostras) mata o ruído de cor das oitavas finas de microrelevo (bandas
+  // verticais); a geometria do perfil continua nítida (usa os valores crus).
+  const smoothW = (arr, r) => arr.map((_, i) => {
     let s = 0, c = 0;
-    for (let j = Math.max(0, i - 2), J = Math.min(N, i + 2); j <= J; j++) { s += arr[j]; c++; }
+    for (let j = Math.max(0, i - r), J = Math.min(N, i + r); j <= J; j++) { s += arr[j]; c++; }
     return s / c;
   });
-  const eNsS = smooth(eNs);
-  const slS = smooth(slV);
+  const eNsS = smoothW(eNs, 4);
+  const slS = smoothW(slV, 12);  // luz só do relevo MACRO (≥300 m): janela larga
+                                 // evita listras verticais das oitavas finas
 
   const down = { x: -fr.up.x, y: -fr.up.y };
   const far = diag * 2 + fr.altV / zoom * 2;
@@ -875,13 +912,104 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
     ctx.stroke();
   }
 
-  drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, halfWin, N, eNs, slV);
+  drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, halfWin, N, eNs, slV, minWL);
+  // plataforma + torre de serviço (só na Gaia): ancoradas ao mundo, por cima
+  // do terreno e por baixo do foguete — herdam o try/catch da chamada acima
+  if (b.key === 'gaia' && look.pad !== undefined) {
+    drawLaunchPad(ctx, W, H, b, zoom, t, fr, h0, minWL);
+  }
+}
+
+// ---------- plataforma de lançamento + torre de serviço ----------
+// ANCORADA AO MUNDO: desenhada no ângulo fixo de spawn (PAD_ANG = π/2, onde o
+// jogo nasce: pos (0, R)), sobre o terreno achatado do pad. NÃO segue o
+// foguete — quando ele sobe ou afasta, a torre fica no lugar. Medidas em
+// metros; lod converte para px.
+const PAD_ANG = Math.PI / 2;
+function drawLaunchPad(ctx, W, H, b, zoom, t, fr, h0, minWL) {
+  const lod = 1 / zoom;                          // px por metro
+  if (!(lod > 0.3)) return;                      // longe demais
+  const da = wrapPi(PAD_ANG - fr.a0);
+  const relX = b.radius * da / zoom;             // px ao longo do horizonte
+  if (Math.abs(relX) > W * 0.75 + 60) return;    // pad fora da tela
+  const ePad = num(elevAt(b, PAD_ANG, minWL));   // terreno achatado sob o pad
+  const relY = (ePad - h0 - fr.altV) / zoom;
+  const px = W / 2 + fr.up.x * relY + fr.perp.x * relX;
+  const py = H / 2 + fr.up.y * relY + fr.perp.y * relX;
+  if (!Number.isFinite(px) || !Number.isFinite(py)) return;
+  const up = fr.up, perp = fr.perp;
+  const P = (d, h) => [px + perp.x * d * lod + up.x * h * lod, py + perp.y * d * lod + up.y * h * lod];
+  const line = (d1, h1, d2, h2) => {
+    ctx.beginPath(); ctx.moveTo(...P(d1, h1)); ctx.lineTo(...P(d2, h2)); ctx.stroke();
+  };
+  const box = (d0, hv, w, h, fill) => {
+    const a = P(d0, hv + h), c = P(d0 + w, hv);
+    ctx.fillStyle = fill;
+    ctx.fillRect(Math.min(a[0], c[0]), Math.min(a[1], c[1]), Math.abs(c[0] - a[0]), Math.abs(c[1] - a[1]));
+  };
+
+  // sombra suave no chão
+  const sc = P(0, -0.55);
+  ctx.fillStyle = 'rgba(16,20,26,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(sc[0], sc[1], Math.max(2, 15 * lod), Math.max(0.8, 1.1 * lod), 0, 0, 7);
+  ctx.fill();
+
+  // laje de concreto (topo em h=0 — é onde os pés do foguete encostam)
+  box(-16, -0.5, 32, 0.5, '#4c5361');            // apron de cascalho
+  box(-13, -1.2, 26, 1.2, '#3d4450');            // frente/lateral escura
+  box(-13, -0.22, 26, 0.22, '#6e7987');          // face superior clara
+  if (lod > 1) {                                 // faixas de perigo
+    for (let d = -12; d <= 11; d += 2.4) box(d, -0.42, 1.2, 0.2, '#c9a636');
+  }
+  if (lod > 1.4) {                               // trilho-guia e olhais no piso
+    box(-0.18, -0.1, 0.36, 0.1, '#39404b');
+    for (const d of [-11.5, -5, 5, 11.5]) {
+      const c = P(d, -0.5);
+      ctx.fillStyle = '#39404b';
+      ctx.beginPath(); ctx.arc(c[0], c[1], Math.max(0.8, 0.28 * lod), 0, 7); ctx.fill();
+    }
+  }
+
+  // torre de serviço em treliça — ao lado do foguete, presa ao chão
+  const tx = 9.6, tw2 = 0.7;                     // centro e meia-largura (m)
+  const thT = 19;                                // altura (m)
+  box(tx - tw2 - 0.5, -1, 2 * tw2 + 1, 1.4, '#4a515c');  // fundação
+  ctx.strokeStyle = '#31363f';
+  ctx.lineWidth = Math.max(1, 0.17 * lod);
+  line(tx - tw2, 0.4, tx - tw2, thT);            // trilho esquerdo
+  line(tx + tw2, 0.4, tx + tw2, thT);            // trilho direito
+  if (lod > 0.9) {                               // diagonais + estrutos
+    ctx.lineWidth = Math.max(0.8, 0.09 * lod);
+    for (let h = 0.4, i = 0; h < thT - 2.2; h += 2.2, i++) {
+      if (i % 2) line(tx - tw2, h, tx + tw2, h + 2.2);
+      else line(tx + tw2, h, tx - tw2, h + 2.2);
+      if (i % 2 === 0) line(tx - tw2, h + 2.2, tx + tw2, h + 2.2);
+    }
+  }
+  if (lod > 0.8) {                               // braços de serviço
+    for (const ha of [5.5, 10.5, 15.5]) {
+      box(tx - tw2 - 5.2, ha, 5.2, 0.45, '#3d4450');
+      box(tx - tw2 - 5.4, ha, 0.22, 1.3, '#3d4450');   // guarda-corpo na ponta
+    }
+  }
+  // mastro + luz vermelha pulsante no topo
+  ctx.lineWidth = Math.max(0.8, 0.12 * lod);
+  line(tx, thT, tx, thT + 0.9);
+  const bp = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * 4.2));
+  const bc = P(tx, thT + 1.15);
+  ctx.fillStyle = `rgba(255,72,56,${bp.toFixed(3)})`;
+  ctx.beginPath(); ctx.arc(bc[0], bc[1], Math.max(1.2, 0.34 * lod), 0, 7); ctx.fill();
+  if (lod > 1.6) {                               // halo da luz
+    ctx.fillStyle = `rgba(255,72,56,${(bp * 0.22).toFixed(3)})`;
+    ctx.beginPath(); ctx.arc(bc[0], bc[1], Math.max(2.2, 0.9 * lod), 0, 7); ctx.fill();
+  }
 }
 
 // Detalhes ancorados ao ângulo mundial (não deslizam quando o foguete se
 // move), com identidade POR CORPO: árvores/flores na Gaia, regolito e
 // pedregulhos no Crumb, lava no Scorch, dunas no Rusty, ondas na água.
-function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, halfWin, N, eNs, slV) {
+function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, halfWin, N, eNs, slV, minWL) {
   const diag = Math.hypot(W, H);
   if (fr.altV / zoom > diag * 0.85) return;        // solo está fora da tela
   const lod = 1 / zoom;                            // px por metro
@@ -896,10 +1024,12 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
 
   for (let k = k0; k <= k1; k++) {
     const ac = k * cellW;
-    const e = num(elevAt(b, ac));
+    const e = num(elevAt(b, ac, minWL));
     const eN = e / amp;
     const idx = Math.max(0, Math.min(N, Math.round(((ac - (fr.a0 - halfWin)) / (2 * halfWin)) * N)));
     const key = biomeKey(eN, num(slV[idx]), sea);
+    // sítio da plataforma: sem vegetação num raio de ~22 m do pad
+    const nearPad = look.pad !== undefined && Math.abs(wrapPi(ac - look.pad)) * b.radius < 22;
 
     const hDraw = eN < sea ? sea * amp : e;
     const relY = (hDraw - h0 - fr.altV) / zoom;
@@ -914,7 +1044,7 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
     const jx = (rnd() - 0.5) * 0.9 * lod;          // espalha dentro da célula
     const ox2 = gx + perp.x * jx, oy2 = gy + perp.y * jx;
 
-    if (key === 'grass') {
+    if (key === 'grass' && !nearPad) {
       if (look.flora) {
         if (rnd() < 0.22) continue;                // quebra a periodicidade das células
         const hpx = (0.4 + rnd() * 1.1) * lod;     // altura do tufo ~0.4–1.5 m
@@ -959,7 +1089,7 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
         if (look.trees) {
           const fm = Math.sin(k * 0.011 + ph1) * Math.cos(k * 0.0037 + ph2);
           if (rnd() < (fm > 0.25 ? 0.16 : 0.012)) {
-            drawTree(ctx, ox2, oy2, up, perp, lod, rnd, pal, t);
+            drawTree(ctx, ox2, oy2, up, perp, lod, rnd, pal, t, ac);
           }
         }
       } else {
@@ -1136,24 +1266,134 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
   }
 }
 
-// árvore: tronco + copa em dois tons (tamanho real ~2,6–6 m)
-function drawTree(ctx, x, y, up, perp, lod, rnd, pal, t) {
-  const th = (2.6 + rnd() * 3.4) * lod;
-  if (th < 3.2) return;
-  const sway = Math.sin(t * 1.3 + x * 0.03) * th * 0.045;
-  ctx.strokeStyle = 'rgb(96,68,44)';
-  ctx.lineWidth = Math.max(1, th * 0.09);
+// árvore realista: tronco afilado com abaflamento e casca, galhos, copa em
+// camadas (sombra embaixo, luz no topo) e variação de cor por indivíduo.
+// Duas espécies: frondosa (copa arredondada) e pinheiro (cones empilhados).
+// Coordenadas locais: d = ao longo do horizonte, h = para cima (em px).
+// ac = ângulo mundial da célula (mantém o balanço estável ao mover a câmera).
+function drawTree(ctx, x, y, up, perp, lod, rnd, pal, t, ac) {
+  const hM = 3.4 + rnd() * 3.8;                  // altura em metros: 3,4–7,2
+  const th = hM * lod;                           // altura em px
+  if (th < 2.2) return;
+  // identidade da árvore: espécie + tom próprio (diferença de cores visível)
+  const pick = rnd();
+  let leaf = mixC(pal.grass,
+    pick < 0.4 ? [70, 128, 42] : pick < 0.75 ? [128, 162, 56] : [154, 156, 54],
+    0.4 + rnd() * 0.35);
+  if (rnd() < 0.06) leaf = [176, 118, 46];       // raro: árvore outonal
+  const leafDark = mulC(leaf, 0.58);
+  const leafLight = mixC(leaf, [234, 246, 178], 0.3);
+  const pine = rnd() < 0.28;
+  const sway = Math.sin(t * 1.25 + ac * 731.7) * th * 0.026;
+  // LOD baixo: silhueta barata (tronco + copa fundidos)
+  if (th < 7) {
+    ctx.fillStyle = rgbS(mixC(leafDark, [38, 44, 28], 0.25));
+    ctx.beginPath();
+    ctx.arc(x + up.x * th * 0.62, y + up.y * th * 0.62, th * 0.46, 0, 7);
+    ctx.fill();
+    return;
+  }
+  const P = (d, h) => [x + perp.x * d + up.x * h, y + perp.y * d + up.y * h]; // px
+  const M = (v) => v * lod;                      // metros → px
+  const trunkC = mixC([88, 60, 38], [132, 100, 64], rnd());
+  const trunkD = mulC(trunkC, 0.6);
+  const lean = (rnd() - 0.5) * 0.14 * th;        // inclinação individual
+  const topD = lean + sway * 0.4;
+  // sombra projetada no chão
+  const sh = P(M(0.45), M(0.06));
+  ctx.fillStyle = 'rgba(22,28,14,0.17)';
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.lineTo(x + up.x * th * 0.4 + perp.x * sway, y + up.y * th * 0.4 + perp.y * sway);
+  ctx.ellipse(sh[0], sh[1], Math.max(1.5, M(hM * 0.16)), Math.max(0.8, M(hM * 0.05)), 0, 0, 7);
+  ctx.fill();
+  // tronco afilado com abaflamento na base (raiz abre no chão)
+  const wb = Math.max(0.9, M(0.17));             // meia-largura na base
+  const wt = Math.max(0.5, M(0.06));             // meia-largura no topo
+  const thTr = pine ? th * 0.8 : th * 0.62;      // altura do tronco
+  ctx.fillStyle = rgbS(trunkC);
+  ctx.beginPath();
+  ctx.moveTo(...P(-wb * 1.5, 0));
+  ctx.lineTo(...P(-wb, thTr * 0.2));
+  ctx.lineTo(...P(-wt + topD * 0.5, thTr * 0.55));
+  ctx.lineTo(...P(-wt * 0.85 + topD, thTr));
+  ctx.lineTo(...P(wt * 0.85 + topD, thTr));
+  ctx.lineTo(...P(wt + topD * 0.5, thTr * 0.55));
+  ctx.lineTo(...P(wb, thTr * 0.2));
+  ctx.lineTo(...P(wb * 1.5, 0));
+  ctx.closePath();
+  ctx.fill();
+  // casca: faceta escura de um lado do tronco
+  ctx.strokeStyle = rgbS(trunkD);
+  ctx.lineWidth = Math.max(0.8, wb * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(...P(-wb * 0.55, thTr * 0.06));
+  ctx.quadraticCurveTo(
+    ...P(-wb * 0.35 + topD * 0.4, thTr * 0.5),
+    ...P(-wt * 0.55 + topD, thTr * 0.94));
   ctx.stroke();
-  const cr = th * 0.36;
-  const cx2 = x + up.x * th * 0.72 + perp.x * sway;
-  const cy2 = y + up.y * th * 0.72 + perp.y * sway;
-  ctx.fillStyle = rgbS(mulC(pal.grassDark, 0.82));
-  ctx.beginPath(); ctx.arc(cx2, cy2, cr, 0, 7); ctx.fill();
-  ctx.fillStyle = rgbS(mulC(pal.grass, 1.05));
-  ctx.beginPath(); ctx.arc(cx2 - cr * 0.3, cy2 - cr * 0.3, cr * 0.6, 0, 7); ctx.fill();
+  // galhos (só quando a árvore está grande na tela)
+  if (th > 16) {
+    ctx.lineWidth = Math.max(0.7, wt * 0.45);
+    for (const bh of [0.52, 0.7]) {
+      const sd = rnd() < 0.5 ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(...P(sd * wt * 0.4 + topD * 0.3, thTr * bh));
+      ctx.quadraticCurveTo(
+        ...P(sd * M(0.5 + rnd() * 0.5) + topD * 0.6, thTr * (bh + 0.14)),
+        ...P(sd * M(0.9 + rnd() * 0.7) + topD + sway * 0.5, thTr * (bh + 0.2)));
+      ctx.stroke();
+    }
+  }
+  const cr = pine ? th * 0.3 : th * 0.38;        // raio da copa (px)
+  const cd = topD + sway;                        // deslocamento da copa
+  const ch = pine ? th * 0.86 : th * 0.82;       // centro da copa (px)
+  if (pine) {
+    // pinheiro: 3 cones empilhados, escuros embaixo → claros em cima
+    for (let i = 0; i < 3; i++) {
+      const wT = cr * (1.6 - i * 0.45);
+      const yB = ch - th * 0.24 * i;
+      ctx.fillStyle = rgbS(mixC(leafDark, leaf, i / 2));
+      ctx.beginPath();
+      ctx.moveTo(...P(cd * (0.6 + i * 0.2), yB + th * 0.3));
+      ctx.lineTo(...P(cd * 0.8 - wT, yB));
+      ctx.lineTo(...P(cd * 0.8 + wT, yB));
+      ctx.closePath();
+      ctx.fill();
+    }
+  } else {
+    // copa frondosa: bolhas individuais (escuras embaixo) + volume + luz
+    const nb = 5 + Math.floor(rnd() * 3);
+    for (let i = 0; i < nb; i++) {
+      const ba = rnd() * Math.PI * 2;
+      const bd = cd + Math.cos(ba) * cr * 0.62;
+      const bh2 = ch + Math.sin(ba) * cr * 0.5;
+      ctx.fillStyle = rgbS(Math.sin(ba) < -0.25 ? leafDark : leaf);
+      ctx.beginPath();
+      ctx.arc(...P(bd, bh2), Math.max(1.2, cr * (0.3 + rnd() * 0.45)), 0, 7);
+      ctx.fill();
+    }
+    ctx.fillStyle = rgbS(leafDark);              // volume sombreado (baixo)
+    ctx.beginPath();
+    ctx.arc(...P(cd - cr * 0.2, ch - cr * 0.3), Math.max(1.5, cr * 0.7), 0, 7);
+    ctx.fill();
+    ctx.fillStyle = rgbS(leaf);                  // massa principal
+    ctx.beginPath();
+    ctx.arc(...P(cd + cr * 0.08, ch + cr * 0.14), Math.max(1.5, cr * 0.64), 0, 7);
+    ctx.fill();
+    ctx.fillStyle = rgbS(leafLight);             // luz do sol no topo
+    ctx.beginPath();
+    ctx.arc(...P(cd + cr * 0.22, ch + cr * 0.36), Math.max(1, cr * 0.36), 0, 7);
+    ctx.fill();
+    if (th > 24) {                               // folhas iluminadas (pontinhos)
+      ctx.fillStyle = rgbS(mixC(leafLight, [255, 255, 214], 0.4));
+      for (let i = 0; i < 4; i++) {
+        const ba = rnd() * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(...P(cd + Math.cos(ba) * cr * 0.5, ch + cr * 0.28 + Math.sin(ba) * cr * 0.34),
+          Math.max(0.8, th * 0.028), 0, 7);
+        ctx.fill();
+      }
+    }
+  }
 }
 
 // ---------- planeta de longe com o TERRENO REAL ----------
@@ -1194,11 +1434,12 @@ function drawBodyFar(ctx, b, sx, sy, rPx, t, W, H) {
 
   const M = Math.round(clampN(rPx * 1.1, 240, 640));
   const a0 = aC - halfAng, a1 = aC + halfAng;
+  const minWL = (r * (a1 - a0)) / M;   // arco por amostra → anti-aliasing do disco
 
   const eN = new Array(M + 1);
   for (let i = 0; i <= M; i++) {
     const a = a0 + (a1 - a0) * i / M;
-    eN[i] = num(elevAt(b, a)) / amp;
+    eN[i] = num(elevAt(b, a, minWL)) / amp;
   }
   const sl = new Array(M + 1);
   for (let i = 0; i <= M; i++) {
@@ -1206,12 +1447,15 @@ function drawBodyFar(ctx, b, sx, sy, rPx, t, W, H) {
     const arcM = (r * (i1 - i0) * (a1 - a0)) / M + 1e-9;
     sl[i] = ((eN[i1] - eN[i0]) * amp) / arcM;
   }
-  const smooth = (arr) => arr.map((_, i) => {
+  // cor da banda: média móvel LARGA (±6 amostras ≈ 7,5 km) — sem isso as
+  // colinas de 2–3 km cruzam os limites de bioma a cada poucos px e a banda
+  // vira listras radiais. O padrão macro (continentes/oceanos) é preservado.
+  const smooth = (arr, r) => arr.map((_, i) => {
     let s = 0, c = 0;
-    for (let j = Math.max(0, i - 2), J = Math.min(M, i + 2); j <= J; j++) { s += arr[j]; c++; }
+    for (let j = Math.max(0, i - r), J = Math.min(M, i + r); j <= J; j++) { s += arr[j]; c++; }
     return s / c;
   });
-  const eNs = smooth(eN), slS = smooth(sl);
+  const eNs = smooth(eN, 6), slS = smooth(sl, 6);
 
   const surfPx = (i) => rPx + eN[i] * reliefPx;   // raio px da superfície
   const seaR = rPx + sea * reliefPx;              // nível do mar (abaixo do raio)
