@@ -155,6 +155,46 @@ const LOOKS = {
       shallow: [0, 0, 0], deep: [0, 0, 0], foam: [238, 198, 162],
     },
   },
+  // mundo gelado: neve azulada, gelo liso, atmosfera raríssima
+  zephyr: {
+    sky: [188, 212, 230],
+    ocean: false,
+    ampF: 0.0032,
+    waves: [
+      { f: 2.4, p: 93, w: 0.44 }, { f: 6.1, p: 87, w: 0.23 }, { f: 14.3, p: 81, w: 0.14 },
+      { f: 31.9, p: 77, w: 0.08 }, { f: 77.7, p: 71, w: 0.05 },
+    ],
+    craters: 5, boulders: true, ripples: true,
+    atmo: [190, 220, 245], atmoA: 0.2,
+    farCore: [150, 180, 198],
+    pal: {
+      grass: [226, 236, 242], grassDark: [196, 210, 220],
+      dirt: [204, 218, 226], dirtDark: [168, 186, 198],
+      sand: [238, 244, 248], sandWet: [214, 226, 234],
+      stone: [158, 176, 188], stoneLight: [192, 208, 218], stoneDark: [116, 134, 146],
+      shallow: [0, 0, 0], deep: [0, 0, 0], foam: [246, 250, 252],
+    },
+  },
+  // rocha violeta: mundo noturno e craterado, cristais salientes, sem ar
+  vesper: {
+    sky: [52, 40, 70],
+    ocean: false,
+    ampF: 0.0045,
+    waves: [
+      { f: 3.3, p: 89, w: 0.4 }, { f: 8.2, p: 85, w: 0.24 }, { f: 19.4, p: 81, w: 0.14 },
+      { f: 43.1, p: 77, w: 0.08 }, { f: 101.3, p: 73, w: 0.05 },
+    ],
+    craters: 18, boulders: true, ripples: false,
+    atmo: null,
+    farCore: [74, 58, 96],
+    pal: {
+      grass: [128, 104, 152], grassDark: [98, 78, 118],
+      dirt: [112, 90, 134], dirtDark: [86, 68, 104],
+      sand: [148, 122, 172], sandWet: [122, 100, 144],
+      stone: [98, 82, 116], stoneLight: [134, 112, 154], stoneDark: [62, 50, 78],
+      shallow: [0, 0, 0], deep: [0, 0, 0], foam: [200, 186, 220],
+    },
+  },
   helios: {
     sky: [255, 220, 120],
     ocean: false,
@@ -170,6 +210,64 @@ const LOOKS = {
       sand: [220, 170, 80], sandWet: [200, 150, 70],
       stone: [190, 130, 60], stoneLight: [230, 180, 90], stoneDark: [150, 100, 45],
       shallow: [0, 0, 0], deep: [0, 0, 0], foam: [255, 240, 180],
+    },
+  },
+  // luas novas: Grit (regolito marrom-cinza), Puff (gelo branco), Mote (violeta escuro)
+  grit: {
+    sky: [172, 164, 152],
+    ocean: false,
+    ampF: 0.005,
+    waves: [
+      { f: 2.9, p: 89, w: 0.42 }, { f: 7.1, p: 85, w: 0.22 }, { f: 16.9, p: 81, w: 0.13 },
+      { f: 37.7, p: 77, w: 0.08 }, { f: 91.3, p: 71, w: 0.05 },
+    ],
+    craters: 30, boulders: true, ripples: false,
+    atmo: null,
+    farCore: [88, 82, 74],
+    pal: {
+      grass: [142, 132, 118], grassDark: [110, 102, 90],
+      dirt: [122, 112, 98], dirtDark: [94, 86, 76],
+      sand: [160, 148, 132], sandWet: [136, 126, 112],
+      stone: [108, 100, 90], stoneLight: [142, 132, 118], stoneDark: [70, 64, 58],
+      shallow: [0, 0, 0], deep: [0, 0, 0], foam: [218, 210, 198],
+    },
+  },
+  puff: {
+    sky: [214, 226, 234],
+    ocean: false,
+    ampF: 0.0038,
+    waves: [
+      { f: 3.7, p: 91, w: 0.4 }, { f: 9.1, p: 85, w: 0.22 }, { f: 21.7, p: 81, w: 0.13 },
+      { f: 48.3, p: 77, w: 0.08 }, { f: 113.7, p: 73, w: 0.05 },
+    ],
+    craters: 12, boulders: true, ripples: true,
+    atmo: null,
+    farCore: [186, 202, 212],
+    pal: {
+      grass: [232, 240, 246], grassDark: [204, 216, 224],
+      dirt: [214, 226, 234], dirtDark: [182, 196, 206],
+      sand: [242, 248, 251], sandWet: [220, 230, 238],
+      stone: [176, 190, 200], stoneLight: [210, 222, 230], stoneDark: [136, 150, 160],
+      shallow: [0, 0, 0], deep: [0, 0, 0], foam: [250, 253, 255],
+    },
+  },
+  mote: {
+    sky: [40, 32, 54],
+    ocean: false,
+    ampF: 0.005,
+    waves: [
+      { f: 3.1, p: 87, w: 0.42 }, { f: 7.7, p: 83, w: 0.23 }, { f: 18.3, p: 79, w: 0.14 },
+      { f: 40.7, p: 75, w: 0.08 }, { f: 96.1, p: 71, w: 0.05 },
+    ],
+    craters: 22, boulders: true, ripples: false,
+    atmo: null,
+    farCore: [56, 45, 72],
+    pal: {
+      grass: [96, 80, 116], grassDark: [74, 62, 90],
+      dirt: [84, 70, 102], dirtDark: [64, 54, 78],
+      sand: [112, 94, 132], sandWet: [92, 78, 108],
+      stone: [74, 62, 88], stoneLight: [102, 86, 118], stoneDark: [48, 40, 58],
+      shallow: [0, 0, 0], deep: [0, 0, 0], foam: [164, 148, 184],
     },
   },
 };
@@ -437,28 +535,29 @@ function drawPart(ctx, p, S, state, time) {
         ctx.lineWidth = Math.max(1, w * 0.028);
         ctx.stroke();
       } else {
-        // probe core: tambor achatado cinza-escuro com visor
-        const x = -w / 2, y = -h / 2, r = h * 0.22;
-        const drum = () => {
-          ctx.beginPath();
-          ctx.moveTo(x + r, y);
-          ctx.arcTo(x + w, y, x + w, y + h, r);
-          ctx.arcTo(x + w, y + h, x, y + h, r);
-          ctx.arcTo(x, y + h, x, y, r);
-          ctx.arcTo(x, y, x + w, y, r);
-          ctx.closePath();
-        };
-        ctx.fillStyle = charcoal();
-        drum(); ctx.fill();
+        // BRAINLET: textura "estante" igual à imagem — faixas cinza-claras
+        // topo/base e miolo escuro com lombadas verticais de larguras variadas
+        ctx.fillStyle = '#c9ced4';
+        ctx.fillRect(-w / 2, -h / 2, w, h * 0.16);
+        ctx.fillRect(-w / 2, h / 2 - h * 0.16, w, h * 0.16);
+        ctx.fillStyle = '#131518';
+        ctx.fillRect(-w / 2, -h / 2 + h * 0.16, w, h * 0.68);
+        const spines = [
+          { x: -0.44, wd: 0.1, c: '#262a2f' },
+          { x: -0.3, wd: 0.08, c: '#0e1013' },
+          { x: -0.18, wd: 0.12, c: '#2e3238' },
+          { x: -0.02, wd: 0.07, c: '#17191d' },
+          { x: 0.09, wd: 0.11, c: '#0a0c0f' },
+          { x: 0.24, wd: 0.09, c: '#262a2f' },
+          { x: 0.37, wd: 0.1, c: '#14171b' },
+        ];
+        for (const s of spines) {
+          ctx.fillStyle = s.c;
+          ctx.fillRect(w * s.x, -h / 2 + h * 0.16, w * s.wd, h * 0.68);
+        }
         ctx.strokeStyle = 'rgba(16,18,22,0.55)';
         ctx.lineWidth = Math.max(1, w * 0.03);
-        drum(); ctx.stroke();
-        ctx.fillStyle = '#191c21';
-        ctx.fillRect(-w * 0.3, -h * 0.26, w * 0.6, h * 0.3);
-        ctx.fillStyle = '#59d6a0';
-        ctx.fillRect(-w * 0.26, -h * 0.13, w * 0.52, Math.max(1, h * 0.07));
-        ctx.fillStyle = '#f2b632';
-        ctx.beginPath(); ctx.arc(w * 0.32, h * 0.27, Math.max(1.2, w * 0.05), 0, 7); ctx.fill();
+        ctx.strokeRect(-w / 2, -h / 2, w, h);
       }
       break;
     }
