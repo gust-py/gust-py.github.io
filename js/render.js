@@ -317,7 +317,8 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
 
     // near-surface ground for the body we're flying over: real terrain relief
     if (b === body && rPx > 2000) {
-      drawNearSurface(ctx, W, H, flight, b, zoom);
+      try { drawNearSurface(ctx, W, H, flight, b, zoom); }
+      catch (e) { console.warn('[render] near-surface failed for', b.name, e); }
       continue;
     }
 
@@ -337,7 +338,12 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
     }
     if (rPx >= 5) {
       // procedural terrain (biomes, relief shading, clouds) — same textures as map
-      drawBody(ctx, b, sx, sy, rPx, t);
+      try { drawBody(ctx, b, sx, sy, rPx, t); }
+      catch (e) {
+        console.warn('[render] textured body failed for', b.name, e);
+        ctx.fillStyle = b.color;
+        ctx.beginPath(); ctx.arc(sx, sy, Math.max(rPx, 1), 0, 7); ctx.fill();
+      }
     } else {
       ctx.fillStyle = b.color;
       ctx.beginPath(); ctx.arc(sx, sy, Math.max(rPx, 1), 0, 7); ctx.fill();
