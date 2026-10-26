@@ -7,7 +7,125 @@ import { BODIES, bodyWorldPos, atmoDensity } from './universe.js';
 import { PARTS } from './parts.js';
 import * as V from './vessel.js';
 import { world } from './physics.js';
-import { drawBody, surfaceElevationM } from './map.js';
+import * as MAP from './map.js';
+
+// ---------- compat com map.js (INTERFERÊNCIA CORRIGIDA) ----------
+// O render.js original importava { drawBody, surfaceElevationM } POR NOME.
+// O map.js novo (mapa estilo KSP com nós de manobra/patched conics) não
+// exporta mais nada com esses nomes — e import nomeado faltando DERRUBA O
+// MÓDULO INTEIRO no carregamento: era isso que deixava a tela de fabricar
+// foguetes morta (nenhum JS do jogo rodava). Agora o import de namespace
+// nunca falha, e existem implementações locais de reserva abaixo. Se o
+// map.js do usuário voltar a exportar essas funções, elas são usadas
+// automaticamente (compatível com as duas versões).
+const elevAt = MAP.surfaceElevationM || elevLocal;
+const drawPlanet = MAP.drawBody || drawBodyLocal;
+
+function hashSeed(str) {
+  let h = 2166136261 >>> 0;
+  const s = String(str || 'x');
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h;
+}
+
+// Terreno procedural determinístico (soma de senoides, fases por corpo).
+// e = 0 é a altitude física (raio do corpo); a média fica um pouco abaixo,
+// gerando oceanos/beiras como no mapa de biomas.
+function elevLocal(body, a) {
+  const r = num(body && body.radius, 600000);
+  const amp = Math.min(r * 0.004, 3500) || 1;
+  const seed = hashSeed(body && body.key);
+  let e = 0;
+  e += Math.sin(a * 3.1 + (seed % 97) * 0.11) * 0.55;
+  e += Math.sin(a * 7.3 + (seed % 89) * 0.13) * 0.25;
+  e += Math.sin(a * 17.7 + (seed % 83) * 0.17) * 0.12;
+  e += Math.sin(a * 37.4 + (seed % 79) * 0.19) * 0.05;
+  e += Math.sin(a * 89.2 + (seed % 73) * 0.23) * 0.03;
+  return (e * 0.85 - 0.12) * amp;
+}
+
+// Textura de planeta (disco) para corpos vistos de longe, quando o map.js
+// não fornece drawBody. Gerada UMA vez por corpo num canvas offscreen.
+const planetTexCache = new Map();
+function planetTexture(b) {
+  const key = (b && b.key) || String((b && b.color) || 'x');
+  if (planetTexCache.has(key)) return planetTexCache.get(key);
+  let tex = null;
+  try {
+    if (typeof document !== 'undefined' && document.createElement) {
+      const S = 256, R = S / 2;
+      const cv = document.createElement('canvas');
+      cv.width = S; cv.height = S;
+      const c = cv.getContext('2d');
+      let seed = hashSeed(key) || 1;
+      const rnd = () => { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; return seed / 4294967296; };
+      const base = hexRGBc((b && b.color) || '#8a8f98');
+      const gaia = key === 'gaia';
+      const land = gaia ? hexRGBc((b && b.land) || '#4a7c3a') : mulC(base, 0.78);
+      const landHi = gaia ? mulC(land, 1.18) : mulC(base, 1.16);
+      const ocean = gaia ? hexRGBc((b && b.ocean) || '#2d5f9e') : base;
+      c.fillStyle = rgbS(ocean);
+      c.fillRect(0, 0, S, S);
+      // continentes / manchas de terreno
+      const nBlobs = gaia ? 16 : 10;
+      for (let i = 0; i < nBlobs; i++) {
+        const bx = rnd() * S, by = R + (rnd() - 0.5) * S * 0.8;
+        const rr = (0.06 + rnd() * 0.16) * R * (gaia ? 1.35 : 1);
+        c.fillStyle = rgbS(rnd() < 0.5 ? land : landHi);
+        c.globalAlpha = 0.72 + rnd() * 0.28;
+        c.beginPath();
+        const lobes = 5 + ((rnd() * 4) | 0);
+        c.moveTo(bx + rr, by);
+        for (let k = 1; k < lobes; k++) {
+          const ang = (k / lobes) * Math.PI * 2;
+          const lr = rr * (0.55 + rnd() * 0.75);
+          c.lineTo(bx + Math.cos(ang) * lr, by + Math.sin(ang) * lr);
+        }
+        c.closePath(); c.fill();
+      }
+      c.globalAlpha = 1;
+      // calotas polares em corpos com atmosfera/oceano
+      if (gaia || (b && b.atmoHeight)) {
+        c.fillStyle = 'rgba(240,246,250,0.9)';
+        c.beginPath(); c.ellipse(R, R * 0.16, R * 0.72, R * 0.15, 0, 0, 7); c.fill();
+        c.beginPath(); c.ellipse(R, S - R * 0.16, R * 0.66, R * 0.14, 0, 0, 7); c.fill();
+      }
+      // nuvens leves na Gaia
+      if (gaia) {
+        c.strokeStyle = 'rgba(255,255,255,0.28)';
+        for (let i = 0; i < 7; i++) {
+          c.lineWidth = 2 + rnd() * 4;
+          const cy2 = R + (rnd() - 0.5) * S * 0.7, cx2 = rnd() * S;
+          c.beginPath();
+          c.moveTo(cx2 - (10 + rnd() * 30), cy2);
+          c.quadraticCurveTo(cx2, cy2 + (rnd() - 0.5) * 12, cx2 + (10 + rnd() * 30), cy2);
+          c.stroke();
+        }
+      }
+      // recorta fora do disco
+      c.globalCompositeOperation = 'destination-in';
+      c.beginPath(); c.arc(R, R, R - 1, 0, 7); c.fill();
+      c.globalCompositeOperation = 'source-over';
+      tex = cv;
+    }
+  } catch (e) { tex = null; }
+  planetTexCache.set(key, tex);
+  return tex;
+}
+
+function drawBodyLocal(ctx, b, sx, sy, rPx, t) {
+  if (!Number.isFinite(sx) || !Number.isFinite(sy) || !Number.isFinite(rPx) || rPx <= 0) return;
+  const tex = planetTexture(b);
+  if (tex) {
+    ctx.drawImage(tex, sx - rPx, sy - rPx, rPx * 2, rPx * 2);
+  } else {
+    ctx.fillStyle = (b && b.color) || '#8a8f98';
+    ctx.beginPath(); ctx.arc(sx, sy, rPx, 0, 7); ctx.fill();
+  }
+}
 
 // ---------- part shapes ----------
 function shade(color, f) {
@@ -287,7 +405,9 @@ function drawStars(ctx, W, H, offX, offY, alpha) {
 export function renderFlight(ctx, W, H, flight, cam, t) {
   const body = BODIES[flight.bodyKey];
   const alt = Math.hypot(flight.pos.x, flight.pos.y) - body.radius;
-  const zoom = cam.zoom;
+  // zoom degenerado (0/NaN) tornaria 1/zoom = Infinity → arc(Infinity) lança
+  // IndexSizeError no canvas real e derruba o loop inteiro; saneia aqui em cima
+  const zoom = Number.isFinite(cam && cam.zoom) && cam.zoom > 1e-9 ? cam.zoom : 0.18;
 
   const toScreen = (wx, wy) => [
     W / 2 + (wx - flight.pos.x) / zoom,
@@ -346,8 +466,9 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
       ctx.beginPath(); ctx.arc(sx, sy, rPx * 2.2, 0, 7); ctx.fill();
     }
     if (rPx >= 5) {
-      // procedural terrain (biomes, relief shading, clouds) — same textures as map
-      drawBody(ctx, b, sx, sy, rPx, t);
+      // textura procedural do planeta (map.js novo não exporta drawBody —
+      // usa a reserva local; map.js antigo, se existir, é respeitado)
+      drawPlanet(ctx, b, sx, sy, rPx, t);
     } else {
       ctx.fillStyle = b.color;
       ctx.beginPath(); ctx.arc(sx, sy, Math.max(rPx, 1), 0, 7); ctx.fill();
@@ -526,7 +647,7 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
     drawFlatGround(ctx, W, H);
     return;
   }
-  const h0 = num(surfaceElevationM(b, fr.a0));     // terrain height at the vessel
+  const h0 = num(elevAt(b, fr.a0));                // terrain height at the vessel
   const amp = Math.min(num(b.radius, 600000) * 0.004, 3500) || 1;
   const sea = b.ocean === false ? -Infinity : -0.28;
   const pal = biomePalette(b);
@@ -538,7 +659,7 @@ function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
   const pts = [], hs = [], eNs = [];
   for (let i = 0; i <= N; i++) {
     const a = fr.a0 - halfWin + (2 * halfWin) * i / N;
-    const e = num(surfaceElevationM(b, a));        // map.js pode devolver undefined/NaN
+    const e = num(elevAt(b, a));                   // reserva local cobre NaN/undefined
     const eN = e / amp;
     const hDraw = eN < sea ? sea * amp : e;        // water surface is flat
     const relY = (hDraw - h0 - fr.altV) / zoom;    // px above vessel, along up
@@ -666,7 +787,7 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, halfWin
 
   for (let k = k0; k <= k1; k++) {
     const ac = k * cellW;
-    const e = num(surfaceElevationM(b, ac));
+    const e = num(elevAt(b, ac));
     const eN = e / amp;
     const idx = Math.max(0, Math.min(N, Math.round(((ac - (fr.a0 - halfWin)) / (2 * halfWin)) * N)));
     const key = biomeKey(eN, num(slV[idx]), sea);
