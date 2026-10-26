@@ -369,58 +369,137 @@ function shade(color, f) {
   return `rgb(${r},${g},${b})`;
 }
 
+// sombreamento CILÍNDRICO estilo SFS: bordas bem escuras, brilho à esquerda
+// do centro caindo suave até a borda direita (opaco)
+function cylG(ctx, x0, ww, base) {
+  const g = ctx.createLinearGradient(x0, 0, x0 + ww, 0);
+  g.addColorStop(0, shade(base, 0.6));
+  g.addColorStop(0.16, shade(base, 0.93));
+  g.addColorStop(0.34, shade(base, 1.12));
+  g.addColorStop(0.55, shade(base, 1.0));
+  g.addColorStop(0.8, shade(base, 0.84));
+  g.addColorStop(1, shade(base, 0.58));
+  return g;
+}
+
+// contorno fino padrão das peças (silhueta marcada com linha discreta)
+const PART_EDGE = 'rgba(95,95,95,0.5)';
+
 function drawPart(ctx, p, S, state, time) {
   const w = p.w * S, h = p.h * S;
   ctx.save();
   switch (p.type) {
     case 'pod': {
-      ctx.fillStyle = '#d8dce4';
-      ctx.beginPath();
-      ctx.moveTo(-w / 2, h / 2);
-      ctx.lineTo(-w * 0.18, -h / 2);
-      ctx.lineTo(w * 0.18, -h / 2);
-      ctx.lineTo(w / 2, h / 2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#4c5566';
-      ctx.fillRect(-w / 2, h * 0.35, w, h * 0.15);
-      if (p.crew) {
-        ctx.fillStyle = '#7fd4ff';
-        ctx.beginPath(); ctx.arc(0, 0, w * 0.16, 0, 7); ctx.fill();
-        ctx.strokeStyle = '#2a3242'; ctx.lineWidth = Math.max(1, S * 0.05); ctx.stroke();
+      // CÁPSULA ESTILO SFS: cone truncado cinza-escuro com janela trapezoidal
+      // e base larga de cantos arredondados — zero rebites, zero enfeite.
+      const crew = !!p.crew;
+      const charcoal = () => {
+        const gp = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+        gp.addColorStop(0, '#2b2e34'); gp.addColorStop(0.2, '#43474f');
+        gp.addColorStop(0.42, '#5d636d'); gp.addColorStop(0.68, '#454a52');
+        gp.addColorStop(1, '#272a30');
+        return gp;
+      };
+      ctx.lineJoin = 'round';
+      if (crew) {
+        const cone = () => {
+          ctx.beginPath();
+          ctx.moveTo(-w * 0.22, -h / 2);
+          ctx.lineTo(w * 0.22, -h / 2);
+          ctx.quadraticCurveTo(w * 0.36, -h * 0.04, w / 2, h * 0.3);
+          ctx.lineTo(w / 2, h * 0.44);
+          ctx.quadraticCurveTo(w / 2, h * 0.5, w * 0.42, h * 0.5);
+          ctx.lineTo(-w * 0.42, h * 0.5);
+          ctx.quadraticCurveTo(-w / 2, h * 0.5, -w / 2, h * 0.44);
+          ctx.lineTo(-w / 2, h * 0.3);
+          ctx.quadraticCurveTo(-w * 0.36, -h * 0.04, -w * 0.22, -h / 2);
+          ctx.closePath();
+        };
+        ctx.fillStyle = charcoal();
+        cone(); ctx.fill();
+        ctx.strokeStyle = 'rgba(16,18,22,0.55)';
+        ctx.lineWidth = Math.max(1, w * 0.02);
+        cone(); ctx.stroke();
+        ctx.save(); cone(); ctx.clip();
+        // banda de fundição na base (mais escura)
+        ctx.fillStyle = 'rgba(14,16,20,0.32)';
+        ctx.fillRect(-w / 2, h * 0.34, w, h * 0.2);
+        ctx.restore();
+        // janela trapezoidal com moldura fina
+        ctx.fillStyle = '#1f2228';
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.13, -h * 0.28);
+        ctx.lineTo(w * 0.13, -h * 0.28);
+        ctx.lineTo(w * 0.18, 0);
+        ctx.lineTo(-w * 0.18, 0);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#6e747e';
+        ctx.lineWidth = Math.max(1, w * 0.028);
+        ctx.stroke();
       } else {
+        // probe core: tambor achatado cinza-escuro com visor
+        const x = -w / 2, y = -h / 2, r = h * 0.22;
+        const drum = () => {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+        };
+        ctx.fillStyle = charcoal();
+        drum(); ctx.fill();
+        ctx.strokeStyle = 'rgba(16,18,22,0.55)';
+        ctx.lineWidth = Math.max(1, w * 0.03);
+        drum(); ctx.stroke();
+        ctx.fillStyle = '#191c21';
+        ctx.fillRect(-w * 0.3, -h * 0.26, w * 0.6, h * 0.3);
+        ctx.fillStyle = '#59d6a0';
+        ctx.fillRect(-w * 0.26, -h * 0.13, w * 0.52, Math.max(1, h * 0.07));
         ctx.fillStyle = '#f2b632';
-        ctx.fillRect(-w * 0.3, -h * 0.15, w * 0.6, h * 0.3);
+        ctx.beginPath(); ctx.arc(w * 0.32, h * 0.27, Math.max(1.2, w * 0.05), 0, 7); ctx.fill();
       }
       break;
     }
     case 'tank': {
-      ctx.fillStyle = '#c8cdd6';
+      // TANQUE ESTILO SFS: cilindro branco limpo — só sombreamento cilíndrico,
+      // rims sutis topo/base e contorno fino. Identidade vem do tamanho.
+      const base = p.id === 'megachungus' ? '#e4e6ea' : '#f1f3f5';
+      ctx.fillStyle = cylG(ctx, -w / 2, w, base);
       ctx.fillRect(-w / 2, -h / 2, w, h);
-      ctx.fillStyle = '#e66a2c';
-      ctx.fillRect(-w / 2, -h / 2 + h * 0.12, w, h * 0.1);
-      ctx.fillRect(-w / 2, h / 2 - h * 0.22, w, h * 0.1);
-      ctx.fillStyle = 'rgba(255,255,255,0.25)';
-      ctx.fillRect(-w * 0.38, -h / 2, w * 0.16, h);
+      const rimH = Math.max(2, h * 0.035);
+      ctx.fillStyle = shade(base, 0.8);
+      ctx.fillRect(-w / 2, -h / 2, w, rimH);
+      ctx.fillRect(-w / 2, h / 2 - rimH, w, rimH);
+      ctx.fillStyle = shade(base, 0.6);
+      ctx.fillRect(-w / 2, -h / 2 + rimH, w, 1);
+      ctx.fillRect(-w / 2, h / 2 - rimH - 1, w, 1);
+      ctx.strokeStyle = PART_EDGE;
+      ctx.lineWidth = Math.max(1, w * 0.012);
+      ctx.strokeRect(-w / 2, -h / 2, w, h);
       if (state && p.fuel) {
-        // subtle fuel level pip
-        ctx.fillStyle = 'rgba(30,40,60,0.35)';
-        const frac = 1 - (state.fuel || 0) / p.fuel;
-        ctx.fillRect(w * 0.30, -h / 2 + 2, w * 0.1, (h - 4) * frac);
+        // medidor discreto: filete junto à borda direita, só aparece se gastar
+        const frac = clampN((state.fuel || 0) / p.fuel, 0, 1);
+        const gh = (h - rimH * 2 - 2) * (1 - frac);
+        if (gh > 1) {
+          ctx.fillStyle = shade(base, 0.64);
+          ctx.fillRect(w * 0.4, -h / 2 + rimH + 1, Math.max(2, w * 0.055), gh);
+        }
       }
       break;
     }
     case 'engine': {
       // maquinário compacto no topo (sino LONGO — bocal achatado não)
       const gm = ctx.createLinearGradient(-w * 0.3, 0, w * 0.3, 0);
-      gm.addColorStop(0, '#343a46'); gm.addColorStop(0.45, '#8d96a6'); gm.addColorStop(1, '#343a46');
+      gm.addColorStop(0, '#333333'); gm.addColorStop(0.45, '#8a8a8a'); gm.addColorStop(1, '#333333');
       ctx.fillStyle = gm;
       ctx.fillRect(-w * 0.25, -h / 2, w * 0.5, h * 0.26);
-      ctx.fillStyle = '#5c6472'; // tubulações laterais
+      ctx.fillStyle = '#5e5e5e'; // tubulações laterais
       ctx.fillRect(-w * 0.42, -h * 0.40, w * 0.18, h * 0.10);
       ctx.fillRect(w * 0.24, -h * 0.42, w * 0.18, h * 0.10);
       // cardan entre maquinário e sino
-      ctx.fillStyle = '#3a404c';
+      ctx.fillStyle = '#3a3a3a';
       ctx.fillRect(-w * 0.17, -h * 0.32, w * 0.34, h * 0.08);
       // sino do bocal: garganta estreita + flare no fim (perfil longo e curvo)
       const bt = -h * 0.26, be = h / 2;
@@ -436,25 +515,25 @@ function drawPart(ctx, p, S, state, time) {
         ctx.closePath();
       };
       const gb = ctx.createLinearGradient(-ew / 2, 0, ew / 2, 0);
-      gb.addColorStop(0, '#2e3440'); gb.addColorStop(0.28, '#667088');
-      gb.addColorStop(0.5, '#8c97ae'); gb.addColorStop(0.72, '#667088');
-      gb.addColorStop(1, '#2e3440');
+      gb.addColorStop(0, '#2b2b2b'); gb.addColorStop(0.28, '#6e6e6e');
+      gb.addColorStop(0.5, '#949494'); gb.addColorStop(0.72, '#6e6e6e');
+      gb.addColorStop(1, '#2b2b2b');
       ctx.fillStyle = gb;
       bell(); ctx.fill();
       ctx.save(); bell(); ctx.clip();
-      ctx.fillStyle = 'rgba(20,24,32,0.5)'; // anéis horizontais (aço escuro)
+      ctx.fillStyle = 'rgba(22,22,22,0.5)'; // anéis horizontais (aço escuro)
       for (let i = 0; i < 7; i++) {
         const yy = bt + (be - bt) * (0.08 + i * 0.115);
         ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.028));
       }
-      ctx.fillStyle = '#141820'; // garganta escura no topo
+      ctx.fillStyle = '#161616'; // garganta escura no topo
       ctx.beginPath();
       ctx.ellipse(0, bt + h * 0.02, tw * 0.48, h * 0.05, 0, 0, 7);
       ctx.fill();
-      ctx.fillStyle = 'rgba(16,20,28,0.45)'; // borda interna da saída
+      ctx.fillStyle = 'rgba(18,18,18,0.45)'; // borda interna da saída
       ctx.fillRect(-ew / 2, be - h * 0.03, ew, h * 0.03);
       ctx.restore();
-      ctx.strokeStyle = '#8b93a2'; // aro metálico da saída
+      ctx.strokeStyle = '#969696'; // aro metálico da saída
       ctx.lineWidth = Math.max(0.8, h * 0.02);
       ctx.beginPath();
       ctx.moveTo(-ew / 2, be);
@@ -465,16 +544,22 @@ function drawPart(ctx, p, S, state, time) {
       break;
     }
     case 'srb': {
-      ctx.fillStyle = '#e8e3d8';
-      ctx.fillRect(-w / 2, -h / 2 + w * 0.6, w, h - w * 0.6 - h * 0.2);
-      ctx.fillStyle = '#c23b22';
+      // casca branca com sombreamento cilíndrico + nariz arredondado (SFS)
+      const gc = cylG(ctx, -w / 2, w, '#f1f3f5');
+      const topY = -h / 2 + w * 0.55;
+      ctx.fillStyle = gc;
+      ctx.fillRect(-w / 2, topY, w, h - w * 0.55 - h * 0.2);
       ctx.beginPath();
-      ctx.moveTo(-w / 2, -h / 2 + w * 0.6);
-      ctx.lineTo(0, -h / 2);
-      ctx.lineTo(w / 2, -h / 2 + w * 0.6);
+      ctx.moveTo(-w / 2, topY);
+      ctx.quadraticCurveTo(-w * 0.5, -h / 2 + w * 0.12, 0, -h / 2);
+      ctx.quadraticCurveTo(w * 0.5, -h / 2 + w * 0.12, w / 2, topY);
       ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#c23b22';
-      ctx.fillRect(-w / 2, -h * 0.1, w, h * 0.12);
+      // emenda escura sob o nariz (sem ponta vermelha)
+      ctx.fillStyle = shade('#f1f3f5', 0.55);
+      ctx.fillRect(-w / 2, topY - Math.max(1, h * 0.012), w, Math.max(1, h * 0.024));
+      ctx.strokeStyle = PART_EDGE;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-w / 2, topY, w, h - w * 0.55 - h * 0.2);
       // sino metálico do booster (mesmo estilo do motor, versão compacta)
       const bt = h / 2 - h * 0.2, be = h / 2;
       const tw = w * 0.34, ew = w * 0.9;
@@ -489,25 +574,25 @@ function drawPart(ctx, p, S, state, time) {
         ctx.closePath();
       };
       const gs2 = ctx.createLinearGradient(-ew / 2, 0, ew / 2, 0);
-      gs2.addColorStop(0, '#2f3540'); gs2.addColorStop(0.3, '#6b7484');
-      gs2.addColorStop(0.5, '#8b95a6'); gs2.addColorStop(0.7, '#6b7484');
-      gs2.addColorStop(1, '#2f3540');
+      gs2.addColorStop(0, '#2d2d2d'); gs2.addColorStop(0.3, '#707070');
+      gs2.addColorStop(0.5, '#979797'); gs2.addColorStop(0.7, '#707070');
+      gs2.addColorStop(1, '#2d2d2d');
       ctx.fillStyle = gs2;
       sb(); ctx.fill();
       ctx.save(); sb(); ctx.clip();
-      ctx.fillStyle = 'rgba(26,31,40,0.55)'; // anéis do sino
+      ctx.fillStyle = 'rgba(24,24,24,0.55)'; // anéis do sino
       for (let i = 0; i < 3; i++) {
         const yy = bt + (be - bt) * (0.15 + i * 0.3);
         ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.016));
       }
-      ctx.fillStyle = '#14181f'; // garganta escura
+      ctx.fillStyle = '#161616'; // garganta escura
       ctx.beginPath();
       ctx.ellipse(0, bt + h * 0.012, tw * 0.46, h * 0.018, 0, 0, 7);
       ctx.fill();
-      ctx.fillStyle = 'rgba(20,25,33,0.4)'; // borda interna da saída
+      ctx.fillStyle = 'rgba(18,18,18,0.4)'; // borda interna da saída
       ctx.fillRect(-ew / 2, be - h * 0.02, ew, h * 0.02);
       ctx.restore();
-      ctx.strokeStyle = '#9aa3b2'; // aro metálico da saída
+      ctx.strokeStyle = '#9d9d9d'; // aro metálico da saída
       ctx.lineWidth = Math.max(0.8, h * 0.01);
       ctx.beginPath();
       ctx.moveTo(-ew / 2, be);
@@ -517,73 +602,176 @@ function drawPart(ctx, p, S, state, time) {
       break;
     }
     case 'decoupler': {
-      ctx.fillStyle = '#3d4453';
+      // anel de separação metálico com dentes triangulares (estilo SFS staging)
+      const g = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+      g.addColorStop(0, '#787e88'); g.addColorStop(0.34, '#cdd2d8');
+      g.addColorStop(0.58, '#bcc1c9'); g.addColorStop(1, '#6e747e');
+      ctx.fillStyle = g;
       ctx.fillRect(-w / 2, -h / 2, w, h);
-      ctx.fillStyle = '#f2b632';
-      ctx.fillRect(-w / 2, -h * 0.15, w, h * 0.3);
+      const lip = Math.max(1.5, h * 0.22);
+      ctx.fillStyle = '#3a3f47';
+      ctx.fillRect(-w / 2, -h / 2, w, lip);
+      ctx.fillRect(-w / 2, h / 2 - lip, w, lip);
+      ctx.fillStyle = '#4d535d';
+      for (let i = 0; i < 7; i++) {
+        const cx = -w / 2 + (w * (i + 0.5)) / 7;
+        const tw3 = (w / 7) * 0.42;
+        ctx.beginPath();
+        ctx.moveTo(cx - tw3, h * 0.14);
+        ctx.lineTo(cx, -h * 0.14);
+        ctx.lineTo(cx + tw3, h * 0.14);
+        ctx.closePath(); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(52,56,62,0.55)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-w / 2, -h / 2, w, h);
       break;
     }
     case 'parachute': {
+      const big = p.id === 'kingsheet';
+      const cap = big ? '#c23b22' : '#e66a2c';
       if (state && state.deployed) {
-        // canopy above (drawn big); shroud lines
-        const cw = w * 6, ch = w * 5;
-        ctx.strokeStyle = 'rgba(230,230,240,0.8)';
-        ctx.lineWidth = Math.max(1, S * 0.04);
+        // copa com GOMOS alternados + 5 linhas de suspensão em leque
+        const cw = w * 6, ch = w * 5, topY = -ch;
+        ctx.strokeStyle = 'rgba(230,230,240,0.85)';
+        ctx.lineWidth = Math.max(1, S * 0.035);
         ctx.beginPath();
-        ctx.moveTo(0, -h * 0.2);
-        ctx.lineTo(-cw / 2, -ch);
-        ctx.moveTo(0, -h * 0.2);
-        ctx.lineTo(cw / 2, -ch);
+        for (let i = 0; i <= 4; i++) {
+          const a = Math.PI * (0.12 + 0.19 * i);
+          ctx.moveTo(0, -h * 0.2);
+          ctx.lineTo((cw / 2) * Math.cos(a), topY - (cw / 2) * Math.sin(a));
+        }
         ctx.stroke();
-        const g = ctx.createLinearGradient(-cw / 2, -ch, cw / 2, -ch);
-        g.addColorStop(0, '#e66a2c'); g.addColorStop(0.5, '#fff3e0'); g.addColorStop(1, '#e66a2c');
-        ctx.fillStyle = g;
+        ctx.save();
         ctx.beginPath();
-        ctx.arc(0, -ch, cw / 2, Math.PI, 0);
-        ctx.closePath(); ctx.fill();
+        ctx.arc(0, topY, cw / 2, Math.PI, 0);
+        ctx.closePath();
+        ctx.clip();
+        ctx.fillStyle = '#f4f0e6';
+        ctx.fillRect(-cw / 2, topY - cw / 2, cw, cw);
+        ctx.fillStyle = cap;
+        for (let i = 0; i < 6; i += 2) {
+          ctx.fillRect(-cw / 2 + (cw / 6) * i, topY - cw / 2, cw / 6, cw);
+        }
+        ctx.restore();
+        ctx.strokeStyle = shade(cap, 0.7);
+        ctx.lineWidth = Math.max(1, S * 0.05);
+        ctx.beginPath();
+        ctx.arc(0, topY, cw / 2, Math.PI, 0);
+        ctx.stroke();
       }
-      ctx.fillStyle = '#b8bec9';
+      // tambor estilo SFS: cúpula branca arredondada + corpo curto + pinstripe
+      const pd = '#eceef1';
+      ctx.fillStyle = cylG(ctx, -w / 2, w, pd);
       ctx.beginPath();
-      ctx.arc(0, h * 0.1, w / 2, Math.PI, 0);
+      ctx.arc(0, h * 0.08, w / 2, Math.PI, 0);
       ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#e66a2c';
-      ctx.fillRect(-w / 2, h * 0.1, w, h * 0.3);
+      ctx.fillRect(-w / 2, h * 0.08, w, h * 0.3);
+      ctx.fillStyle = cap; // pinstripe fino de identidade
+      ctx.fillRect(-w / 2, h * 0.08, w, Math.max(1.5, h * 0.1));
+      ctx.fillStyle = shade(pd, 0.62);
+      ctx.fillRect(-w / 2, h * 0.38 - Math.max(1.5, h * 0.07), w, Math.max(1.5, h * 0.07));
+      ctx.strokeStyle = PART_EDGE;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-w / 2, h * 0.08, w, h * 0.3);
       break;
     }
     case 'nosecone': {
-      ctx.fillStyle = '#d8dce4';
+      // cone branco limpo com banda de base escura (estilo SFS)
+      ctx.fillStyle = cylG(ctx, -w / 2, w, '#f1f3f5');
       ctx.beginPath();
       ctx.moveTo(-w / 2, h / 2);
-      ctx.quadraticCurveTo(-w * 0.4, -h * 0.3, 0, -h / 2);
-      ctx.quadraticCurveTo(w * 0.4, -h * 0.3, w / 2, h / 2);
+      ctx.quadraticCurveTo(-w * 0.44, -h * 0.26, 0, -h / 2);
+      ctx.quadraticCurveTo(w * 0.44, -h * 0.26, w / 2, h / 2);
       ctx.closePath(); ctx.fill();
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = PART_EDGE;
+      ctx.lineWidth = Math.max(1, w * 0.015);
+      ctx.stroke();
+      ctx.fillStyle = '#3d434c';
+      ctx.fillRect(-w / 2, h / 2 - Math.max(2, h * 0.1), w, Math.max(2, h * 0.1));
       break;
     }
     case 'fin': {
-      ctx.fillStyle = '#e66a2c';
+      // aleta cinza-claro limpa com contorno (estilo SFS)
+      const g = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
+      g.addColorStop(0, '#e6e9ed'); g.addColorStop(0.5, '#c6cbd2'); g.addColorStop(1, '#949ba5');
+      ctx.fillStyle = g;
       ctx.beginPath();
       ctx.moveTo(-w / 2, h / 2);
       ctx.lineTo(-w / 2, -h / 2);
-      ctx.lineTo(w / 2, h / 2);
+      ctx.quadraticCurveTo(w * 0.28, -h * 0.1, w / 2, h / 2);
       ctx.closePath(); ctx.fill();
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = PART_EDGE;
+      ctx.lineWidth = Math.max(1, w * 0.05);
+      ctx.stroke();
       break;
     }
     case 'legs': {
-      ctx.strokeStyle = '#9aa2b1';
-      ctx.lineWidth = Math.max(1.5, S * 0.12);
+      // perna com pistão secundário, pivô e pé de duas camadas
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#9d9d9d';
+      ctx.lineWidth = Math.max(2, S * 0.15);
       ctx.beginPath();
-      ctx.moveTo(0, -h / 2);
-      ctx.lineTo(w * 0.7, h / 2);
+      ctx.moveTo(-w * 0.15, -h / 2);
+      ctx.lineTo(w * 0.68, h * 0.4);
       ctx.stroke();
-      ctx.fillStyle = '#6b7280';
-      ctx.fillRect(w * 0.45, h / 2 - S * 0.08, w * 0.55, S * 0.12);
+      ctx.strokeStyle = '#c9c9c9';
+      ctx.lineWidth = Math.max(1.2, S * 0.08);
+      ctx.beginPath();
+      ctx.moveTo(w * 0.05, -h * 0.14);
+      ctx.lineTo(w * 0.3, h * 0.05);
+      ctx.stroke();
+      ctx.fillStyle = '#3c3c3c';
+      ctx.beginPath();
+      ctx.arc(-w * 0.15, -h * 0.44, Math.max(2, S * 0.11), 0, 7);
+      ctx.fill();
+      ctx.fillStyle = '#6e6e6e';
+      ctx.fillRect(w * 0.4, h * 0.4, w * 0.6, Math.max(2, S * 0.1));
+      ctx.fillStyle = '#575757';
+      ctx.fillRect(w * 0.44, h * 0.4 + Math.max(2, S * 0.1), w * 0.52, Math.max(2, S * 0.08));
+      ctx.lineCap = 'butt';
       break;
     }
     case 'science': {
-      ctx.fillStyle = '#f2b632';
-      ctx.fillRect(-w / 2, -h / 2, w, h);
-      ctx.fillStyle = '#2a3242';
-      ctx.beginPath(); ctx.arc(0, 0, w * 0.22, 0, 7); ctx.fill();
+      if (p.id === 'goopod') {
+        // cilindro branco com janela circular do goo
+        ctx.fillStyle = cylG(ctx, -w / 2, w, '#eceef1');
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+        ctx.fillStyle = '#3d434c';
+        ctx.fillRect(-w / 2, -h / 2, w, Math.max(1, h * 0.14));
+        ctx.fillRect(-w / 2, h / 2 - Math.max(1, h * 0.14), w, Math.max(1, h * 0.14));
+        ctx.strokeStyle = PART_EDGE;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-w / 2, -h / 2, w, h);
+        ctx.fillStyle = '#2a2e35';
+        ctx.beginPath(); ctx.arc(0, 0, w * 0.3, 0, 7); ctx.fill();
+        ctx.fillStyle = '#7ec850';
+        ctx.beginPath(); ctx.arc(0, 0, w * 0.22, 0, 7); ctx.fill();
+        ctx.fillStyle = '#a5e07e';
+        ctx.beginPath(); ctx.arc(-w * 0.06, -w * 0.06, w * 0.07, 0, 7); ctx.fill();
+      } else {
+        // caixa branca com mostrador de ponteiro (estilo SFS)
+        ctx.fillStyle = cylG(ctx, -w / 2, w, '#eceef1');
+        ctx.fillRect(-w / 2, -h / 2, w, h);
+        ctx.strokeStyle = PART_EDGE;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-w / 2, -h / 2, w, h);
+        ctx.fillStyle = '#2a2e35';
+        ctx.beginPath(); ctx.arc(0, -h * 0.08, w * 0.27, 0, 7); ctx.fill();
+        ctx.fillStyle = '#e8ecf2';
+        ctx.beginPath(); ctx.arc(0, -h * 0.08, w * 0.19, 0, 7); ctx.fill();
+        ctx.strokeStyle = '#c23b22';
+        ctx.lineWidth = Math.max(1, w * 0.05);
+        ctx.beginPath();
+        ctx.moveTo(0, -h * 0.08);
+        ctx.lineTo(w * 0.1, -h * 0.19);
+        ctx.stroke();
+        ctx.fillStyle = '#3d434c';
+        ctx.fillRect(-w * 0.32, h * 0.26, w * 0.14, h * 0.14);
+        ctx.fillRect(w * 0.18, h * 0.26, w * 0.14, h * 0.14);
+      }
       break;
     }
   }
