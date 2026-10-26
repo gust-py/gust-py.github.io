@@ -259,6 +259,7 @@ export function makeCamera() {
 const STAR_TILE = 384;
 function drawStars(ctx, W, H, offX, offY, alpha) {
   if (alpha <= 0.02) return;
+  if (!Number.isFinite(offX) || !Number.isFinite(offY)) return; // zoom 0/NaN → sem estrelas (evita loop infinito)
   ctx.save();
   ctx.globalAlpha = alpha;
   const ox = offX * 0.02, oy = offY * 0.02; // slow parallax
@@ -302,7 +303,7 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
   ctx.fillStyle = `rgb(${bg[0]},${bg[1]},${bg[2]})`;
   ctx.fillRect(0, 0, W, H);
 
-  drawStars(ctx, W, H, flight.pos.x / zoom, -flight.pos.y / zoom, 1 - skyF);
+  drawStars(ctx, W, H, num(flight.pos.x / zoom), num(-flight.pos.y / zoom), 1 - skyF);
 
   // celestial bodies visible from this frame
   const curW = bodyWorldPos(body, t);
@@ -317,9 +318,18 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
 
     // near-surface ground for the body we're flying over: real terrain relief
     if (b === body && rPx > 2000) {
-      drawNearSurface(ctx, W, H, flight, b, zoom, t, bg);
+      // o terreno NUNCA pode derrubar o loop de render (um throw aqui
+      // congelava o jogo inteiro — inclusive a tela de fabricar foguetes)
+      try {
+        drawNearSurface(ctx, W, H, flight, b, zoom, t, bg);
+      } catch (err) {
+        drawFlatGround(ctx, W, H);
+      }
       continue;
     }
+    // zoom degenerado (0/NaN/negativo): rPx fica Infinity/NaN e os raios de
+    // brilho/atmo lançam IndexSizeError no canvas real — pula o corpo
+    if (!Number.isFinite(rPx) || rPx <= 0) continue;
 
     if (b.atmoHeight) {
       const g = ctx.createRadialGradient(sx, sy, rPx, sx, sy, rPx + b.atmoHeight * 1.8 / zoom);
@@ -431,10 +441,19 @@ function vesselFrame(flight, body) {
 }
 
 function hexRGBc(hex) {
-  const n = parseInt(hex.slice(1), 16);
+  const n = parseInt(String(hex || '').replace('#', '').slice(0, 6), 16);
+  if (!Number.isFinite(n)) return [125, 143, 94];
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
-function rgbS(c) { return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`; }
+// cor à prova de NaN — nunca gera "rgb(NaN,...)" (o addColorStop do canvas
+// lança SyntaxError com cor inválida e isso congelava o loop do jogo)
+function rgbS(c) {
+  const f = (x) => (Number.isFinite(x) ? Math.max(0, Math.min(255, x | 0)) : 110);
+  return `rgb(${f(c[0])},${f(c[1])},${f(c[2])})`;
+}
+// saneia qualquer número vindo do jogo (posição/altura podem vir NaN
+// depois de explosões, zooms extremos etc.)
+function num(v, d = 0) { return Number.isFinite(v) ? v : d; }
 function mixC(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
 function mulC(c, f) { return [Math.min(255, c[0] * f), Math.min(255, c[1] * f), Math.min(255, c[2] * f)]; }
 
@@ -498,10 +517,17 @@ function groundColor(eN, sl, sea, pal) {
 // (grama, areia, terra, pedra, água), sombreamento por inclinação,
 // névoa de distância e detalhes de superfície. A altura é referenciada
 // ao solo sob o foguete, então ele sempre pousa exatamente na superfície.
-function drawNearSurface(ctx, W, H, flight, b, zoom, t, sky) {
+function drawNearSurface(ctx, W, H, flight, b, zoomArg, t, sky) {
+  const zoom = Number.isFinite(zoomArg) && zoomArg > 1e-6 ? zoomArg : 0.18;
   const fr = vesselFrame(flight, b);
-  const h0 = surfaceElevationM(b, fr.a0);          // terrain height at the vessel
-  const amp = Math.min(b.radius * 0.004, 3500);
+  // se a posição da nave veio NaN/Infinity (física bugada, destroço etc.),
+  // desenha um chão liso seguro em vez de espalhar NaN pelo canvas
+  if (![fr.altV, fr.a0, fr.up.x, fr.up.y, fr.perp.x, fr.perp.y].every(Number.isFinite)) {
+    drawFlatGround(ctx, W, H);
+    return;
+  }
+  const h0 = num(surfaceElevationM(b, fr.a0));     // terrain height at the vessel
+  const amp = Math.min(num(b.radius, 600000) * 0.004, 3500) || 1;
   const sea = b.ocean === false ? -Infinity : -0.28;
   const pal = biomePalette(b);
   const isGaia = b.key === 'gaia';
@@ -512,7 +538,7 @@ function drawNearSurface(ctx, W, H, flight, b, zoom, t, sky) {
   const pts = [], hs = [], eNs = [];
   for (let i = 0; i <= N; i++) {
     const a = fr.a0 - halfWin + (2 * halfWin) * i / N;
-    const e = surfaceElevationM(b, a);
+    const e = num(surfaceElevationM(b, a));        // map.js pode devolver undefined/NaN
     const eN = e / amp;
     const hDraw = eN < sea ? sea * amp : e;        // water surface is flat
     const relY = (hDraw - h0 - fr.altV) / zoom;    // px above vessel, along up
@@ -572,11 +598,18 @@ function drawNearSurface(ctx, W, H, flight, b, zoom, t, sky) {
   // fill + stroke com a mesma tinta cobre as frestas de antialiasing
   // entre quads vizinhos (evita "costelas" verticais).
   for (let i = 0; i < N; i++) {
-    const g = ctx.createLinearGradient(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
-    g.addColorStop(0, rgbS(colV[i]));
-    g.addColorStop(1, rgbS(colV[i + 1]));
-    ctx.fillStyle = g;
-    ctx.strokeStyle = g;
+    const x0 = pts[i][0], y0 = pts[i][1], x1 = pts[i + 1][0], y1 = pts[i + 1][1];
+    let tinta;
+    if (Number.isFinite(x0) && Number.isFinite(y0) && Number.isFinite(x1) && Number.isFinite(y1)) {
+      const g = ctx.createLinearGradient(x0, y0, x1, y1);
+      g.addColorStop(0, rgbS(colV[i]));
+      g.addColorStop(1, rgbS(colV[i + 1]));
+      tinta = g;
+    } else {
+      tinta = rgbS(colV[i]);                     // coordenadas NaN → tinta plana
+    }
+    ctx.fillStyle = tinta;
+    ctx.strokeStyle = tinta;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(pts[i][0], pts[i][1]);
@@ -633,16 +666,17 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, halfWin
 
   for (let k = k0; k <= k1; k++) {
     const ac = k * cellW;
-    const e = surfaceElevationM(b, ac);
+    const e = num(surfaceElevationM(b, ac));
     const eN = e / amp;
     const idx = Math.max(0, Math.min(N, Math.round(((ac - (fr.a0 - halfWin)) / (2 * halfWin)) * N)));
-    const key = biomeKey(eN, slV[idx], sea);
+    const key = biomeKey(eN, num(slV[idx]), sea);
 
     const hDraw = eN < sea ? sea * amp : e;
     const relY = (hDraw - h0 - fr.altV) / zoom;
     const relX = b.radius * (ac - fr.a0) / zoom;
     const gx = W / 2 + up.x * relY + perp.x * relX;
     const gy = H / 2 + up.y * relY + perp.y * relX;
+    if (!Number.isFinite(gx) || !Number.isFinite(gy)) continue;
     if (gx < -40 || gx > W + 40 || gy < -40 || gy > H + 40) continue;
 
     let s = (k * 374761393 + 668265263) & 0x7fffffff;
@@ -761,7 +795,7 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, halfWin
         ctx.globalAlpha = 0.4 + 0.3 * Math.sin(t * 2.6 + k * 0.9);
         ctx.fillStyle = rgbS(pal.foam);
         ctx.beginPath();
-        ctx.ellipse(sx2, sy2, fw / 2, fh, 0, 0, 7);
+        ctx.ellipse(sx2, sy2, Math.max(0.1, fw / 2), Math.max(0.1, fh), 0, 0, 7);
         ctx.fill();
         ctx.globalAlpha = 1;
       } else if (depth < 0.3) {                    // ondinha que corre
@@ -777,6 +811,16 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, halfWin
       }
     }
   }
+}
+
+// último recurso: chão liso neutro (só usado se algo inesperado acontecer)
+function drawFlatGround(ctx, W, H) {
+  const hy = H * 0.62;
+  const g = ctx.createLinearGradient(0, hy, 0, H);
+  g.addColorStop(0, 'rgb(96,132,72)');
+  g.addColorStop(1, 'rgb(58,78,46)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, hy, W, H - hy);
 }
 
 function marker(ctx, W, H, worldAngle, color, style) {
