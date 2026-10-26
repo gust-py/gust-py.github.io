@@ -203,7 +203,8 @@ function biomePalette(body) {
 }
 
 // Texture cache: bodyKey -> { terrain: canvas, clouds: canvas|null, size }
-const TEX_SIZE = 512;
+let lastGenAt = -1e9;
+const TEX_SIZE = 256;
 // Texture is only worth drawing when the disc is between these pixel radii:
 // below MIN -> plain disc is cheaper; above MAX a single drawImage of a tiny
 // texture stretched over thousands of px is both ugly and expensive.
@@ -215,6 +216,12 @@ function getBodyTextures(body) {
   let c = texCache.get(cacheKey);
   if (c) return c;
   if (c === null) return null; // previously failed -> don't retry every frame
+  // generation budget: at most one texture per 150ms window, so the game
+  // never freezes generating many textures in a single frame. Bodies fall
+  // back to the plain shaded disc until their turn comes.
+  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  if (now - lastGenAt < 150) return null;
+  lastGenAt = now;
 
   try {
     return buildBodyTextures(body, cacheKey);
@@ -255,7 +262,7 @@ function buildBodyTextures(body, cacheKey) {
 
       if (pal.kind === 'star') {
         // turbulent granulation
-        const g = fbm(noise, nx * 3, ny * 3, 5) * 0.5 + 0.5;
+        const g = fbm(noise, nx * 3, ny * 3, 4) * 0.5 + 0.5;
         const cells = ridged(noise2, nx * 6, ny * 6, 3);
         const m = clamp(g * 0.7 + cells * 0.5, 0, 1);
         color = m < 0.45 ? mixRGB(pal.dark, pal.mid, m / 0.45)
@@ -272,9 +279,9 @@ function buildBodyTextures(body, cacheKey) {
         height[py * S + px] = 0.5;
       } else {
         // ---- terrestrial: real height field ----
-        const cont = fbm(noise, nx, ny, 6) * 0.5 + 0.5;              // continents
-        const mount = ridged(noise2, nx * 1.4, ny * 1.4, 5);          // crests
-        const hills = fbm(noise2, nx * 3, ny * 3, 4) * 0.5 + 0.5;
+        const cont = fbm(noise, nx, ny, 5) * 0.5 + 0.5;              // continents
+        const mount = ridged(noise2, nx * 1.4, ny * 1.4, 4);          // crests
+        const hills = fbm(noise2, nx * 3, ny * 3, 3) * 0.5 + 0.5;
         // mountains only on land
         const landMask = clamp((cont - 0.48) * 6, 0, 1);
         const h = cont * 0.72 + mount * landMask * 0.45 + hills * 0.12;
@@ -358,8 +365,8 @@ function buildBodyTextures(body, cacheKey) {
         const idx = (py * S + px) * 4;
         if (d > 1.08) { cd[idx + 3] = 0; continue; }
         // swirl-distorted fBm clouds, banded like trade winds
-        const warp = fbm(swirl, px / S * 4, py / S * 4, 3) * 0.8;
-        const n = fbm(noise2, px / S * 7 + warp, py / S * 5, 5) * 0.5 + 0.5;
+        const warp = fbm(swirl, px / S * 4, py / S * 4, 2) * 0.8;
+        const n = fbm(noise2, px / S * 7 + warp, py / S * 5, 4) * 0.5 + 0.5;
         const bandBoost = 0.12 * Math.sin((py / S) * Math.PI * 5);
         const cov = clamp(n + bandBoost - 0.52, 0, 1);
         const a = clamp(cov * 3.2, 0, 1) * 235 * clamp((1.08 - d) * 18, 0, 1);
