@@ -411,25 +411,28 @@ function drawPart(ctx, p, S, state, time) {
       break;
     }
     case 'engine': {
-      // maquinário superior (turbobomba) em metal
+      // maquinário compacto no topo (sino LONGO — bocal achatado não)
       const gm = ctx.createLinearGradient(-w * 0.3, 0, w * 0.3, 0);
       gm.addColorStop(0, '#343a46'); gm.addColorStop(0.45, '#8d96a6'); gm.addColorStop(1, '#343a46');
       ctx.fillStyle = gm;
-      ctx.fillRect(-w * 0.27, -h / 2, w * 0.54, h * 0.36);
+      ctx.fillRect(-w * 0.25, -h / 2, w * 0.5, h * 0.26);
       ctx.fillStyle = '#5c6472'; // tubulações laterais
-      ctx.fillRect(-w * 0.44, -h * 0.34, w * 0.2, h * 0.1);
-      ctx.fillRect(w * 0.24, -h * 0.38, w * 0.2, h * 0.1);
-      // sino do bocal: perfil curvo + anéis de cobre (canais de refrigeração)
-      const bt = -h * 0.16, be = h / 2;
-      const tw = w * 0.3, ew = w * 0.94;
+      ctx.fillRect(-w * 0.42, -h * 0.40, w * 0.18, h * 0.10);
+      ctx.fillRect(w * 0.24, -h * 0.42, w * 0.18, h * 0.10);
+      // cardan entre maquinário e sino
+      ctx.fillStyle = '#3a404c';
+      ctx.fillRect(-w * 0.17, -h * 0.32, w * 0.34, h * 0.08);
+      // sino do bocal: garganta estreita + flare no fim (perfil longo e curvo)
+      const bt = -h * 0.26, be = h / 2;
+      const tw = w * 0.24, ew = w * 0.84;
       const bell = () => {
         ctx.beginPath();
         ctx.moveTo(-tw / 2, bt);
-        ctx.bezierCurveTo(-tw / 2 - w * 0.03, bt + (be - bt) * 0.45,
-          -ew / 2, bt + (be - bt) * 0.6, -ew / 2, be);
+        ctx.bezierCurveTo(-tw / 2 - (ew - tw) * 0.10, bt + (be - bt) * 0.52,
+          -ew / 2, bt + (be - bt) * 0.80, -ew / 2, be);
         ctx.lineTo(ew / 2, be);
-        ctx.bezierCurveTo(ew / 2, bt + (be - bt) * 0.6,
-          tw / 2 + w * 0.03, bt + (be - bt) * 0.45, tw / 2, bt);
+        ctx.bezierCurveTo(ew / 2, bt + (be - bt) * 0.80,
+          tw / 2 + (ew - tw) * 0.10, bt + (be - bt) * 0.52, tw / 2, bt);
         ctx.closePath();
       };
       const gb = ctx.createLinearGradient(-ew / 2, 0, ew / 2, 0);
@@ -440,9 +443,9 @@ function drawPart(ctx, p, S, state, time) {
       bell(); ctx.fill();
       ctx.save(); bell(); ctx.clip();
       ctx.fillStyle = 'rgba(62,34,22,0.5)'; // anéis horizontais
-      for (let i = 0; i < 6; i++) {
-        const yy = bt + (be - bt) * (0.14 + i * 0.14);
-        ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.035));
+      for (let i = 0; i < 7; i++) {
+        const yy = bt + (be - bt) * (0.08 + i * 0.115);
+        ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.028));
       }
       ctx.fillStyle = '#191410'; // garganta escura no topo
       ctx.beginPath();
@@ -589,12 +592,11 @@ function drawPart(ctx, p, S, state, time) {
   ctx.restore();
 }
 
-// ---------- chama do motor (pluma multicamadas) ----------
-// Camadas de trás pra frente: bruma externa (bloom) → cone principal →
-// núcleo brilhante afilado → ponto quente na saída. A expansão depende da
-// pressão ambiente (atmoF 1 = nível do mar, 0 = vácuo): no mar a pluma é
-// fechada e intensa; no vácuo abre em leque largo e difuso (motor de vácuo).
-// Tremor só com senos — Math.random por frame fazia a chama "tremer" feio.
+// ---------- chama do motor (pluma com PARTÍCULAS) ----------
+// Bruma externa → corpo translúcido (cola) → PUFFS cíclicos (partículas que
+// nascem na saída, caem crescendo e apagam) → núcleo brilhante → ponto quente.
+// A fase das partículas é função de (time·vel + i/NP) — fluido, sem estado,
+// idêntico entre chamadas. Expansão pela pressão (atmoF 1 = mar, 0 = vácuo).
 function colA(c, a) {
   const f = (x) => (Number.isFinite(x) ? Math.max(0, Math.min(255, x | 0)) : 200);
   return `rgba(${f(c[0])},${f(c[1])},${f(c[2])},${a})`;
@@ -610,13 +612,12 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
 
   const flick = 1 + 0.05 * Math.sin(time * 31) + 0.035 * Math.sin(time * 57 + 1.7)
               + 0.025 * Math.sin(time * 23 + 0.6);
-  const flickW = 1 + 0.04 * Math.sin(time * 44 + 2.1);
   const vac = Math.pow(1 - atmoF, 1.5);               // 0 no mar → 1 no vácuo
   const expand = 1 + 2.1 * vac;                       // leque no vácuo
   const len = h * (1.3 + 3.9 * p) * flick * S * (1 + 0.75 * vac);
   if (!Number.isFinite(len) || len <= 0) return;
   const w0 = w * 0.38 * S;                            // meia-largura na saída
-  const wEnd = w0 * (1.35 + 0.55 * p) * expand * flickW; // meia-largura no bojo
+  const wEnd = w0 * (1.35 + 0.55 * p) * expand * (1 + 0.035 * Math.sin(time * 44 + 2.1));
 
   // um cone de pluma: abre devagar (quase linear) e arredonda no rabinho
   const cone = (wa, wb, fill) => {
@@ -638,31 +639,62 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
 
   const aMul = 0.55 + 0.45 * atmoF; // no vácuo a pluma difunde um pouco
 
-  // 0) bruma externa — bloom suave em volta da pluma inteira
-  cone(w0 * 1.55, wEnd * 1.55,
-    grad([[0, c1, 0.28 * aMul], [0.45, cDeep, 0.18 * aMul], [1, cDeep, 0]]));
+  // puff suave (gradiente radial que some até 0 — NUNCA bloco translúcido)
+  const puff = (x, y, r, col, a) => {
+    if (!(r > 0.4) || !(a > 0.005)) return;
+    const g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
+    g.addColorStop(0, colA(col, Math.min(1, a)));
+    g.addColorStop(0.6, colA(col, Math.min(1, a) * 0.5));
+    g.addColorStop(1, colA(col, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 7);
+    ctx.fill();
+  };
 
-  // 1) cone principal
+  // 0) bruma externa fraca (bloom discreto)
+  cone(w0 * 1.5, wEnd * 1.45,
+    grad([[0, c1, 0.15 * aMul], [0.5, cDeep, 0.10 * aMul], [1, cDeep, 0]]));
+
+  // 1) corpo translúcido — só a "cola" entre as partículas
   cone(w0, wEnd,
-    grad([[0, c2, 0.92 * aMul], [0.3, c1, 0.85 * aMul], [0.62, cDeep, 0.55 * aMul], [1, cDeep, 0]]));
+    grad([[0, c2, 0.5 * aMul], [0.35, c1, 0.4 * aMul], [0.75, cDeep, 0.2 * aMul], [1, cDeep, 0]]));
 
-  // 2) núcleo brilhante — coluna interna que AFILA (não acompanha o bojo)
-  const lenC = len * (0.62 + 0.14 * atmoF);
+  // 2) PARTÍCULAS — puffs que nascem na saída, caem crescendo e apagam.
+  //    Cada puff tem fase (time·vel + i/NP + hash) — fluxo contínuo e suave.
+  const NP = 16;
+  for (let i = 0; i < NP; i++) {
+    const hs = ((Math.imul(i * 2654435761 + 7, 40503) >>> 9) % 1000) / 1000;
+    const hs2 = ((Math.imul(i * 2246822519 + 13, 19349663) >>> 7) % 1000) / 1000;
+    const age = (time * (0.85 + 0.35 * p) + i / NP + hs * 0.5) % 1;
+    const y = age * len * (0.86 + 0.26 * hs);
+    const spread = w0 * 0.8 + (wEnd - w0 * 0.8) * Math.pow(age, 0.85);
+    const dx = Math.sin(age * Math.PI * (1.6 + hs2 * 2.4) + hs * 8.5) * spread * 0.3
+             + (hs2 - 0.5) * spread * 0.6;
+    const r = (w0 * 0.5 + spread * 0.8) * (0.42 + 0.72 * age);
+    const env = age < 0.14 ? age / 0.14 : 1 - (age - 0.14) / 0.86;
+    const a = 0.42 * aMul * Math.max(0, env);
+    const col = age < 0.32 ? mixC(c2, c1, age / 0.32) : mixC(c1, cDeep, (age - 0.32) / 0.68);
+    puff(dx, y, r, col, a);
+  }
+
+  // 3) núcleo brilhante — coluna quente que dá continuidade no meio da pluma
+  const lenC = len * (0.55 + 0.16 * atmoF);
   const gC = ctx.createLinearGradient(0, 0, 0, lenC);
-  gC.addColorStop(0, colA(mixC(c2, [255, 255, 255], 0.6), 0.98 * aMul));
-  gC.addColorStop(0.35, colA(c2, 0.95 * aMul));
-  gC.addColorStop(0.7, colA(c1, 0.55 * aMul));
+  gC.addColorStop(0, colA(mixC(c2, [255, 255, 255], 0.6), 0.95 * aMul));
+  gC.addColorStop(0.4, colA(c2, 0.85 * aMul));
+  gC.addColorStop(0.75, colA(c1, 0.4 * aMul));
   gC.addColorStop(1, colA(c1, 0));
   ctx.fillStyle = gC;
   ctx.beginPath();
-  ctx.moveTo(-w0 * 0.62, 0);
-  ctx.bezierCurveTo(-w0 * 0.55, lenC * 0.5, -w0 * 0.4, lenC * 0.82, 0, lenC);
-  ctx.bezierCurveTo(w0 * 0.4, lenC * 0.82, w0 * 0.55, lenC * 0.5, w0 * 0.62, 0);
+  ctx.moveTo(-w0 * 0.55, 0);
+  ctx.bezierCurveTo(-w0 * 0.5, lenC * 0.5, -w0 * 0.34, lenC * 0.82, 0, lenC);
+  ctx.bezierCurveTo(w0 * 0.34, lenC * 0.82, w0 * 0.5, lenC * 0.5, w0 * 0.55, 0);
   ctx.closePath();
   ctx.fill();
 
-  // 3) ponto quente na saída (garganta ilumina o início da pluma)
-  const rHot = w0 * (1.05 + 0.15 * flickW);
+  // 4) ponto quente na saída (garganta ilumina o início da pluma)
+  const rHot = w0 * (1.05 + 0.12 * Math.sin(time * 44 + 2.1));
   const gHot = ctx.createRadialGradient(0, h * 0.05 * S, rHot * 0.08, 0, h * 0.05 * S, rHot);
   gHot.addColorStop(0, colA(cHot, 0.9));
   gHot.addColorStop(0.55, colA(c2, 0.45));
@@ -1181,6 +1213,105 @@ function drawLaunchPad(ctx, W, H, b, zoom, t, fr, h0, minWL) {
   }
 }
 
+// CACTO (saguaro) da faixa de areia/deserto: tronco em cápsula com costelas,
+// 0–2 braços em cotovelo, espinhos claros e florzinha rara. Rígido (não balança).
+function drawCactus(ctx, x, y, up, perp, lod, rnd) {
+  const hpx = (1.2 + rnd() * 2.0) * lod;           // 1,2–3,2 m (bem visível)
+  if (hpx < 5 || !Number.isFinite(hpx)) return;
+  const wpx = Math.max(2, hpx * (0.2 + rnd() * 0.08));
+  const jx = (rnd() - 0.5) * 0.8 * lod;
+  const px = x + perp.x * jx, py = y + perp.y * jx;
+  // cor própria por indivíduo (verde desértico com variação)
+  const tone = 0.8 + rnd() * 0.4;
+  const cMain = mulC(mixC([62, 118, 64], [92, 142, 74], rnd() * 0.6), tone);
+  const cDark = mulC(cMain, 0.68);
+  const cLight = mulC(cMain, 1.35);
+  const P = (du, dp) => [px + up.x * du + perp.x * dp, py + up.y * du + perp.y * dp];
+  // oclusão ambiente na base (gradiente radial que some — sem bloco)
+  const rAO = wpx * 2.1;
+  const gAO = ctx.createRadialGradient(px, py, rAO * 0.1, px, py, rAO);
+  gAO.addColorStop(0, 'rgba(22,26,16,0.32)');
+  gAO.addColorStop(1, 'rgba(22,26,16,0)');
+  ctx.fillStyle = gAO;
+  ctx.beginPath();
+  ctx.ellipse(px, py, rAO, rAO * 0.4, 0, 0, 7);
+  ctx.fill();
+  const top = P(hpx, 0);
+  ctx.lineCap = 'round';
+  // braços primeiro (atrás do tronco)
+  const nArms = rnd() < 0.24 ? 0 : rnd() < 0.62 ? 1 : 2;
+  for (let a2 = 0; a2 < nArms; a2++) {
+    const side = rnd() < 0.5 ? -1 : 1;
+    const armH = hpx * (0.3 + rnd() * 0.28);
+    const armOut = wpx * (1.3 + rnd() * 1.0);
+    const armUp = hpx * (0.2 + rnd() * 0.22);
+    const s0 = P(armH, side * wpx * 0.15);
+    const c1a = P(armH, side * armOut);
+    const e1 = P(armH + armUp, side * armOut);
+    ctx.strokeStyle = rgbS(mulC(cMain, 0.94));
+    ctx.lineWidth = wpx * 0.6;
+    ctx.beginPath();
+    ctx.moveTo(s0[0], s0[1]);
+    ctx.quadraticCurveTo(c1a[0], c1a[1], e1[0], e1[1]);
+    ctx.stroke();
+    if (hpx > 12) {                                // sombra na parte de baixo do braço
+      ctx.strokeStyle = rgbS(cDark);
+      ctx.lineWidth = wpx * 0.16;
+      ctx.beginPath();
+      ctx.moveTo(s0[0] + perp.x * side * wpx * 0.22, s0[1] + perp.y * side * wpx * 0.22);
+      ctx.quadraticCurveTo(c1a[0] + up.x * wpx * 0.3, c1a[1] + up.y * wpx * 0.3,
+        e1[0] + up.x * wpx * 0.3, e1[1] + up.y * wpx * 0.3);
+      ctx.stroke();
+    }
+  }
+  // tronco: cápsula vertical
+  ctx.strokeStyle = rgbS(cMain);
+  ctx.lineWidth = wpx;
+  ctx.beginPath();
+  ctx.moveTo(px, py);
+  ctx.lineTo(top[0], top[1]);
+  ctx.stroke();
+  if (hpx >= 9) {
+    // costelas escuras + aresta de luz
+    ctx.strokeStyle = rgbS(cDark);
+    ctx.lineWidth = Math.max(0.7, wpx * 0.13);
+    for (const off of [-0.24, 0.24]) {
+      const b2 = P(hpx * 0.06, wpx * off), t2 = P(hpx * 0.94, wpx * off);
+      ctx.beginPath();
+      ctx.moveTo(b2[0], b2[1]);
+      ctx.lineTo(t2[0], t2[1]);
+      ctx.stroke();
+    }
+    const lb = P(hpx * 0.08, -wpx * 0.34), lt = P(hpx * 0.92, -wpx * 0.34);
+    ctx.strokeStyle = rgbS(cLight);
+    ctx.lineWidth = Math.max(0.6, wpx * 0.12);
+    ctx.beginPath();
+    ctx.moveTo(lb[0], lb[1]);
+    ctx.lineTo(lt[0], lt[1]);
+    ctx.stroke();
+  }
+  if (hpx > 14) {                                  // espinhos claros nas bordas
+    ctx.fillStyle = rgbS(cLight);
+    for (let j = 0; j < 5; j++) {
+      const du = hpx * (0.18 + j * 0.17);
+      for (const off of [-0.52, 0.52]) {
+        const sp = P(du, wpx * off);
+        ctx.beginPath();
+        ctx.arc(sp[0], sp[1], Math.max(0.5, wpx * 0.07), 0, 7);
+        ctx.fill();
+      }
+    }
+  }
+  if (rnd() < 0.22) {                              // florzinha rara no topo
+    const fl = P(hpx + wpx * 0.18, 0);
+    ctx.fillStyle = '#e77fa8';
+    ctx.beginPath();
+    ctx.arc(fl[0], fl[1], Math.max(1, wpx * 0.26), 0, 7);
+    ctx.fill();
+  }
+  ctx.lineCap = 'butt';
+}
+
 // Detalhes ancorados ao ângulo mundial (não deslizam quando o foguete se
 // move), com identidade POR CORPO: árvores/flores na Gaia, regolito e
 // pedregulhos no Crumb, lava no Scorch, dunas no Rusty, ondas na água.
@@ -1220,7 +1351,12 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
     const ox2 = gx + perp.x * jx, oy2 = gy + perp.y * jx;
 
     if (key === 'grass' && !nearPad) {
-      if (look.flora) {
+      if (eN - sea < 0.19) {
+        // faixa amarela (areia/deserto): NADA de grama — só cactos esparsos
+        if (look.flora && lod >= 0.7 && rnd() < 0.1) {
+          drawCactus(ctx, ox2, oy2, up, perp, lod, rnd);
+        }
+      } else if (look.flora) {
         if (rnd() < 0.22) continue;                // quebra a periodicidade das células
         const hpx = (0.4 + rnd() * 1.1) * lod;     // altura do tufo ~0.4–1.5 m
         if (hpx >= 1.6) {
@@ -1305,6 +1441,10 @@ function drawGroundDetails(ctx, W, H, b, zoom, t, fr, sea, amp, h0, pal, look, h
         ctx.fill();
       }
     } else if (key === 'sand') {
+      // deserto/areia: só cactos (raros, longe do pad) — nunca grama
+      if (look.flora && !nearPad && lod >= 0.8 && rnd() < 0.06) {
+        drawCactus(ctx, ox2, oy2, up, perp, lod, rnd);
+      }
       if (look.ripples !== false) {
         const len = (0.45 + rnd() * 0.7) * lod;
         if (len >= 2 && rnd() >= 0.35) {
