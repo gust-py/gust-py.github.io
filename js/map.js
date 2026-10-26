@@ -5,7 +5,7 @@
 // event scanning for SOI entry/exit and surface impact. Segment points are stored
 // RELATIVE to their body and drawn translated to the body's CURRENT position.
 
-import { BODIES, childrenOf, bodyLocalPos, bodyWorldPos } from './universe.js';
+import { BODIES, childrenOf, bodyLocalPos, bodyWorldPos, ASTEROIDS, asteroidWorldPos } from './universe.js';
 import { orbitFromState, stateAtTime, timeToRadius } from './orbits.js';
 
 // ---------- trajectory prediction ----------
@@ -209,6 +209,41 @@ export function renderMap(ctx, W, H, flight, t) {
     ctx.fillStyle = 'rgba(210,225,255,0.75)';
     ctx.font = '11px system-ui, sans-serif';
     ctx.fillText(b.name, sx + rPx + 5, sy + 3);
+  }
+
+  // cinturão de asteroides: faixa-guia + polígonos IRREGULARES girando
+  // (sem portão de zoom: o culling por tela já elimina quando de perto)
+  {
+    const sun = bodyWorldPos(BODIES.helios, t);
+    const [hx, hy] = toScreen(sun.x, sun.y);
+    const rIn = (ASTEROIDS[0].a - 1.2e8) / zoom, rOut = (ASTEROIDS[ASTEROIDS.length - 1].a + 1.2e8) / zoom;
+    if (rOut > 6 && rOut < 200000) {
+      ctx.strokeStyle = 'rgba(160,160,180,0.07)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(hx, hy, rIn, 0, 7); ctx.stroke();
+      ctx.beginPath(); ctx.arc(hx, hy, rOut, 0, 7); ctx.stroke();
+    }
+    for (const ast of ASTEROIDS) {
+      const ap = asteroidWorldPos(ast, t);
+      const [ax, ay] = toScreen(ap.x, ap.y);
+      if (ax < -30 || ax > W + 30 || ay < -30 || ay > H + 30) continue;
+      const rPx = Math.max(ast.size / zoom, 2.2);
+      const rot = ast.spinPhase + ast.spin * t;
+      const sh = ast.shape;
+      ctx.fillStyle = '#8b8b93';
+      ctx.strokeStyle = 'rgba(30,30,36,0.6)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < sh.length; i++) {
+        const ang = rot + (i / sh.length) * Math.PI * 2;
+        const rr = rPx * sh[i];
+        const px2 = ax + Math.cos(ang) * rr, py2 = ay - Math.sin(ang) * rr;
+        if (i === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
   }
 
   // vessel trajectory
