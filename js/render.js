@@ -460,33 +460,8 @@ function drawPart(ctx, p, S, state, time) {
       ctx.moveTo(-ew / 2, be);
       ctx.lineTo(ew / 2, be);
       ctx.stroke();
-      // aceso: interior do sino iluminado — garganta branca-quente + luz laranja
-      if (state && state.ignited) {
-        const pulse = 0.8 + 0.2 * Math.sin(time * 31);
-        const gy = bt + (be - bt) * 0.5;
-        const gg = ctx.createRadialGradient(0, gy, ew * 0.04, 0, gy, ew * 0.9);
-        gg.addColorStop(0, `rgba(255,250,232,${0.95 * pulse})`);
-        gg.addColorStop(0.45, `rgba(255,196,120,${0.7 * pulse})`);
-        gg.addColorStop(1, 'rgba(255,150,70,0)');
-        ctx.save(); bell(); ctx.clip();
-        ctx.fillStyle = gg;
-        ctx.fillRect(-ew / 2, bt, ew, be - bt);
-        // núcleo branco-quente junto à garganta
-        const gth = ctx.createRadialGradient(0, bt + (be - bt) * 0.22, 1, 0, bt + (be - bt) * 0.22, ew * 0.42);
-        gth.addColorStop(0, `rgba(255,255,244,${0.95 * pulse})`);
-        gth.addColorStop(0.55, `rgba(255,214,150,${0.55 * pulse})`);
-        gth.addColorStop(1, 'rgba(255,190,120,0)');
-        ctx.fillStyle = gth;
-        ctx.fillRect(-ew / 2, bt, ew, be - bt);
-        ctx.restore();
-        // aro da saída aceso
-        ctx.strokeStyle = `rgba(255,214,150,${0.75 * pulse})`;
-        ctx.lineWidth = Math.max(1, h * 0.035);
-        ctx.beginPath();
-        ctx.moveTo(-ew / 2 + 1, be);
-        ctx.lineTo(ew / 2 - 1, be);
-        ctx.stroke();
-      }
+      // SINO NUNCA BRILHA: o metal fica FOSCO mesmo aceso — quem brilha é a
+      // pluma (ponto quente + partículas aditivas, logo abaixo da saída).
       break;
     }
     case 'srb': {
@@ -507,15 +482,7 @@ function drawPart(ctx, p, S, state, time) {
       ctx.lineTo(w * 0.45, h / 2);
       ctx.lineTo(w * 0.35, h / 2 - h * 0.06);
       ctx.closePath(); ctx.fill();
-      // aceso: bocal do booster aquecido
-      if (state && state.ignited) {
-        const gs = ctx.createRadialGradient(0, h / 2, w * 0.04, 0, h / 2, w * 0.65);
-        gs.addColorStop(0, 'rgba(255,240,200,0.85)');
-        gs.addColorStop(0.5, 'rgba(255,185,95,0.45)');
-        gs.addColorStop(1, 'rgba(255,150,60,0)');
-        ctx.fillStyle = gs;
-        ctx.beginPath(); ctx.arc(0, h / 2, w * 0.65, 0, 7); ctx.fill();
-      }
+      // bocal do booster NÃO brilha (mesma regra do sino: metal fosco)
       break;
     }
     case 'decoupler': {
@@ -592,11 +559,12 @@ function drawPart(ctx, p, S, state, time) {
   ctx.restore();
 }
 
-// ---------- chama do motor (pluma com PARTÍCULAS) ----------
-// Bruma externa → corpo translúcido (cola) → PUFFS cíclicos (partículas que
-// nascem na saída, caem crescendo e apagam) → núcleo brilhante → ponto quente.
-// A fase das partículas é função de (time·vel + i/NP) — fluido, sem estado,
-// idêntico entre chamadas. Expansão pela pressão (atmoF 1 = mar, 0 = vácuo).
+// ---------- chama do motor (pluma com PARTÍCULAS DENSAS + brilho aditivo) ----------
+// Bruma externa → corpo translúcido (cola) → 44 PUFFS + 30 FAÍSCAS em mistura
+// ADITIVA ('lighter': partículas SOMAM luz de verdade) → diamantes de choque
+// (só no mar) → núcleo brilhante → ponto quente. A fase das partículas é
+// função de (time·vel + i/NP + hash) — denso, fluido, sem estado, idêntico
+// entre chamadas. Expansão pela pressão (atmoF 1 = mar, 0 = vácuo).
 function colA(c, a) {
   const f = (x) => (Number.isFinite(x) ? Math.max(0, Math.min(255, x | 0)) : 200);
   return `rgba(${f(c[0])},${f(c[1])},${f(c[2])},${a})`;
@@ -608,6 +576,7 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
   const c1 = hexRGBc(color1);
   const c2 = hexRGBc(color2);
   const cDeep = mulC(c1, 0.6);                        // laranja profundo no rabinho
+  const cRed = mixC(mulC(c1, 0.4), [64, 16, 8], 0.3); // fim esfriando: vermelho escuro
   const cHot = mixC(c2, [255, 255, 255], 0.55);       // ponto quente branco
 
   const flick = 1 + 0.05 * Math.sin(time * 31) + 0.035 * Math.sin(time * 57 + 1.7)
@@ -642,6 +611,11 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
   // puff suave (gradiente radial que some até 0 — NUNCA bloco translúcido)
   const puff = (x, y, r, col, a) => {
     if (!(r > 0.4) || !(a > 0.005)) return;
+    if (r < 2.2) { // faísca miúda: disco sólido (bem mais barato)
+      ctx.fillStyle = colA(col, Math.min(1, a));
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+      return;
+    }
     const g = ctx.createRadialGradient(x, y, r * 0.1, x, y, r);
     g.addColorStop(0, colA(col, Math.min(1, a)));
     g.addColorStop(0.6, colA(col, Math.min(1, a) * 0.5));
@@ -652,6 +626,13 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
     ctx.fill();
   };
 
+  // hash determinístico por índice (idêntico entre frames — NUNCA Math.random)
+  const hsh = (i, k) => {
+    let x = (i * 2654435761 + k * 2246822519 + 101) >>> 0;
+    x = Math.imul(x ^ (x >>> 15), 2654435761) >>> 0;
+    return (((x ^ (x >>> 13)) >>> 8) % 1000) / 1000;
+  };
+
   // 0) bruma externa fraca (bloom discreto)
   cone(w0 * 1.5, wEnd * 1.45,
     grad([[0, c1, 0.15 * aMul], [0.5, cDeep, 0.10 * aMul], [1, cDeep, 0]]));
@@ -660,30 +641,55 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
   cone(w0, wEnd,
     grad([[0, c2, 0.5 * aMul], [0.35, c1, 0.4 * aMul], [0.75, cDeep, 0.2 * aMul], [1, cDeep, 0]]));
 
-  // 2) PARTÍCULAS — puffs que nascem na saída, caem crescendo e apagam.
-  //    Cada puff tem fase (time·vel + i/NP + hash) — fluxo contínuo e suave.
-  const NP = 16;
+  // === DAQUI PRA BAIXO: MISTURA ADITIVA — as partículas somam LUZ de verdade,
+  //     igual exaustão real (sobreposições saturam para branco-quente) ===
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+
+  // 2) NUVEM DE PUFFS: nascem brancas na saída, caem ACELERANDO, a turbulência
+  //    cresce com a idade e a cor esfria branco→amarelo→laranja→vermelho escuro.
+  const NP = 44;
   for (let i = 0; i < NP; i++) {
-    const hs = ((Math.imul(i * 2654435761 + 7, 40503) >>> 9) % 1000) / 1000;
-    const hs2 = ((Math.imul(i * 2246822519 + 13, 19349663) >>> 7) % 1000) / 1000;
-    const age = (time * (0.85 + 0.35 * p) + i / NP + hs * 0.5) % 1;
-    const y = age * len * (0.86 + 0.26 * hs);
-    const spread = w0 * 0.8 + (wEnd - w0 * 0.8) * Math.pow(age, 0.85);
-    const dx = Math.sin(age * Math.PI * (1.6 + hs2 * 2.4) + hs * 8.5) * spread * 0.3
-             + (hs2 - 0.5) * spread * 0.6;
-    const r = (w0 * 0.5 + spread * 0.8) * (0.42 + 0.72 * age);
-    const env = age < 0.14 ? age / 0.14 : 1 - (age - 0.14) / 0.86;
-    const a = 0.42 * aMul * Math.max(0, env);
-    const col = age < 0.32 ? mixC(c2, c1, age / 0.32) : mixC(c1, cDeep, (age - 0.32) / 0.68);
+    const h1 = hsh(i, 1), h2 = hsh(i, 2), h3 = hsh(i, 3);
+    const vel = (0.8 + 0.45 * h1) * (0.85 + 0.35 * p);
+    const age = (time * vel + i / NP + h2) % 1;
+    const yFrac = age * (0.8 + 0.25 * h1) + 0.17 * age * age; // acelera na queda
+    const y = yFrac * len * (0.92 + 0.2 * h3);
+    const spread = w0 * 0.85 + (wEnd - w0 * 0.85) * Math.pow(age, 0.78);
+    const dx = Math.sin(age * Math.PI * (2.1 + h2 * 3.1) + h1 * 9.4) * spread * (0.2 + 0.2 * age)
+             + (h2 - 0.5) * spread * 0.7;
+    const r = (w0 * 0.44 + spread * 0.72) * (0.34 + 0.9 * age) * (0.85 + 0.3 * h3);
+    const env = age < 0.1 ? age / 0.1 : 1 - Math.pow((age - 0.1) / 0.9, 1.4);
+    const a = 0.34 * aMul * Math.max(0, env);
+    const col = age < 0.28 ? mixC(c2, c1, age / 0.28)
+              : age < 0.6 ? mixC(c1, cDeep, (age - 0.28) / 0.32)
+              : mixC(cDeep, cRed, (age - 0.6) / 0.4);
     puff(dx, y, r, col, a);
   }
 
-  // 3) núcleo brilhante — coluna quente que dá continuidade no meio da pluma
-  const lenC = len * (0.55 + 0.16 * atmoF);
+  // 3) FAÍSCAS: pontos pequenos, RÁPIDOS e brilhantes voando dentro da pluma
+  const NS = 30;
+  for (let i = 0; i < NS; i++) {
+    const h1 = hsh(i + 71, 1), h2 = hsh(i + 71, 2), h3 = hsh(i + 71, 3);
+    const vel = (1.5 + 0.9 * h1) * (0.85 + 0.3 * p);
+    const age = (time * vel + h2) % 1;
+    const y = (age * (0.85 + 0.3 * h1) + 0.3 * age * age) * len * (0.55 + 0.4 * h3);
+    const spread = w0 * (0.45 + 1.25 * age) * (1 + 0.55 * vac);
+    const dx = Math.sin(age * Math.PI * (3 + h2 * 4) + h1 * 12) * spread * 0.35
+             + (h2 - 0.5) * spread * 0.85;
+    const r = Math.max(0.5, w0 * (0.09 + 0.15 * h3) * (1.05 - age * 0.5)) * (1 + 0.4 * vac);
+    const env = age < 0.07 ? age / 0.07 : 1 - age;
+    const a = 0.8 * Math.max(0, env) * (0.45 + 0.55 * atmoF);
+    const col = age < 0.3 ? mixC([255, 255, 246], c1, age / 0.3) : mixC(c1, cDeep, (age - 0.3) / 0.7);
+    puff(dx, y, r, col, a);
+  }
+
+  // 4) núcleo brilhante — coluna quente que dá continuidade no meio da pluma
+  const lenC = len * (0.58 + 0.18 * atmoF);
   const gC = ctx.createLinearGradient(0, 0, 0, lenC);
   gC.addColorStop(0, colA(mixC(c2, [255, 255, 255], 0.6), 0.95 * aMul));
   gC.addColorStop(0.4, colA(c2, 0.85 * aMul));
-  gC.addColorStop(0.75, colA(c1, 0.4 * aMul));
+  gC.addColorStop(0.75, colA(c1, 0.45 * aMul));
   gC.addColorStop(1, colA(c1, 0));
   ctx.fillStyle = gC;
   ctx.beginPath();
@@ -693,16 +699,29 @@ function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff
   ctx.closePath();
   ctx.fill();
 
-  // 4) ponto quente na saída (garganta ilumina o início da pluma)
+  // 5) diamantes de choque (só no mar): nós brilhantes periódicos na coluna
+  const diaA = 0.38 * atmoF * atmoF;
+  if (diaA > 0.02) {
+    const step = lenC / 4.6;
+    for (let i = 1; i <= 4; i++) {
+      const yy = step * i * (0.95 + 0.1 * Math.sin(time * 9 + i * 2.4));
+      const rr = w0 * (0.46 - i * 0.065) * (0.9 + 0.18 * Math.sin(time * 27 + i * 1.7));
+      puff(0, yy, Math.max(0.5, rr), mixC(c2, [255, 255, 255], 0.45), diaA * (1 - i / 5.5));
+    }
+  }
+
+  // 6) ponto quente na saída (garganta ilumina o início da pluma)
   const rHot = w0 * (1.05 + 0.12 * Math.sin(time * 44 + 2.1));
   const gHot = ctx.createRadialGradient(0, h * 0.05 * S, rHot * 0.08, 0, h * 0.05 * S, rHot);
-  gHot.addColorStop(0, colA(cHot, 0.9));
-  gHot.addColorStop(0.55, colA(c2, 0.45));
+  gHot.addColorStop(0, colA(cHot, 1));
+  gHot.addColorStop(0.55, colA(c2, 0.55));
   gHot.addColorStop(1, colA(c2, 0));
   ctx.fillStyle = gHot;
   ctx.beginPath();
   ctx.arc(0, h * 0.05 * S, rHot, 0, 7);
   ctx.fill();
+
+  ctx.restore(); // volta à composição normal
 }
 
 // Draws a flight stack (or design stack converted via makeFlightStack).
