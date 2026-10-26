@@ -436,22 +436,22 @@ function drawPart(ctx, p, S, state, time) {
         ctx.closePath();
       };
       const gb = ctx.createLinearGradient(-ew / 2, 0, ew / 2, 0);
-      gb.addColorStop(0, '#53382a'); gb.addColorStop(0.28, '#a45c33');
-      gb.addColorStop(0.5, '#c8834e'); gb.addColorStop(0.72, '#a45c33');
-      gb.addColorStop(1, '#53382a');
+      gb.addColorStop(0, '#2e3440'); gb.addColorStop(0.28, '#667088');
+      gb.addColorStop(0.5, '#8c97ae'); gb.addColorStop(0.72, '#667088');
+      gb.addColorStop(1, '#2e3440');
       ctx.fillStyle = gb;
       bell(); ctx.fill();
       ctx.save(); bell(); ctx.clip();
-      ctx.fillStyle = 'rgba(62,34,22,0.5)'; // anéis horizontais
+      ctx.fillStyle = 'rgba(20,24,32,0.5)'; // anéis horizontais (aço escuro)
       for (let i = 0; i < 7; i++) {
         const yy = bt + (be - bt) * (0.08 + i * 0.115);
         ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.028));
       }
-      ctx.fillStyle = '#191410'; // garganta escura no topo
+      ctx.fillStyle = '#141820'; // garganta escura no topo
       ctx.beginPath();
       ctx.ellipse(0, bt + h * 0.02, tw * 0.48, h * 0.05, 0, 0, 7);
       ctx.fill();
-      ctx.fillStyle = 'rgba(30,18,12,0.45)'; // borda interna da saída
+      ctx.fillStyle = 'rgba(16,20,28,0.45)'; // borda interna da saída
       ctx.fillRect(-ew / 2, be - h * 0.03, ew, h * 0.03);
       ctx.restore();
       ctx.strokeStyle = '#8b93a2'; // aro metálico da saída
@@ -466,7 +466,7 @@ function drawPart(ctx, p, S, state, time) {
     }
     case 'srb': {
       ctx.fillStyle = '#e8e3d8';
-      ctx.fillRect(-w / 2, -h / 2 + w * 0.6, w, h - w * 0.6 - h * 0.06);
+      ctx.fillRect(-w / 2, -h / 2 + w * 0.6, w, h - w * 0.6 - h * 0.2);
       ctx.fillStyle = '#c23b22';
       ctx.beginPath();
       ctx.moveTo(-w / 2, -h / 2 + w * 0.6);
@@ -475,13 +475,44 @@ function drawPart(ctx, p, S, state, time) {
       ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#c23b22';
       ctx.fillRect(-w / 2, -h * 0.1, w, h * 0.12);
-      ctx.fillStyle = '#5a5f6b';
+      // sino metálico do booster (mesmo estilo do motor, versão compacta)
+      const bt = h / 2 - h * 0.2, be = h / 2;
+      const tw = w * 0.34, ew = w * 0.9;
+      const sb = () => {
+        ctx.beginPath();
+        ctx.moveTo(-tw / 2, bt);
+        ctx.bezierCurveTo(-tw / 2 - (ew - tw) * 0.12, bt + (be - bt) * 0.5,
+          -ew / 2, bt + (be - bt) * 0.78, -ew / 2, be);
+        ctx.lineTo(ew / 2, be);
+        ctx.bezierCurveTo(ew / 2, bt + (be - bt) * 0.78,
+          tw / 2 + (ew - tw) * 0.12, bt + (be - bt) * 0.5, tw / 2, bt);
+        ctx.closePath();
+      };
+      const gs2 = ctx.createLinearGradient(-ew / 2, 0, ew / 2, 0);
+      gs2.addColorStop(0, '#2f3540'); gs2.addColorStop(0.3, '#6b7484');
+      gs2.addColorStop(0.5, '#8b95a6'); gs2.addColorStop(0.7, '#6b7484');
+      gs2.addColorStop(1, '#2f3540');
+      ctx.fillStyle = gs2;
+      sb(); ctx.fill();
+      ctx.save(); sb(); ctx.clip();
+      ctx.fillStyle = 'rgba(26,31,40,0.55)'; // anéis do sino
+      for (let i = 0; i < 3; i++) {
+        const yy = bt + (be - bt) * (0.15 + i * 0.3);
+        ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.016));
+      }
+      ctx.fillStyle = '#14181f'; // garganta escura
       ctx.beginPath();
-      ctx.moveTo(-w * 0.35, h / 2 - h * 0.06);
-      ctx.lineTo(-w * 0.45, h / 2);
-      ctx.lineTo(w * 0.45, h / 2);
-      ctx.lineTo(w * 0.35, h / 2 - h * 0.06);
-      ctx.closePath(); ctx.fill();
+      ctx.ellipse(0, bt + h * 0.012, tw * 0.46, h * 0.018, 0, 0, 7);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(20,25,33,0.4)'; // borda interna da saída
+      ctx.fillRect(-ew / 2, be - h * 0.02, ew, h * 0.02);
+      ctx.restore();
+      ctx.strokeStyle = '#9aa3b2'; // aro metálico da saída
+      ctx.lineWidth = Math.max(0.8, h * 0.01);
+      ctx.beginPath();
+      ctx.moveTo(-ew / 2, be);
+      ctx.lineTo(ew / 2, be);
+      ctx.stroke();
       // bocal do booster NÃO brilha (mesma regra do sino: metal fosco)
       break;
     }
@@ -742,7 +773,7 @@ export function drawRocket(ctx, stack, S, opts = {}) {
           ctx.translate(0, y + p.h * S / 2);
           const isNuke = p.isp > 500;
           drawFlame(ctx, p.w, p.h * 0.6, S, opts.throttle, t,
-            isNuke ? '#7fb4ff' : '#ffb143', isNuke ? '#e0f0ff' : '#fff7d6',
+            isNuke ? '#7fb4ff' : '#ff7f26', isNuke ? '#e0f0ff' : '#ffe6c0',
             { atmoF: opts.atmoF });
           ctx.restore();
         }
@@ -750,7 +781,7 @@ export function drawRocket(ctx, stack, S, opts = {}) {
       if (p.type === 'srb' && s.ignited && s.fuel > 0) {
         ctx.save();
         ctx.translate(0, y + p.h * S / 2);
-        drawFlame(ctx, p.w, p.h * 0.45, S, 1, t, '#ffd75e', '#fffbe8', { atmoF: opts.atmoF });
+        drawFlame(ctx, p.w, p.h * 0.45, S, 1, t, '#ff912e', '#ffefce', { atmoF: opts.atmoF });
         ctx.restore();
       }
       for (const r of s.radials) {
@@ -760,7 +791,7 @@ export function drawRocket(ctx, stack, S, opts = {}) {
           for (const side of [-1, 1]) {
             ctx.save();
             ctx.translate(side * xOff * S, y + rp.h * S / 2);
-            drawFlame(ctx, rp.w, rp.h * 0.45, S, 1, t, '#ffd75e', '#fffbe8', { atmoF: opts.atmoF });
+            drawFlame(ctx, rp.w, rp.h * 0.45, S, 1, t, '#ff912e', '#ffefce', { atmoF: opts.atmoF });
             ctx.restore();
           }
         }
