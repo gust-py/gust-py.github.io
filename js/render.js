@@ -20,6 +20,16 @@
 //    antes eram desenhadas sempre abaixo do foguete (seguindo-o pelo céu).
 //  • Árvores refritas: tronco afilado com casca e abaflamento, galhos, copa em
 //    camadas com variação de cor por indivíduo, pinheiros, sombra e LOD.
+//
+// v7 — rework dos MOTORES (estilo "engines rework"):
+//  • Bocal em sino de verdade: perfil curvo com ANÉIS de cobre (canais de
+//    refrigeração), maquinário metálico em cima, garganta escura.
+//  • Motor aceso: interior do sino iluminado (garganta brilha) + aro quente.
+//  • Pluma de exaustão em CAMADAS (bruma externa → cone → núcleo brilhante →
+//    ponto quente) — nada de gota translúcida única.
+//  • EXPANSÃO pela pressão ambiente (atmoF): ao nível do mar a pluma é fechada
+//    e intensa; no vácuo abre em leque largo e difuso (motores de vácuo).
+//  • Tremor suave por senos (sem Math.random por frame — não "trema").
 
 import { BODIES, bodyWorldPos, atmoDensity } from './universe.js';
 import { PARTS } from './parts.js';
@@ -401,17 +411,79 @@ function drawPart(ctx, p, S, state, time) {
       break;
     }
     case 'engine': {
-      ctx.fillStyle = '#6b7280';
-      ctx.fillRect(-w * 0.3, -h / 2, w * 0.6, h * 0.3);
-      const g = ctx.createLinearGradient(-w / 2, 0, w / 2, 0);
-      g.addColorStop(0, '#3b4150'); g.addColorStop(0.5, '#8a93a5'); g.addColorStop(1, '#3b4150');
-      ctx.fillStyle = g;
+      // maquinário superior (turbobomba) em metal
+      const gm = ctx.createLinearGradient(-w * 0.3, 0, w * 0.3, 0);
+      gm.addColorStop(0, '#343a46'); gm.addColorStop(0.45, '#8d96a6'); gm.addColorStop(1, '#343a46');
+      ctx.fillStyle = gm;
+      ctx.fillRect(-w * 0.27, -h / 2, w * 0.54, h * 0.36);
+      ctx.fillStyle = '#5c6472'; // tubulações laterais
+      ctx.fillRect(-w * 0.44, -h * 0.34, w * 0.2, h * 0.1);
+      ctx.fillRect(w * 0.24, -h * 0.38, w * 0.2, h * 0.1);
+      // sino do bocal: perfil curvo + anéis de cobre (canais de refrigeração)
+      const bt = -h * 0.16, be = h / 2;
+      const tw = w * 0.3, ew = w * 0.94;
+      const bell = () => {
+        ctx.beginPath();
+        ctx.moveTo(-tw / 2, bt);
+        ctx.bezierCurveTo(-tw / 2 - w * 0.03, bt + (be - bt) * 0.45,
+          -ew / 2, bt + (be - bt) * 0.6, -ew / 2, be);
+        ctx.lineTo(ew / 2, be);
+        ctx.bezierCurveTo(ew / 2, bt + (be - bt) * 0.6,
+          tw / 2 + w * 0.03, bt + (be - bt) * 0.45, tw / 2, bt);
+        ctx.closePath();
+      };
+      const gb = ctx.createLinearGradient(-ew / 2, 0, ew / 2, 0);
+      gb.addColorStop(0, '#53382a'); gb.addColorStop(0.28, '#a45c33');
+      gb.addColorStop(0.5, '#c8834e'); gb.addColorStop(0.72, '#a45c33');
+      gb.addColorStop(1, '#53382a');
+      ctx.fillStyle = gb;
+      bell(); ctx.fill();
+      ctx.save(); bell(); ctx.clip();
+      ctx.fillStyle = 'rgba(62,34,22,0.5)'; // anéis horizontais
+      for (let i = 0; i < 6; i++) {
+        const yy = bt + (be - bt) * (0.14 + i * 0.14);
+        ctx.fillRect(-ew / 2, yy, ew, Math.max(1, h * 0.035));
+      }
+      ctx.fillStyle = '#191410'; // garganta escura no topo
       ctx.beginPath();
-      ctx.moveTo(-w * 0.22, -h * 0.2);
-      ctx.lineTo(-w * 0.48, h / 2);
-      ctx.lineTo(w * 0.48, h / 2);
-      ctx.lineTo(w * 0.22, -h * 0.2);
-      ctx.closePath(); ctx.fill();
+      ctx.ellipse(0, bt + h * 0.02, tw * 0.48, h * 0.05, 0, 0, 7);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(30,18,12,0.45)'; // borda interna da saída
+      ctx.fillRect(-ew / 2, be - h * 0.03, ew, h * 0.03);
+      ctx.restore();
+      ctx.strokeStyle = '#8b93a2'; // aro metálico da saída
+      ctx.lineWidth = Math.max(0.8, h * 0.02);
+      ctx.beginPath();
+      ctx.moveTo(-ew / 2, be);
+      ctx.lineTo(ew / 2, be);
+      ctx.stroke();
+      // aceso: interior do sino iluminado — garganta branca-quente + luz laranja
+      if (state && state.ignited) {
+        const pulse = 0.8 + 0.2 * Math.sin(time * 31);
+        const gy = bt + (be - bt) * 0.5;
+        const gg = ctx.createRadialGradient(0, gy, ew * 0.04, 0, gy, ew * 0.9);
+        gg.addColorStop(0, `rgba(255,250,232,${0.95 * pulse})`);
+        gg.addColorStop(0.45, `rgba(255,196,120,${0.7 * pulse})`);
+        gg.addColorStop(1, 'rgba(255,150,70,0)');
+        ctx.save(); bell(); ctx.clip();
+        ctx.fillStyle = gg;
+        ctx.fillRect(-ew / 2, bt, ew, be - bt);
+        // núcleo branco-quente junto à garganta
+        const gth = ctx.createRadialGradient(0, bt + (be - bt) * 0.22, 1, 0, bt + (be - bt) * 0.22, ew * 0.42);
+        gth.addColorStop(0, `rgba(255,255,244,${0.95 * pulse})`);
+        gth.addColorStop(0.55, `rgba(255,214,150,${0.55 * pulse})`);
+        gth.addColorStop(1, 'rgba(255,190,120,0)');
+        ctx.fillStyle = gth;
+        ctx.fillRect(-ew / 2, bt, ew, be - bt);
+        ctx.restore();
+        // aro da saída aceso
+        ctx.strokeStyle = `rgba(255,214,150,${0.75 * pulse})`;
+        ctx.lineWidth = Math.max(1, h * 0.035);
+        ctx.beginPath();
+        ctx.moveTo(-ew / 2 + 1, be);
+        ctx.lineTo(ew / 2 - 1, be);
+        ctx.stroke();
+      }
       break;
     }
     case 'srb': {
@@ -432,6 +504,15 @@ function drawPart(ctx, p, S, state, time) {
       ctx.lineTo(w * 0.45, h / 2);
       ctx.lineTo(w * 0.35, h / 2 - h * 0.06);
       ctx.closePath(); ctx.fill();
+      // aceso: bocal do booster aquecido
+      if (state && state.ignited) {
+        const gs = ctx.createRadialGradient(0, h / 2, w * 0.04, 0, h / 2, w * 0.65);
+        gs.addColorStop(0, 'rgba(255,240,200,0.85)');
+        gs.addColorStop(0.5, 'rgba(255,185,95,0.45)');
+        gs.addColorStop(1, 'rgba(255,150,60,0)');
+        ctx.fillStyle = gs;
+        ctx.beginPath(); ctx.arc(0, h / 2, w * 0.65, 0, 7); ctx.fill();
+      }
       break;
     }
     case 'decoupler': {
@@ -508,20 +589,88 @@ function drawPart(ctx, p, S, state, time) {
   ctx.restore();
 }
 
-function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff7d6') {
-  const flick = 0.85 + 0.3 * Math.sin(time * 47) * Math.random();
-  const len = (h * 1.6 + h * 2.2 * power) * flick * S;
-  const fw = w * 0.55 * S * (0.8 + 0.3 * power);
-  const g = ctx.createLinearGradient(0, 0, 0, len);
-  g.addColorStop(0, color2);
-  g.addColorStop(0.35, color1);
-  g.addColorStop(1, 'rgba(255,80,20,0)');
-  ctx.fillStyle = g;
+// ---------- chama do motor (pluma multicamadas) ----------
+// Camadas de trás pra frente: bruma externa (bloom) → cone principal →
+// núcleo brilhante afilado → ponto quente na saída. A expansão depende da
+// pressão ambiente (atmoF 1 = nível do mar, 0 = vácuo): no mar a pluma é
+// fechada e intensa; no vácuo abre em leque largo e difuso (motor de vácuo).
+// Tremor só com senos — Math.random por frame fazia a chama "tremer" feio.
+function colA(c, a) {
+  const f = (x) => (Number.isFinite(x) ? Math.max(0, Math.min(255, x | 0)) : 200);
+  return `rgba(${f(c[0])},${f(c[1])},${f(c[2])},${a})`;
+}
+function drawFlame(ctx, w, h, S, power, time, color1 = '#ffb143', color2 = '#fff7d6', opts = {}) {
+  const p = clampN(power, 0, 1.4);
+  if (p <= 0.001 || !(w > 0) || !(h > 0) || !(S > 0)) return;
+  const atmoF = clampN(opts.atmoF === undefined ? 1 : opts.atmoF, 0, 1);
+  const c1 = hexRGBc(color1);
+  const c2 = hexRGBc(color2);
+  const cDeep = mulC(c1, 0.6);                        // laranja profundo no rabinho
+  const cHot = mixC(c2, [255, 255, 255], 0.55);       // ponto quente branco
+
+  const flick = 1 + 0.05 * Math.sin(time * 31) + 0.035 * Math.sin(time * 57 + 1.7)
+              + 0.025 * Math.sin(time * 23 + 0.6);
+  const flickW = 1 + 0.04 * Math.sin(time * 44 + 2.1);
+  const vac = Math.pow(1 - atmoF, 1.5);               // 0 no mar → 1 no vácuo
+  const expand = 1 + 2.1 * vac;                       // leque no vácuo
+  const len = h * (1.3 + 3.9 * p) * flick * S * (1 + 0.75 * vac);
+  if (!Number.isFinite(len) || len <= 0) return;
+  const w0 = w * 0.38 * S;                            // meia-largura na saída
+  const wEnd = w0 * (1.35 + 0.55 * p) * expand * flickW; // meia-largura no bojo
+
+  // um cone de pluma: abre devagar (quase linear) e arredonda no rabinho
+  const cone = (wa, wb, fill) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.moveTo(-wa, 0);
+    ctx.bezierCurveTo(-wa - (wb - wa) * 0.12, len * 0.5, -wb, len * 0.85, -wb * 0.92, len * 0.92);
+    ctx.quadraticCurveTo(-wb * 0.55, len * 1.04, 0, len * 1.04);
+    ctx.quadraticCurveTo(wb * 0.55, len * 1.04, wb * 0.92, len * 0.92);
+    ctx.bezierCurveTo(wb, len * 0.85, wa + (wb - wa) * 0.12, len * 0.5, wa, 0);
+    ctx.closePath();
+    ctx.fill();
+  };
+  const grad = (stops) => {
+    const g = ctx.createLinearGradient(0, 0, 0, len);
+    for (const s of stops) g.addColorStop(s[0], colA(s[1], s[2]));
+    return g;
+  };
+
+  const aMul = 0.55 + 0.45 * atmoF; // no vácuo a pluma difunde um pouco
+
+  // 0) bruma externa — bloom suave em volta da pluma inteira
+  cone(w0 * 1.55, wEnd * 1.55,
+    grad([[0, c1, 0.28 * aMul], [0.45, cDeep, 0.18 * aMul], [1, cDeep, 0]]));
+
+  // 1) cone principal
+  cone(w0, wEnd,
+    grad([[0, c2, 0.92 * aMul], [0.3, c1, 0.85 * aMul], [0.62, cDeep, 0.55 * aMul], [1, cDeep, 0]]));
+
+  // 2) núcleo brilhante — coluna interna que AFILA (não acompanha o bojo)
+  const lenC = len * (0.62 + 0.14 * atmoF);
+  const gC = ctx.createLinearGradient(0, 0, 0, lenC);
+  gC.addColorStop(0, colA(mixC(c2, [255, 255, 255], 0.6), 0.98 * aMul));
+  gC.addColorStop(0.35, colA(c2, 0.95 * aMul));
+  gC.addColorStop(0.7, colA(c1, 0.55 * aMul));
+  gC.addColorStop(1, colA(c1, 0));
+  ctx.fillStyle = gC;
   ctx.beginPath();
-  ctx.moveTo(-fw / 2, 0);
-  ctx.quadraticCurveTo(-fw * 0.3, len * 0.6, 0, len);
-  ctx.quadraticCurveTo(fw * 0.3, len * 0.6, fw / 2, 0);
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(-w0 * 0.62, 0);
+  ctx.bezierCurveTo(-w0 * 0.55, lenC * 0.5, -w0 * 0.4, lenC * 0.82, 0, lenC);
+  ctx.bezierCurveTo(w0 * 0.4, lenC * 0.82, w0 * 0.55, lenC * 0.5, w0 * 0.62, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // 3) ponto quente na saída (garganta ilumina o início da pluma)
+  const rHot = w0 * (1.05 + 0.15 * flickW);
+  const gHot = ctx.createRadialGradient(0, h * 0.05 * S, rHot * 0.08, 0, h * 0.05 * S, rHot);
+  gHot.addColorStop(0, colA(cHot, 0.9));
+  gHot.addColorStop(0.55, colA(c2, 0.45));
+  gHot.addColorStop(1, colA(c2, 0));
+  ctx.fillStyle = gHot;
+  ctx.beginPath();
+  ctx.arc(0, h * 0.05 * S, rHot, 0, 7);
+  ctx.fill();
 }
 
 // Draws a flight stack (or design stack converted via makeFlightStack).
@@ -542,14 +691,15 @@ export function drawRocket(ctx, stack, S, opts = {}) {
           ctx.translate(0, y + p.h * S / 2);
           const isNuke = p.isp > 500;
           drawFlame(ctx, p.w, p.h * 0.6, S, opts.throttle, t,
-            isNuke ? '#7fb4ff' : '#ffb143', isNuke ? '#e0f0ff' : '#fff7d6');
+            isNuke ? '#7fb4ff' : '#ffb143', isNuke ? '#e0f0ff' : '#fff7d6',
+            { atmoF: opts.atmoF });
           ctx.restore();
         }
       }
       if (p.type === 'srb' && s.ignited && s.fuel > 0) {
         ctx.save();
         ctx.translate(0, y + p.h * S / 2);
-        drawFlame(ctx, p.w, p.h * 0.25, S, 1, t, '#ffd75e', '#fffbe8');
+        drawFlame(ctx, p.w, p.h * 0.45, S, 1, t, '#ffd75e', '#fffbe8', { atmoF: opts.atmoF });
         ctx.restore();
       }
       for (const r of s.radials) {
@@ -559,7 +709,7 @@ export function drawRocket(ctx, stack, S, opts = {}) {
           for (const side of [-1, 1]) {
             ctx.save();
             ctx.translate(side * xOff * S, y + rp.h * S / 2);
-            drawFlame(ctx, rp.w, rp.h * 0.25, S, 1, t, '#ffd75e', '#fffbe8');
+            drawFlame(ctx, rp.w, rp.h * 0.45, S, 1, t, '#ffd75e', '#fffbe8', { atmoF: opts.atmoF });
             ctx.restore();
           }
         }
@@ -756,6 +906,7 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
     });
     drawRocket(ctx, flight.stack, 1 / zoom, {
       showFlames: true, throttle: flight.throttle, time: t, fuelBySection,
+      atmoF: skyF,
     });
     ctx.restore();
 
