@@ -7,6 +7,7 @@ import { BODIES, bodyWorldPos, atmoDensity } from './universe.js';
 import { PARTS } from './parts.js';
 import * as V from './vessel.js';
 import { world } from './physics.js';
+import { drawBody, surfaceElevationM } from './map.js';
 
 // ---------- part shapes ----------
 function shade(color, f) {
@@ -314,6 +315,12 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
     if (dist - rPx > Math.hypot(W, H)) continue; // fully off-screen
     if (rPx < 0.6) continue;
 
+    // near-surface ground for the body we're flying over: real terrain relief
+    if (b === body && rPx > 2000) {
+      drawNearSurface(ctx, W, H, flight, b, zoom);
+      continue;
+    }
+
     if (b.atmoHeight) {
       const g = ctx.createRadialGradient(sx, sy, rPx, sx, sy, rPx + b.atmoHeight * 1.8 / zoom);
       g.addColorStop(0, 'rgba(120,180,255,0.35)');
@@ -328,10 +335,15 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(sx, sy, rPx * 2.2, 0, 7); ctx.fill();
     }
-    ctx.fillStyle = b.color;
-    ctx.beginPath(); ctx.arc(sx, sy, Math.max(rPx, 1), 0, 7); ctx.fill();
+    if (rPx >= 5) {
+      // procedural terrain (biomes, relief shading, clouds) — same textures as map
+      drawBody(ctx, b, sx, sy, rPx, t);
+    } else {
+      ctx.fillStyle = b.color;
+      ctx.beginPath(); ctx.arc(sx, sy, Math.max(rPx, 1), 0, 7); ctx.fill();
+    }
     // simple shading toward the limb
-    if (rPx > 40) {
+    if (rPx > 40 && !b.star) {
       const g = ctx.createRadialGradient(sx, sy, rPx * 0.55, sx, sy, rPx);
       g.addColorStop(0, 'rgba(0,0,0,0)');
       g.addColorStop(1, 'rgba(0,0,0,0.35)');
@@ -342,14 +354,20 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
 
   // launch pad on Gaia (at the north pole spawn point)
   if (flight.bodyKey === 'gaia' && alt < 30_000) {
-    const padY = body.radius;
-    const [px, py] = toScreen(0, padY);
+    const fr = vesselFrame(flight, body);
+    // pad sits at sea level directly below the spawn point
+    const px = W / 2 + fr.up.x * (-fr.altV / zoom);
+    const py = H / 2 + fr.up.y * (-fr.altV / zoom);
     const wpx = 30 / zoom;
     if (wpx > 2) {
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(Math.atan2(fr.up.x, -fr.up.y) + Math.PI / 2); // align pad with local ground
       ctx.fillStyle = '#39404f';
-      ctx.fillRect(px - wpx / 2, py - 3 / zoom, wpx, 5 / zoom);
+      ctx.fillRect(-wpx / 2, -3 / zoom, wpx, 5 / zoom);
       ctx.fillStyle = '#59637a';
-      ctx.fillRect(px - wpx / 2 - 8 / zoom, py + 2 / zoom, wpx + 16 / zoom, 12 / zoom);
+      ctx.fillRect(-wpx / 2 - 8 / zoom, 2 / zoom, wpx + 16 / zoom, 12 / zoom);
+      ctx.restore();
     }
   }
 
@@ -395,6 +413,105 @@ export function renderFlight(ctx, W, H, flight, cam, t) {
 
     // attitude ring markers (screen space around vessel)
     drawMarkers(ctx, W, H, flight);
+  }
+}
+
+// ---------- near-surface terrain (real relief on the ground) ----------
+
+// Vessel local frame: altitude, world angle, screen-space up/perp vectors.
+function vesselFrame(flight, body) {
+  const Rv = Math.hypot(flight.pos.x, flight.pos.y);
+  const a0 = Math.atan2(flight.pos.y, flight.pos.x);
+  return {
+    altV: Rv - body.radius,
+    a0,
+    up: { x: Math.cos(a0), y: -Math.sin(a0) },      // radial, screen space
+    perp: { x: -Math.sin(a0), y: -Math.cos(a0) },    // along-horizon, screen space
+  };
+}
+
+function hexRGBc(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function rgbS(c) { return `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`; }
+function mixC(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+function mulC(c, f) { return [Math.min(255, c[0] * f), Math.min(255, c[1] * f), Math.min(255, c[2] * f)]; }
+
+// Ground color by normalized elevation (same biome feel as the map view).
+function groundColor(b, eN, sea, pal) {
+  if (eN < sea) {
+    const depth = Math.min(1, (sea - eN) / 0.45);
+    return mixC(pal.shallow, pal.deep, depth);
+  }
+  if (eN < sea + 0.06) return pal.sand;
+  if (eN < 0.12) return mixC(pal.sand, pal.base, (eN - sea - 0.06) / 0.06);
+  if (eN < 0.4) return pal.base;
+  if (eN < 0.68) return mixC(pal.base, pal.rock, (eN - 0.4) / 0.28);
+  return mixC(pal.rock, pal.snow, (eN - 0.68) / 0.32);
+}
+
+// Draws the ground as a sampled terrain profile with per-segment biome colors
+// and slope shading. Ground height is referenced to the vessel's own ground
+// level, so the rocket always sits exactly on the surface when landed.
+function drawNearSurface(ctx, W, H, flight, b, zoom) {
+  const fr = vesselFrame(flight, b);
+  const h0 = surfaceElevationM(b, fr.a0);          // terrain height at the vessel
+  const amp = Math.min(b.radius * 0.004, 3500);
+  const sea = b.ocean === false ? -Infinity : -0.28;
+
+  const pal = {
+    base: hexRGBc(b.color || '#7d8f5e'),
+    sand: [203, 184, 126], rock: [122, 112, 100], snow: [235, 238, 242],
+    shallow: [70, 140, 185], deep: [24, 62, 100],
+  };
+
+  const diag = Math.hypot(W, H);
+  const halfWin = (diag * 0.75) * zoom / b.radius; // radians covering the screen
+  const N = Math.max(80, Math.min(240, Math.round(diag / 7)));
+  const pts = [], cols = [], hs = [];
+  for (let i = 0; i <= N; i++) {
+    const a = fr.a0 - halfWin + (2 * halfWin) * i / N;
+    const e = surfaceElevationM(b, a);
+    const eN = e / amp;
+    let hDraw;
+    if (eN < sea) hDraw = sea * amp;               // water surface is flat
+    else hDraw = e;
+    const relY = (hDraw - h0 - fr.altV) / zoom;    // px above vessel, along up
+    const relX = b.radius * (a - fr.a0) / zoom;    // px along horizon
+    pts.push([
+      W / 2 + fr.up.x * relY + fr.perp.x * relX,
+      H / 2 + fr.up.y * relY + fr.perp.y * relX,
+    ]);
+    cols.push(groundColor(b, eN, sea, pal));
+    hs.push(hDraw);
+  }
+
+  const down = { x: -fr.up.x, y: -fr.up.y };
+  const far = diag * 2 + fr.altV / zoom * 2;
+
+  // base fill so no seams show between segments
+  ctx.fillStyle = rgbS(mulC(pal.base, 0.85));
+  ctx.beginPath();
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i <= N; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.lineTo(pts[N][0] + down.x * far, pts[N][1] + down.y * far);
+  ctx.lineTo(pts[0][0] + down.x * far, pts[0][1] + down.y * far);
+  ctx.closePath();
+  ctx.fill();
+
+  // per-segment quads with biome color + slope shading (light from the left)
+  for (let i = 0; i < N; i++) {
+    const slope = (hs[i + 1] - hs[i]) / (b.radius * halfWin * 2 / N + 1e-9);
+    const f = Math.max(0.6, Math.min(1.3, 1 - slope * 2.2));
+    ctx.fillStyle = rgbS(mulC(cols[i], f));
+    ctx.beginPath();
+    ctx.moveTo(pts[i][0], pts[i][1]);
+    ctx.lineTo(pts[i + 1][0], pts[i + 1][1]);
+    ctx.lineTo(pts[i + 1][0] + down.x * far, pts[i + 1][1] + down.y * far);
+    ctx.lineTo(pts[i][0] + down.x * far, pts[i][1] + down.y * far);
+    ctx.closePath();
+    ctx.fill();
   }
 }
 
