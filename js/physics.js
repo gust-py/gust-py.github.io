@@ -166,7 +166,11 @@ export function stepFlight(flight, dt, t) {
   flight.maxSpd = Math.max(flight.maxSpd || 0, spd);
   // calor normalizado 0..1 pra cauda de plasma (suavizado: o brilho "respira",
   // não stroba entre frames). ρ·v³ com portão de velocidade.
-  const hT = plasmaHeat(body, alt, spd);
+  // rv = velocidade radial: + afastando do planeta (subida) / − mergulhando
+  // (reentrada). Plasma SÓ na reentrada — subindo o casco fica frio.
+  const rr0 = Math.hypot(flight.pos.x, flight.pos.y) || 1;
+  const rv0 = (flight.pos.x * flight.vel.x + flight.vel.y * flight.vel.y) / rr0;
+  const hT = plasmaHeat(body, alt, spd, rv0);
   flight.heatFlux = (flight.heatFlux || 0) + (hT - (flight.heatFlux || 0)) * Math.min(1, dt * 5);
 
   // --- ground contact ---
@@ -370,13 +374,19 @@ const PLASMA_FULL_SPD = 1150;   // m/s — portão totalmente aberto
 
 // Calor normalizado (heatFlux / maxHeatFlux) na atmosfera/velocidade atual.
 // O fator ρ já embute a altitude: ar mais fino = menos plasma.
-export function plasmaHeat(body, alt, spd) {
+// radialV = componente radial da velocidade (m/s): + subindo, − caindo.
+// SEM reentrada não há plasma: na subida/apogeu o efeito fica em zero —
+// o fogo só aparece mergulhando de verdade na atmosfera (rampa suave nos
+// primeiros 30 m/s de mergulho pra não "pops" ao cruzar o apogeu).
+export function plasmaHeat(body, alt, spd, radialV = 0) {
+  if (radialV > -1) return 0;   // subindo ou apogeu: frio
   if (spd < PLASMA_MIN_SPD) return 0;
   const rho = atmoDensity(body, Math.max(alt, 0));
   if (rho <= 0) return 0;
   const flux = rho * spd * spd * spd;
   const gate = Math.min(1, (spd - PLASMA_MIN_SPD) / (PLASMA_FULL_SPD - PLASMA_MIN_SPD));
-  return Math.max(0, Math.min(1, flux / PLASMA_REF_FLUX)) * gate;
+  const desc = Math.min(1, -radialV / 30);  // rampa conforme mergulha de verdade
+  return Math.max(0, Math.min(1, flux / PLASMA_REF_FLUX)) * gate * desc;
 }
 
 // Emissor de partículas REMOVIDO a pedido: a cauda agora são JATOS contínuos
