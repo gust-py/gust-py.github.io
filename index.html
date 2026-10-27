@@ -128,7 +128,7 @@
                         let orbitMode = false;
                         let throwCooldown = 0;
                         let hudTimer = 0;
-                        const savedCamPos = new THREE.Vector3( 26, 48, 30 );
+                        const savedCamPos = new THREE.Vector3( 34, 58, 44 );
                         const savedTarget = new THREE.Vector3( 0, PAD_Y + 2, 0 );
 
                         const tmpColor = new THREE.Color();
@@ -276,7 +276,7 @@
 
                                 // gancho de depuração/inspeção no console
                                 window.__K5K = { scene, camera, renderer, controls, atmosphereMesh, atmoMat,
-                                        planetMesh, planetMat, terrainMesh, starsMesh, sunSprite, sunDir,
+                                        planetMesh, planetMat, terrainMesh, starsMesh, sunSprite, sunDir, balls,
                                         PLANET_RADIUS, ATMO_RADIUS };
 
                         }
@@ -386,3 +386,815 @@
                                 return body;
 
                         }
+
+                        /* ============================================================
+                           SHADERS
+                           ============================================================ */
+
+                        const PLANET_VERT = `
+                                #include <common>
+                                #include <logdepthbuf_pars_vertex>
+                                varying vec3 vObj;
+                                varying vec3 vRel;
+                                void main() {
+                                        vObj = position;
+                                        vec4 wp = modelMatrix * vec4( position, 1.0 );
+                                        vRel = wp.xyz;
+                                        gl_Position = projectionMatrix * viewMatrix * wp;
+                                        #include <logdepthbuf_vertex>
+                                }
+                        `;
+
+                        const PLANET_FRAG = `
+                                #include <logdepthbuf_pars_fragment>
+                                varying vec3 vObj;
+                                varying vec3 vRel;
+                                uniform vec3 uSunDir;
+                                uniform vec3 uPlanetCenter;
+
+                                float hash13( vec3 p3 ) {
+                                        p3 = fract( p3 * 0.1031 );
+                                        p3 += dot( p3, p3.zyx + 31.32 );
+                                        return fract( ( p3.x + p3.y ) * p3.z );
+                                }
+                                float vnoise( vec3 p ) {
+                                        vec3 i = floor( p );
+                                        vec3 f = fract( p );
+                                        vec3 u = f * f * ( 3.0 - 2.0 * f );
+                                        return mix(
+                                                mix( mix( hash13( i + vec3( 0.0, 0.0, 0.0 ) ), hash13( i + vec3( 1.0, 0.0, 0.0 ) ), u.x ),
+                                                     mix( hash13( i + vec3( 0.0, 1.0, 0.0 ) ), hash13( i + vec3( 1.0, 1.0, 0.0 ) ), u.x ), u.y ),
+                                                mix( mix( hash13( i + vec3( 0.0, 0.0, 1.0 ) ), hash13( i + vec3( 1.0, 0.0, 1.0 ) ), u.x ),
+                                                     mix( hash13( i + vec3( 0.0, 1.0, 1.0 ) ), hash13( i + vec3( 1.0, 1.0, 1.0 ) ), u.x ), u.y ),
+                                                u.z );
+                                }
+                                float fbm5( vec3 p ) {
+                                        float s = 0.0;
+                                        float a = 0.5;
+                                        for ( int i = 0; i < 5; i ++ ) {
+                                                s += a * vnoise( p );
+                                                p = p * 2.02 + vec3( 11.5, 7.3, 3.1 );
+                                                a *= 0.5;
+                                        }
+                                        return s;
+                                }
+
+                                void main() {
+                                        #include <logdepthbuf_fragment>
+                                        vec3 dir = normalize( vObj );
+
+                                        float cont = fbm5( dir * 2.4 + 5.2 );
+                                        float det  = fbm5( dir * 9.5 + 1.7 );
+                                        float elev = cont * 0.72 + det * 0.28;
+
+                                        float landMask = smoothstep( 0.485, 0.515, elev );
+                                        vec3 ocean = mix( vec3( 0.006, 0.045, 0.115 ), vec3( 0.015, 0.14, 0.26 ), smoothstep( 0.34, 0.49, elev ) );
+                                        vec3 land  = mix( vec3( 0.075, 0.19, 0.06 ), vec3( 0.42, 0.34, 0.18 ), smoothstep( 0.53, 0.60, elev ) );
+                                        land = mix( land, vec3( 0.32, 0.28, 0.24 ), smoothstep( 0.60, 0.70, elev ) );
+                                        vec3 surf = mix( ocean, land, landMask );
+
+                                        // calotas polares (o spawn esta no polo norte: gelo combinando com o terreno local)
+                                        float ice = smoothstep( 0.78, 0.86, abs( dir.y ) + ( det - 0.5 ) * 0.18 );
+                                        surf = mix( surf, vec3( 0.90, 0.93, 0.96 ), ice );
+
+                                        vec3 n = normalize( vRel - uPlanetCenter );
+                                        float dayL = clamp( dot( n, uSunDir ), 0.0, 1.0 );
+
+                                        // especular apenas no oceano
+                                        vec3 V = normalize( cameraPosition - vRel );
+                                        vec3 H = normalize( V + uSunDir );
+                                        float spec = pow( clamp( dot( n, H ), 0.0, 1.0 ), 90.0 ) * dayL * ( 1.0 - landMask ) * ( 1.0 - ice );
+
+                                        vec3 col = surf * ( 0.012 + 1.3 * dayL ) + vec3( 1.0, 0.95, 0.85 ) * spec * 0.7;
+
+                                        gl_FragColor = vec4( col, 1.0 );
+                                        #include <tonemapping_fragment>
+                                        #include <colorspace_fragment>
+                                }
+                        `;
+
+                        const ATMO_VERT = `
+                                #include <common>
+                                #include <logdepthbuf_pars_vertex>
+                                varying vec3 vRel;
+                                void main() {
+                                        vec4 wp = modelMatrix * vec4( position, 1.0 );
+                                        vRel = wp.xyz;
+                                        gl_Position = projectionMatrix * viewMatrix * wp;
+                                        #include <logdepthbuf_vertex>
+                                }
+                        `;
+
+                        // Dispersão atmosférica (Rayleigh + Mie), baseada na implementação
+                        // pública "glsl-atmosphere" (wwwtyro), adaptada para planeta de raio arbitrário.
+                        const ATMO_FRAG = `
+                                #include <logdepthbuf_pars_fragment>
+                                varying vec3 vRel;
+                                uniform vec3 uSunDir;
+                                uniform vec3 uPlanetCenter;
+                                uniform float uPlanetRadius;
+                                uniform float uAtmoRadius;
+                                uniform float uSunIntensity;
+                                uniform float uInside;
+
+                                #define PI 3.141592653589793
+                                const vec3 BETA_R = vec3( 5.5e-6, 13.0e-6, 22.4e-6 );
+                                const float BETA_M = 21e-6;
+                                const float H_R = 8000.0;
+                                const float H_M = 1200.0;
+
+                                vec2 rsi( vec3 r0, vec3 rd, float sr ) {
+                                        float a = dot( rd, rd );
+                                        float b = 2.0 * dot( rd, r0 );
+                                        float c = dot( r0, r0 ) - sr * sr;
+                                        float d = b * b - 4.0 * a * c;
+                                        if ( d < 0.0 ) return vec2( 1e9, - 1e9 );
+                                        return vec2( ( - b - sqrt( d ) ) / ( 2.0 * a ), ( - b + sqrt( d ) ) / ( 2.0 * a ) );
+                                }
+
+                                vec3 atmosphere( vec3 r, vec3 r0, vec3 pSun ) {
+                                        pSun = normalize( pSun );
+                                        r = normalize( r );
+                                        vec2 p = rsi( r0, r, uAtmoRadius );
+                                        if ( p.x > p.y ) return vec3( 0.0 );
+                                        p.x = max( p.x, 0.0 ); // nunca integrar atrás da câmera
+                                        vec2 pl = rsi( r0, r, uPlanetRadius );
+                                        if ( pl.x > 0.0 ) p.y = min( p.y, pl.x ); // parar no planeta só se ele estiver à frente
+                                        if ( p.x >= p.y ) return vec3( 0.0 );
+
+                                        const int iSteps = 16;
+                                        const int jSteps = 8;
+                                        float iStepSize = ( p.y - p.x ) / float( iSteps );
+                                        float iTime = p.x + iStepSize * 0.5;
+
+                                        vec3 totalRlh = vec3( 0.0 );
+                                        float totalMie = 0.0;
+                                        float iOdRlh = 0.0;
+                                        float iOdMie = 0.0;
+
+                                        float mu = dot( r, pSun );
+                                        float mumu = mu * mu;
+                                        float g = 0.76;
+                                        float gg = g * g;
+                                        float pRlh = 3.0 / ( 16.0 * PI ) * ( 1.0 + mumu );
+                                        float pMie = 3.0 / ( 8.0 * PI ) * ( ( 1.0 - gg ) * ( mumu + 1.0 ) ) /
+                                                     ( pow( 1.0 + gg - 2.0 * mu * g, 1.5 ) * ( 2.0 + gg ) );
+
+                                        for ( int i = 0; i < iSteps; i ++ ) {
+                                                vec3 iPos = r0 + r * iTime;
+                                                float iHeight = max( length( iPos ) - uPlanetRadius, 0.0 );
+                                                float odStepRlh = exp( - iHeight / H_R ) * iStepSize;
+                                                float odStepMie = exp( - iHeight / H_M ) * iStepSize;
+                                                iOdRlh += odStepRlh;
+                                                iOdMie += odStepMie;
+
+                                                vec2 j = rsi( iPos, pSun, uAtmoRadius );
+                                                float jStart = max( j.x, 0.0 );
+                                                float jOdRlh = 0.0;
+                                                float jOdMie = 0.0;
+                                                if ( j.y > jStart ) {
+                                                        float jStepSize = ( j.y - jStart ) / float( jSteps );
+                                                        float jTime = jStart + jStepSize * 0.5;
+                                                        for ( int k = 0; k < jSteps; k ++ ) {
+                                                                vec3 jPos = iPos + pSun * jTime;
+                                                                float jHeight = max( length( jPos ) - uPlanetRadius, 0.0 );
+                                                                jOdRlh += exp( - jHeight / H_R ) * jStepSize;
+                                                                jOdMie += exp( - jHeight / H_M ) * jStepSize;
+                                                                jTime += jStepSize;
+                                                        }
+                                                }
+
+                                                vec3 atmRlh = exp( - BETA_R * ( iOdRlh + jOdRlh ) );
+                                                float atmMie = exp( - BETA_M * ( iOdMie + jOdMie ) );
+                                                totalRlh += odStepRlh * atmRlh;
+                                                totalMie += odStepMie * atmMie;
+                                                iTime += iStepSize;
+                                        }
+                                        return uSunIntensity * ( pRlh * BETA_R * totalRlh + pMie * BETA_M * totalMie );
+                                }
+
+                                void main() {
+                                        #include <logdepthbuf_fragment>
+                                        vec3 rd = normalize( vRel - cameraPosition );
+                                        vec3 r0 = cameraPosition - uPlanetCenter;
+
+                                        vec3 col = atmosphere( rd, r0, uSunDir );
+                                        col += vec3( 0.0012, 0.0022, 0.0045 ); // airglow noturno sutil
+
+                                        // Disco solar com transmittância (vermelho ao entardecer) — apenas dentro da atmosfera
+                                        if ( uInside > 0.5 ) {
+                                                vec2 s = rsi( r0, uSunDir, uAtmoRadius );
+                                                if ( s.y > 0.0 ) {
+                                                        float t0 = max( s.x, 0.0 );
+                                                        float stepS = ( s.y - t0 ) / 10.0;
+                                                        float t = t0 + stepS * 0.5;
+                                                        float odR = 0.0;
+                                                        float odM = 0.0;
+                                                        for ( int i = 0; i < 10; i ++ ) {
+                                                                vec3 sp = r0 + uSunDir * t;
+                                                                float hh = max( length( sp ) - uPlanetRadius, 0.0 );
+                                                                odR += exp( - hh / H_R ) * stepS;
+                                                                odM += exp( - hh / H_M ) * stepS;
+                                                                t += stepS;
+                                                        }
+                                                        vec3 trans = exp( - ( BETA_R * odR + vec3( BETA_M * odM ) ) );
+                                                        float d = dot( rd, normalize( uSunDir ) );
+                                                        float disc = smoothstep( 0.99993, 0.99997, d );
+                                                        col += trans * disc * uSunIntensity * 90.0;
+                                                }
+                                        }
+
+                                        gl_FragColor = vec4( col, 1.0 );
+                                        #include <tonemapping_fragment>
+                                        #include <colorspace_fragment>
+                                }
+                        `;
+
+                        /* ============================================================
+                           PLANETA (esfera de 5.000 km) + ATMOSFERA + ESTRELAS
+                           ============================================================ */
+                        let planetMat, atmoMat, starsMat;
+
+                        function createPlanet() {
+
+                                const geo = new THREE.SphereGeometry( PLANET_RADIUS, 256, 160 );
+                                planetMat = new THREE.ShaderMaterial( {
+                                        uniforms: {
+                                                uSunDir: { value: new THREE.Vector3( 1, 0, 0 ) },
+                                                uPlanetCenter: { value: planetCenter.clone() }
+                                        },
+                                        vertexShader: PLANET_VERT,
+                                        fragmentShader: PLANET_FRAG
+                                } );
+                                planetMesh = new THREE.Mesh( geo, planetMat );
+                                planetMesh.position.copy( planetCenter );
+                                scene.add( planetMesh );
+
+                        }
+
+                        function createAtmosphere() {
+
+                                const geo = new THREE.SphereGeometry( ATMO_RADIUS, 96, 64 );
+                                atmoMat = new THREE.ShaderMaterial( {
+                                        uniforms: {
+                                                uSunDir: { value: new THREE.Vector3( 1, 0, 0 ) },
+                                                uPlanetCenter: { value: planetCenter.clone() },
+                                                uPlanetRadius: { value: PLANET_RADIUS },
+                                                uAtmoRadius: { value: ATMO_RADIUS },
+                                                uSunIntensity: { value: 22.0 },
+                                                uInside: { value: 1.0 }
+                                        },
+                                        vertexShader: ATMO_VERT,
+                                        fragmentShader: ATMO_FRAG,
+                                        side: THREE.BackSide,
+                                        transparent: true,
+                                        depthWrite: false,
+                                        blending: THREE.AdditiveBlending
+                                } );
+                                atmosphereMesh = new THREE.Mesh( geo, atmoMat );
+                                atmosphereMesh.position.copy( planetCenter );
+                                atmosphereMesh.renderOrder = 1;
+                                scene.add( atmosphereMesh );
+
+                        }
+
+                        function createStars() {
+
+                                const N = 5000;
+                                const positions = new Float32Array( N * 3 );
+                                const colors = new Float32Array( N * 3 );
+                                const v = new THREE.Vector3();
+                                for ( let i = 0; i < N; i ++ ) {
+
+                                        do {
+
+                                                v.set( rng() * 2 - 1, rng() * 2 - 1, rng() * 2 - 1 );
+
+                                        } while ( v.lengthSq() > 1 || v.lengthSq() < 0.01 );
+                                        v.normalize().multiplyScalar( 3.5e7 );
+                                        positions[ i * 3 ] = v.x;
+                                        positions[ i * 3 + 1 ] = v.y;
+                                        positions[ i * 3 + 2 ] = v.z;
+
+                                        const mag = Math.pow( rng(), 2.6 );
+                                        const warm = rng();
+                                        const b = 0.35 + 0.85 * mag;
+                                        colors[ i * 3 ]     = b * ( 0.85 + 0.25 * warm );
+                                        colors[ i * 3 + 1 ] = b * ( 0.90 + 0.10 * warm );
+                                        colors[ i * 3 + 2 ] = b * ( 1.05 - 0.20 * warm );
+
+                                }
+                                const geo = new THREE.BufferGeometry();
+                                geo.setAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+                                geo.setAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+                                starsMat = new THREE.PointsMaterial( {
+                                        size: 1.7,
+                                        sizeAttenuation: false,
+                                        vertexColors: true,
+                                        transparent: true,
+                                        opacity: 0,
+                                        depthWrite: false,
+                                        blending: THREE.AdditiveBlending
+                                } );
+                                starsMesh = new THREE.Points( geo, starsMat );
+                                starsMesh.renderOrder = 2;
+                                scene.add( starsMesh );
+
+                        }
+
+                        function createSunSprite() {
+
+                                // Disco/glow do sol visível do espaço (de dentro da atmosfera quem desenha
+                                // o disco é o shader, com cor de pôr-do-sol).
+                                const cv = document.createElement( 'canvas' );
+                                cv.width = cv.height = 256;
+                                const g = cv.getContext( '2d' );
+                                const grad = g.createRadialGradient( 128, 128, 0, 128, 128, 128 );
+                                grad.addColorStop( 0.00, 'rgba(255,255,250,1)' );
+                                grad.addColorStop( 0.07, 'rgba(255,244,220,1)' );
+                                grad.addColorStop( 0.12, 'rgba(255,210,140,0.55)' );
+                                grad.addColorStop( 0.22, 'rgba(255,170,90,0.16)' );
+                                grad.addColorStop( 0.45, 'rgba(255,140,60,0.035)' );
+                                grad.addColorStop( 1.00, 'rgba(0,0,0,0)' );
+                                g.fillStyle = grad;
+                                g.fillRect( 0, 0, 256, 256 );
+                                const tex = new THREE.CanvasTexture( cv );
+                                tex.colorSpace = THREE.SRGBColorSpace;
+
+                                const mat = new THREE.SpriteMaterial( {
+                                        map: tex,
+                                        transparent: true,
+                                        depthWrite: false,
+                                        depthTest: true,
+                                        blending: THREE.AdditiveBlending
+                                } );
+                                sunSprite = new THREE.Sprite( mat );
+                                sunSprite.renderOrder = 4;
+                                sunSprite.scale.setScalar( 6e7 * 0.075 );
+                                scene.add( sunSprite );
+
+                        }
+
+                        /* ============================================================
+                           TERRENO LOCAL (24 km) + PLATAFORMA DE LANÇAMENTO
+                           ============================================================ */
+                        function createTerrain() {
+
+                                const geo = new THREE.PlaneGeometry( TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SEGS, TERRAIN_SEGS );
+                                geo.rotateX( - Math.PI / 2 );
+
+                                const p = geo.attributes.position;
+                                for ( let i = 0; i < p.count; i ++ ) {
+
+                                        const x = p.getX( i ), z = p.getZ( i );
+                                        p.setY( i, PAD_Y + terrainHeight( x, z ) );
+
+                                }
+                                geo.computeVertexNormals();
+
+                                // Cores por vértice: neve, gelo nos vales, rocha nas encostas
+                                const nrm = geo.attributes.normal;
+                                const colors = new Float32Array( p.count * 3 );
+                                const cSnowHi = new THREE.Color( 0xf4f8fc );
+                                const cSnowLo = new THREE.Color( 0xdde8f2 );
+                                const cIce = new THREE.Color( 0xc9dcec );
+                                const cRock = new THREE.Color( 0x707a86 );
+                                const c = new THREE.Color();
+                                for ( let i = 0; i < p.count; i ++ ) {
+
+                                        const x = p.getX( i ), z = p.getZ( i );
+                                        const hgt = p.getY( i ) - PAD_Y;
+                                        const slope = 1 - nrm.getY( i );
+
+                                        c.copy( cSnowLo ).lerp( cSnowHi, THREE.MathUtils.clamp( hgt / 220, 0, 1 ) );
+                                        c.lerp( cIce, THREE.MathUtils.clamp( ( 25 - hgt ) / 25, 0, 1 ) * 0.8 );
+                                        c.lerp( cRock, THREE.MathUtils.clamp( ( slope - 0.16 ) / 0.24, 0, 1 ) );
+                                        const tint = ( fbm2( x / 530 + 7.7, z / 530 - 3.1, 2 ) - 0.5 ) * 0.10;
+                                        c.offsetHSL( 0, 0, tint );
+
+                                        colors[ i * 3 ] = c.r;
+                                        colors[ i * 3 + 1 ] = c.g;
+                                        colors[ i * 3 + 2 ] = c.b;
+
+                                }
+                                geo.setAttribute( 'color', new THREE.BufferAttribute( colors, 3 ) );
+
+                                const mat = new THREE.MeshLambertMaterial( { vertexColors: true } );
+                                terrainMesh = new THREE.Mesh( geo, mat );
+                                terrainMesh.receiveShadow = true;
+                                scene.add( terrainMesh );
+
+                        }
+
+                        function makePadTexture() {
+
+                                const S = 1024;
+                                const cv = document.createElement( 'canvas' );
+                                cv.width = cv.height = S;
+                                const g = cv.getContext( '2d' );
+
+                                g.fillStyle = '#33363b';
+                                g.fillRect( 0, 0, S, S );
+                                for ( let i = 0; i < 9000; i ++ ) {
+
+                                        const v = 40 + ( rng() * 45 ) | 0;
+                                        g.fillStyle = 'rgba(' + v + ',' + v + ',' + ( v + 5 ) + ',0.30)';
+                                        g.fillRect( rng() * S, rng() * S, 2.5, 2.5 );
+
+                                }
+                                g.strokeStyle = 'rgba(15,16,18,0.55)';
+                                g.lineWidth = 3;
+                                for ( let i = 1; i < 4; i ++ ) {
+
+                                        g.beginPath(); g.moveTo( i * S / 4, 0 ); g.lineTo( i * S / 4, S ); g.stroke();
+                                        g.beginPath(); g.moveTo( 0, i * S / 4 ); g.lineTo( S, i * S / 4 ); g.stroke();
+
+                                }
+                                g.strokeStyle = '#d8a23a';
+                                g.lineWidth = 16;
+                                g.beginPath(); g.arc( S / 2, S / 2, S * 0.40, 0, Math.PI * 2 ); g.stroke();
+                                g.strokeStyle = '#e8c064';
+                                g.lineWidth = 4;
+                                g.beginPath(); g.arc( S / 2, S / 2, S * 0.30, 0, Math.PI * 2 ); g.stroke();
+                                g.strokeStyle = 'rgba(240,244,248,0.85)';
+                                g.lineWidth = 10;
+                                g.beginPath(); g.moveTo( S / 2 - 60, S / 2 ); g.lineTo( S / 2 + 60, S / 2 ); g.stroke();
+                                g.beginPath(); g.moveTo( S / 2, S / 2 - 60 ); g.lineTo( S / 2, S / 2 + 60 ); g.stroke();
+                                g.fillStyle = 'rgba(235,238,242,0.9)';
+                                g.font = 'bold 44px monospace';
+                                g.textAlign = 'center';
+                                g.fillText( 'KSC - PAD 01', S / 2, S * 0.14 );
+
+                                const tex = new THREE.CanvasTexture( cv );
+                                tex.colorSpace = THREE.SRGBColorSpace;
+                                tex.anisotropy = 8;
+                                return tex;
+
+                        }
+
+                        function createPad() {
+
+                                const geo = new THREE.CircleGeometry( 140, 64 );
+                                geo.rotateX( - Math.PI / 2 );
+                                const mat = new THREE.MeshStandardMaterial( {
+                                        map: makePadTexture(),
+                                        roughness: 0.95,
+                                        metalness: 0.0,
+                                        polygonOffset: true,
+                                        polygonOffsetFactor: - 4,
+                                        polygonOffsetUnits: - 4
+                                } );
+                                padMesh = new THREE.Mesh( geo, mat );
+                                padMesh.position.set( 0, PAD_VIS_Y, 0 );
+                                padMesh.receiveShadow = true;
+                                scene.add( padMesh );
+
+                                createSunSprite();
+
+                        }
+
+                        /* ============================================================
+                           INPUT (adaptado do demo: clique lança uma bola de teste)
+                           ============================================================ */
+                        let pointerDownX = 0, pointerDownY = 0;
+
+                        function initInput() {
+
+                                renderer.domElement.addEventListener( 'pointerdown', function ( event ) {
+
+                                        pointerDownX = event.clientX;
+                                        pointerDownY = event.clientY;
+
+                                } );
+
+                                renderer.domElement.addEventListener( 'pointerup', function ( event ) {
+
+                                        const dx = event.clientX - pointerDownX;
+                                        const dy = event.clientY - pointerDownY;
+                                        if ( dx * dx + dy * dy < 36 ) { // não é arrasto: é clique
+
+                                                mouseCoords.set(
+                                                        ( event.clientX / window.innerWidth ) * 2 - 1,
+                                                        - ( event.clientY / window.innerHeight ) * 2 + 1
+                                                );
+                                                processClick();
+
+                                        }
+
+                                } );
+
+                                window.addEventListener( 'keydown', function ( event ) {
+
+                                        const k = event.key.toLowerCase();
+                                        if ( k === 'o' ) setOrbitMode( ! orbitMode );
+                                        if ( k === 't' ) timeScaleIndex = ( timeScaleIndex + 1 ) % TIME_SCALES.length;
+                                        if ( k === 'c' ) clearBalls();
+
+                                } );
+
+                        }
+
+                        const ballGeometry = new THREE.IcosahedronGeometry( 0.4, 2 );
+                        const ballMaterial = new THREE.MeshStandardMaterial( {
+                                color: 0xd96f1e, roughness: 0.45, metalness: 0.1,
+                                emissive: 0x1a0d04
+                        } );
+                        const tmpVel = new THREE.Vector3();
+
+                        function processClick() {
+
+                                if ( orbitMode || throwCooldown > 0 || ! physicsWorld ) return;
+                                throwCooldown = 0.18;
+
+                                raycaster.setFromCamera( mouseCoords, camera );
+
+                                const ballMass = 3;
+                                const ballRadius = 0.4;
+
+                                const ball = new THREE.Mesh( ballGeometry, ballMaterial );
+                                ball.castShadow = true;
+                                ball.receiveShadow = true;
+
+                                const ballShape = new AMMO.btSphereShape( ballRadius );
+                                ballShape.setMargin( margin );
+
+                                pos.copy( raycaster.ray.origin ).addScaledVector( raycaster.ray.direction, 12 );
+                                if ( pos.y < PAD_Y + 2 ) pos.y = PAD_Y + 2.5;
+                                quat.set( 0, 0, 0, 1 );
+
+                                const body = createRigidBody( ball, ballShape, ballMass, pos, quat );
+                                body.setFriction( 0.6 );
+                                body.setRestitution( 0.45 );
+                                body.setDamping( 0.01, 0.01 );
+
+                                tmpVel.copy( raycaster.ray.direction ).multiplyScalar( 32 );
+                                body.setLinearVelocity( new AMMO.btVector3( tmpVel.x, tmpVel.y, tmpVel.z ) );
+
+                                balls.push( ball );
+                                if ( balls.length > MAX_BALLS ) removeBall( balls[ 0 ] );
+
+                        }
+
+                        function createRigidBody( threeObject, physicsShape, mass, position, orientation ) {
+
+                                threeObject.position.copy( position );
+                                threeObject.quaternion.copy( orientation );
+
+                                const transform = new AMMO.btTransform();
+                                transform.setIdentity();
+                                transform.setOrigin( new AMMO.btVector3( position.x, position.y, position.z ) );
+                                transform.setRotation( new AMMO.btQuaternion( orientation.x, orientation.y, orientation.z, orientation.w ) );
+                                const motionState = new AMMO.btDefaultMotionState( transform );
+
+                                const localInertia = new AMMO.btVector3( 0, 0, 0 );
+                                physicsShape.calculateLocalInertia( mass, localInertia );
+
+                                const rbInfo = new AMMO.btRigidBodyConstructionInfo( mass, motionState, physicsShape, localInertia );
+                                const body = new AMMO.btRigidBody( rbInfo );
+
+                                threeObject.userData.physicsBody = body;
+                                scene.add( threeObject );
+
+                                if ( mass > 0 ) {
+
+                                        rigidBodies.push( threeObject );
+                                        body.setActivationState( 4 ); // não desativar
+
+                                }
+
+                                physicsWorld.addRigidBody( body );
+                                return body;
+
+                        }
+
+                        function removeBall( mesh ) {
+
+                                const body = mesh.userData.physicsBody;
+                                if ( body ) {
+
+                                        physicsWorld.removeRigidBody( body );
+                                        AMMO.destroy( body.getMotionState() );
+                                        AMMO.destroy( body );
+                                        const ci = rigidBodies.indexOf( mesh );
+                                        if ( ci !== - 1 ) rigidBodies.splice( ci, 1 );
+
+                                }
+                                const bi = balls.indexOf( mesh );
+                                if ( bi !== - 1 ) balls.splice( bi, 1 );
+                                scene.remove( mesh );
+
+                        }
+
+                        function clearBalls() {
+
+                                while ( balls.length > 0 ) removeBall( balls[ 0 ] );
+
+                        }
+
+                        /* ============================================================
+                           CÂMERA: SUPERFÍCIE <-> ÓRBITA
+                           ============================================================ */
+                        function setOrbitMode( on ) {
+
+                                orbitMode = on;
+                                if ( on ) {
+
+                                        savedCamPos.copy( camera.position );
+                                        savedTarget.copy( controls.target );
+
+                                        controls.target.copy( planetCenter );
+                                        tmpV1.copy( sunDir ).add( tmpV2.set( 0.35, 0.65, 0.35 ) ).normalize();
+                                        camera.position.copy( tmpV1 ).multiplyScalar( PLANET_RADIUS * 3.1 ).add( planetCenter );
+
+                                        controls.minDistance = PLANET_RADIUS * 1.12;
+                                        controls.maxDistance = PLANET_RADIUS * 6;
+                                        controls.autoRotate = true;
+                                        controls.autoRotateSpeed = 0.3;
+                                        scene.fog.density = 0;
+                                        document.getElementById( 'modeText' ).textContent = 'VISTA ORBITAL — Planeta K-5000 (raio 5.000 km)';
+
+                                } else {
+
+                                        controls.target.copy( savedTarget );
+                                        camera.position.copy( savedCamPos );
+                                        controls.minDistance = 3;
+                                        controls.maxDistance = 60;
+                                        controls.autoRotate = false;
+                                        scene.fog.density = 9e-5;
+                                        document.getElementById( 'modeText' ).textContent = 'VISTA DE SUPERFÍCIE — KSC • PAD 01';
+
+                                }
+                                controls.update();
+
+                        }
+
+                        /* ============================================================
+                           SOL / CICLO DIA-NOITE / ILUMINAÇÃO
+                           ============================================================ */
+                        const FOG_DAY = new THREE.Color( 0xaecbee );
+                        const FOG_DUSK = new THREE.Color( 0xc97a4a );
+                        const FOG_NIGHT = new THREE.Color( 0x05070d );
+                        const SUN_WARM = new THREE.Color( 0xff8a3d );
+                        const SUN_WHITE = new THREE.Color( 0xffffff );
+
+                        function updateSun( dt ) {
+
+                                simTime += dt * TIME_SCALES[ timeScaleIndex ];
+                                const phase = ( simTime / DAY_LENGTH ) * Math.PI * 2;
+                                const el = MAX_SUN_ELEV * Math.sin( phase );
+                                const az = phase;
+                                elevDeg = el * 180 / Math.PI;
+
+                                sunDir.set( Math.cos( el ) * Math.cos( az ), Math.sin( el ), Math.cos( el ) * Math.sin( az ) );
+
+                                sunLight.position.copy( sunDir ).multiplyScalar( 30000 );
+                                const dayK = THREE.MathUtils.smoothstep( elevDeg, - 2, 10 );
+                                const lowK = Math.exp( - Math.abs( elevDeg ) / 7 );
+                                sunLight.intensity = 2.9 * THREE.MathUtils.smoothstep( elevDeg, - 1.5, 14 );
+                                sunLight.color.copy( SUN_WHITE ).lerp( SUN_WARM, THREE.MathUtils.clamp( lowK * 1.2, 0, 1 ) );
+
+                                hemiLight.intensity = 0.05 + 0.75 * dayK;
+
+                                tmpColor.copy( FOG_NIGHT )
+                                        .lerp( FOG_DUSK, Math.min( 1, lowK * 1.5 ) * 0.85 )
+                                        .lerp( FOG_DAY, dayK );
+                                scene.fog.color.copy( tmpColor );
+
+                                starsMat.opacity = 0.95 * ( 1 - THREE.MathUtils.smoothstep( elevDeg, - 7, 1 ) );
+
+                                // disco/sprite do sol
+                                atmoMat.uniforms.uSunDir.value.copy( sunDir );
+                                planetMat.uniforms.uSunDir.value.copy( sunDir );
+                                const camDist = tmpV1.copy( camera.position ).sub( planetCenter ).length();
+                                const inside = camDist < ATMO_RADIUS;
+                                atmoMat.uniforms.uInside.value = inside ? 1 : 0;
+                                sunSprite.visible = ! inside;
+                                sunSprite.position.copy( sunDir ).multiplyScalar( 6e7 );
+
+                        }
+
+                        /* ============================================================
+                           FÍSICA (mesma estrutura do demo)
+                           ============================================================ */
+                        function updatePhysics( deltaTime ) {
+
+                                physicsWorld.stepSimulation( deltaTime, 10 );
+
+                                // soft bodies (reservado para o futuro)
+                                for ( let i = 0, il = softBodies.length; i < il; i ++ ) {}
+
+                                // rigid bodies
+                                for ( let i = 0, il = rigidBodies.length; i < il; i ++ ) {
+
+                                        const objThree = rigidBodies[ i ];
+                                        const objPhys = objThree.userData.physicsBody;
+                                        const ms = objPhys.getMotionState();
+                                        if ( ms ) {
+
+                                                ms.getWorldTransform( transformAux1 );
+                                                const p = transformAux1.getOrigin();
+                                                const q = transformAux1.getRotation();
+                                                objThree.position.set( p.x(), p.y(), p.z() );
+                                                objThree.quaternion.set( q.x(), q.y(), q.z(), q.w() );
+
+                                        }
+
+                                }
+
+                        }
+
+                        /* ============================================================
+                           HUD
+                           ============================================================ */
+                        function initHUD() {
+
+                                updateHUD();
+
+                        }
+
+                        function fmtHour() {
+
+                                const phase = ( simTime / DAY_LENGTH ) * Math.PI * 2;
+                                let h = ( phase / ( Math.PI * 2 ) * 24 + 6 ) % 24;
+                                if ( h < 0 ) h += 24;
+                                const hh = Math.floor( h );
+                                const mm = Math.floor( ( h - hh ) * 60 );
+                                return String( hh ).padStart( 2, '0' ) + ':' + String( mm ).padStart( 2, '0' );
+
+                        }
+
+                        function fmtAlt() {
+
+                                if ( orbitMode ) {
+
+                                        const d = tmpV1.copy( camera.position ).sub( planetCenter ).length() - PLANET_RADIUS;
+                                        return ( d / 1000 ).toFixed( 0 ) + ' km';
+
+                                }
+                                return ( camera.position.y - PAD_Y ).toFixed( 1 ) + ' m';
+
+                        }
+
+                        function updateHUD() {
+
+                                const ts = TIME_SCALES[ timeScaleIndex ];
+                                const rows = [
+                                        [ 'Hora local', fmtHour() ],
+                                        [ 'Elevação do Sol', elevDeg.toFixed( 1 ) + '°' ],
+                                        [ 'Escala de tempo', ( ts === 0 ? 'pausado' : ts + '×' ) ],
+                                        [ 'Gravidade', GRAVITY.toFixed( 2 ) + ' m/s²' ],
+                                        [ 'v de escape', ( ESCAPE_V / 1000 ).toFixed( 2 ) + ' km/s' ],
+                                        [ 'Raio do planeta', '5.000 km' ],
+                                        [ 'Massa', ( PLANET_MASS / 1e24 ).toFixed( 2 ) + '×10^24 kg' ],
+                                        [ orbitMode ? 'Altitude' : 'Alt. câmera', fmtAlt() ],
+                                        [ 'Bolas (teste)', String( balls.length ) ]
+                                ];
+                                let html = '';
+                                for ( let i = 0; i < rows.length; i ++ ) {
+
+                                        html += '<div class="row"><span class="k">' + rows[ i ][ 0 ] +
+                                                '</span><span class="v">' + rows[ i ][ 1 ] + '</span></div>';
+
+                                }
+                                document.getElementById( 'hud' ).innerHTML = html;
+
+                        }
+
+                        /* ============================================================
+                           LOOP PRINCIPAL
+                           ============================================================ */
+                        function animate() {
+
+                                const deltaTime = Math.min( clock.getDelta(), 0.05 );
+                                if ( throwCooldown > 0 ) throwCooldown -= deltaTime;
+
+                                updateSun( deltaTime );
+                                updatePhysics( deltaTime );
+
+                                controls.update();
+                                renderer.render( scene, camera );
+                                stats.update();
+
+                                hudTimer += deltaTime;
+                                if ( hudTimer > 0.25 ) {
+
+                                        hudTimer = 0;
+                                        updateHUD();
+
+                                }
+
+                        }
+
+                        function onWindowResize() {
+
+                                camera.aspect = window.innerWidth / window.innerHeight;
+                                camera.updateProjectionMatrix();
+                                renderer.setSize( window.innerWidth, window.innerHeight );
+
+                        }
+
+                </script>
+
+        </body>
+</html>
