@@ -1173,112 +1173,135 @@ function drawPlasma(ctx, W, H, flight, zoom, toScreen, time) {
   if (heat <= 0.06 || flight.destroyed || !(zoom > 0)) return;
   const spd = Math.hypot(flight.vel.x, flight.vel.y);
   if (!(spd > 30)) return;
-  const vx = flight.vel.x / spd, vy = flight.vel.y / spd;   // prograde
-  const bx = -vx, by = -vy;                                 // anti-velocidade (cauda)
-  const px = -vy, py = vx;                                  // perpendicular ao voo
-  const R = Math.max(V.maxWidth(flight.stack) * 0.5, 0.8);
-  const geom = V.stackGeometry(flight.stack);
-  const HL = Math.max(geom.height * 0.5, R);                // meio-comprimento do casco
+  const stack = flight.stack;
+  if (!stack || !stack.length) return;
+  const vx = flight.vel.x / spd, vy = flight.vel.y / spd;   // prograde (vento)
+  const bx = -vx, by = -vy;                                 // anti-velocidade (esteira)
+  const ux = -vy, uy = vx;                                  // perpendicular ao vento
+  const geom = V.stackGeometry(stack);
+  const H0 = Math.max(geom.height, 1);
   const tt = Number.isFinite(time) ? time : 0;
+  const hash = (n) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
 
-  // âncoras em coords de MUNDO (metros): cabeça no heat shield, cauda atrás
-  const nose = [flight.pos.x + vx * HL, flight.pos.y + vy * HL];
-  const L = (0.060 * spd) * (0.55 + 0.80 * heat);           // comprimento do jato (m)
+  // ---- silhueta REAL do casco: meia-largura r(y) por estação (+y = nariz).
+  // Inclui boosters radiais (xOff = w/2 + rw/2 → borda externa = w/2 + rw),
+  // então o fogo abraça tanque gordo, SRB colado na lateral, cápsula fina…
+  const segs = [];
+  let Rmax = 0.4;
+  for (let i = 0; i < stack.length; i++) {
+    const p = PARTS[stack[i].pid];
+    if (!p) continue;
+    segs.push({ y0: geom.offsets[i] - p.h / 2, y1: geom.offsets[i] + p.h / 2, r: p.w / 2 });
+    Rmax = Math.max(Rmax, p.w / 2);
+    for (const rd of stack[i].radials) {
+      const rp = PARTS[rd.pid !== undefined ? rd.pid : rd];
+      if (!rp) continue;
+      segs.push({ y0: geom.offsets[i] - rp.h / 2, y1: geom.offsets[i] + rp.h / 2, r: p.w / 2 + rp.w });
+      Rmax = Math.max(Rmax, p.w / 2 + rp.w);
+    }
+  }
+  const hullR = (y) => {
+    let r = 0.0001;
+    for (const sg of segs) if (y >= sg.y0 && y <= sg.y1) r = Math.max(r, sg.r);
+    return r;
+  };
 
-  const [nsx, nsy] = toScreen(nose[0], nose[1]);
-  const [csx, csy] = toScreen(flight.pos.x, flight.pos.y);
+  // ---- atitude REAL da nave (mesma transformação do drawRocket: rot π/2−angle
+  // com o CoM no flight.pos) → eixo centro→nariz = (cos angle, sin angle) no mundo
+  const angN = flight.angle || 0;
+  const axN = Math.cos(angN), ayN = Math.sin(angN);
+  const qx = -ayN, qy = axN;                                 // perpendicular ao casco
+  const Gx = flight.pos.x - axN * geom.com, Gy = flight.pos.y - ayN * geom.com;
+
+  // ponta CONTRA o vento: nariz (voando de frente) ou cauda (blunt-first)
+  const windSign = (axN * vx + ayN * vy) >= 0 ? 1 : -1;
+  const SWx = Gx + axN * (windSign * H0 / 2), SWy = Gy + ayN * (windSign * H0 / 2);
+  const [ssx, ssy] = toScreen(SWx, SWy);
   const m = Math.max(W, H);
-  if (nsx < -m || nsx > 2 * m || nsy < -m || nsy > 2 * m) return; // fora da tela
+  if (ssx < -m || ssx > 2 * m || ssy < -m || ssy > 2 * m) return; // fora da tela
 
   ctx.save();
   ctx.globalCompositeOperation = 'lighter';
-  const A = Math.min(1, 0.3 + 0.85 * heat);                 // alfa global ∝ heat
+  const A = Math.min(1, 0.3 + 0.85 * heat);                  // alfa global ∝ heat
 
-  // ---- bruma alongada atrás do casco (gradiente esticado, sem partículas) ----
-  const drawHaze = (cx, cy, r, kx, col, a) => {
-    const [hx, hy] = toScreen(cx, cy);
-    if (hx < -4 * r - 60 || hx > W + 4 * r + 60 || hy < -4 * r - 60 || hy > H + 4 * r + 60) return;
-    ctx.save();
-    ctx.translate(hx, hy);
-    ctx.rotate(Math.atan2(by, bx));
-    ctx.scale(kx, 1);
-    const g = ctx.createRadialGradient(0, 0, r * 0.05, 0, 0, r);
-    g.addColorStop(0, colA(col, a));
-    g.addColorStop(0.55, colA(col, a * 0.45));
-    g.addColorStop(1, colA(col, 0));
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
-    ctx.restore();
+  // estações do contorno, da ponta de vento (f=0) à ponta de ré (f=1)
+  const NS = 14;
+  const st = [];
+  for (let i = 0; i <= NS; i++) {
+    const y = windSign * H0 * (0.5 - i / NS);
+    st.push({ y, r: hullR(y) });
+  }
+  const wrapF = Math.min(1, 0.45 + 0.75 * heat);   // fogo cobre mais casco c/ heat alto
+  const gap = Rmax * (0.10 + 0.14 * heat);         // folga do fogo sobre a borda
+  const wHead = (Rmax * (0.85 + 0.95 * heat)) / zoom;        // meia-largura de ref (px)
+
+  // caminho de um jato (mundo + meia-largura px por ponto):
+  //   ponta de estagnação (AFIADA, sem corte) → contorno lateral s abraçando a
+  //   silhueta → esteira convergindo pro eixo da cauda, serpenteando
+  const jetPath = (s, ph) => {
+    const pts = [[SWx, SWy]];
+    const ws = [wHead * 0.06];
+    const spread = s === 0 ? 0 : 1;                       // central anda no eixo
+    const wMin = s === 0 ? 0.85 : 0.72;                   // central engole o casco
+    const wFac = s === 0 ? 1.50 : 1.35;
+    const hullN = Math.max(4, Math.round(NS * (s === 0 ? Math.min(1, wrapF * 1.05) : wrapF)));
+    let wLast = ws[0];
+    for (let i = 1; i <= hullN; i++) {
+      const f = i / hullN;
+      const k = Math.min(NS, Math.round(f * NS));
+      const r = st[k].r + gap;
+      const hug = 1 + 0.10 * Math.sin(tt * (2.0 + hash(ph + i * 1.3) * 2.0) + ph + i * 0.9);
+      pts.push([Gx + axN * st[k].y + qx * s * spread * r * hug,
+                Gy + ayN * st[k].y + qy * s * spread * r * hug]);
+      const ramp = 0.06 + 0.94 * Math.min(1, f / 0.10);   // ponta afia → ombro cheio
+      wLast = Math.max(wHead * wMin, (r * wFac) / zoom) * ramp;
+      ws.push(wLast);
+    }
+    // esteira: descola do casco e converge pro centro; comprimento respira
+    const last = pts[pts.length - 1];
+    const off0 = s * spread * (st[Math.min(NS, hullN)].r + gap);
+    const Lw = (0.050 * spd) * (0.55 + 1.00 * heat) *
+               (0.82 + 0.18 * Math.sin(tt * (1.4 + hash(ph) * 1.2) + ph * 1.7));
+    const NW = 12;
+    for (let i = 1; i <= NW; i++) {
+      const u = i / NW;
+      const wob = Math.sin(tt * (2.2 + hash(ph + i * 3.1) * 2.4) + ph + u * 5.0) * Rmax * 0.28 * u;
+      const e = Math.pow(1 - u, 1.15);                 // abraça o eixo da cauda rápido
+      pts.push([last[0] + bx * Lw * u + ux * (off0 * e + wob),
+                last[1] + by * Lw * u + uy * (off0 * e + wob)]);
+      ws.push(Math.max(0.4, wLast * Math.pow(1 - u, 0.85)));  // afina GORDO até fechar
+    }
+    return { pts, ws };
   };
-  // bafo quente junto do casco + rastro violeta no rastro (ref da cápsula)
-  drawHaze(flight.pos.x + bx * HL * 0.4, flight.pos.y + by * HL * 0.4,
-           (R * 3.2 + R * 2.0 * heat) / zoom, 2.6, [255, 172, 92], 0.17 * A);
-  drawHaze(flight.pos.x + bx * (HL + L * 0.45), flight.pos.y + by * (HL + L * 0.45),
-           (R * 2.6 + R * 2.2 * heat) / zoom, 4.2, [196, 142, 235], 0.17 * A);
 
-  // ---- JATOS de fogo contornando o casco ----
-  //  s = lado do casco (+1 cima / -1 baixo / 0 = rastro central)
-  //  w = largura relativa, len = comprimento relativo, a = alfa relativo,
-  //  lat = quão colado no casco (raio do ombro), ph = fase do serpenteio
-  const JETS = [
-    { s:  1, w: 1.00, len: 1.00, a: 1.00, ph: 0.0, lat: 1.90 },
-    { s: -1, w: 0.92, len: 0.92, a: 0.95, ph: 2.4, lat: 1.80 },
-    { s:  1, w: 0.62, len: 1.20, a: 0.70, ph: 4.1, lat: 0.90 },
-    { s: -1, w: 0.56, len: 1.26, a: 0.64, ph: 1.2, lat: 0.85 },
-    { s:  0, w: 0.75, len: 0.85, a: 0.90, ph: 3.3, lat: 0.25 },
-  ];
-  const hash = (n) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
-  const bez = (p0, p1, p2, p3, t) => {
-    const u = 1 - t, a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
-    return [a * p0[0] + b * p1[0] + c * p2[0] + d * p3[0],
-            a * p0[1] + b * p1[1] + c * p2[1] + d * p3[1]];
-  };
-
-  for (const j of JETS) {
-    const wob = (f, k) => Math.sin(tt * (2.2 + hash(j.ph + k) * 2.5) + j.ph + f) * R * 0.5;
-    const side = j.s === 0 ? (hash(j.ph) - 0.5) * 0.6 : j.s;
-    const sh = [   // "ombro": onde o jato abraça o casco, atrás do nariz
-      flight.pos.x + vx * (HL * 0.65) + px * side * R * j.lat,
-      flight.pos.y + vy * (HL * 0.65) + py * side * R * j.lat,
-    ];
-    const mid = [  // descola do casco, meio do jato
-      sh[0] + bx * L * j.len * 0.32 + px * (side * R * 1.15 + wob(1.7, 1)),
-      sh[1] + by * L * j.len * 0.32 + py * (side * R * 1.15 + wob(1.7, 1)),
-    ];
-    const tail = [ // converge para o rastro central atrás
-      sh[0] + bx * L * j.len + px * (side * R * 0.30 + wob(2.9, 2)),
-      sh[1] + by * L * j.len + py * (side * R * 0.30 + wob(2.9, 2)),
-    ];
-    const NP = 26;
-    const pts = [];
-    for (let i = 0; i <= NP; i++) pts.push(toScreen(...bez(nose, sh, mid, tail, i / NP)));
+  // ribbon: polígono fechado centro ± w/2 (largura por ponto, com ripple)
+  const ribbon = (pts, ws, wMul, ph) => {
     const n = pts.length;
+    const Lft = [], Rgt = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      const pa = pts[Math.max(0, i - 1)], pb = pts[Math.min(n - 1, i + 1)];
+      let dx = pb[0] - pa[0], dy = pb[1] - pa[1];
+      const dl = Math.hypot(dx, dy) || 1; dx /= dl; dy /= dl;
+      const ripple = 1 + 0.09 * Math.sin(t * 14 + tt * 9 + ph * 4);
+      const w = Math.max(0.25, ws[i] * wMul * ripple);
+      Lft.push([pts[i][0] - dy * w, pts[i][1] + dx * w]);
+      Rgt.push([pts[i][0] + dy * w, pts[i][1] - dx * w]);
+    }
+    ctx.beginPath();
+    ctx.moveTo(Lft[0][0], Lft[0][1]);
+    for (let i = 1; i < n; i++) ctx.lineTo(Lft[i][0], Lft[i][1]);
+    for (let i = n - 1; i >= 0; i--) ctx.lineTo(Rgt[i][0], Rgt[i][1]);
+    ctx.closePath();
+  };
 
-    // ribbon: polígono fechado centro ± w/2; largura afina 1→0.14 e ondula
-    const ribbon = (wMul) => {
-      ctx.beginPath();
-      const Lft = [], Rgt = [];
-      for (let i = 0; i < n; i++) {
-        const t = i / (n - 1);
-        const pa = pts[Math.max(0, i - 1)], pb = pts[Math.min(n - 1, i + 1)];
-        let dx = pb[0] - pa[0], dy = pb[1] - pa[1];
-        const dl = Math.hypot(dx, dy) || 1; dx /= dl; dy /= dl;
-        const ripple = 1 + 0.10 * Math.sin(t * 16 + tt * 9 + j.ph * 4);
-        const w = Math.max(0.3, wHead * wMul * (1 - 0.78 * t) * ripple);
-        Lft.push([pts[i][0] - dy * w, pts[i][1] + dx * w]);
-        Rgt.push([pts[i][0] + dy * w, pts[i][1] - dx * w]);
-      }
-      ctx.moveTo(Lft[0][0], Lft[0][1]);
-      for (let i = 1; i < n; i++) ctx.lineTo(Lft[i][0], Lft[i][1]);
-      for (let i = n - 1; i >= 0; i--) ctx.lineTo(Rgt[i][0], Rgt[i][1]);
-      ctx.closePath();
-    };
-
-    const hx = pts[0][0], hy = pts[0][1], tx2 = pts[n - 1][0], ty2 = pts[n - 1][1];
-    const wHead = (R * (1.3 + 1.3 * heat) * j.w) / zoom;   // meia-largura da cabeça (px)
-    const aJ = A * j.a;
-    // 3 camadas aditivas. shift pega a cor "mais velha" (mais vermelha) da
-    // rampa para a borda; o núcleo usa a cor exata (branco-quente na cabeça).
+  // desenha um jato: 3 camadas aditivas; a cauda DISSOLVE em pulsos que viajam
+  // para trás (quebra de alfa senoidal + hash — nada de corte reto no fim)
+  const drawJet = (s, ph, aJ) => {
+    const { pts, ws } = jetPath(s, ph);
+    const sp = pts.map((p) => toScreen(p[0], p[1]));
+    const n = sp.length;
+    const hx = sp[0][0], hy = sp[0][1], tx2 = sp[n - 1][0], ty2 = sp[n - 1][1];
     const passes = [
       [1.15, 0.30, 0.30],
       [0.70, 0.10, 0.55],
@@ -1286,54 +1309,62 @@ function drawPlasma(ctx, W, H, flight, zoom, toScreen, time) {
     ];
     for (const [wm, shift, aHead] of passes) {
       const g = ctx.createLinearGradient(hx, hy, tx2, ty2);
-      for (let i = 0; i <= 6; i++) {
-        const t = i / 6;
+      for (let i = 0; i <= 8; i++) {
+        const t = i / 8;
+        const brk = t < 0.45 ? 1
+          : 0.45 + 0.55 * (0.5 + 0.5 *
+            Math.sin(t * (12 + 5 * hash(ph)) + tt * (6 + 2 * hash(ph + 7)) + ph * 2.7));
         const c = plasmaColor(Math.min(1, t + shift));
-        g.addColorStop(t, colA(c, Math.min(1, aHead * aJ * Math.pow(1 - t, 1.25))));
+        g.addColorStop(t, colA(c, Math.min(1, aHead * aJ * brk * Math.pow(1 - t, 1.1))));
       }
-      ribbon(wm);
+      ribbon(sp, ws, wm, ph);
       ctx.fillStyle = g;
       ctx.fill();
     }
-  }
+  };
+
+  drawJet(1, 0.0, A * 1.00);   // jato lateral (lado + do casco)
+  drawJet(-1, 2.4, A * 0.95);  // jato lateral (lado − do casco)
+  drawJet(0, 3.3, A * 0.85);   // bainha central: engole a nave em fogo
 
   // ---- incandescência do casco (a nave brilha por dentro do fogo) ----
-  const gR = (geom.height * 0.8 + R * (1.4 + 2.2 * heat)) / zoom;
+  const [gcx, gcy] = toScreen(Gx, Gy);
+  const gR = (H0 * 0.8 + Rmax * (1.8 + 2.6 * heat)) / zoom;
   const aG = Math.min(0.55, 0.08 + heat * 0.5);
-  const gg = ctx.createRadialGradient(csx, csy, 0, csx, csy, gR);
+  const gg = ctx.createRadialGradient(gcx, gcy, 0, gcx, gcy, gR);
   gg.addColorStop(0, colA([255, 216, 150], aG));
   gg.addColorStop(0.45, colA([255, 140, 52], aG * 0.5));
   gg.addColorStop(1, colA([255, 100, 40], 0));
   ctx.fillStyle = gg;
-  ctx.beginPath(); ctx.arc(csx, csy, gR, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(gcx, gcy, gR, 0, 7); ctx.fill();
 
-  // ---- arco de choque (bow shock): faixa dourada comprimida na face frontal ----
-  const ang = Math.atan2(vy, vx);
-  const span = 1.15;                               // ±66° ao redor do nariz
+  // ---- arco de choque na face contra o vento ----
+  const angW = Math.atan2(vy, vx);
+  const span = 1.15;                               // ±66° ao redor da ponta de vento
   ctx.lineCap = 'round';
   const arcs = [
-    [R * 2.60, R * 1.10, [255, 140, 40], 0.32 * heat],
-    [R * 2.35, R * 0.55, [255, 205, 120], 0.48 * heat],
-    [R * 2.15, R * 0.26, [255, 250, 230], 0.62 * heat],
+    [Rmax * 2.60, Rmax * 1.10, [255, 140, 40], 0.32 * heat],
+    [Rmax * 2.35, Rmax * 0.55, [255, 205, 120], 0.48 * heat],
+    [Rmax * 2.15, Rmax * 0.26, [255, 250, 230], 0.62 * heat],
   ];
   for (const [rr, lw, col, aa] of arcs) {
     if (aa <= 0.01) continue;
     ctx.strokeStyle = colA(col, Math.min(1, aa));
     ctx.lineWidth = Math.max(1, lw / zoom);
     ctx.beginPath();
-    ctx.arc(nsx, nsy, Math.max(0.5, rr / zoom), ang - span, ang + span);
+    ctx.arc(ssx, ssy, Math.max(0.5, rr / zoom), angW - span, angW + span);
     ctx.stroke();
   }
 
   // ---- núcleo quente no ponto de estagnação (a "face do heat shield") ----
-  const rPx = (R * (3.2 + 3.8 * heat)) / zoom;
+  const rPx = (Rmax * (3.2 + 3.8 * heat)) / zoom;
   const a = Math.min(0.9, 0.15 + heat * 0.8);
-  const g = ctx.createRadialGradient(nsx, nsy, 0, nsx, nsy, rPx);
+  const g = ctx.createRadialGradient(ssx, ssy, 0, ssx, ssy, rPx);
   g.addColorStop(0, colA([255, 255, 238], a));
   g.addColorStop(0.3, colA([255, 196, 110], a * 0.55));
   g.addColorStop(1, colA([255, 120, 40], 0));
   ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(nsx, nsy, rPx, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(ssx, ssy, rPx, 0, 7); ctx.fill();
 
   ctx.restore();
 }
