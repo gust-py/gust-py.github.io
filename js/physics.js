@@ -164,6 +164,10 @@ export function stepFlight(flight, dt, t) {
   // --- heating / stats ---
   flight.maxAlt = Math.max(flight.maxAlt || 0, alt);
   flight.maxSpd = Math.max(flight.maxSpd || 0, spd);
+  // calor normalizado 0..1 pra cauda de plasma (suavizado: o brilho "respira",
+  // não stroba entre frames). ρ·v³ com portão de velocidade.
+  const hT = plasmaHeat(body, alt, spd);
+  flight.heatFlux = (flight.heatFlux || 0) + (hT - (flight.heatFlux || 0)) * Math.min(1, dt * 5);
 
   // --- ground contact ---
   const bd = bottomDistance(stack);
@@ -349,6 +353,34 @@ export function stepParticles(dt) {
     p.life -= dt;
     if (p.life <= 0) { world.particles.splice(i, 1); continue; }
     p.x += p.vx * dt; p.y += p.vy * dt;
-    p.vx *= (1 - 0.8 * dt); p.vy *= (1 - 0.8 * dt);
+    // plasma é gás quente e rarefeito: quase não freia; a fumaça-violeta que
+    // forma o manto externo freia ainda menos; fumaça/explosão freia forte
+    const drag = p.kind === 'plasma' ? 0.25 : p.kind === 'plasmaSmoke' ? 0.12 : 0.8;
+    p.vx *= (1 - drag * dt); p.vy *= (1 - drag * dt);
   }
 }
+
+// ---------- plasma trail (reentry heating) ----------
+// Modelo visual estilo Sutton-Graves: fluxo ∝ ρ·v³, com PORTÃO de velocidade
+// (voo lento nunca brilha, nem no mar). Normalizado 0..1 contra um reentry
+// quente de referência (~3000 m/s na baixa atmosfera da Gaia = pico).
+const PLASMA_REF_FLUX = 2.6e8;  // ρ·v³ que satura o efeito
+const PLASMA_MIN_SPD = 520;     // m/s — abaixo disso: frio, zero plasma
+const PLASMA_FULL_SPD = 1150;   // m/s — portão totalmente aberto
+
+// Calor normalizado (heatFlux / maxHeatFlux) na atmosfera/velocidade atual.
+// O fator ρ já embute a altitude: ar mais fino = menos plasma.
+export function plasmaHeat(body, alt, spd) {
+  if (spd < PLASMA_MIN_SPD) return 0;
+  const rho = atmoDensity(body, Math.max(alt, 0));
+  if (rho <= 0) return 0;
+  const flux = rho * spd * spd * spd;
+  const gate = Math.min(1, (spd - PLASMA_MIN_SPD) / (PLASMA_FULL_SPD - PLASMA_MIN_SPD));
+  return Math.max(0, Math.min(1, flux / PLASMA_REF_FLUX)) * gate;
+}
+
+// Emissor de partículas REMOVIDO a pedido: a cauda agora são JATOS contínuos
+// de fogo desenhados proceduralmente (drawPlasma em render.js) — sem
+// partículas. A função continua exportada como no-op para não quebrar o
+// game.js, que chama PHY.emitPlasma a cada frame.
+export function emitPlasma() {}
