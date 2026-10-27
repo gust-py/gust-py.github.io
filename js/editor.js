@@ -208,7 +208,7 @@ export function buildPalette(game) {
     h.textContent = cat;
     pal.appendChild(h);
     for (const p of parts) {
-      const locked = p.tier > game.maxTier();
+      const locked = false;
       const el = document.createElement('div');
       el.className = 'pal-part' + (locked ? ' locked' : '');
       el.innerHTML = `
