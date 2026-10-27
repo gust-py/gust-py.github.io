@@ -1,141 +1,388 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Orbit Space Simulator</title>
-  <meta name="description" content="Build rockets, fight gravity, explore a tiny solar system. A KSP-inspired 2D space program game that runs in your browser.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="scene-editor">
-  <canvas id="game"></canvas>
+<html lang="pt-BR">
+        <head>
+                <title>Planeta K-5000 — KSP-like (Three.js + Ammo.js)</title>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+                <meta name="description" content="Etapa 1 de um jogo de foguetes estilo KSP: planeta de 5.000 km com céu, atmosfera com scattering, iluminação solar e física Ammo.js — em um único index.html.">
+                <style>
+                        :root{
+                                --panel: rgba(8,12,18,0.74);
+                                --line: rgba(255,150,40,0.30);
+                                --txt: #d6dee8;
+                                --acc: #ffa236;
+                        }
+                        html, body{ margin:0; height:100%; overflow:hidden; background:#000;
+                                font-family: ui-monospace,'Cascadia Mono','JetBrains Mono',Consolas,Menlo,monospace; }
+                        #container{ position:fixed; inset:0; }
+                        canvas{ display:block; }
+                        .panel{ position:fixed; color:var(--txt); background:var(--panel); border:1px solid var(--line);
+                                border-radius:10px; padding:10px 14px; backdrop-filter:blur(6px);
+                                pointer-events:none; z-index:10; font-size:12px; line-height:1.55; }
+                        #info{ top:14px; right:14px; max-width:360px; }
+                        #info .ttl{ color:var(--acc); font-weight:700; font-size:14px; letter-spacing:0.10em; }
+                        #info .sub{ opacity:0.78; font-size:11px; margin-top:3px; }
+                        #info .mode{ margin-top:7px; color:var(--acc); font-size:11px; letter-spacing:0.05em; }
+                        #hud{ bottom:14px; left:14px; min-width:250px; }
+                        #hud .row{ display:flex; justify-content:space-between; gap:22px; }
+                        #hud .k{ opacity:0.62; }
+                        #hud .v{ color:#fff; }
+                        #help{ bottom:14px; right:14px; text-align:right; opacity:0.9; }
+                        #help b{ color:var(--acc); font-weight:600; }
+                        #loading{ position:fixed; inset:0; background:#04060a; display:flex; flex-direction:column;
+                                align-items:center; justify-content:center; gap:18px; color:#9fb4c8; z-index:50;
+                                transition:opacity .6s; font-size:13px; }
+                        #loading.hidden{ opacity:0; pointer-events:none; }
+                        .spin{ width:38px; height:38px; border-radius:50%;
+                                border:3px solid rgba(255,162,54,0.18); border-top-color:var(--acc);
+                                animation:sp 1s linear infinite; }
+                        @keyframes sp{ to{ transform:rotate(360deg); } }
+                        @media (max-width:640px){ #help{ display:none; } #info{ max-width:250px; font-size:11px; } }
+                </style>
+        </head>
+        <body>
+                <div id="loading">
+                        <div class="spin"></div>
+                        <div id="loadmsg">Carregando Three.js e Ammo.js (WebAssembly)…</div>
+                </div>
 
-  <!-- top bar -->
-  <div id="topbar">
-    <div class="brand">\Orbit Space Simulator</div>
-    <div class="res"><span id="funds">$0</span><span id="science">0 🔬</span></div>
-    <button class="btn sm" id="btn-rnd2">R&amp;D</button>
-  </div>
+                <div id="container"></div>
 
-  <!-- editor UI -->
-  <div id="editor-ui">
-    <div id="palette-wrap" class="panel">
-      <div class="panel-title">Parts</div>
-      <div id="palette"></div>
-    </div>
+                <div id="info" class="panel">
+                        <div class="ttl">PLANETA K-5000</div>
+                        <div class="sub">Jogo de foguetes estilo KSP — Etapa 1: planeta de 5.000 km, céu, atmosfera e iluminação (sem foguete ainda)</div>
+                        <div class="mode" id="modeText">VISTA DE SUPERFÍCIE — KSC • PAD 01</div>
+                </div>
 
-    <div id="editor-right" class="panel">
-      <div class="panel-title">Vehicle</div>
-      <input id="craft-name" placeholder="Craft name">
-      <div class="stats">
-        <div><span>Mass</span><b id="stat-mass">0 t</b></div>
-        <div><span>Height</span><b id="stat-height">0 m</b></div>
-        <div><span>Cost</span><b id="stat-cost">$0</b></div>
-        <div><span>Total Δv</span><b id="stat-dv">0 m/s</b></div>
-      </div>
-      <div class="panel-title">Staging</div>
-      <div id="stage-list"></div>
-      <div id="warnings"></div>
-      <div class="btn-row">
-        <button class="btn" id="btn-undo" title="Ctrl+Z">Undo</button>
-        <button class="btn" id="btn-remove" title="Delete">Remove</button>
-        <button class="btn" id="btn-clear">Clear</button>
-      </div>
-      <div class="btn-row">
-        <button class="btn" id="btn-craft">Craft Files</button>
-        <button class="btn" id="btn-missions">Missions</button>
-        <button class="btn" id="btn-rnd">R&amp;D</button>
-      </div>
-      <button class="btn primary big" id="btn-launch">🚀 LAUNCH</button>
-      <div class="hint">Click a part in the list to attach it. Click the rocket to select a part
-        (new stack parts insert below the selection; side boosters &amp; fins attach to it).</div>
-    </div>
-  </div>
+                <div id="hud" class="panel"></div>
 
-  <!-- flight UI -->
-  <div id="flight-ui">
-    <div id="hud-left" class="panel">
-      <div class="hud-row"><span>Body</span><b id="hud-body">Gaia</b></div>
-      <div class="hud-row"><span>Altitude</span><b id="hud-alt">0 m</b></div>
-      <div class="hud-row"><span>Speed</span><b id="hud-spd">0 m/s</b></div>
-      <div class="hud-row"><span>Apoapsis</span><b id="hud-ap">—</b></div>
-      <div class="hud-row"><span>Periapsis</span><b id="hud-pe">—</b></div>
-      <div class="hud-row"><span>MET</span><b id="hud-met">T+0s</b></div>
-      <div class="hud-row warp-row">
-        <button class="btn sm" id="btn-warp-down">◀</button>
-        <b id="hud-warp">1×</b>
-        <button class="btn sm" id="btn-warp-up">▶</button>
-      </div>
-      <div id="node-hud" class="hidden nodehud"></div>
-    </div>
+                <div id="help" class="panel">
+                        <b>Arrastar</b> girar câmera • <b>Scroll</b> zoom • <b>Clique</b> lançar bola de teste<br>
+                        <b>O</b> vista orbital • <b>T</b> velocidade do tempo • <b>C</b> limpar bolas
+                </div>
 
-    <div id="missions-hud" class="panel"></div>
+                <!-- Ammo.js (mesma build usada nos exemplos oficiais do three.js) -->
+                <script src="https://cdn.jsdelivr.net/gh/kripken/ammo.js@79190a1f03845794b1bba1777f30037349967658/builds/ammo.wasm.js"></script>
 
-    <div id="hud-bottom">
-      <div class="gauge" title="Throttle (Shift/Ctrl, Z/X)">
-        <div class="gauge-fill thr" id="thr-fill"></div><label>THR</label>
-      </div>
-      <div class="gauge" title="Stage fuel">
-        <div class="gauge-fill fuel" id="fuel-fill"></div><label>FUEL</label>
-      </div>
-      <div id="flight-buttons">
-        <div id="next-stage" class="muted">—</div>
-        <button class="btn primary" id="btn-stage">STAGE <kbd>Space</kbd></button>
-        <div class="btn-row">
-          <button class="btn sm" id="btn-map">Map <kbd>M</kbd></button>
-          <span class="btn sm sas" id="sas-ind" title="SAS (T)">SAS</span>
-        </div>
-        <div class="btn-row">
-          <button class="btn sm" id="btn-revert">Revert</button>
-          <button class="btn sm good hidden" id="btn-recover">Recover</button>
-          <button class="btn sm bad" id="btn-terminate">Abort</button>
-        </div>
-      </div>
-    </div>
+                <script type="importmap">
+                        {
+                                "imports": {
+                                        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                                        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+                                }
+                        }
+                </script>
 
-    <div id="controls-help" class="panel">
-      <b>A/D</b> steer · <b>Shift/Ctrl</b> throttle · <b>Z/X</b> full/cut ·
-      <b>Space</b> stage · <b>T</b> SAS · <b>M</b> map · <b>, .</b> time warp · scroll = zoom
-    </div>
-  </div>
+                <script type="module">
 
-  <!-- map UI -->
-  <div id="map-ui">
-    <div id="map-info" class="panel"></div>
-    <div id="node-panel" class="panel hidden">
-      <div class="panel-title">Maneuver Node</div>
-      <div class="hud-row"><span>Prograde</span><b id="node-pro">0</b>
-        <span class="node-btns">
-          <button class="btn sm" id="node-pro-minus">−10</button>
-          <button class="btn sm" id="node-pro-minus-sm">−1</button>
-          <button class="btn sm" id="node-pro-plus-sm">+1</button>
-          <button class="btn sm" id="node-pro-plus">+10</button>
-        </span>
-      </div>
-      <div class="hud-row"><span>Radial</span><b id="node-rad">0</b>
-        <span class="node-btns">
-          <button class="btn sm" id="node-rad-minus">−10</button>
-          <button class="btn sm" id="node-rad-plus">+10</button>
-        </span>
-      </div>
-      <div class="hud-row"><span>Total Δv</span><b id="node-dv">—</b></div>
-      <div class="hud-row"><span>Time to node</span><b id="node-tt">—</b></div>
-      <button class="btn sm bad" id="node-del">Delete node</button>
-      <div class="hint">Burn toward the blue ◆ marker in flight view when the node arrives.</div>
-    </div>
-    <div id="map-help" class="panel">Click the green orbit line to place a maneuver node · drag to pan · scroll to zoom</div>
-  </div>
+                        import * as THREE from 'three';
+                        import Stats from 'three/addons/libs/stats.module.js';
+                        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-  <!-- toasts + modal -->
-  <div id="toasts"></div>
-  <div id="modal" class="hidden">
-    <div id="modal-box">
-      <button id="modal-close" class="btn sm">✕</button>
-      <div id="modal-content"></div>
-    </div>
-  </div>
+                        /* ============================================================
+                           CONSTANTES DO PLANETA (unidades: metros)
+                           Base herdada do demo "physics_ammo_volume" do three.js,
+                           adaptada para um mundo estilo KSP.
+                           ============================================================ */
+                        const PLANET_RADIUS   = 5000000;                 // 5.000 km de raio
+                        const ATMO_RADIUS     = PLANET_RADIUS * 1.025;   // atmosfera: +125 km
+                        const PLANET_DENSITY  = 5515;                    // kg/m³ (densidade terrestre)
+                        const PLANET_MASS     = PLANET_DENSITY * (4/3) * Math.PI * Math.pow(PLANET_RADIUS, 3);
+                        const G_CONST         = 6.674e-11;
+                        const MU              = G_CONST * PLANET_MASS;            // parâmetro gravitacional
+                        const GRAVITY         = MU / (PLANET_RADIUS*PLANET_RADIUS); // ~7.71 m/s² na superfície
+                        const ESCAPE_V        = Math.sqrt( 2 * MU / PLANET_RADIUS ); // ~8.78 km/s
 
-  <script type="module" src="js/game.js"></script>
-</body>
-</html>
+                        const DAY_LENGTH      = 600;    // segundos reais por ciclo dia/noite (em 1x)
+                        const MAX_SUN_ELEV    = 35 * Math.PI / 180; // elevação solar máxima no polo
+                        const TERRAIN_SIZE    = 24000;  // patch de terreno local: 24 km x 24 km
+                        const TERRAIN_SEGS    = 256;
+                        const PAD_Y           = 40;     // altitude da plataforma acima do "nível do mar"
+                        const PAD_VIS_Y       = PAD_Y + 0.10;
+                        const GROUND_TOP      = PAD_Y + 0.15; // topo do colisor rígido
+                        const SEED            = 20261027;
+
+                        /* ============================ GRÁFICOS ============================ */
+                        let container, stats, camera, scene, renderer, controls, clock;
+                        let sunLight, hemiLight;
+                        let terrainMesh, planetMesh, atmosphereMesh, starsMesh, padMesh, sunSprite;
+                        const sunDir = new THREE.Vector3( 1, 0, 0 );
+                        let elevDeg = 0;
+                        const planetCenter = new THREE.Vector3( 0, - PLANET_RADIUS, 0 ); // origem de render = plataforma
+
+                        /* ============================ FÍSICA ============================== */
+                        let AMMO = null;
+                        let physicsWorld, transformAux1;
+                        const rigidBodies = [];
+                        const softBodies = [];               // reservado para soft bodies futuros (estrutura do demo)
+                        const margin = 0.05;
+                        const gravityConstant = - GRAVITY;
+                        let groundBody = null;
+                        const balls = [];
+                        const MAX_BALLS = 25;
+
+                        /* ============================ ESTADO ============================== */
+                        const TIME_SCALES = [ 0, 1, 8, 64 ];
+                        let timeScaleIndex = 2;              // começa em 8x para ver o dia passar
+                        let simTime = DAY_LENGTH * 0.10;     // manhã (sol baixo subindo)
+                        let orbitMode = false;
+                        let throwCooldown = 0;
+                        let hudTimer = 0;
+                        const savedCamPos = new THREE.Vector3( 26, 48, 30 );
+                        const savedTarget = new THREE.Vector3( 0, PAD_Y + 2, 0 );
+
+                        const tmpColor = new THREE.Color();
+                        const tmpColor2 = new THREE.Color();
+                        const tmpV1 = new THREE.Vector3();
+                        const tmpV2 = new THREE.Vector3();
+                        const pos = new THREE.Vector3();
+                        const quat = new THREE.Quaternion();
+                        const mouseCoords = new THREE.Vector2();
+                        const raycaster = new THREE.Raycaster();
+
+                        /* ============================================================
+                           UTILITÁRIOS — ruído procedural determinístico (seed fixa)
+                           ============================================================ */
+                        function mulberry32( seed ) {
+
+                                let a = seed >>> 0;
+                                return function () {
+
+                                        a |= 0; a = a + 0x6D2B79F5 | 0;
+                                        let t = Math.imul( a ^ a >>> 15, 1 | a );
+                                        t = t + Math.imul( t ^ t >>> 7, 61 | t ) ^ t;
+                                        return ( ( t ^ t >>> 14 ) >>> 0 ) / 4294967296;
+
+                                };
+
+                        }
+
+                        const rng = mulberry32( SEED );
+                        const PERM = new Uint8Array( 512 );
+                        {
+
+                                const p = Array.from( { length: 256 }, ( _, i ) => i );
+                                for ( let i = 255; i > 0; i -- ) {
+
+                                        const j = ( rng() * ( i + 1 ) ) | 0;
+                                        const t = p[ i ]; p[ i ] = p[ j ]; p[ j ] = t;
+
+                                }
+                                for ( let i = 0; i < 512; i ++ ) PERM[ i ] = p[ i & 255 ];
+
+                        }
+
+                        function hash2( ix, iz ) {
+
+                                return PERM[ ( PERM[ ix & 255 ] + ( iz & 255 ) ) & 255 ] / 255;
+
+                        }
+
+                        function vnoise2( x, z ) {
+
+                                const ix = Math.floor( x ), iz = Math.floor( z );
+                                const fx = x - ix, fz = z - iz;
+                                const u = fx * fx * ( 3 - 2 * fx ), v = fz * fz * ( 3 - 2 * fz );
+                                const a = hash2( ix, iz ), b = hash2( ix + 1, iz );
+                                const c = hash2( ix, iz + 1 ), d = hash2( ix + 1, iz + 1 );
+                                return a + ( b - a ) * u + ( c - a ) * v + ( a - b - c + d ) * u * v;
+
+                        }
+
+                        function fbm2( x, z, oct ) {
+
+                                let s = 0, a = 0.5, f = 1, n = 0;
+                                for ( let i = 0; i < oct; i ++ ) {
+
+                                        s += a * vnoise2( x * f + i * 17.13, z * f - i * 9.71 );
+                                        n += a; a *= 0.5; f *= 2.02;
+
+                                }
+                                return s / n;
+
+                        }
+
+                        function smoothstepJS( a, b, x ) {
+
+                                const t = Math.min( Math.max( ( x - a ) / ( b - a ), 0 ), 1 );
+                                return t * t * ( 3 - 2 * t );
+
+                        }
+
+                        /* Altura do terreno local (relativa à base do patch).
+                           - colinas suaves de neve;
+                           - área plana ao redor da plataforma de lançamento;
+                           - borda escondida no haze;
+                           - correção de curvatura para casar com a esfera do planeta. */
+                        function terrainHeight( x, z ) {
+
+                                const d = Math.hypot( x, z );
+                                let h = 210 * Math.pow( fbm2( x / 4600 + 3.7, z / 4600 - 8.1, 5 ), 2.4 );
+                                h += 48 * fbm2( x / 950 + 41.2, z / 950 + 17.9, 4 );
+                                h += 9 * fbm2( x / 170 - 11.4, z / 170 + 63.3, 3 );
+                                h *= smoothstepJS( 1500, 3400, d );        // plataforma plana no centro
+                                h *= 1.0 - smoothstepJS( 9200, 12000, d ); // desaparece antes da borda
+                                h -= ( d * d ) / ( 2 * PLANET_RADIUS );    // curvatura do planeta
+                                return h;
+
+                        }
+
+                        /* ============================================================
+                           BOOTSTRAP (padrão do demo Ammo.js)
+                           ============================================================ */
+                        Ammo().then( function ( AmmoLib ) {
+
+                                AMMO = AmmoLib;
+                                init();
+
+                        } ).catch( function ( err ) {
+
+                                console.error( err );
+                                showFatal( 'Falha ao carregar o Ammo.js: ' + err );
+
+                        } );
+
+                        function showFatal( msg ) {
+
+                                const el = document.getElementById( 'loadmsg' );
+                                if ( el ) el.textContent = msg;
+                                const ld = document.getElementById( 'loading' );
+                                if ( ld ) ld.classList.remove( 'hidden' );
+
+                        }
+
+                        window.addEventListener( 'error', function ( e ) {
+
+                                const ld = document.getElementById( 'loading' );
+                                if ( ld && ! ld.classList.contains( 'hidden' ) && e.message )
+                                        showFatal( 'Erro: ' + e.message );
+
+                        } );
+
+                        function init() {
+
+                                initGraphics();
+                                initPhysics();
+                                createPlanet();
+                                createAtmosphere();
+                                createStars();
+                                createTerrain();
+                                createPad();
+                                initInput();
+                                initHUD();
+
+                                document.getElementById( 'loading' ).classList.add( 'hidden' );
+                                renderer.setAnimationLoop( animate );
+
+                                // gancho de depuração/inspeção no console
+                                window.__K5K = { scene, camera, renderer, controls, atmosphereMesh, atmoMat,
+                                        planetMesh, planetMat, terrainMesh, starsMesh, sunSprite, sunDir,
+                                        PLANET_RADIUS, ATMO_RADIUS };
+
+                        }
+
+                        function initGraphics() {
+
+                                container = document.getElementById( 'container' );
+
+                                camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 1e8 );
+                                camera.position.copy( savedCamPos );
+
+                                scene = new THREE.Scene();
+                                scene.background = new THREE.Color( 0x000000 );
+                                scene.fog = new THREE.FogExp2( 0xaecbee, 9e-5 );
+
+                                // Depth buffer logarítmico: essencial com near 0.2 m e far 100.000 km
+                                renderer = new THREE.WebGLRenderer( { antialias: true, logarithmicDepthBuffer: true } );
+                                renderer.setPixelRatio( Math.min( window.devicePixelRatio, 2 ) );
+                                renderer.setSize( window.innerWidth, window.innerHeight );
+                                renderer.shadowMap.enabled = true;
+                                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                                renderer.toneMappingExposure = 1.15;
+                                container.appendChild( renderer.domElement );
+
+                                controls = new OrbitControls( camera, renderer.domElement );
+                                controls.target.copy( savedTarget );
+                                controls.enableDamping = true;
+                                controls.dampingFactor = 0.06;
+                                controls.minDistance = 3;
+                                controls.maxDistance = 45;
+                                controls.maxPolarAngle = Math.PI * 0.52;
+                                controls.enablePan = false;
+                                controls.update();
+
+                                clock = new THREE.Clock();
+
+                                // Luz ambiente do céu (hemisférica: céu/neve)
+                                hemiLight = new THREE.HemisphereLight( 0xbdd7f4, 0x9fb4c8, 0.75 );
+                                scene.add( hemiLight );
+
+                                // Sol (luz direcional com sombras na área da plataforma)
+                                sunLight = new THREE.DirectionalLight( 0xffffff, 2.8 );
+                                sunLight.position.copy( sunDir ).multiplyScalar( 30000 );
+                                sunLight.castShadow = true;
+                                sunLight.shadow.mapSize.set( 2048, 2048 );
+                                const d = 320;
+                                sunLight.shadow.camera.left = - d;
+                                sunLight.shadow.camera.right = d;
+                                sunLight.shadow.camera.top = d;
+                                sunLight.shadow.camera.bottom = - d;
+                                sunLight.shadow.camera.near = 1000;
+                                sunLight.shadow.camera.far = 60000;
+                                sunLight.shadow.bias = - 0.0004;
+                                sunLight.shadow.normalBias = 0.6;
+                                sunLight.shadow.camera.updateProjectionMatrix();
+                                scene.add( sunLight );
+                                scene.add( sunLight.target );
+
+                                stats = new Stats();
+                                stats.domElement.style.position = 'absolute';
+                                stats.domElement.style.top = '0px';
+                                container.appendChild( stats.domElement );
+
+                                window.addEventListener( 'resize', onWindowResize );
+
+                        }
+
+                        function initPhysics() {
+
+                                // Mundo soft+rigid (mesma configuração do demo — soft bodies futuros já suportados)
+                                const collisionConfiguration = new AMMO.btSoftBodyRigidBodyCollisionConfiguration();
+                                const dispatcher = new AMMO.btCollisionDispatcher( collisionConfiguration );
+                                const broadphase = new AMMO.btDbvtBroadphase();
+                                const solver = new AMMO.btSequentialImpulseConstraintSolver();
+                                const softBodySolver = new AMMO.btDefaultSoftBodySolver();
+                                physicsWorld = new AMMO.btSoftRigidDynamicsWorld( dispatcher, broadphase, solver, collisionConfiguration, softBodySolver );
+                                physicsWorld.setGravity( new AMMO.btVector3( 0, gravityConstant, 0 ) );
+                                physicsWorld.getWorldInfo().set_m_gravity( new AMMO.btVector3( 0, gravityConstant, 0 ) );
+
+                                transformAux1 = new AMMO.btTransform();
+
+                                // Colisor estático da região da plataforma (a "bolha" de física local).
+                                // No futuro: btHeightfieldTerrainShape / colisão do foguete.
+                                quat.set( 0, 0, 0, 1 );
+                                pos.set( 0, GROUND_TOP - 500, 0 );
+                                const groundShape = new AMMO.btBoxShape( new AMMO.btVector3( TERRAIN_SIZE / 2, 500, TERRAIN_SIZE / 2 ) );
+                                groundShape.setMargin( margin );
+                                groundBody = createStaticBody( groundShape, pos, quat, 0.85, 0.4 );
+
+                        }
+
+                        function createStaticBody( shape, position, orientation, friction, restitution ) {
+
+                                const transform = new AMMO.btTransform();
+                                transform.setIdentity();
+                                transform.setOrigin( new AMMO.btVector3( position.x, position.y, position.z ) );
+                                transform.setRotation( new AMMO.btQuaternion( orientation.x, orientation.y, orientation.z, orientation.w ) );
+                                const motionState = new AMMO.btDefaultMotionState( transform );
+
+                                const localInertia = new AMMO.btVector3( 0, 0, 0 );
+                                const rbInfo = new AMMO.btRigidBodyConstructionInfo( 0, motionState, shape, localInertia );
+                                const body = new AMMO.btRigidBody( rbInfo );
+                                body.setFriction( friction );
+                                body.setRestitution( restitution );
+                                physicsWorld.addRigidBody( body );
+                                return body;
+
+                        }
