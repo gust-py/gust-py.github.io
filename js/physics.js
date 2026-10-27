@@ -165,12 +165,12 @@ export function stepFlight(flight, dt, t) {
   flight.maxAlt = Math.max(flight.maxAlt || 0, alt);
   flight.maxSpd = Math.max(flight.maxSpd || 0, spd);
   // calor normalizado 0..1 pra cauda de plasma (suavizado: o brilho "respira",
-  // não stroba entre frames). ρ·v³ com portão de velocidade.
-  // rv = velocidade radial: + afastando do planeta (subida) / − mergulhando
-  // (reentrada). Plasma SÓ na reentrada — subindo o casco fica frio.
-  const rr0 = Math.hypot(flight.pos.x, flight.pos.y) || 1;
-  const rv0 = (flight.pos.x * flight.vel.x + flight.vel.y * flight.vel.y) / rr0;
-  const hT = plasmaHeat(body, alt, spd, rv0);
+  // não stroba entre frames). ρ·v³ com portão de velocidade + portão de
+  // REENTRADA: velocidade radial (pos·vel/|pos|, + subindo / − caindo) —
+  // subindo pra fora da atmosfera NÃO tem plasma; só descendo tem.
+  const radialV = (flight.pos.x * flight.vel.x + flight.pos.y * flight.vel.y) /
+                  (Math.hypot(flight.pos.x, flight.pos.y) || 1);
+  const hT = plasmaHeat(body, alt, spd, radialV);
   flight.heatFlux = (flight.heatFlux || 0) + (hT - (flight.heatFlux || 0)) * Math.min(1, dt * 5);
 
   // --- ground contact ---
@@ -357,9 +357,8 @@ export function stepParticles(dt) {
     p.life -= dt;
     if (p.life <= 0) { world.particles.splice(i, 1); continue; }
     p.x += p.vx * dt; p.y += p.vy * dt;
-    // plasma é gás quente e rarefeito: quase não freia; a fumaça-violeta que
-    // forma o manto externo freia ainda menos; fumaça/explosão freia forte
-    const drag = p.kind === 'plasma' ? 0.25 : p.kind === 'plasmaSmoke' ? 0.12 : 0.8;
+    // plasma é gás quente e rarefeito: quase não freia; fumaça/explosão freia forte
+    const drag = p.kind === 'plasma' ? 0.25 : 0.8;
     p.vx *= (1 - drag * dt); p.vy *= (1 - drag * dt);
   }
 }
@@ -374,23 +373,30 @@ const PLASMA_FULL_SPD = 1150;   // m/s — portão totalmente aberto
 
 // Calor normalizado (heatFlux / maxHeatFlux) na atmosfera/velocidade atual.
 // O fator ρ já embute a altitude: ar mais fino = menos plasma.
-// radialV = componente radial da velocidade (m/s): + subindo, − caindo.
-// SEM reentrada não há plasma: na subida/apogeu o efeito fica em zero —
-// o fogo só aparece mergulhando de verdade na atmosfera (rampa suave nos
-// primeiros 30 m/s de mergulho pra não "pops" ao cruzar o apogeu).
-export function plasmaHeat(body, alt, spd, radialV = 0) {
-  if (radialV > -1) return 0;   // subindo ou apogeu: frio
+//
+// PORTÃO DE REENTRADA (radialV em m/s ao longo do raio: + subindo, − caindo):
+// brilho de plasma é fenômeno de REENTRY — na subida a face frontal quase não
+// recebe fluxo, então o efeito fica em zero e entra por uma rampa suave de
+// 60 m/s (sem "pop" quando a trajetória roça o apogeu). Sem o 4º argumento
+// (chamadas antigas/testes) o portão fica desligado, como antes.
+export function plasmaHeat(body, alt, spd, radialV) {
   if (spd < PLASMA_MIN_SPD) return 0;
   const rho = atmoDensity(body, Math.max(alt, 0));
   if (rho <= 0) return 0;
-  const flux = rho * spd * spd * spd;
   const gate = Math.min(1, (spd - PLASMA_MIN_SPD) / (PLASMA_FULL_SPD - PLASMA_MIN_SPD));
-  const desc = Math.min(1, -radialV / 30);  // rampa conforme mergulha de verdade
-  return Math.max(0, Math.min(1, flux / PLASMA_REF_FLUX)) * gate * desc;
+  if (typeof radialV === 'number' && Number.isFinite(radialV)) {
+    if (radialV > -1) return 0;                    // subindo/apogeu: sem plasma
+    const desc = Math.min(1, -radialV / 60);       // rampa de entrada (0→1)
+    const flux = rho * spd * spd * spd;
+    return Math.max(0, Math.min(1, flux / PLASMA_REF_FLUX)) * gate * desc;
+  }
+  const flux = rho * spd * spd * spd;
+  return Math.max(0, Math.min(1, flux / PLASMA_REF_FLUX)) * gate;
 }
 
-// Emissor de partículas REMOVIDO a pedido: a cauda agora são JATOS contínuos
-// de fogo desenhados proceduralmente (drawPlasma em render.js) — sem
-// partículas. A função continua exportada como no-op para não quebrar o
-// game.js, que chama PHY.emitPlasma a cada frame.
-export function emitPlasma() {}
+// A cauda de plasma é 100% PROCEDURAL agora: drawPlasma (render.js) desenha
+// uma bainha de fogo contínua sobre a silhueta real do casco — sem partículas.
+// A função continua exportada como no-op porque o game.js ainda chama
+// PHY.emitPlasma(f, dtReal) a cada frame; assim nada quebra lá.
+export function emitPlasma(flight, dt) {
+}
