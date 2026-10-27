@@ -101,6 +101,24 @@ export function stepFlight(flight, dt, t) {
   ay += (thrust / mass) * dir.y;
 
   const spd = Math.hypot(flight.vel.x, flight.vel.y);
+  const rHat = r > 0 ? 1 / r : 1;
+  const radialSpeed = Math.max(0, -(flight.vel.x * flight.pos.x + flight.vel.y * flight.pos.y) * rHat);
+  const inAtmos = rho > 0 && alt < (body.atmoHeight || 50_000);
+
+  // Reentry heat: strong plasma only on atmospheric descent.
+  const heating =
+    inAtmos
+      ? Math.max(0, (spd - 180) / 500) *
+        Math.min(1, alt / (body.atmoHeight || 50_000)) *
+        (0.75 + radialSpeed / 250)
+      : 0;
+
+  flight.reentryHeat = clampN(
+    (flight.reentryHeat ?? 0) * 0.82 + heating * 0.18,
+    0,
+    1
+  );
+
   let q = 0;
   if (rho > 0 && spd > 0.1) {
     q = 0.5 * rho * spd * spd; // Pa
@@ -194,33 +212,6 @@ export function stepFlight(flight, dt, t) {
 
   // --- SOI transitions ---
   checkSOI(flight, t);
-}
-
-export function checkSOI(flight, t) {
-  const body = BODIES[flight.bodyKey];
-  const r = Math.hypot(flight.pos.x, flight.pos.y);
-  if (body.soi !== Infinity && r > body.soi) {
-    // exit to parent
-    const bp = bodyLocalPos(body, t), bv = bodyLocalVel(body, t);
-    flight.pos.x += bp.x; flight.pos.y += bp.y;
-    flight.vel.x += bv.x; flight.vel.y += bv.y;
-    flight.bodyKey = body.orbit.parent;
-    flight.soiChanged = true;
-    return true;
-  }
-  for (const child of childrenOf(flight.bodyKey)) {
-    const cp = bodyLocalPos(child, t);
-    const dx = flight.pos.x - cp.x, dy = flight.pos.y - cp.y;
-    if (Math.hypot(dx, dy) < child.soi) {
-      const cv = bodyLocalVel(child, t);
-      flight.pos.x = dx; flight.pos.y = dy;
-      flight.vel.x -= cv.x; flight.vel.y -= cv.y;
-      flight.bodyKey = child.key;
-      flight.soiChanged = true;
-      return true;
-    }
-  }
-  return false;
 }
 
 // ---------- staging ----------
