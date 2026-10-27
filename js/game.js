@@ -2,7 +2,7 @@
 
 import { BODIES } from './universe.js';
 import { orbitFromState, stateAtTime } from './orbits.js';
-import { PARTS, TECH_TIERS } from './parts.js';
+import { PARTS } from './parts.js';
 import * as V from './vessel.js';
 import * as PHY from './physics.js';
 import { drawRocket, renderFlight, makeCamera } from './render.js';
@@ -15,9 +15,7 @@ const SAVE_KEY = 'orbit-or-bust-save-v1';
 const WARPS = [1, 2, 4, 10, 50, 100, 1000, 10_000, 100_000];
 
 export const game = {
-  funds: 25_000,
   science: 0,
-  techUnlocked: [0],
   firsts: [],
   missionsDone: [],
   launches: 0,
@@ -25,7 +23,6 @@ export const game = {
   scene: 'editor',
   flight: null,
   savedCraft: {},
-  maxTier() { return Math.max(...this.techUnlocked); },
 };
 
 let canvas, ctx, W, H;
@@ -37,7 +34,7 @@ let summaryShown = false;
 function saveGame() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      funds: game.funds, science: game.science, techUnlocked: game.techUnlocked,
+      science: game.science,
       firsts: game.firsts, missionsDone: game.missionsDone, launches: game.launches,
       t: game.t, savedCraft: game.savedCraft, currentDesign: ED.editor.design,
     }));
@@ -50,12 +47,18 @@ function loadGame() {
     if (!raw) return;
     const s = JSON.parse(raw);
     Object.assign(game, {
-      funds: s.funds ?? 25_000, science: s.science ?? 0,
-      techUnlocked: s.techUnlocked ?? [0], firsts: s.firsts ?? [],
+      science: s.science ?? 0, firsts: s.firsts ?? [],
       missionsDone: s.missionsDone ?? [], launches: s.launches ?? 0,
       t: s.t ?? 0, savedCraft: s.savedCraft ?? {},
     });
-    if (s.currentDesign && s.currentDesign.stack) ED.editor.design = s.currentDesign;
+    if (s.currentDesign && s.currentDesign.stack) {
+      // sanitize: drop parts that no longer exist in the catalog (removed parts, old saves)
+      const d = s.currentDesign;
+      d.stack = d.stack.filter(sk => PARTS[sk.pid]).map(sk => ({
+        pid: sk.pid, radials: (sk.radials || []).filter(rp => PARTS[rp]),
+      }));
+      ED.editor.design = d;
+    }
   } catch (e) { /* corrupt save: start fresh */ }
 }
 
@@ -79,12 +82,9 @@ function closeModal() { $('modal').classList.add('hidden'); }
 function launch() {
   const d = ED.editor.design;
   if (!d.stack.length) return toast('Build a rocket first!', 'bad');
-  if (!V.designHasType(d, 'pod')) return toast('You need a command pod or probe core.', 'bad');
+  if (!V.designHasType(d, 'pod')) return toast('You need a command pod.', 'bad');
   if (!V.designHasType(d, 'engine') && !V.designHasType(d, 'srb')) return toast('You need at least one engine.', 'bad');
-  const cost = V.designCost(d);
-  if (cost > game.funds) return toast(`Not enough funds: this costs $${cost.toLocaleString()}.`, 'bad');
 
-  game.funds -= cost;
   game.launches++;
   PHY.clearWorld();
   MAP.clearNode();
@@ -104,7 +104,7 @@ function launch() {
     throttle: 0, sas: true, landed: true, destroyed: false,
     pitchInput: 0, warp: 1, railsOrbit: null,
     visited: ['gaia'], hasFlown: false, maxAlt: 0, maxSpd: 0,
-    cost, tLaunch: game.t,
+    tLaunch: game.t,
     gains: { sci: 0, missions: [] },
   };
   cam.zoom = 0.18;
@@ -113,17 +113,15 @@ function launch() {
   saveGame();
 }
 
-function endFlight(title, lines, refund = 0) {
-  if (refund > 0) game.funds += Math.round(refund);
+function endFlight(title, lines) {
   const f = game.flight;
   openModal(`
     <h2>${title}</h2>
     <div class="summary">
       ${lines.map(l => `<div>${l}</div>`).join('')}
-      ${refund > 0 ? `<div>Recovered value: <b>+$${Math.round(refund).toLocaleString()}</b></div>` : ''}
       <div>Science gained this flight: <b>+${f.gains.sci}</b></div>
       ${f.gains.missions.length ? `<div>Missions completed: <b>${f.gains.missions.join(', ')}</b></div>` : ''}
-      <div class="muted">Funds: $${game.funds.toLocaleString()} · Science: ${game.science}</div>
+      <div class="muted">Science: ${game.science}</div>
     </div>
     <button class="btn primary" id="modal-ok">Back to the VAB</button>`);
   $('modal-ok').onclick = () => { closeModal(); backToEditor(); };
@@ -140,19 +138,17 @@ function backToEditor() {
 }
 
 function revertFlight() {
-  game.funds += game.flight.cost;
-  toast('Reverted to the VAB. Launch cost refunded.');
+  toast('Reverted to the VAB.');
   backToEditor();
   saveGame();
 }
 
 function recoverVessel() {
   const f = game.flight;
-  const refund = V.stackValue(f.stack) * 0.8;
   endFlight('Vessel Recovered!', [
     `Touched down safely on ${BODIES[f.bodyKey].name}.`,
     `Peak altitude: ${MAP.fmtAlt(f.maxAlt)} · Top speed: ${f.maxSpd.toFixed(0)} m/s`,
-  ], refund);
+  ]);
 }
 
 function terminateFlight() {
@@ -207,11 +203,11 @@ function update(dtReal) {
   if (game.scene !== 'flight' || !game.flight) return;
   const f = game.flight;
 
-  // continuous controls
+  // continuous controls — throttle: E/Shift sobe, Q/Ctrl desce (0 a 100% segurando)
   f.pitchInput = (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0) +
                  (keys.has('KeyD') || keys.has('ArrowRight') ? -1 : 0);
-  if (keys.has('ShiftLeft') || keys.has('ShiftRight')) f.throttle = Math.min(1, f.throttle + dtReal * 0.7);
-  if (keys.has('ControlLeft') || keys.has('ControlRight')) f.throttle = Math.max(0, f.throttle - dtReal * 0.7);
+  if (keys.has('KeyE') || keys.has('ShiftLeft') || keys.has('ShiftRight')) f.throttle = Math.min(1, f.throttle + dtReal * 0.7);
+  if (keys.has('KeyQ') || keys.has('ControlLeft') || keys.has('ControlRight')) f.throttle = Math.max(0, f.throttle - dtReal * 0.7);
 
   if (f.warp > 4) {
     // on-rails
@@ -270,7 +266,7 @@ function update(dtReal) {
     const done = checkMissions(game, { game, flight: f, events, alt, spd });
     for (const m of done) {
       f.gains.missions.push(m.name);
-      toast(`✅ Mission complete: <b>${m.name}</b> +$${m.funds.toLocaleString()} +${m.sci} sci`, 'good');
+      toast(`✅ Mission complete: <b>${m.name}</b> +${m.sci} sci`, 'good');
       refreshMissionHud();
     }
     if (newFirsts.length || done.length) saveGame();
@@ -392,7 +388,6 @@ function fmtTime(s) {
 }
 
 function refreshTopbar() {
-  $('funds').textContent = '$' + game.funds.toLocaleString();
   $('science').textContent = game.science + ' 🔬';
 }
 
@@ -403,45 +398,14 @@ function refreshMissionHud() {
     `<div class="mh-item"><b>${m.name}</b><span>${m.desc}</span></div>`).join('');
 }
 
-// ---------- modals: R&D, missions, craft ----------
-function openRnD() {
-  const rows = TECH_TIERS.map(t => {
-    const unlocked = game.techUnlocked.includes(t.id);
-    const canBuy = !unlocked && game.science >= t.cost && game.techUnlocked.includes(t.id - 1);
-    const parts = Object.values(PARTS).filter(p => p.tier === t.id).map(p => p.name).join(', ');
-    return `<div class="tech ${unlocked ? 'unlocked' : ''}">
-      <div><b>${t.name}</b> ${t.cost ? `— ${t.cost} 🔬` : ''}</div>
-      <div class="muted">${t.blurb}</div>
-      <div class="tech-parts">${parts}</div>
-      ${unlocked ? '<div class="tag">UNLOCKED</div>' :
-        `<button class="btn ${canBuy ? 'primary' : ''}" data-tier="${t.id}" ${canBuy ? '' : 'disabled'}>Unlock</button>`}
-    </div>`;
-  }).join('');
-  openModal(`<h2>Research & Development</h2><div class="muted">You have ${game.science} 🔬 science.</div>${rows}
-    <button class="btn" id="modal-close2">Close</button>`);
-  $('modal-content').querySelectorAll('button[data-tier]').forEach(b => {
-    b.onclick = () => {
-      const tier = TECH_TIERS[+b.dataset.tier];
-      if (game.science < tier.cost) return;
-      game.science -= tier.cost;
-      game.techUnlocked.push(tier.id);
-      toast(`🔓 Unlocked <b>${tier.name}</b>!`, 'good');
-      ED.buildPalette(game);
-      refreshTopbar();
-      saveGame();
-      openRnD();
-    };
-  });
-  $('modal-close2').onclick = closeModal;
-}
-
+// ---------- modals: missions, craft ----------
 function openMissions() {
   const rows = MISSIONS.map(m => {
     const done = game.missionsDone.includes(m.id);
     return `<div class="mission ${done ? 'done' : ''}">
       <b>${done ? '✅' : '◻'} ${m.name}</b>
       <span>${m.desc}</span>
-      <span class="muted">+$${m.funds.toLocaleString()} · +${m.sci} 🔬</span>
+      <span class="muted">+${m.sci} 🔬</span>
     </div>`;
   }).join('');
   openModal(`<h2>Mission Board</h2>${rows}<button class="btn" id="modal-close2">Close</button>`);
@@ -586,10 +550,8 @@ function initButtons() {
   $('btn-undo').onclick = () => ED.undo();
   $('btn-remove').onclick = () => ED.removeSelected();
   $('btn-clear').onclick = () => { ED.clearDesign(); };
-  $('btn-rnd').onclick = openRnD;
   $('btn-missions').onclick = openMissions;
   $('btn-craft').onclick = openCraftManager;
-  $('btn-rnd2').onclick = openRnD;
 
   $('btn-stage').onclick = () => {
     const f = game.flight;
