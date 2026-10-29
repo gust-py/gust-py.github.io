@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Foguetes — Planeta</title>
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<title>Cápsula — Planeta</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font-family:system-ui,sans-serif}
 #container{position:fixed;inset:0}
@@ -13,17 +13,15 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font-f
 </head>
 <body>
 <div id="info">
-  <b>Planeta ~5000 km</b> · Ammo.js + three.js<br>
-  ESPAÇO: ignição · Shift/Ctrl: acelerador (Z 100% · X corta) · W/S: arfagem · A/D: guinada · Q/E: rolagem<br>
-  T: SAS · , . : time warp (acima de 100 km, motor desligado) · R: reiniciar · [ ]: hora do dia · P: pausa o sol · Clique: lançar bola · B: liga/desliga balões<br>
-  Cápsula envolta por 12 balões de amortecimento (airbags) — amortecem e fazem o foguete quicar
+  <b>Cápsula · Planeta ~5000 km</b> · three.js<br>
+  ESPAÇO: motor liga/desliga · Shift/Ctrl: acelerador (Z 100% · X corta) · W/S: arfagem · A/D: guinada · Q/E: rolagem<br>
+  T: modo do SAS (estabilizar · prógrado · retrógrado · vertical ↑/↓) · M: subida automática até 110 km · G: paraquedas (de novo corta) · B: separa o tanque<br>
+  Reentrada: vire o escudo térmico (base) para o vento — SAS retrógrado · , . : time warp (acima de 100 km, motor desligado)<br>
+  R: reiniciar · [ ]: hora do dia · P: pausa o sol · 1/2/3/4: qualidade · O: resolução adaptativa<br>
   <span id="fps"></span> <span id="hud"></span>
 </div>
 <pre id="flight"></pre>
 <div id="container"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/ammo.wasm.js"
-  onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/gh/kripken/ammo.js@79190a1f03845794b1bba1777f30037349967658/builds/ammo.wasm.js';s.onload=function(){window.dispatchEvent(new Event('ammo-ready'))};document.head.appendChild(s);"></script>
 
 <script type="importmap">
 { "imports": {
@@ -37,7 +35,7 @@ uniform mat4 uInvProj;
 uniform mat4 uCamWorld;
 varying vec3 vDir;
 void main(){
-  vec4 v = uInvProj * vec4(position.xy, 1.0, 1.0);
+  vec4 v = uInvProj * vec4(position.xy, 0.0, 1.0);   // z=0 (meio do frustum): em z=1 (plano far=1e8) o w vira ~0 e a direção vira NaN
   vDir = mat3(uCamWorld) * (v.xyz / v.w);
   gl_Position = vec4(position.xy, 0.0, 1.0);
 }
@@ -48,6 +46,13 @@ precision highp float;
 uniform vec3 uSun;
 uniform mat4 uCamWorld;
 uniform float uR, uA, uH, uInvLogFar;
+uniform int uSteps;
+uniform int uMarch;
+uniform float uTime;
+uniform highp sampler2D uHeight;
+uniform vec3 uEngPos;
+uniform float uEngI;   // mapa de alturas do planeta (mesmo usado na colisão)
+const float HT = 14000.0;    // altura máxima do relevo (m)
 varying vec3 vDir;
 
 // Frame local: origem = base de lançamento; centro do planeta em (0,-R,0)
@@ -62,7 +67,7 @@ float vnoise(vec3 x){
   return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x), mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x), f.y),
              mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x), mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x), f.y), f.z);
 }
-float fbm(vec3 p){ float a=.5, s=0.; for(int i=0;i<6;i++){ s+=a*vnoise(p); p=p*2.03+vec3(1.7,9.2,3.1); a*=.5; } return s; }
+float fbm4(vec3 p){ float a=.5, s=0.; for(int i=0;i<4;i++){ s+=a*vnoise(p); p=p*2.03+vec3(1.7,9.2,3.1); a*=.5; } return s; }
 
 // Interseção estável com esfera de raio^2 - R^2 = K (precisão boa perto do chão)
 vec2 raySph(vec3 c, vec3 d, float K){
@@ -85,23 +90,38 @@ vec3 stars(vec3 d){
   return mix(vec3(.7,.8,1.), vec3(1.,.9,.7), hash(i+7.0)) * m * (0.4 + hash(i+5.0));
 }
 
-vec3 surface(vec3 p, vec3 n, float dist, out float ocean){
-  float h = fbm(n*3.0);
-  h += 0.38*smoothstep(0.985, 0.9998, n.y);           // garante terra no local de lançamento
-  float polar = smoothstep(0.80, 0.93, abs(n.z) + (fbm(n*8.0)-0.5)*0.25);
-  ocean = 0.0;
-  vec3 col;
-  if(h < 0.5){
-    ocean = 1.0;
-    col = mix(vec3(.01,.05,.18), vec3(.04,.22,.45), smoothstep(.35,.5,h));
-  } else {
-    float e = (h-0.5)/0.5;
-    col = mix(vec3(.76,.70,.50), vec3(.16,.32,.08), smoothstep(0.0,0.03,e));
-    col = mix(col, vec3(.07,.20,.07), smoothstep(.10,.30,e));
-    col = mix(col, vec3(.35,.32,.30), smoothstep(.40,.55,e));
-    col = mix(col, vec3(.95), smoothstep(.60,.72,e));
-    float det = fbm(p*0.05)*0.6 + vnoise(p*1.5)*0.4;  // detalhe fino perto da câmera
-    col *= 1.0 + (det-0.5)*0.6*exp(-dist/3000.0);
+float hRaw(vec3 n){   // altura (m) COM SINAL: negativa = fundo do oceano
+  vec2 uv = vec2(atan(n.y, n.x)*0.15915494 + 0.5, asin(clamp(n.z, -1.0, 1.0))*0.31830989 + 0.5);
+  return textureLod(uHeight, uv, 0.0).r * HT;
+}
+float hAtM(vec3 n){ return max(hRaw(n), 0.0); }   // superfície sólida/visível: o mar é plano no nível 0
+vec3 surface(vec3 p, vec3 n, float dist, float hn, float slope, out float ocean){
+  ocean = hn < 0.0 ? 1.0 : 0.0;                      // abaixo do nível do mar = oceano
+  hn = max(hn, 0.0);
+  float lat = abs(n.z);
+  float polar = smoothstep(0.91, 0.97, lat + (vnoise(n*20.0)-0.5)*0.08);
+  float moist = vnoise(n*7.0 + 3.0)*0.55 + vnoise(n*23.0)*0.30 + vnoise(n*61.0)*0.15;                     // umidade: deserto -> floresta
+  float temp = 1.0 - smoothstep(0.15, 0.95, lat) - hn*1.6 + (vnoise(n*11.0 + 9.0)-0.5)*0.25;              // quente no equador, frio nos polos e no alto
+  vec3 col = mix(vec3(.50,.40,.24), vec3(.34,.29,.15), smoothstep(0.20, 0.42, moist));                    // deserto -> estepe
+  col = mix(col, vec3(.14,.22,.07), smoothstep(0.38, 0.55, moist));                                       // campo
+  col = mix(col, vec3(.045,.12,.045), smoothstep(0.52, 0.68, moist)*smoothstep(0.35, 0.60, temp));       // floresta tropical/temperada
+  col = mix(col, vec3(.05,.11,.08), smoothstep(0.52, 0.66, moist)*(1.0 - smoothstep(0.25, 0.50, temp)));  // taiga
+  col = mix(col, vec3(.30,.30,.24), 1.0 - smoothstep(0.05, 0.30, temp));                                  // tundra
+  float rockAmt = max(smoothstep(0.10, 0.30, slope), smoothstep(0.12, 0.30, hn));                          // rocha nas encostas e nas altitudes
+  float strata = mix(0.5, 0.5 + 0.5*sin(hn*110.0 + vnoise(n*40.0)*6.0), exp(-dist/40000.0));              // camadas de rocha largas (só de perto; de longe faziam moiré)
+  vec3 rock = mix(vec3(.26,.23,.21), vec3(.38,.33,.28), strata);
+  if(dist < 3000.0) rock *= 0.85 + 0.3*vnoise(p*0.15);                                                // variação suave da rocha de perto
+  col = mix(col, rock, rockAmt);
+  float snow = smoothstep(0.58, 0.72, hn)*(1.0 - 0.7*smoothstep(0.15, 0.40, slope));                      // neve só nos picos mais altos
+  col = mix(col, vec3(.93), snow);
+  vec3 bx = abs(n.z) > 0.9999 ? vec3(1.0,0.0,0.0) : normalize(cross(vec3(0.0,0.0,1.0), n)), by = cross(n, bx);
+  float bd = 20000.0/uR;                                                                                    // há mar a menos de 20 km?
+  float mnh = min(min(hRaw(normalize(n + bx*bd)), hRaw(normalize(n - bx*bd))), min(hRaw(normalize(n + by*bd)), hRaw(normalize(n - by*bd))));
+  float beach = (1.0 - smoothstep(0.0, 0.012, hn))*(1.0 - smoothstep(-150.0, -0.5, mnh));          // praia só colada ao mar (em terra firme mnh>=0 => 0)
+  col = mix(col, vec3(.33,.27,.17), beach);
+  if(dist < 6000.0){                                 // variação suave de perto (sem grão fino: ele cintilava)
+    float det = fbm4(p*0.02);
+    col *= 1.0 + (det-0.5)*0.35*exp(-dist/2000.0);
   }
   return mix(col, vec3(.92,.95,1.), polar);
 }
@@ -113,8 +133,34 @@ void main(){
   vec2 tp = raySph(c, d, 0.0);
   vec2 ta = raySph(c, d, uA*(2.0*R+uA));
   bool hitP = tp.x > 0.0 && tp.y > tp.x;   // raio que erra devolve (1e30,-1e30)
+  float tg = tp.x;                          // distância até o chão (relevo real)
+  float ca = (dot(c,c) + 2.0*R*c.y)/(length(vec3(c.x, c.y+R, c.z)) + R);   // altitude da câmera
+  if(ca < 6.0e5 && !(ca < HT && dot(d, normalize(vec3(c.x, c.y+R, c.z))) > 0.25)){                           // de longe (órbita) o relevo é desprezível: usa a esfera
+    vec2 so = raySph(c, d, HT*(2.0*R+HT));  // casca onde o relevo vive (R .. R+HT)
+    if(so.y > 0.0){
+      float tb = max(so.x, 0.0), te = hitP ? min(tp.x, so.y) : so.y;
+      float L = te - tb, tprev = tb;
+      for(int i=1;i<=40;i++){
+        if(i>uMarch) break;
+        float t = tb + L*float(i)/float(uMarch);
+        vec3 pp = c + d*t, qq = vec3(pp.x, pp.y+R, pp.z);
+        float lq = length(qq);
+        if((dot(pp,pp) + 2.0*R*pp.y)/(lq + R) - hAtM(qq/lq) < 0.0){
+          float a = tprev, b = t;
+          for(int k=0;k<6;k++){
+            float m = 0.5*(a+b);
+            vec3 pm = c + d*m, qm = vec3(pm.x, pm.y+R, pm.z);
+            float lm = length(qm);
+            if((dot(pm,pm) + 2.0*R*pm.y)/(lm + R) - hAtM(qm/lm) < 0.0) b = m; else a = m;
+          }
+          tg = b; hitP = true; break;
+        }
+        tprev = t;
+      }
+    }
+  }
   float t0 = max(ta.x, 0.0);
-  float t1 = hitP ? tp.x : ta.y;
+  float t1 = hitP ? tg : ta.y;
 
   float mu = dot(d, uSun);
   float phR = 0.0596831*(1.0+mu*mu);
@@ -126,8 +172,9 @@ void main(){
   if(ta.y > 0.0 && t1 > t0){
     float L = t1 - t0;
     bool outside = ta.x > 0.0;
-    for(int i=0;i<32;i++){
-      float x0 = float(i)/32.0, x1 = float(i+1)/32.0;
+    for(int i=0;i<40;i++){
+      if(i>=uSteps) break;
+      float x0 = float(i)/float(uSteps), x1 = float(i+1)/float(uSteps);
       if(outside){ x0 = 1.0-(1.0-x0)*(1.0-x0); x1 = 1.0-(1.0-x1)*(1.0-x1); }
       else { x0 *= x0; x1 *= x1; }
       float dt = (x1-x0)*L;
@@ -151,28 +198,59 @@ void main(){
   vec3 trans = exp(-(BR*odR + BM*1.1*odM));
   vec3 col;
   if(hitP){
-    vec3 p = c + d*tp.x;
+    vec3 p = c + d*tg;
     vec3 n = normalize(vec3(p.x, p.y+R, p.z));
     float ocean;
-    vec3 alb = surface(p, n, tp.x, ocean);
+    float h0 = hRaw(n), hc = max(h0, 0.0);
+    vec3 ex = abs(n.z) > 0.9999 ? vec3(1.0,0.0,0.0) : normalize(cross(vec3(0.0,0.0,1.0), n)), ey = cross(n, ex);
+    float dl = 11000.0;                                         // normal do relevo por diferenças finitas (11 km: suaviza as facetas do mapa)
+    vec3 nb = normalize(n - ((hAtM(normalize(n + ex*dl/R)) - hc)*ex + (hAtM(normalize(n + ey*dl/R)) - hc)*ey)/dl);
+    vec3 alb = surface(p, n, tg, h0/HT, length(n - nb), ocean);
     float ms = dot(n, uSun);
     vec3 tauS = (BR*uH + BM*1.1*HM)/(max(ms,0.0)+0.04);
     vec3 sunT = exp(-tauS)*smoothstep(-0.03, 0.04, ms);
     vec3 amb = vec3(.35,.5,.95)*0.35*(0.15 + smoothstep(-.15,.35,ms));
-    vec3 lit = alb*(max(ms,0.0)*sunT*SUN_I*0.13 + amb*0.8);
-    vec3 r = reflect(d, n);
-    lit += ocean*pow(max(dot(r,uSun),0.0), 120.0)*sunT*SUN_I*0.5;
+    vec3 lit = alb*(max(dot(nb,uSun),0.0)*sunT*SUN_I*0.13 + amb*0.8);
+    vec3 dpe = p - uEngPos;
+    vec3 eng = vec3(1.0,.52,.2)*uEngI/(1.0 + dot(dpe,dpe)*0.03);   // luz do jato do motor sobre o chão
+    lit += alb*eng;
+    if(ocean > 0.5){
+      // ÁGUA: espelha o céu (Fresnel) + enxerga o fundo através dela (refração) com absorção por profundidade
+      float depth = -h0;
+      float wf = exp(-tg/25000.0);                              // ondas visíveis até longe, somem no horizonte
+      vec2 pq = vec2(p.x, p.z);
+      vec3 wa = vec3(pq*0.10 + vec2(uTime*0.45, uTime*0.25), uTime*0.20);     // camada 1: corre para um lado
+      vec3 wb = vec3(pq*0.23 + vec2(-uTime*0.30, uTime*0.55), uTime*0.35);    // camada 2: corre para o outro (como o dudv do exemplo)
+      float a0 = 0.5, b0 = 0.5;
+      vec2 dudv = vec2(0.0);
+      if(wf > 0.01){                                            // longe: ondas invisíveis, pula os 6 ruídos
+        a0 = vnoise(wa); b0 = vnoise(wb);
+        dudv = vec2(vnoise(wa + vec3(0.7,0.0,0.0)) - a0 + vnoise(wb + vec3(0.7,0.0,0.0)) - b0,
+                    vnoise(wa + vec3(0.0,0.7,0.0)) - a0 + vnoise(wb + vec3(0.0,0.7,0.0)) - b0);
+      }
+      vec3 nw = normalize(n + (ex*dudv.x + ey*dudv.y)*0.8*wf);
+      vec3 rr = reflect(d, nw);
+      float F = 0.02 + 0.98*pow(1.0 - clamp(dot(-d, nw), 0.0, 1.0), 5.0);
+      vec3 absorb = exp(-(depth*(1.0 + 0.35*(a0 + b0 - 1.0)*wf))*vec3(0.030, 0.0085, 0.0035));   // fundo ondulando sob a superfície    // vermelho some primeiro => águas rasas turquesa, fundo azul-escuro
+      vec3 refr = (vec3(.32,.26,.17)*absorb + vec3(.012,.07,.17)*(1.0 - absorb))*(max(ms,0.0)*sunT*SUN_I*0.10 + amb*0.8);
+      vec3 skyR = vec3(.35,.58,1.0)*1.5*(0.12 + smoothstep(-.15,.35,ms));
+      vec3 wat = mix(refr, skyR, F) + pow(max(dot(rr, uSun), 0.0), 300.0)*sunT*SUN_I*0.8 + eng*0.25;
+      float pol = smoothstep(0.91, 0.97, abs(n.z) + (vnoise(n*20.0)-0.5)*0.08);   // gelo polar sobre o mar
+      lit = mix(wat, vec3(.92,.95,1.)*(max(ms,0.0)*sunT*SUN_I*0.13 + amb*0.8), pol);
+    }
     col = lit*trans + scat;
-    float zv = tp.x*dot(d, -uCamWorld[2].xyz);   // profundidade na vista, sem erro de grandes coordenadas
+    float zv = tg*dot(d, -uCamWorld[2].xyz);   // profundidade na vista, sem erro de grandes coordenadas
     gl_FragDepth = clamp(log2(1.0 + zv)*uInvLogFar, 0.0, 1.0);
   } else {
-    vec3 st = stars(d)*trans*exp(-dot(scat, vec3(.33))*20.0);
+    float sk = dot(scat, vec3(.33));
+    vec3 st = sk < 0.3 ? stars(d)*trans*exp(-sk*20.0) : vec3(0.0);
     float disc = smoothstep(0.9996, 0.9999, mu)*30.0 + pow(max(mu,0.0), 800.0)*2.0;
     col = scat + st + vec3(1.0,.92,.78)*disc*trans;
     gl_FragDepth = 1.0;
   }
   col = 1.0 - exp(-col*0.9);
-  gl_FragColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
+  float dn = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233)))*43758.5453);
+  gl_FragColor = vec4(pow(col, vec3(1.0/2.2)) + (dn - 0.5)/255.0, 1.0);
 }
 </script>
 
@@ -180,6 +258,7 @@ void main(){
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+document.getElementById('hud').textContent = '[módulo carregado — iniciando física…]';
 
 // ---------- Planeta ----------
 const R = 2500000;            // raio (m) -> diâmetro ~5000 km
@@ -189,8 +268,100 @@ const G0 = 9.81;              // gravidade na superfície (m/s²)
 const GM = G0 * R * R;
 const CENTER = new THREE.Vector3(0, -R, 0); // base de lançamento fica em (0,0,0)
 
+// ---------- Terreno: UM mapa de alturas, usado no desenho (shader) e na colisão (JS) ----------
+const HMAX = 14000, TW = 2048, TH = 1024, FLAT_R = 14e3, RAMP_R = 70e3;   // plano só até 14 km da base (o mapa tem texels de ~7,7 km), relevo pleno a 70 km
+let terrainTex = null, terrainData = null;
+const ihash = (x, y, z) => {
+  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(z, 1274126177)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 8) / 16777216;
+};
+function vn3(x, y, z) {
+  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z);
+  let fx = x - ix, fy = y - iy, fz = z - iz;
+  fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
+  const a = ihash(ix, iy, iz), b = ihash(ix + 1, iy, iz), c = ihash(ix, iy + 1, iz), d = ihash(ix + 1, iy + 1, iz);
+  const e = ihash(ix, iy, iz + 1), f = ihash(ix + 1, iy, iz + 1), g = ihash(ix, iy + 1, iz + 1), h = ihash(ix + 1, iy + 1, iz + 1);
+  const x0 = a + (b - a) * fx, x1 = c + (d - c) * fx, x2 = e + (f - e) * fx, x3 = g + (h - g) * fx;
+  const y0 = x0 + (x1 - x0) * fy, y1 = x2 + (x3 - x2) * fy;
+  return y0 + (y1 - y0) * fz;
+}
+function fbmJ(x, y, z, o) {
+  let a = 0.5, s = 0;
+  for (let i = 0; i < o; i++) { s += a * vn3(x, y, z); x = x * 2.03 + 1.7; y = y * 2.03 + 9.2; z = z * 2.03 + 3.1; a *= 0.5; }
+  return s;
+}
+const sstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+// Oceanos + continentes. 'c' = relevo de larga escala: abaixo de SEA_T é mar; as montanhas GRANDES ficam
+// logo depois da costa (faixa de c perto de SEA_T), ou seja, nas bordas dos continentes.
+const SEA_T = 0.515;
+let OFX = 0, OFY = 0, OFZ = 0;                       // deslocamento do ruído: escolhido para a base cair no meio de um continente
+const climC = (nx, ny, nz) => fbmJ(nx * 2.5 + OFX, ny * 2.5 + OFY, nz * 2.5 + OFZ, 5);
+function pickLaunchSite() {                           // procura um deslocamento em que há terra firme larga em volta da base (sem círculo artificial)
+  let best = 0, bestScore = -1;
+  for (let k = 0; k < 600; k++) {
+    OFX = ihash(k, 1, 7) * 60; OFY = ihash(k, 2, 7) * 60; OFZ = ihash(k, 3, 7) * 60;
+    let m = 9;
+    for (let a = 0; a < 6.28; a += Math.PI / 4)
+      for (const d of [0, 150e3, 400e3, 700e3, 1000e3]) {
+        const t = d / R; m = Math.min(m, climC(Math.sin(t) * Math.cos(a), Math.cos(t), Math.sin(t) * Math.sin(a)));
+      }
+    if (m > bestScore) { bestScore = m; best = k; }
+    if (m > SEA_T + 0.07) break;
+  }
+  if (bestScore <= SEA_T + 0.07) { OFX = ihash(best, 1, 7) * 60; OFY = ihash(best, 2, 7) * 60; OFZ = ihash(best, 3, 7) * 60; }
+}
+function terrainRaw(nx, ny, nz) {
+  const dist = Math.acos(Math.max(-1, Math.min(1, ny))) * R;
+  const c = climC(nx, ny, nz), cc = c;
+  if (cc < SEA_T) return Math.max(-0.3, Math.min(-4000 * sstep(SEA_T, SEA_T - 0.14, cc) * sstep(FLAT_R, RAMP_R, dist) / HMAX, 1));   // oceano: dispensa o ruído das montanhas
+  const mt = fbmJ(nx * 9, ny * 9, nz * 9, 6);
+  const rid = 1 - Math.abs(2 * mt - 1), k = (c - (SEA_T + 0.025)) / 0.022, edge = Math.exp(-k * k);
+  let h;
+  if (cc >= SEA_T) h = sstep(SEA_T, SEA_T + 0.03, cc) * (150 + 400 * sstep(SEA_T, SEA_T + 0.2, cc) + 600 * mt + HMAX * 0.85 * edge * (0.1 + 0.9 * rid * rid));
+  else h = -4000 * sstep(SEA_T, SEA_T - 0.14, cc);            // fundo do oceano (negativo)
+  h *= sstep(FLAT_R, RAMP_R, dist);
+  return Math.max(-0.3, Math.min(h / HMAX, 1));                // com sinal; meio-float guarda o zero exato
+}
+function buildTerrain() {
+  pickLaunchSite();
+  const half = new Uint16Array(TW * TH); terrainData = new Float32Array(TW * TH);
+  const cosL = new Float64Array(TW), sinL = new Float64Array(TW);
+  for (let i = 0; i < TW; i++) { const lon = ((i + 0.5) / TW - 0.5) * 2 * Math.PI; cosL[i] = Math.cos(lon); sinL[i] = Math.sin(lon); }
+  for (let j = 0; j < TH; j++) {
+    const lat = ((j + 0.5) / TH - 0.5) * Math.PI, cl = Math.cos(lat), sl = Math.sin(lat);
+    for (let i = 0; i < TW; i++) {
+      const hv = THREE.DataUtils.toHalfFloat(terrainRaw(cl * cosL[i], cl * sinL[i], sl));
+      half[j * TW + i] = hv; terrainData[j * TW + i] = THREE.DataUtils.fromHalfFloat(hv);   // a CPU usa EXATAMENTE os valores da textura
+    }
+  }
+  terrainTex = new THREE.DataTexture(half, TW, TH, THREE.RedFormat, THREE.HalfFloatType);
+  terrainTex.magFilter = terrainTex.minFilter = THREE.LinearFilter;
+  terrainTex.wrapS = THREE.RepeatWrapping; terrainTex.wrapT = THREE.ClampToEdgeWrapping;
+  terrainTex.generateMipmaps = false; terrainTex.needsUpdate = true;
+}
+function terrainN(nx, ny, nz) {   // interpolação bilinear igual à da GPU
+  const fx = (Math.atan2(ny, nx) / (2 * Math.PI) + 0.5) * TW - 0.5, fy = (Math.asin(Math.max(-1, Math.min(1, nz))) / Math.PI + 0.5) * TH - 0.5;
+  const x0 = Math.floor(fx), y0 = Math.floor(fy), tx = fx - x0, ty = fy - y0;
+  const g = (i, j) => terrainData[Math.min(TH - 1, Math.max(0, j)) * TW + (((i % TW) + TW) % TW)];
+  return (g(x0, y0) * (1 - tx) + g(x0 + 1, y0) * tx) * (1 - ty) + (g(x0, y0 + 1) * (1 - tx) + g(x0 + 1, y0 + 1) * tx) * ty;
+}
+const terrainAt = n => Math.max(0, terrainN(n.x, n.y, n.z)) * HMAX;     // chão sólido (m): o mar vale 0 (cápsula pousa/flutua na superfície)
+const TN1 = new THREE.Vector3(), TN2 = new THREE.Vector3(), TN3 = new THREE.Vector3(), NT = new THREE.Vector3();
+function terrainNormal(n, out) {   // normal do relevo (diferenças finitas a 8 km)
+  const ex = TN1.set(-n.y, n.x, 0); if (ex.lengthSq() < 1e-12) ex.set(1, 0, 0); ex.normalize();
+  const ey = TN2.crossVectors(n, ex), dl = 4500, h0 = terrainAt(n);
+  const hE = terrainAt(TN3.copy(n).addScaledVector(ex, dl / R).normalize());
+  const hN = terrainAt(TN3.copy(n).addScaledVector(ey, dl / R).normalize());
+  return out.copy(n).addScaledVector(ex, -(hE - h0) / dl).addScaledVector(ey, -(hN - h0) / dl).normalize();
+}
+
 // ---------- Gráficos ----------
 let container, camera, controls, scene, renderer, skyMat, sun, hemi;
+let MAXANISO = 8;   // ajustado ao hardware em initGraphics
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+const PRS = [0.6, 1.0, Math.max(1.25, DPR), Math.min(2.5, Math.max(1.75, DPR * 1.5))];
+let curQ = 2, prMax = 1, prMin = 0.5, prNow = 1, adaptive = true, adaptCool = 0;
 const clock = new THREE.Clock();
 const raycaster = new THREE.Raycaster();
 const mouseCoords = new THREE.Vector2();
@@ -202,587 +373,922 @@ const sunDir = new THREE.Vector3();
 let sunAngle = 1.15, timeRunning = true;   // sol alto: céu azul desde o início
 const keys = {};
 
-// ---------- Física (Ammo.js) ----------
-let physicsWorld, transformAux1, softBodyHelpers, gTmp;
-const rigidBodies = [];
-const softBodies = [];
-const balls = [];
-const margin = 0.05;
-
-// ---------- Foguete (estágio único) ----------
-const FIXED = 1 / 60;
-let accTime = 0, fTmp, iTmp, rTmp, warpIdx = 0, rocket = null, particles = null;
+// ---------- Foguete (cápsula) ----------
+let warpIdx = 0, rocket = null, particles = null;
 const WARPS = [1, 2, 5, 10, 50, 100, 500];
-const ROCKET_R = 0.5, ROCKET_A = Math.PI * ROCKET_R * ROCKET_R, PAYLOAD = 40, ALPHA = 0.12, NP = 700;
-const STAGES = [
-  { name: 'Cápsula', dry: 80, fuel: 400, thrust: 8e3, ispSL: 285, ispVac: 315, h: 1.2 }
-];
-// Suspensão dos balões: ESFERA VIRTUAL em torno do corpo. Qualquer ponto da superfície que
-// encostar no chão recebe mola+amortecedor => quica em todas as partes (topo, base, lados).
-const PAD_TOP = 0.03, START_H = 0.75;           // altura da base do foguete sobre a plataforma ao repouso
-const SUSP = 1.6, SUSP_K = 9500, SUSP_C = 650, BOUNCE_E = 0.55;
-// Pontos de teste ao redor do corpo (local): topo, base, lados e intermediários.
-// Coordenadas normalizadas: x,z em [-1,1] (raio), y em [-1,1] (meio-comprimento).
-const SUSP_PTS = [
-  [0, 1, 0], [0, -1, 0],                        // topo e base (eixo Y)
-  [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], // equador (X e Z)
-  [0.7, 0.7, 0], [-0.7, 0.7, 0], [0, 0.7, 0.7], [0, 0.7, -0.7],
-  [0.7, -0.7, 0], [-0.7, -0.7, 0], [0, -0.7, 0.7], [0, -0.7, -0.7]
-];
+const ROCKET_R = 0.5, ROCKET_A = Math.PI * ROCKET_R * ROCKET_R, NP = 3500, NPS = 1800;
+const SH = { dry: 140, fuel: 1300, rcs: 24, thrust: 30e3, ispSL: 300, ispVac: 345, cy: 0.3, len: 0.73 };   // massa seca (c/ tripulação), combustível e RCS (kg) · empuxo (N) · Isp (s)
+// Tanque de combustível separável (1º estágio, embaixo da cápsula): referencial = base da cápsula em y=0, o tanque vai de 0 até TK.bot
+const TK = { len: 2.1, bot: -2.7, ny: -2.62, cm: -1.2, dry: 240, fuel: 3000, thrust: 110e3, ispSL: 290, ispVac: 335 };   // ny: saída do bocal · cm: centro de massa do tanque
+const debris = [];   // tanques já separados (voam sozinhos)
+const stackCy = r => r.tank ? ((r.dry + r.fuel + r.rcs) * SH.cy + (TK.dry + r.tfuel) * TK.cm) / (r.dry + r.fuel + r.rcs + TK.dry + r.tfuel) : SH.cy;   // centro de massa do conjunto (altura acima da base da cápsula)
+const fuelNow = r => r.tank ? r.tfuel : r.fuel;
 const T1 = new THREE.Vector3(), T2 = new THREE.Vector3(), T3 = new THREE.Vector3(), T4 = new THREE.Vector3();
-const FV = new THREE.Vector3(), TV = new THREE.Vector3(), PV = new THREE.Vector3(), VV = new THREE.Vector3();
-const QI = new THREE.Quaternion(), Q2 = new THREE.Quaternion();
+const VV = new THREE.Vector3(), Q2 = new THREE.Quaternion();
 const msg = { text: '', t: 0 };
 const say = t => { msg.text = t; msg.t = 6; };
 const km = x => Math.abs(x) < 10000 ? x.toFixed(0) + ' m' : (x / 1000).toFixed(1) + ' km';
 const altOf = p => p.distanceTo(CENTER) - R;
 function gravAt(p, o) { o.copy(p).sub(CENTER); const r = o.length(); return o.multiplyScalar(-GM / (r * r * r)); }
-const massNow = () => { let m = PAYLOAD; rocket.has.forEach((h, i) => { if (h) m += STAGES[i].dry + rocket.fuel[i]; }); return m; };
-const inertia = m => ({ p: m * (rocket.len ** 2 / 12 + ROCKET_R ** 2 / 4), a: 0.5 * m * ROCKET_R ** 2 });
-const thrusting = () => rocket.engineOn && rocket.throttle > 0 && rocket.has[rocket.active] && rocket.fuel[rocket.active] > 0;
 
-function part(geo, color, y) {
-  const m = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color }));
-  m.position.y = y; m.castShadow = m.receiveShadow = true;
-  return m;
+// ---- Chama do motor: volume em shader (ruído que corre pelo jato, núcleo branco-azulado, diamantes de choque) ----
+const PLUME_VS = `
+varying vec3 vN, vV, vP;
+#include <common>
+#include <logdepthbuf_pars_vertex>
+void main(){
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vN = normalize(normalMatrix * normal);
+  vV = normalize(-mv.xyz);
+  vP = position;
+  gl_Position = projectionMatrix * mv;
+  #include <logdepthbuf_vertex>
+}`;
+const PLUME_FS = `
+uniform float uTime, uPr, uThr, uWhite;
+varying vec3 vN, vV, vP;
+#include <logdepthbuf_pars_fragment>
+float h3(vec3 p){ p = fract(p*0.3183099 + vec3(.1,.2,.3)); p *= 17.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+float vn3(vec3 x){
+  vec3 i = floor(x), f = fract(x); f = f*f*(3.0-2.0*f);
+  return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x), mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x), f.y),
+             mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x), mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x), f.y), f.z);
 }
-function makeFlame(y) {
-  const g = new THREE.ConeGeometry(0.4, 1, 14, 1, true);
-  g.rotateX(Math.PI); g.translate(0, -0.5, 0);
-  const f = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffb050, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false }));
-  f.position.y = y; f.visible = false;
-  return f;
+void main(){
+  #include <logdepthbuf_fragment>
+  float t = clamp(-vP.y, 0.0, 1.0);                          // 0 = bocal, 1 = ponta da chama
+  float fr = abs(dot(normalize(vN), normalize(vV)));          // 1 no meio do volume, 0 na borda
+  vec3 q = vec3(vP.x*7.0, t*3.5 - uTime*11.0, vP.z*7.0);      // turbulência que corre para trás
+  float n = vn3(q)*0.55 + vn3(q*2.3 + 5.1)*0.3 + vn3(q*4.7 + 1.7)*0.15;
+  float core = pow(fr, 2.0);
+  float body = pow(fr, 1.2)*0.6 + core*0.9;
+  float tt = t + (n - 0.5)*0.30*t;                            // ponta esfiapada
+  float tail = 1.0 - smoothstep(0.30, 1.0, tt);
+  float head = smoothstep(0.0, 0.04, t);
+  float dm = pow(abs(sin(t*34.0 + 1.3)), 7.0)*(1.0 - t)*(0.2 + 4.0*uPr*(1.0 - uPr));   // diamantes de choque (mais fortes em pressão intermediária)
+  float I = (body*(0.65 + 0.7*n) + dm*core*1.2)*tail*head*0.6;
+  vec3 hot = mix(vec3(0.62, 0.76, 1.0), vec3(1.0, 0.96, 0.82), smoothstep(0.0, 0.22, t));
+  vec3 col = mix(hot, vec3(1.0, 0.58, 0.16), smoothstep(0.08, 0.5, t + (1.0 - core)*0.25));
+  col = mix(col, vec3(0.95, 0.20, 0.05), smoothstep(0.5, 1.0, tt + (1.0 - core)*0.2));
+  col = mix(col, vec3(1.0, 0.97, 0.9), uWhite*core*0.85);                 // núcleo incandescente
+  col = mix(col, vec3(0.55, 0.72, 1.0), (1.0 - uPr)*0.55*(1.0 - t));      // no vácuo o jato fica azulado
+  gl_FragColor = vec4(col*1.35, clamp(I*(0.55 + 0.45*uThr), 0.0, 1.0));
+}`;
+function makePlume() {
+  const g = new THREE.Group(), pts = [];
+  for (let i = 0; i <= 28; i++) {   // motor de cápsula: cone fino e quase reto (0,13 -> 0,17) afinando até a ponta — sem a "gota" larga
+    const t = i / 28;
+    pts.push(new THREE.Vector2(t < 0.2 ? 0.13 + 0.04 * (t / 0.2) : 0.17 * Math.pow(1 - (t - 0.2) / 0.8, 0.85), -t));
+  }
+  const geo = new THREE.LatheGeometry(pts, 28);
+  const U = { uTime: { value: 0 }, uPr: { value: 1 }, uThr: { value: 1 } };
+  const mat = white => new THREE.ShaderMaterial({ uniforms: { uTime: U.uTime, uPr: U.uPr, uThr: U.uThr, uWhite: { value: white } }, vertexShader: PLUME_VS, fragmentShader: PLUME_FS, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+  const outer = new THREE.Mesh(geo, mat(0)), core = new THREE.Mesh(geo, mat(1));
+  core.scale.set(0.5, 0.62, 0.5);                  // núcleo interno: mais fino, curto e branco
+  outer.frustumCulled = core.frustumCulled = false;
+  g.add(outer, core); g.userData.u = U; g.visible = false;
+  return g;
 }
-// Cápsula MÍNIMA: só um cone branco, aberto embaixo, um vigia. Sem enfeite.
+
+// ---- Cápsula estilo Orion: textura do cone com painéis, janelas, pods RCS, luzes e rebites ----
+function capsuleTex2() {
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  const rnd = Math.random, W = 1536, H = 768, HM = 0.6;   // HM: altura (m) do cone coberta pela textura
+  const K = 2, ch = mk(W * K, H * K), cb = mk(W * K, H * K), g = ch.getContext('2d'), b = cb.getContext('2d');
+  g.scale(K, K); b.scale(K, K);
+  const gg = g.createLinearGradient(0, 0, 0, H); gg.addColorStop(0, '#3a3a3a'); gg.addColorStop(1, '#222222');
+  g.fillStyle = gg; g.fillRect(0, 0, W, H); b.fillStyle = '#808080'; b.fillRect(0, 0, W, H);
+  const rAt = y => 0.5 - 0.295 * (y / HM);
+  const Y = y => (HM - y) / HM * H;                          // altura (m) -> px
+  const X = th => W / 2 + th / 360 * W;                      // ângulo (graus, 0 = frente) -> px
+  const wpx = (wm, y) => wm * W / (2 * Math.PI * rAt(y));    // largura (m) -> px naquela altura
+  const hpx = hm => hm * H / HM;
+  const rr = (c, x, y, w, h, rad) => { c.beginPath(); c.moveTo(x - w / 2 + rad, y - h / 2); c.arcTo(x + w / 2, y - h / 2, x + w / 2, y + h / 2, rad); c.arcTo(x + w / 2, y + h / 2, x - w / 2, y + h / 2, rad); c.arcTo(x - w / 2, y + h / 2, x - w / 2, y - h / 2, rad); c.arcTo(x - w / 2, y - h / 2, x + w / 2, y - h / 2, rad); c.closePath(); };
+  const sym = (th, fn) => { for (const t of [th, th + 180]) for (const dx of [-W, 0, W]) fn(X(t) + dx); };
+  const rivet = (x, y) => { g.fillStyle = '#58585c'; g.beginPath(); g.arc(x, y, 2, 0, 7); g.fill(); b.fillStyle = '#fff'; b.beginPath(); b.arc(x, y, 2.4, 0, 7); b.fill(); };
+  const stroke = (x0, y0, x1, y1) => { g.strokeStyle = 'rgba(8,8,10,0.55)'; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); b.strokeStyle = '#000'; b.lineWidth = 4; b.beginPath(); b.moveTo(x0, y0); b.lineTo(x1, y1); b.stroke(); };
+  const seamH = y => { const yy = Y(y); stroke(0, yy, W, yy); const sp = wpx(0.02, y); for (let x = sp / 2; x < W; x += sp) rivet(x, yy + 7); };
+  const seamV = (x, y0, y1) => { stroke(x, Y(y1), x, Y(y0)); const sp = hpx(0.02); for (let yy = Y(y1) + sp / 2; yy < Y(y0); yy += sp) rivet(x + 7, yy); };
+  // faixas de escudo térmico: tiras escuras com placas (ablativo) dando a volta no cone inteiro
+  const band = (y0, y1, col, tile) => {
+    const yt = Y(y1), yb = Y(y0), h = yb - yt;
+    g.fillStyle = col; g.fillRect(0, yt, W, h); b.fillStyle = '#707070'; b.fillRect(0, yt, W, h);          // levemente rebaixada
+    if (tile) {
+      const n = Math.round(W / wpx(tile, (y0 + y1) / 2)), sp = W / n;                                       // nº inteiro de placas: sem emenda
+      g.strokeStyle = 'rgba(0,0,0,0.5)'; g.lineWidth = 2; b.strokeStyle = '#000'; b.lineWidth = 3;
+      for (let i = 0; i <= n; i++) { const x = i * sp; g.beginPath(); g.moveTo(x, yt); g.lineTo(x, yb); g.stroke(); b.beginPath(); b.moveTo(x, yt); b.lineTo(x, yb); b.stroke(); }
+      for (let i = 0; i < n; i++) { g.fillStyle = `rgba(255,255,255,${0.02 + rnd() * 0.05})`; g.fillRect(i * sp + 2, yt + 2, sp - 4, h - 4); }   // cada placa com um tom ligeiramente diferente
+    }
+    g.fillStyle = 'rgba(110,110,115,0.35)'; g.fillRect(0, yt, W, 2); g.fillRect(0, yb - 2, W, 2);           // fio claro nas bordas da faixa
+  };
+  band(0.015, 0.060, '#17171a', 0.03);     // faixa larga na base
+  band(0.285, 0.335, '#1b1b1d', 0.04);     // faixa abaixo das janelas
+  band(0.500, 0.545, '#1b1b1d', 0.04);     // faixa acima das janelas
+  band(0.060, 0.066, '#4a4a4d', 0);        // filetes finos separando as faixas
+  band(0.335, 0.341, '#4a4a4d', 0);
+  band(0.545, 0.551, '#4a4a4d', 0);
+  seamH(0.28); seamH(0.56);
+  for (const dx of [-W, 0, W]) {
+    for (const th of [0, 90, 180, 270]) seamV(X(th) + dx, 0.28, 0.56);
+    for (const th of [45, 135, 225, 315]) seamV(X(th) + dx, 0, 0.28);
+  }
+  const trap = (c, cx, cy, hw, hh, k) => { c.beginPath(); c.moveTo(cx - hw * k, cy - hh); c.lineTo(cx + hw * k, cy - hh); c.lineTo(cx + hw, cy + hh); c.lineTo(cx - hw, cy + hh); c.closePath(); };
+  const win = (cx, cy, hw, hh) => {
+    g.lineJoin = b.lineJoin = 'round';
+    // bisel alto (cinza escuro) + gaxeta em sulco + vidro rebaixado + lábio iluminado + soleira: tudo com relevo (mapa bump)
+    trap(g, cx, cy, hw + 10, hh + 10, 0.82); g.fillStyle = '#454547'; g.fill(); g.strokeStyle = '#454547'; g.lineWidth = 8; g.stroke();
+    trap(b, cx, cy, hw + 10, hh + 10, 0.82); b.fillStyle = '#ffffff'; b.fill(); b.strokeStyle = '#ffffff'; b.lineWidth = 8; b.stroke();
+    trap(g, cx, cy, hw + 3, hh + 3, 0.82); g.strokeStyle = '#18181a'; g.lineWidth = 6; g.stroke();         // gaxeta de borracha
+    trap(b, cx, cy, hw + 3, hh + 3, 0.82); b.strokeStyle = '#303030'; b.lineWidth = 6; b.stroke();         // ...afundada
+    trap(g, cx, cy, hw, hh, 0.82); const gr = g.createLinearGradient(0, cy - hh, 0, cy + hh);
+    gr.addColorStop(0, '#3c3c3d'); gr.addColorStop(0.35, '#2c2c2c'); gr.addColorStop(1, '#0d0d0d');
+    g.fillStyle = gr; g.fill();
+    trap(b, cx, cy, hw, hh, 0.82); const gb = b.createLinearGradient(0, cy - hh, 0, cy + hh);
+    gb.addColorStop(0, '#2c2c2c'); gb.addColorStop(1, '#4a4a4a'); b.fillStyle = gb; b.fill();                 // vidro bem fundo
+    trap(g, cx, cy, hw - 3, hh - 3, 0.82); g.strokeStyle = 'rgba(125,125,130,0.55)'; g.lineWidth = 2; g.stroke();    // lábio
+    trap(b, cx, cy, hw - 3, hh - 3, 0.82); b.strokeStyle = '#d8d8d8'; b.lineWidth = 3; b.stroke();
+    g.save(); trap(g, cx, cy, hw, hh, 0.82); g.clip();
+    g.fillStyle = '#38383b'; g.fillRect(cx - hw, cy + hh * 0.62, hw * 2, hh * 0.4);                           // soleira (borda inferior elevada)
+    b.fillStyle = '#e4e4e4'; b.fillRect(cx - hw, cy + hh * 0.62, hw * 2, hh * 0.4);
+    g.restore();
+  };
+  // janelas: 4 por lado (2 grandes no centro + 2 menores nas extremidades), todas maiores que antes
+  sym(0, x => { const cy = Y(0.42), w = wpx(0.33, 0.42), h = hpx(0.155); rr(g, x, cy, w, h, 22); g.fillStyle = '#1e1e1e'; g.fill(); rr(b, x, cy, w, h, 22); b.fillStyle = '#505050'; b.fill(); });
+  for (const s of [-1, 1]) {
+    sym(17.5 * s, x => win(x, Y(0.42), wpx(0.14, 0.42) / 2, hpx(0.135) / 2));
+    sym(43 * s, x => { const cy = Y(0.42), w = wpx(0.08, 0.42), h = hpx(0.105), rad = 10; rr(g, x, cy, w, h, rad); g.fillStyle = '#1e1e1e'; g.fill(); win(x, cy, wpx(0.05, 0.42) / 2, hpx(0.075) / 2); });
+    sym(44 * s, x => {
+      const cy = Y(0.2), w = wpx(0.13, 0.2), h = hpx(0.06); rr(g, x, cy, w, h, 16); g.fillStyle = '#222222'; g.fill(); rr(b, x, cy, w, h, 16); b.fillStyle = '#505050'; b.fill();
+      for (const o of [-1, 1]) { g.beginPath(); g.ellipse(x + o * w * 0.24, cy, wpx(0.017, 0.2), hpx(0.017), 0, 0, 7); g.fillStyle = '#000'; g.fill(); g.strokeStyle = '#444'; g.lineWidth = 3; g.stroke(); }
+    });
+    sym(9 * s, x => { g.beginPath(); g.ellipse(x, Y(0.2), wpx(0.014, 0.2), hpx(0.014), 0, 0, 7); g.fillStyle = '#4a4a4d'; g.fill(); g.strokeStyle = '#242426'; g.lineWidth = 3; g.stroke(); b.beginPath(); b.ellipse(x, Y(0.2), wpx(0.014, 0.2), hpx(0.014), 0, 0, 7); b.fillStyle = '#fff'; b.fill(); });
+  }
+  sym(0, x => { g.beginPath(); g.ellipse(x, Y(0.09), wpx(0.022, 0.09), hpx(0.022), 0, 0, 7); g.fillStyle = '#4a4a4d'; g.fill(); g.strokeStyle = '#242426'; g.lineWidth = 3; g.stroke(); b.beginPath(); b.ellipse(x, Y(0.09), wpx(0.022, 0.09), hpx(0.022), 0, 0, 7); b.fillStyle = '#fff'; b.fill(); });
+  sym(-34, x => { const cy = Y(0.14), w = wpx(0.11, 0.14), h = hpx(0.05); rr(g, x, cy, w, h, 6); g.fillStyle = '#3e3e41'; g.fill(); g.strokeStyle = '#242426'; g.lineWidth = 3; g.stroke(); rr(b, x, cy, w, h, 6); b.fillStyle = '#e0e0e0'; b.fill(); });
+  for (let i = 0; i < 20000; i++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '110,110,115'},${rnd() * 0.05})`; g.fillRect(rnd() * W, rnd() * H, 2, 2); }
+  // escudo térmico
+  const S = 512, cs = mk(S * K, S * K), s = cs.getContext('2d'), C = S / 2;
+  s.scale(K, K);
+  const rg = s.createRadialGradient(C, C, 20, C, C, C); rg.addColorStop(0, '#3c3c3e'); rg.addColorStop(1, '#2a2a2c');
+  s.fillStyle = rg; s.fillRect(0, 0, S, S); s.strokeStyle = 'rgba(0,0,0,0.6)'; s.lineWidth = 2;
+  for (let r = 40; r < C; r += 36) { s.beginPath(); s.arc(C, C, r, 0, 7); s.stroke(); }
+  for (let a = 0; a < 24; a++) { const an = a * Math.PI / 12; s.beginPath(); s.moveTo(C + Math.cos(an) * 40, C + Math.sin(an) * 40); s.lineTo(C + Math.cos(an) * C, C + Math.sin(an) * C); s.stroke(); }
+  for (let i = 0; i < 6000; i++) { s.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '90,90,90'},${rnd() * 0.12})`; s.fillRect(rnd() * S, rnd() * S, 2, 2); }
+  const T = (c, srgb) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANISO; t.wrapS = THREE.RepeatWrapping; return t; };
+  return { hull: T(ch, true), hullBump: T(cb), shield: T(cs, true), shieldBump: T(cs) };
+}
+
+// ---- Tanque de combustível: cilindro branco com painéis e rebites, faixa de separação preta, cúpula, saia com motor e 4 aletas ----
+function tankTex() {
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  const rnd = Math.random, W = 1536, H = 1024, ch = mk(W, H), cb = mk(W, H), g = ch.getContext('2d'), b = cb.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#f2f2f3'); gr.addColorStop(1, '#e0e0e3');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H); b.fillStyle = '#808080'; b.fillRect(0, 0, W, H);
+  const rows = 3, cols = 8, rh = H / rows, cw = W / cols;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { g.fillStyle = rnd() < 0.5 ? `rgba(0,0,0,${rnd() * 0.035})` : `rgba(255,255,255,${rnd() * 0.25})`; g.fillRect(c * cw, r * rh, cw, rh); }
+  const rivets = (x0, y0, x1, y1) => { const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / 20)); for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n, y = y0 + (y1 - y0) * i / n; g.fillStyle = '#b4b4b8'; g.beginPath(); g.arc(x, y, 2.1, 0, 7); g.fill(); b.fillStyle = '#fff'; b.beginPath(); b.arc(x, y, 2.5, 0, 7); b.fill(); } };
+  const seam = (x0, y0, x1, y1) => { g.strokeStyle = 'rgba(70,70,78,0.7)'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); b.strokeStyle = '#000'; b.lineWidth = 5; b.beginPath(); b.moveTo(x0, y0); b.lineTo(x1, y1); b.stroke(); };
+  for (let r = 0; r <= rows; r++) { const y = Math.min(H - 2, Math.max(2, r * rh)); seam(0, y, W, y); rivets(0, y + 9, W, y + 9); }
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { const x = c * cw + (r % 2 ? cw / 2 : 0); seam(x, r * rh, x, (r + 1) * rh); rivets(x + 9, r * rh + 14, x + 9, (r + 1) * rh - 14); }
+  for (const x of [0, W / 2, W]) {   // painel preto com nervuras (como nos tanques da referência), na frente e atrás
+    const pw = 150, y0 = H * 0.16, y1 = H * 0.84; g.fillStyle = '#1b1b1d'; g.fillRect(x - pw, y0, pw * 2, y1 - y0); b.fillStyle = '#6a6a6a'; b.fillRect(x - pw, y0, pw * 2, y1 - y0);
+    for (let i = -pw + 14; i < pw; i += 22) { g.strokeStyle = 'rgba(120,120,126,0.45)'; g.lineWidth = 3; g.beginPath(); g.moveTo(x + i, y0 + 10); g.lineTo(x + i, y1 - 10); g.stroke(); b.strokeStyle = '#d0d0d0'; b.lineWidth = 4; b.beginPath(); b.moveTo(x + i, y0 + 10); b.lineTo(x + i, y1 - 10); b.stroke(); }
+  }
+  for (let i = 0; i < 18000; i++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '0,0,0' : '120,120,125'},${rnd() * 0.045})`; g.fillRect(rnd() * W, rnd() * H, 2, 2); }
+  const T = (c, srgb) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = MAXANISO; t.wrapS = THREE.RepeatWrapping; return t; };
+  return { map: T(ch, true), bump: T(cb) };
+}
+function buildTankModel() {
+  const tx = tankTex(), g = new THREE.Group(), std = o => new THREE.MeshStandardMaterial(o), L = TK.len;
+  const white = std({ map: tx.map, bumpMap: tx.bump, bumpScale: 4, roughness: 0.42, metalness: 0.12 });
+  const plain = std({ color: 0xe9e9ec, roughness: 0.42, metalness: 0.12, side: THREE.DoubleSide });
+  const dark = std({ color: 0x1d1d1f, roughness: 0.6, metalness: 0.4, side: THREE.DoubleSide });
+  const steel = std({ color: 0x8e8e94, roughness: 0.32, metalness: 0.85, side: THREE.DoubleSide });
+  const add = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(0.503, 0.503, 0.08, 64, 1, true), dark, -0.04);                                  // faixa de separação (preta)
+  add(new THREE.CylinderGeometry(0.5, 0.5, L - 0.08, 96, 1, true), white, -0.08 - (L - 0.08) / 2).rotation.y = Math.PI;   // corpo (frente da textura para +Z)
+  for (const y of [-0.7, -1.4]) add(new THREE.TorusGeometry(0.503, 0.01, 6, 96), plain, y).rotation.x = Math.PI / 2;      // cintas
+  const dome = add(new THREE.SphereGeometry(0.5, 48, 12, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), plain, -L); dome.scale.y = 0.34;   // cúpula inferior
+  add(new THREE.CylinderGeometry(0.5, 0.56, 0.6, 96, 1, true), plain, -L - 0.3);                                  // saia
+  add(new THREE.TorusGeometry(0.56, 0.012, 6, 96), dark, TK.bot).rotation.x = Math.PI / 2;                       // borda da saia
+  add(new THREE.CylinderGeometry(0.1, 0.12, 0.18, 24), steel, -L - 0.09);                                         // câmara de combustão
+  const pts = []; for (let i = 0; i <= 16; i++) { const t = i / 16; pts.push(new THREE.Vector2((0.1 + 0.24 * Math.pow(t, 0.55)) * (1 + 0.025 * (i % 2)), -t * 0.34)); }
+  add(new THREE.LatheGeometry(pts, 40), steel, -L - 0.18);                                                         // bocal
+  for (const sx of [-1, 1]) { const m = add(new THREE.CylinderGeometry(0.035, 0.035, 0.22, 12), steel, -L - 0.1); m.position.x = sx * 0.17; const t = add(new THREE.TorusGeometry(0.05, 0.015, 6, 14), steel, -L - 0.1); t.position.z = sx * 0.13; }   // tubulações
+  add(new THREE.SphereGeometry(0.06, 14, 10), steel, -L - 0.02).position.x = 0.0;
+  const fin = new THREE.Shape(); fin.moveTo(0.5, -1.7); fin.lineTo(0.5, TK.bot); fin.lineTo(0.92, TK.bot); fin.lineTo(0.92, -2.45); fin.closePath();
+  const acc = new THREE.Shape(); acc.moveTo(0.5, -2.42); acc.lineTo(0.5, TK.bot); acc.lineTo(0.8, TK.bot); acc.closePath();
+  const fg = new THREE.ExtrudeGeometry(fin, { depth: 0.03, bevelEnabled: false }).translate(0, 0, -0.015), ag = new THREE.ExtrudeGeometry(acc, { depth: 0.036, bevelEnabled: false }).translate(0, 0, -0.018);
+  for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2; add(fg, plain, 0).rotation.y = a; add(ag, dark, 0).rotation.y = a; }   // 4 aletas, com triângulo preto
+  const flame2 = makePlume(); flame2.position.y = TK.ny; g.add(flame2);
+  return { g, flame2 };
+}
+// Tanque simples, separado: só o corpo branco com painéis e topo reto (sem cone, aletas, motor ou asas). Origem = base do tanque.
+function buildPlainTank() {
+  const tx = tankTex(), g = new THREE.Group(), std = o => new THREE.MeshStandardMaterial(o), L = 2.6, gap = 0;
+  // casca fechada e SEM tampas (topo e fundo abertos): dá para ver o tanque de combustível por dentro
+  const m1 = tx.map.clone(), b1 = tx.bump.clone(); for (const t of [m1, b1]) { t.needsUpdate = true; t.repeat.set((2 * Math.PI - gap) / (2 * Math.PI), 1); t.offset.set(gap / (4 * Math.PI), 0); }
+  const white = std({ map: m1, bumpMap: b1, bumpScale: 4, roughness: 0.42, metalness: 0.12, side: THREE.DoubleSide });
+  const plain = std({ color: 0xe9e9ec, roughness: 0.42, metalness: 0.12, side: THREE.DoubleSide });
+  const dark = std({ color: 0x1d1d1f, roughness: 0.6, metalness: 0.4, side: THREE.DoubleSide });
+  const steel = std({ color: 0xb4b4bc, roughness: 0.28, metalness: 0.9, emissive: 0x222226, side: THREE.DoubleSide });
+  const inner = std({ color: 0x2a2a2e, roughness: 0.7, metalness: 0.3, side: THREE.DoubleSide });
+  const add = (geo, mat, y) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(0.5, 0.5, L, 96, 1, true, gap / 2, 2 * Math.PI - gap), white, L / 2);          // casca externa
+  add(new THREE.CylinderGeometry(0.47, 0.47, L, 96, 1, true, gap / 2, 2 * Math.PI - gap), inner, L / 2);       // parede interna (espessura)
+  // tanque de combustível interno: cilindro de aço com cúpulas, soldas e suportes até a casca
+  const R2 = 0.34, T0 = 0.42, T1 = L - 0.42;
+  add(new THREE.CylinderGeometry(R2, R2, T1 - T0, 48, 1, true), steel, (T0 + T1) / 2);
+  const top = add(new THREE.SphereGeometry(R2, 48, 14, 0, Math.PI * 2, 0, Math.PI / 2), steel, T1); top.scale.y = 0.55;
+  const bot = add(new THREE.SphereGeometry(R2, 48, 14, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), steel, T0); bot.scale.y = 0.55;
+  for (const y of [0.9, 1.3, 1.7]) add(new THREE.TorusGeometry(R2 + 0.004, 0.008, 6, 64), dark, y).rotation.x = Math.PI / 2;   // soldas
+  for (const y of [0.6, 1.3, 2.0]) for (let i = 0; i < 8; i++) {                                                                // suportes radiais
+    const sg = new THREE.Group(), r = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.16, 8), dark); r.rotation.z = Math.PI / 2; r.position.x = R2 + 0.08; sg.add(r); sg.position.y = y; sg.rotation.y = i * Math.PI / 4; g.add(sg);
+  }
+  const pipe = add(new THREE.CylinderGeometry(0.02, 0.02, T1 - T0 + 0.3, 10), dark, (T0 + T1) / 2); pipe.position.set(0, (T0 + T1) / 2, -R2 - 0.05);   // tubulação de combustível
+  add(new THREE.SphereGeometry(0.04, 12, 8), dark, T1 + 0.17).position.z = -R2 - 0.05;
+  return g;
+}
 function buildRocketModel() {
-  const r = ROCKET_R, H = STAGES[0].h, s1 = new THREE.Group();
-  // cone truncado: de r na base a 0.24 no topo, FECHADO embaixo
-  const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.24, r, H, 32, 1, true),
-    new THREE.MeshPhongMaterial({ color: 0xf2f0ea, shininess: 18, side: THREE.DoubleSide }));
-  cone.position.y = H / 2; cone.castShadow = cone.receiveShadow = true; s1.add(cone);
-  // base fechada (disco escuro)
-  const bot = new THREE.Mesh(new THREE.CircleGeometry(r * 0.985, 32), new THREE.MeshPhongMaterial({ color: 0x17191c }));
-  bot.rotation.x = Math.PI / 2; bot.position.y = 0.001; s1.add(bot);
-  // tampa escura no topo (abertura)
-  const top = new THREE.Mesh(new THREE.CircleGeometry(0.24, 32), new THREE.MeshPhongMaterial({ color: 0x17191c }));
-  top.rotation.x = -Math.PI / 2; top.position.y = H - 0.001; s1.add(top);
-  // borda fina escura na base
-  const base = new THREE.Mesh(new THREE.TorusGeometry(r * 0.99, 0.02, 8, 40),
-    new THREE.MeshPhongMaterial({ color: 0x2a2d32, shininess: 40 }));
-  base.rotation.x = Math.PI / 2; base.position.y = 0.01; base.castShadow = true; s1.add(base);
-  // um vigia circular azul
-  const wa = 0.5;
-  const win = new THREE.Mesh(new THREE.CircleGeometry(0.09, 20),
-    new THREE.MeshPhongMaterial({ color: 0x1c6fba, shininess: 110 }));
-  win.position.set(Math.cos(wa) * (r - 0.005) * 0.82, H * 0.45, Math.sin(wa) * (r - 0.005) * 0.82);
-  win.lookAt(win.position.x * 3, H * 0.45, win.position.z * 3);
-  s1.add(win);
-  const flame1 = makeFlame(0.02);
-  s1.add(flame1);
-  return { s1, flame1 };
+  const r = ROCKET_R, s1 = new THREE.Group(), tx = capsuleTex2();
+  const std = o => new THREE.MeshStandardMaterial(o);
+  const metal = std({ color: 0x5a5a5e, roughness: 0.45, metalness: 0.4 });
+  const dark = std({ color: 0x2a2a2c, roughness: 0.6, metalness: 0.4, side: THREE.DoubleSide });
+  const body = std({ color: 0x2e2e30, roughness: 0.55, metalness: 0.1 });                                    // cinza escuro do casco (não preto)
+  const topDark = std({ color: 0x2a2a2c, roughness: 0.6, metalness: 0.3, side: THREE.DoubleSide });      // anel/escotilha do topo
+  const add = (geo, mat, y, shadow = true) => { const m = new THREE.Mesh(geo, mat); m.position.y = y; m.castShadow = shadow; m.receiveShadow = true; s1.add(m); return m; };
+  // cone principal (0 a 0,60 m) — a frente da textura (u=0,5) vira para +Z
+  add(new THREE.CylinderGeometry(0.205, r, 0.6, 128, 1, true), std({ map: tx.hull, bumpMap: tx.hullBump, bumpScale: 6, roughness: 0.5, metalness: 0.1 }), 0.3).rotation.y = Math.PI;
+  // compartimento dianteiro + anel de acoplamento + escotilha com parafusos e alças
+  add(new THREE.CylinderGeometry(0.17, 0.205, 0.10, 48, 1, true), body, 0.65);
+  add(new THREE.CylinderGeometry(0.185, 0.185, 0.03, 48), topDark, 0.715);
+  add(new THREE.CircleGeometry(0.15, 40), std({ color: 0x2e2e30, roughness: 0.5, metalness: 0.1 }), 0.731, false).rotation.x = -Math.PI / 2;
+  add(new THREE.TorusGeometry(0.155, 0.01, 8, 40), topDark, 0.731).rotation.x = Math.PI / 2;
+  for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8, m = add(new THREE.SphereGeometry(0.006, 8, 6), metal, 0.732, false); m.position.x = Math.cos(a) * 0.175; m.position.z = Math.sin(a) * 0.175; }
+  // base: escudo térmico com furo, aro e bocal embutido
+  add(new THREE.RingGeometry(0.17, r * 0.985, 48), std({ map: tx.shield, bumpMap: tx.shieldBump, bumpScale: 2, roughness: 0.95, metalness: 0.1 }), 0.002).rotation.x = Math.PI / 2;
+  add(new THREE.TorusGeometry(r * 0.99, 0.02, 10, 48), std({ color: 0x38383a, roughness: 0.5, metalness: 0.3 }), 0.012).rotation.x = Math.PI / 2;
+  add(new THREE.CylinderGeometry(0.1, 0.17, 0.12, 24, 1, true), dark, 0.06, false);
+  add(new THREE.CircleGeometry(0.1, 24), dark, 0.12, false).rotation.x = Math.PI / 2;
+  const flame1 = makePlume(); s1.add(flame1);
+  const light = new THREE.PointLight(0xff9a50, 0, 40, 2); light.position.set(0, -0.4, 0); s1.add(light);   // luz do motor (sempre na cena; intensidade 0 = apagada)
+  const tk = buildTankModel(); s1.add(tk.g);
+  return { s1, flame1, light, tank: tk.g, flame2: tk.flame2 };
 }
-
-// ---- Bolas softbody ancoradas à cápsula (teste de amortecimento) ----
-const softBalls = [];
-let softBallsActive = false;   // B alterna. Inicia DESLIGADO.
-// Cordões "colados" nas bolas: cada linha é feita dos PRÓPRIOS nós do softbody
-// (equador + meridiano), então acompanha a deformação 100%, como costura real.
-let cordMat = null;
-function cordFromNodes(sb, idxs) {
-  const geo = new THREE.BufferGeometry();
-  const arr = new Float32Array(idxs.length * 3);
-  geo.setAttribute('position', new THREE.BufferAttribute(arr, 3).setUsage(THREE.DynamicDrawUsage));
-  const line = new THREE.LineLoop(geo, cordMat);
-  line.frustumCulled = false;
-  return { line, idxs };
-}
-// Equador: nós na altura do centro. Meridiano: nós no plano z = centro (2 colunas).
-function makeCords(sb, px, py, pz, RAD) {
-  if (!cordMat) cordMat = new THREE.LineBasicMaterial({ color: 0xcdbb97 });   // mesma cor da bola (tom de costura)
-  const nodes = sb.get_m_nodes(), n = nodes.size();
-  const eq = [], merA = [], merB = [];
-  for (let j = 0; j < n; j++) {
-    const p = nodes.at(j).get_m_x();
-    const ox = p.x() - px, oy = p.y() - py, oz = p.z() - pz;
-    if (Math.abs(oy) < RAD * 0.06) eq.push(j);
-    if (Math.abs(oz) < RAD * 0.06) {
-      if (ox >= 0) merA.push([j, oy]); else if (ox < -RAD * 0.5) merB.push([j, oy]);
-    }
-  }
-  // meridiano fechado: coluna +X de cima a baixo, depois coluna -X de baixo a cima
-  merA.sort((a, b) => b[1] - a[1]); merB.sort((a, b) => a[1] - b[1]);
-  const mer = merA.concat(merB).map(v => v[0]);
-  return [cordFromNodes(sb, eq), cordFromNodes(sb, mer)];
-}
-function removeSoftBalls() {
-  if (!physicsWorld) return;
-  for (const b of softBalls) {
-    physicsWorld.removeSoftBody(b.sb);
-    const i = softBodies.indexOf(b.mesh); if (i >= 0) softBodies.splice(i, 1);
-    scene.remove(b.mesh);
-    if (b.cords) for (const c of b.cords) { scene.remove(c.line); c.line.geometry.dispose(); }  // cordões saem junto
-  }
-  softBalls.length = 0;
-}
-function spawnSoftBalls() {
-  removeSoftBalls();
-  if (!rocket || rocket.mode !== 'ammo' || !physicsWorld) return;
-  // 12 BALÕES de amortecimento, TODOS DO MESMO TAMANHO, em 2 níveis (6+6) ao redor da cápsula.
-  // Posições e âncoras calculadas no referencial LOCAL da cápsula e transformadas pela
-  // quaternion atual (rocket.q) => acompanham a rotação em qualquer atitude.
-  const RAD = 0.78;                           // raio dos balões (todos iguais)
-  const RING = ROCKET_R + RAD + 0.05;         // raio do anel (balão fica ao lado da cápsula)
-  const rq = rocket.q;
-  const tiers = [
-    { yOff: -rocket.cy + RAD,        phase: 0,            pr: 220 },  // nível inferior (base)
-    { yOff:  rocket.cy + RAD * 0.4,  phase: Math.PI / 6,  pr: 220 }   // nível superior (acima do topo, cobre a ponta)
-  ];
-  const tmpL = new THREE.Vector3();           // posição local
-  const tmpW = new THREE.Vector3();           // posição no mundo
-  const inDirL = new THREE.Vector3();         // direção "para dentro" (local)
-  const inDirW = new THREE.Vector3();         // direção "para dentro" (mundo)
-  for (const t of tiers) {
-    for (let i = 0; i < 6; i++) {
-      const a = t.phase + i * Math.PI * 2 / 6;
-      const cx = Math.cos(a), cz = Math.sin(a);
-      // posição local no referencial da cápsula: lateral no plano XZ, altura no eixo Y
-      tmpL.set(cx * RING, t.yOff, cz * RING);
-      tmpW.copy(tmpL).applyQuaternion(rq).add(rocket.pos);   // -> mundo
-      const px = tmpW.x, py = tmpW.y, pz = tmpW.z;
-      // direção "para dentro" no local: do balão apontando para o eixo Y da cápsula
-      inDirL.set(-cx, 0, -cz).normalize();
-      inDirW.copy(inDirL).applyQuaternion(rq);               // -> mundo
-      const geo = new THREE.SphereGeometry(RAD, 24, 16);
-      geo.translate(px, py, pz);
-
-      processGeometry(geo);
-      const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: 0xe6d9bd, shininess: 30 }));
-      mesh.castShadow = mesh.receiveShadow = true;
-      mesh.frustumCulled = false;
-      scene.add(mesh);
-
-      const sb = softBodyHelpers.CreateFromTriMesh(physicsWorld.getWorldInfo(), geo.ammoVertices, geo.ammoIndices, geo.ammoIndices.length / 3, true);
-      const cfg = sb.get_m_cfg();
-      cfg.set_viterations(20); cfg.set_piterations(20);
-      cfg.set_collisions(0x1);                 // SDF_RS: soft x rígido (chão, rampa, bolas); balões se sobrepõem sem brigar
-      cfg.set_kDF(0.3); cfg.set_kDP(0.01);
-      cfg.set_kPR(t.pr);                       // pressão interna: balão cheio
-      sb.get_m_materials().at(0).set_m_kLST(0.9);
-      sb.get_m_materials().at(0).set_m_kAST(0.9);
-      sb.setTotalMass(6, false);
-      Ammo.castObject(sb, Ammo.btCollisionObject).getCollisionShape().setMargin(margin);
-      physicsWorld.addSoftBody(sb, 1, -1);
-      mesh.userData.physicsBody = sb;
-      sb.setActivationState(4);
-      softBodies.push(mesh);
-
-      // Fixação: ancora os nós do lado voltado para a cápsula (direção inDirW no mundo).
-      const nodes = sb.get_m_nodes();
-      for (let j = 0; j < nodes.size(); j++) {
-        const p = nodes.at(j).get_m_x();
-        // vetor do centro do balão -> nó, no mundo
-        const ox = p.x() - px, oy = p.y() - py, oz = p.z() - pz;
-        const ol = Math.hypot(ox, oy, oz) || 1;
-        // projeção na direção "para dentro" (mundo): positivo = lado voltado para a cápsula
-        const inward = (ox * inDirW.x + oy * inDirW.y + oz * inDirW.z) / ol;
-        if (inward > 0.5) sb.appendAnchor(j, rocket.body, true, 1.0);
-      }
-      // 2 cordões COLADOS na bola: feitos dos nós do próprio softbody (equador + meridiano)
-      const cords = makeCords(sb, px, py, pz, RAD);
-      for (const c of cords) scene.add(c.line);
-      softBalls.push({ mesh, sb, cords });
-    }
-  }
-  say(softBallsActive ? 'Balões de amortecimento inflados' : 'Cápsula pronta — pressione B para inflar os balões');
-}
-// Atualiza os cordões: copia a posição dos nós do softbody para as linhas.
-// Como os nós SÃO os vértices da bola, os cordões deformam colados nela.
-function updateStraps() {
-  for (const b of softBalls) {
-    if (!b.cords) continue;
-    const nodes = b.sb.get_m_nodes();
-    for (const c of b.cords) {
-      const P = c.line.geometry.attributes.position.array;
-      for (let k = 0; k < c.idxs.length; k++) {
-        const p = nodes.at(c.idxs[k]).get_m_x();
-        P[k * 3] = p.x(); P[k * 3 + 1] = p.y(); P[k * 3 + 2] = p.z();
-      }
-      c.line.geometry.attributes.position.needsUpdate = true;
-    }
-  }
-}
-function toggleSoftBalls() {
-  if (!rocket || rocket.mode !== 'ammo') return;
-  if (softBallsActive) { removeSoftBalls(); softBallsActive = false; say('Balões desativados'); }
-  else { spawnSoftBalls(); softBallsActive = true; }
-}
-
-function setBodyTransform(body, p, q) {
-  const t = new Ammo.btTransform();
-  t.setIdentity(); t.setOrigin(new Ammo.btVector3(p.x, p.y, p.z)); t.setRotation(new Ammo.btQuaternion(q.x, q.y, q.z, q.w));
-  body.setWorldTransform(t); body.getMotionState().setWorldTransform(t);
-}
+// ============ FOGUETE — nova mecânica de voo ============
+// Corpo rígido 6-DOF em dupla precisão (uma única física, do chão à órbita). Motor com Isp variável e empuxo vetorado (gimbal),
+// RCS com combustível próprio, SAS com modos de atitude, aerodinâmica de cápsula (arrasto e estabilidade dependentes do ângulo),
+// aquecimento de reentrada, paraquedas e contato com o relevo por molas/atrito. O fogo (plumas e partículas) é o mesmo de antes.
 function removeRocket() {
   if (!rocket) return;
-  removeSoftBalls();  // as bolas são ancoradas ao corpo: saem junto
-  if (rocket.mode === 'ammo') {
-    physicsWorld.removeRigidBody(rocket.body);
-    const i = rigidBodies.indexOf(rocket.group); if (i >= 0) rigidBodies.splice(i, 1);
+  scene.remove(rocket.group, rocket.ch.g); rocket = null;
+  for (const d of debris) scene.remove(d.g);
+  debris.length = 0;
+}
+// ---- Paraquedas de MALHA: tecido simulado (Verlet) no referencial da cápsula. O vento relativo empurra cada triângulo e infla a cúpula; 16 cordas prendem a borda ao topo da cápsula ----
+const CM = { R: 6, N: 16, RG: 6, L: 9, MASS: 0.4 };
+function buildChute() {
+  const cr = CM.R, N = CM.N, RG = CM.RG, th = [12, 28, 44, 60, 75, 88].map(a => a * Math.PI / 180), rest = [[0, cr, 0]];
+  for (let r = 0; r < RG; r++) for (let j = 0; j < N; j++) { const a = j * 2 * Math.PI / N; rest.push([cr * Math.sin(th[r]) * Math.cos(a), cr * Math.cos(th[r]), cr * Math.sin(th[r]) * Math.sin(a)]); }
+  const id = (r, j) => 1 + r * N + ((j % N) + N) % N, C = [], tri = [];
+  const link = (a, b) => C.push([a, b, Math.hypot(rest[a][0] - rest[b][0], rest[a][1] - rest[b][1], rest[a][2] - rest[b][2])]);
+  for (let j = 0; j < N; j++) { link(0, id(0, j)); tri.push([0, id(0, j), id(0, j + 1), j]); }
+  for (let r = 0; r < RG; r++) for (let j = 0; j < N; j++) {
+    link(id(r, j), id(r, j + 1));
+    if (r < RG - 1) {
+      link(id(r, j), id(r + 1, j)); link(id(r, j), id(r + 1, j + 1)); link(id(r, j + 1), id(r + 1, j));
+      tri.push([id(r, j), id(r + 1, j), id(r + 1, j + 1), j], [id(r, j), id(r + 1, j + 1), id(r, j + 1), j]);
+    }
   }
-  scene.remove(rocket.group);
-  rocket = null;
+  const n = rest.length, T = tri.length, geo = new THREE.BufferGeometry(), pos = new Float32Array(T * 9), col = new Float32Array(T * 9);
+  tri.forEach((t, i) => { const c = t[3] % 2 ? [0.95, 0.95, 0.95] : [1, 0.42, 0.16]; for (let k = 0; k < 3; k++) col.set(c, i * 9 + k * 3); });
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, side: THREE.DoubleSide }));
+  const ropes = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(N * 6), 3)), new THREE.LineBasicMaterial({ color: 0xdddddd }));
+  mesh.frustumCulled = ropes.frustumCulled = false; mesh.castShadow = true;
+  const g = new THREE.Group(); g.add(mesh, ropes); g.visible = false; scene.add(g);
+  return { g, mesh, ropes, rest, C, tri, n, x: new Float64Array(n * 3), xp: new Float64Array(n * 3), acc: new Float64Array(n * 3) };
+}
+function chuteInit(r) {   // tecido dobrado (20%) logo acima do topo da cápsula, a favor do vento
+  const c = r.ch, s = 0.2, d = T1.copy(r.vel); if (d.length() < 1) d.copy(r.pos).sub(CENTER); d.normalize().negate();
+  const e1 = T2.set(1, 0, 0); if (Math.abs(d.x) > 0.9) e1.set(0, 0, 1); e1.addScaledVector(d, -e1.dot(d)).normalize();
+  const e2 = T3.crossVectors(d, e1), pa = T4.set(0, SH.len - r.cy, 0).applyQuaternion(r.q);
+  c.rest.forEach((p, i) => { for (let k = 0; k < 3; k++) c.x[i * 3 + k] = c.xp[i * 3 + k] = pa.getComponent(k) + d.getComponent(k) * (CM.L * s + p[1] * s) + e1.getComponent(k) * p[0] * s + e2.getComponent(k) * p[2] * s; });
+}
+function chuteStep(dt) {
+  const r = rocket, c = r.ch, n = c.n, x = c.x, xp = c.xp, acc = c.acc, s = 0.2 + 0.8 * r.chOpen, N = CM.N, V = r.vel;
+  const up = T1.copy(r.pos).sub(CENTER), rr = up.length(); up.divideScalar(rr);
+  const alt = rr - R, rho = 1.2 * Math.exp(-Math.max(alt, 0) / ATM_SCALE), hg = alt - terrainAt(up), ux = up.x, uy = up.y, uz = up.z;
+  const g = gravAt(r.pos, T2), gx = g.x - r.aCap.x, gy = g.y - r.aCap.y, gz = g.z - r.aCap.z;   // gravidade menos a aceleração da cápsula (referencial dela)
+  const pa = T3.set(0, SH.len - r.cy, 0).applyQuaternion(r.q), px = pa.x, py = pa.y, pz = pa.z, NS = 3, h = dt / NS;
+  for (let st = 0; st < NS; st++) {
+    for (let i = 0; i < n; i++) { acc[i * 3] = gx; acc[i * 3 + 1] = gy; acc[i * 3 + 2] = gz; }
+    for (const t of c.tri) {   // pressão aerodinâmica em cada triângulo (vento relativo limitado a 25 m/s: o tecido é só visual/estável)
+      const a = t[0] * 3, b = t[1] * 3, d = t[2] * 3;
+      const ex = x[b] - x[a], ey = x[b + 1] - x[a + 1], ez = x[b + 2] - x[a + 2], fx = x[d] - x[a], fy = x[d + 1] - x[a + 1], fz = x[d + 2] - x[a + 2];
+      let nx = ey * fz - ez * fy, ny = ez * fx - ex * fz, nz = ex * fy - ey * fx;
+      const ar = Math.hypot(nx, ny, nz); if (ar < 1e-9) continue; nx /= ar; ny /= ar; nz /= ar;
+      let wx = -(V.x + (x[a] + x[b] + x[d] - xp[a] - xp[b] - xp[d]) / (3 * h)), wy = -(V.y + (x[a + 1] + x[b + 1] + x[d + 1] - xp[a + 1] - xp[b + 1] - xp[d + 1]) / (3 * h)), wz = -(V.z + (x[a + 2] + x[b + 2] + x[d + 2] - xp[a + 2] - xp[b + 2] - xp[d + 2]) / (3 * h));
+      const wl = Math.hypot(wx, wy, wz); if (wl > 25) { const k = 25 / wl; wx *= k; wy *= k; wz *= k; }
+      const vn = wx * nx + wy * ny + wz * nz, f = 0.5 * rho * 1.2 * (ar / 2) * Math.abs(vn) * vn / (3 * CM.MASS);
+      acc[a] += f * nx; acc[a + 1] += f * ny; acc[a + 2] += f * nz; acc[b] += f * nx; acc[b + 1] += f * ny; acc[b + 2] += f * nz; acc[d] += f * nx; acc[d + 1] += f * ny; acc[d + 2] += f * nz;
+    }
+    const h2 = h * h;
+    for (let i = 0; i < n * 3; i++) { const t0 = x[i]; x[i] += (x[i] - xp[i]) * 0.985 + acc[i] * h2; xp[i] = t0; }
+    for (let it = 0; it < 5; it++) {
+      for (const k of c.C) {   // costuras do tecido
+        const a = k[0] * 3, b = k[1] * 3, dx = x[b] - x[a], dy = x[b + 1] - x[a + 1], dz = x[b + 2] - x[a + 2], dl = Math.hypot(dx, dy, dz) || 1e-9, df = (dl - k[2] * s) / dl * 0.5;
+        x[a] += dx * df; x[a + 1] += dy * df; x[a + 2] += dz * df; x[b] -= dx * df; x[b + 1] -= dy * df; x[b + 2] -= dz * df;
+      }
+      for (let j = 0; j < N; j++) {   // cordas: só puxam
+        const i = (1 + (CM.RG - 1) * N + j) * 3, dx = x[i] - px, dy = x[i + 1] - py, dz = x[i + 2] - pz, dl = Math.hypot(dx, dy, dz), L = CM.L * s;
+        if (dl > L) { const f = L / dl; x[i] = px + dx * f; x[i + 1] = py + dy * f; x[i + 2] = pz + dz * f; }
+      }
+    }
+    for (let i = 0; i < n; i++) {   // chão: o tecido pousa sobre o relevo
+      const o = i * 3, hh = hg + x[o] * ux + x[o + 1] * uy + x[o + 2] * uz;
+      if (hh < 0.05) { const p = 0.05 - hh; x[o] += ux * p; x[o + 1] += uy * p; x[o + 2] += uz * p; xp[o] += (x[o] - xp[o]) * 0.3; xp[o + 1] += (x[o + 1] - xp[o + 1]) * 0.3; xp[o + 2] += (x[o + 2] - xp[o + 2]) * 0.3; }
+    }
+  }
+  const P = c.mesh.geometry.attributes.position.array; let o = 0;
+  for (const t of c.tri) for (let k = 0; k < 3; k++) { const i = t[k] * 3; P[o++] = x[i]; P[o++] = x[i + 1]; P[o++] = x[i + 2]; }
+  c.mesh.geometry.attributes.position.needsUpdate = true; c.mesh.geometry.computeVertexNormals();
+  const Lr = c.ropes.geometry.attributes.position.array;
+  for (let j = 0; j < N; j++) { const i = (1 + (CM.RG - 1) * N + j) * 3; Lr.set([x[i], x[i + 1], x[i + 2], px, py, pz], j * 6); }
+  c.ropes.geometry.attributes.position.needsUpdate = true; c.g.position.copy(r.pos);
 }
 function spawnRocket() {
   removeRocket();
   const m = buildRocketModel(), group = new THREE.Group(), inner = new THREE.Group();
   inner.add(m.s1); group.add(inner); scene.add(group);
-  const len = STAGES[0].h, cy = len / 2;
-  inner.position.y = -cy;
-  const shape = new Ammo.btCylinderShape(new Ammo.btVector3(ROCKET_R, len / 2, ROCKET_R));
-  shape.setMargin(margin);
-  pos.set(0, cy + PAD_TOP + START_H, 0); quat.set(0, 0, 0, 1);
-  const body = createRigidBody(group, shape, 700, pos, quat);
-  body.setFriction(0.9);
   rocket = {
-    group, inner, s1: m.s1, flame1: m.flame1, body, shape, mode: 'ammo',
-    pos: new THREE.Vector3(), vel: new THREE.Vector3(), q: new THREE.Quaternion(), wb: new THREE.Vector3(),
-    fuel: [STAGES[0].fuel], has: [true], len, cy, stageN: 0, active: 0,
-    engineOn: false, throttle: 0, sas: true, thrust: 0, landed: false, dead: false, emit: 0
+    group, inner, tankG: m.tank, flame2: m.flame2, tank: true, tfuel: TK.fuel, ny: TK.ny, flame1: m.flame1, light: m.light, ch: buildChute(), pos: new THREE.Vector3(0, SH.cy + 0.02, 0), vel: new THREE.Vector3(), q: new THREE.Quaternion(), wb: new THREE.Vector3(),
+    tgt: new THREE.Vector3(0, 1, 0), fuel: SH.fuel, rcs: SH.rcs, engineOn: false, throttle: 0, thrust: 0, sas: 1, asc: false, dead: false, landed: true, restT: 0,
+    heat: 0, qh: 0, qd: 0, gl: 0, chute: 0, chOpen: 0, cy: SH.cy, len: SH.len, dry: SH.dry, rcsT: [0, 0, 0], flash: 0, v0: new THREE.Vector3(), aCap: new THREE.Vector3()
   };
-  ammoRead();
-  softBallsActive = false;   // inicia SEM balões — pressione B para inflar
-  warpIdx = 0;
-  controls.target.copy(rocket.pos);
-  camera.position.set(rocket.pos.x - 16, rocket.pos.y + 2, rocket.pos.z + 24);
-  say('Pronto na plataforma. ESPAÇO acende o motor · B: balões');
+  rocket.cy = stackCy(rocket); rocket.len = SH.len - TK.bot; inner.position.y = -rocket.cy; rocket.pos.y = rocket.cy - TK.bot + 0.02;   // conjunto em pé: fundo do tanque no chão
+  {   // ao lado: um tanque simples e uma cápsula, soltos e parados no chão (só enfeite — o controlável é o foguete)
+    const place = (g, x) => {
+      const dir = new THREE.Vector3(x, R, 0).normalize(), th = terrainAt(dir);
+      g.position.copy(CENTER).addScaledVector(dir, R + th); g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir); scene.add(g);
+      debris.push({ g, pos: g.position, q: g.quaternion, vel: new THREE.Vector3(), w: new THREE.Vector3(), m: 300, rest: true });
+    };
+    place(buildPlainTank(), 3.4);
+    const pm = buildRocketModel(); pm.tank.parent.remove(pm.tank); pm.s1.remove(pm.flame1, pm.light); place(pm.s1, 5.2);
+  }
+  group.position.copy(rocket.pos); warpIdx = 0;
+  controls.target.copy(rocket.pos); camera.position.set(rocket.pos.x - 6, rocket.pos.y + 1.5, rocket.pos.z + 10);
+  say('Pronto. ESPAÇO acende o motor · B separa o tanque · M = subida automática');
 }
-function ammoRead() {
-  const r = rocket, b = r.body;
-  b.getMotionState().getWorldTransform(transformAux1);
-  const p = transformAux1.getOrigin(), q = transformAux1.getRotation();
-  r.pos.set(p.x(), p.y(), p.z()); r.q.set(q.x(), q.y(), q.z(), q.w());
-  const v = b.getLinearVelocity(), w = b.getAngularVelocity();
-  r.vel.set(v.x(), v.y(), v.z());
-  r.wb.set(w.x(), w.y(), w.z()).applyQuaternion(QI.copy(r.q).invert());
+const SAS_NAMES = ['DESLIGADO', 'ESTABILIZAR', 'PRÓGRADO', 'RETRÓGRADO', 'VERTICAL ↑', 'VERTICAL ↓'];
+const CP = [], CPT = [], CPALL = [], WF = new THREE.Vector3(), WT = new THREE.Vector3(), WV = new THREE.Vector3(), WR = new THREE.Vector3(), WN = new THREE.Vector3(), WU = new THREE.Vector3(), WA = new THREE.Vector3(), WD = new THREE.Vector3(), QINV = new THREE.Quaternion();
+(function () {   // pontos de contato do casco (relativos ao centro de massa): escudo térmico, cone e topo
+  const add = (x, y, z) => CP.push(new THREE.Vector3(x, y, z));   // referencial: base da cápsula (o contato subtrai o centro de massa)
+  add(0, 0.01, 0);
+  for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; add(Math.cos(a) * 0.495, 0.01, Math.sin(a) * 0.495); }
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; add(Math.cos(a) * 0.35, 0.3, Math.sin(a) * 0.35); }
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; add(Math.cos(a) * 0.2, 0.6, Math.sin(a) * 0.2); }
+  add(0, 0.73, 0);
+  const addT = (x, y, z) => CPT.push(new THREE.Vector3(x, y, z));   // tanque: borda da saia, pontas das aletas e paredes
+  for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; addT(Math.cos(a) * 0.52, TK.bot, Math.sin(a) * 0.52); }
+  for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2; addT(Math.cos(a) * 0.92, TK.bot, Math.sin(a) * 0.92); }
+  for (const y of [-0.4, -1.1, -1.8]) for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; addT(Math.cos(a) * 0.5, y, Math.sin(a) * 0.5); }
+  CPALL.push(...CP, ...CPT);
+})();
+const massNow = () => rocket.dry + rocket.fuel + rocket.rcs + (rocket.tank ? TK.dry + rocket.tfuel : 0);
+const clamp = THREE.MathUtils.clamp;
+
+function explode(why) {
+  const r = rocket; r.dead = true; r.group.visible = false; r.ch.g.visible = false; r.thrust = 0; r.light.intensity = 0; skyMat.uniforms.uEngI.value = 0;
+  for (let i = 0; i < 160; i++) { VV.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(80).addScaledVector(r.vel, 0.3); emit(r.pos, VV, 1.5 + Math.random() * 2.5); }
+  for (let i = 0; i < 70; i++) { VV.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(40).addScaledVector(r.vel, 0.2); emitS(r.pos, VV, 2.5 + Math.random() * 2.5, 1.2 + Math.random() * 1.6, 0.4, 5, 0.25, 0.25, 0.27); }
+  say(why + ' — R reinicia');
 }
 
-// Calcula força (FV, mundo) e torque (TV, corpo); consome combustível
-function loads(h) {
-  const r = rocket, vel = r.vel, alt = altOf(r.pos), m = massNow(), I = inertia(m);
-  const axis = T1.set(0, 1, 0).applyQuaternion(r.q);
-  FV.set(0, 0, 0); TV.set(0, 0, 0); r.thrust = 0;
-  const i = r.active, st = STAGES[i], pr = Math.exp(-Math.max(alt, 0) / ATM_SCALE);
-  if (thrusting()) {
-    const mdot = st.thrust / (st.ispVac * G0) * r.throttle;
-    r.thrust = mdot * (st.ispVac + (st.ispSL - st.ispVac) * pr) * G0;
-    r.fuel[i] = Math.max(0, r.fuel[i] - mdot * h);
-    FV.addScaledVector(axis, r.thrust);
-  }
-  const rho = 1.2 * pr, speed = vel.length();
-  let kd = 0;
-  if (rho > 1e-5 && speed > 0.5) {
-    const qd = 0.5 * rho * speed * speed, vh = T2.copy(vel).divideScalar(speed), c = axis.dot(vh);
-    FV.addScaledVector(vh, -qd * ROCKET_A * (0.25 + (1 - c * c)));                 // arrasto
-    T3.crossVectors(axis, vh).multiplyScalar(qd * ROCKET_A * 0.3 * r.len).applyQuaternion(QI.copy(r.q).invert());
-    TV.add(T3);                                                                    // estabilidade aerodinâmica (aletas)
-    kd = 3 * qd * ROCKET_A * (0.3 * r.len) ** 2 / Math.max(speed, 30);
-  }
-  const k = keys, w = [r.wb.x, r.wb.y, r.wb.z], Iv = [I.p, I.a, I.p];
-  const ax = [-((k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0)), (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0), -((k.KeyD ? 1 : 0) - (k.KeyA ? 1 : 0))];
-  const t = [TV.x - kd * w[0], TV.y, TV.z - kd * w[2]];
-  for (let n = 0; n < 3; n++) {
-    let a = ax[n] * ALPHA;
-    if (!ax[n] && r.sas) a = Math.max(-ALPHA, Math.min(ALPHA, -w[n] * 3));         // SAS: amortece rotação
-    t[n] += a * Iv[n];
-  }
-  TV.set(t[0], t[1], t[2]);
-}
-
-// Mola/amortecedor: testa vários pontos ao redor do corpo (topo, base, lados) contra o chão.
-// O ponto encostando recebe mola (empurra para fora) + amortecedor assimétrico => quica em qualquer lado.
-function suspension() {
-  const r = rocket;
-  if (Math.abs(r.pos.x) > 500 || Math.abs(r.pos.z) > 500) return;
-  const wW = T1.copy(r.wb).applyQuaternion(r.q);
-  const len = r.len;                          // altura total da cápsula
-  const R = ROCKET_R;                         // raio da cápsula
-  for (const [px, py, pz] of SUSP_PTS) {
-    // ponto de teste no referencial local: eixo Y é o eixo longo da cápsula
-    const lx = px * R, ly = py * len * 0.5, lz = pz * R;
-    const rel = T2.set(lx, ly, lz).applyQuaternion(r.q);  // posição do ponto no mundo, relativa ao CoM
-    const wy = r.pos.y + rel.y;               // altura Y do ponto no mundo
-    const comp = SUSP - (wy - PAD_TOP);
-    if (comp <= 0) continue;                   // ponto não encostou no chão
-    // velocidade do ponto (velocidade do CoM + omega x r)
-    const pv = T3.crossVectors(wW, rel).add(r.vel);
-    const x = Math.min(comp / SUSP, 1.5);
-    const f = SUSP_K * comp * (1 + 3 * x * x) - (pv.y < 0 ? SUSP_C : SUSP_C * 0.2) * pv.y;
-    if (f <= 0) continue;
-    fTmp.setValue(0, f, 0); rTmp.setValue(rel.x, rel.y, rel.z);
-    r.body.applyForce(fTmp, rTmp);            // força para cima no ponto
-  }
-}
-
-function stepAmmo() {
-  // Gravidade radial: g = GM / r², apontando para o centro do planeta
-  for (const o of rigidBodies) {
-    const dx = CENTER.x - o.position.x, dy = CENTER.y - o.position.y, dz = CENTER.z - o.position.z;
-    const rr = Math.hypot(dx, dy, dz), g = GM / (rr * rr) / rr;
-    gTmp.setValue(dx * g, dy * g, dz * g);
-    o.userData.physicsBody.setGravity(gTmp);
-  }
-  const r = rocket;
-  if (r && r.mode === 'ammo' && !r.dead) {
-    ammoRead(); loads(FIXED);
-    const m = massNow();
-    r.shape.calculateLocalInertia(m, iTmp); r.body.setMassProps(m, iTmp); r.body.updateInertiaTensor();
-    fTmp.setValue(FV.x, FV.y, FV.z); r.body.applyCentralForce(fTmp);
-    TV.applyQuaternion(r.q); fTmp.setValue(TV.x, TV.y, TV.z); r.body.applyTorque(fTmp);
-    if (softBallsActive) suspension();       // só com balões inflados!
-  }
-  physicsWorld.stepSimulation(FIXED, 1, FIXED);
-}
-
-// Integração em dupla precisão (voo livre / órbita)
+// Um subpasso de física (h em segundos)
 function jsSub(h) {
-  const r = rocket;
-  loads(h);
-  const m = massNow(), I = inertia(m);
-  const g0 = gravAt(r.pos, T1), a0 = T2.copy(FV).divideScalar(m).add(g0);
+  const r = rocket, q = r.q, k = keys;
+  if (r.tank && r.tfuel <= 0) sepTank('Tanque vazio — separado');
+  r.cy = stackCy(r); r.len = r.tank ? SH.len - TK.bot : SH.len;
+  const m = massNow(), E = r.tank ? TK : SH;
+  const Ip = m * (0.25 * ROCKET_R ** 2 + r.len ** 2 / 12), Ia = 0.5 * m * ROCKET_R ** 2;
+  const up = WU.copy(r.pos).sub(CENTER), rr = up.length(); up.divideScalar(rr);
+  const alt = rr - R, pr = Math.exp(-Math.max(alt, 0) / ATM_SCALE), rho = 1.2 * pr;
+  const ax = WA.set(0, 1, 0).applyQuaternion(q), g0 = gravAt(r.pos, T1);
+  if (r.landed) {   // parado no chão: só decola se o empuxo vencer o peso
+    if (!(r.engineOn && r.throttle > 0 && fuelNow(r) > 0 && E.thrust * r.throttle / m > g0.length() * 1.02)) { r.thrust = 0; r.qh = 0; r.qd = 0; r.rcsT[0] = r.rcsT[1] = r.rcsT[2] = 0; r.vel.set(0, 0, 0); r.wb.set(0, 0, 0); return; }
+    r.landed = false; r.restT = 0;
+  }
+  WF.set(0, 0, 0); WT.set(0, 0, 0); QINV.copy(q).invert();
+  // ---- motor ----
+  r.thrust = 0;
+  if (r.engineOn && r.throttle > 0 && fuelNow(r) > 0) {
+    r.thrust = E.thrust * r.throttle * (E.ispSL + (E.ispVac - E.ispSL) * (1 - pr)) / E.ispVac;
+    const burn = E.thrust * r.throttle / (E.ispVac * G0) * h;
+    if (r.tank) r.tfuel = Math.max(0, r.tfuel - burn); else r.fuel = Math.max(0, r.fuel - burn);
+    WF.addScaledVector(ax, r.thrust);
+    if (!r.tank && r.fuel <= 0) { r.engineOn = false; r.thrust = 0; r.asc = false; say('Combustível esgotado'); }
+  }
+  // ---- aerodinâmica: c = +1 ponta à frente · −1 escudo térmico à frente ----
+  const sp = r.vel.length(); r.qd = 0; r.qh = 0;
+  if (rho > 1e-6 && sp > 0.3) {
+    const vh = WV.copy(r.vel).divideScalar(sp), c = ax.dot(vh), s2 = 1 - c * c, qd = 0.5 * rho * sp * sp, A = ROCKET_A;
+    r.qd = qd;
+    WF.addScaledVector(vh, -qd * A * (0.81 - 0.49 * c + 0.8 * s2));                           // arrasto: ponta 0,32 · escudo 1,3 · de lado mais
+    WR.crossVectors(ax, vh).multiplyScalar(r.tank ? qd * A * 0.6 : -qd * A * 0.18).applyQuaternion(QINV);          // estabilidade: tende a virar o escudo para o vento (instável ponta-primeiro)
+    WT.add(WR);
+    let kd = 2 * qd * A * 0.04 / Math.max(sp, 30);
+    if (r.chute === 1) {
+      r.chOpen = Math.min(1, r.chOpen + h / 4); const ck = r.chOpen * r.chOpen;
+      WF.addScaledVector(vh, -qd * 150 * ck);                                              // paraquedas: CdA 150 m²
+      WR.crossVectors(ax, vh).multiplyScalar(qd * 40 * ck).applyQuaternion(QINV); WT.add(WR);   // pendura a cápsula pela ponta
+      kd += qd * 40 * ck * 0.5 / Math.max(sp, 10);
+    }
+    WT.x -= kd * r.wb.x; WT.y -= kd * r.wb.y; WT.z -= kd * r.wb.z;
+    if (qd * Math.sqrt(s2) > 28000) { explode('Estrutura rompida (ângulo de ataque alto em pressão máxima)'); return; }
+    // aquecimento: Sutton–Graves, MW/m²; o escudo protege só quando está virado para o vento
+    const fq = 1.7415e-4 * Math.sqrt(rho / 1.5) * sp ** 3 * 1e-6, sh = clamp((-c - 0.2) / 0.8, 0, 1);
+    r.qh = fq; r.heat += Math.max(0, fq - 0.5) * 0.008 * (1 + 6 * (1 - sh)) * h;
+  }
+  r.heat *= Math.exp(-0.02 * h);
+  if (r.heat >= 1) { explode('Queimou na reentrada'); return; }
+  // ---- controle de atitude: SAS + gimbal + RCS ----
+  const u = [-((k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0)), (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0), -((k.KeyD ? 1 : 0) - (k.KeyA ? 1 : 0))];
+  const gim = r.thrust * 0.1 * (r.cy - r.ny), rcsAv = r.rcs > 0 ? (r.tank ? 1500 : 320) : 0, I3 = [Ip, Ia, Ip], w = [r.wb.x, r.wb.y, r.wb.z], ad = [0, 0, 0];
+  const tau = [0, 0, 0];
+  if (r.sas > 0) {
+    let D = null;
+    if (r.sas === 1) { if (u[0] || u[2]) r.tgt.copy(ax); D = r.tgt; }
+    else if (r.sas === 2) D = sp > 2 ? WD.copy(r.vel).divideScalar(sp) : up;
+    else if (r.sas === 3) D = sp > 2 ? WD.copy(r.vel).divideScalar(-sp) : up;
+    else D = r.sas === 4 ? up : WD.copy(up).negate();
+    WR.crossVectors(ax, D); const sl = WR.length(), phi = Math.atan2(sl, ax.dot(D));
+    if (sl > 1e-6) WR.multiplyScalar(phi / sl); else WR.set(0, 0, 0);
+    WR.applyQuaternion(QINV);
+    const ev = [WR.x, 0, WR.z];
+    for (let i = 0; i < 3; i++) {
+      const wd = u[i] ? u[i] * 0.9 : i === 1 ? 0 : clamp(ev[i] * 1.5, -0.9, 0.9);
+      const am = ((i === 1 ? 0 : gim * r.throttle) + rcsAv) / I3[i];
+      ad[i] = clamp((wd - w[i]) * 6, -am, am);
+    }
+  } else for (let i = 0; i < 3; i++) ad[i] = u[i] * ((i === 1 ? 0 : gim * r.throttle) + rcsAv) * 0.5 / I3[i];
+  for (let i = 0; i < 3; i++) {
+    const t = ad[i] * I3[i], gm = i === 1 ? 0 : gim * r.throttle, tg = clamp(t, -gm, gm), tr = t - tg;   // gimbal primeiro, RCS completa
+    tau[i] = t; r.rcsT[i] = rcsAv ? tr : 0;
+    if (rcsAv && tr) r.rcs = Math.max(0, r.rcs - Math.abs(tr) * 0.00077 * h);
+  }
+  WT.x += tau[0]; WT.y += tau[1]; WT.z += tau[2];
+  // ---- contato com o relevo: molas + amortecedor + atrito de Coulomb em cada ponto do casco ----
+  let touching = 0;
+  if (alt - terrainAt(up) < (r.tank ? 4.5 : 1.3)) {
+    terrainNormal(up, WN);
+    const wW = WD.copy(r.wb).applyQuaternion(q), kp = m * 100;
+    let maxIn = 0;
+    for (const P of (r.tank ? CPALL : CP)) {
+      WR.set(P.x, P.y - r.cy, P.z).applyQuaternion(q);
+      const px = r.pos.x + WR.x - CENTER.x, py = r.pos.y + WR.y - CENTER.y, pz = r.pos.z + WR.z - CENTER.z, d = Math.sqrt(px * px + py * py + pz * pz);
+      T2.set(px / d, py / d, pz / d);
+      const pen = R + terrainAt(T2) - d;
+      if (pen <= 0) continue;
+      touching++;
+      WV.crossVectors(wW, WR).add(r.vel);
+      const vn = WV.dot(WN), N = Math.max(0, kp * pen - 7.5 * m * vn);   // amortecimento forte e simétrico (≥ crítico): cai duro, não quica
+      if (-vn > maxIn) maxIn = -vn;
+      WV.addScaledVector(WN, -vn); const vt = WV.length(), f = vt > 1e-6 ? 0.8 * N * Math.tanh(vt / 0.15) / vt : 0;
+      T3.copy(WN).multiplyScalar(N).addScaledVector(WV, -f);
+      WF.add(T3); T4.crossVectors(WR, T3).applyQuaternion(QINV); WT.add(T4);
+    }
+    if (maxIn > 13) { explode('Impacto a ' + maxIn.toFixed(0) + ' m/s'); return; }
+  }
+  // ---- integração (velocity-Verlet com gravidade radial) ----
+  const a0 = T2.copy(WF).divideScalar(m).add(g0);
+  r.gl = WF.length() / m / G0;
   r.pos.addScaledVector(r.vel, h).addScaledVector(a0, 0.5 * h * h);
   const g1 = gravAt(r.pos, T3), a1 = T4.copy(a0).sub(g0).add(g1);
   r.vel.addScaledVector(a0, 0.5 * h).addScaledVector(a1, 0.5 * h);
-  r.wb.x += TV.x / I.p * h; r.wb.y += TV.y / I.a * h; r.wb.z += TV.z / I.p * h;
+  r.wb.x += (WT.x - (Ia - Ip) * r.wb.y * r.wb.z) / Ip * h; r.wb.y += WT.y / Ia * h; r.wb.z += (WT.z - (Ip - Ia) * r.wb.x * r.wb.y) / Ip * h;
   const wl = r.wb.length();
-  if (wl > 1e-8) { Q2.setFromAxisAngle(T1.copy(r.wb).divideScalar(wl), wl * h); r.q.multiply(Q2).normalize(); }
-  if (altOf(r.pos) > r.len + 5) { r.landed = false; return; }
-  // contato com o chão (esfera do planeta)
-  const ax = T1.set(0, 1, 0).applyQuaternion(r.q), bp = T2.copy(r.pos).addScaledVector(ax, -r.cy);
-  const n = T3.copy(bp).sub(CENTER), d = n.length(); n.divideScalar(d);
-  const pen = R - d;
-  if (pen > 0) {
-    const vn = r.vel.dot(n);
-    if (!r.landed) {
-      if (vn > 0) { r.pos.addScaledVector(n, pen); return; }   // já separando após um quique
-      const tilt = Math.acos(Math.min(1, ax.dot(n))), impact = -vn;
-      if (impact > 14 || (tilt > 0.7 && impact > 3)) { explode(); return; }
-      if (impact > 2.5) {                                      // quica
-        r.pos.addScaledVector(n, pen);
-        r.vel.addScaledVector(n, -vn * (1 + BOUNCE_E));
-        r.wb.multiplyScalar(0.7);
-        return;
-      }
-      r.landed = true; say('Pouso confirmado');
-    }
-    r.pos.addScaledVector(n, pen);
-    if (vn < 0) r.vel.addScaledVector(n, -vn);
-    const vnn = r.vel.dot(n);
-    T4.copy(r.vel).addScaledVector(n, -vnn).multiplyScalar(Math.exp(-4 * h));
-    r.vel.copy(n).multiplyScalar(vnn).add(T4);
-    r.wb.multiplyScalar(Math.exp(-6 * h));
-    if (r.thrust === 0) {   // assenta na vertical
-      Q2.setFromUnitVectors(ax, n).multiply(r.q);
-      r.q.slerp(Q2, 1 - Math.exp(-2 * h));
-    }
-  } else if (pen < -0.3) r.landed = false;
+  if (wl > 1e-8) { Q2.setFromAxisAngle(T1.copy(r.wb).divideScalar(wl), wl * h); q.multiply(Q2).normalize(); }
+  if (touching) {   // repouso: só congela depois de parar de verdade (0,4 s)
+    r.wb.multiplyScalar(Math.exp(-0.5 * h));
+    if (r.thrust === 0 && r.vel.length() < 0.12 && r.wb.length() < 0.08) { r.restT += h; if (r.restT > 0.4) { r.landed = true; say('Pouso confirmado'); } } else r.restT = 0;
+  } else r.restT = 0;
 }
 
-function explode() {
-  const r = rocket; r.dead = true; r.group.visible = false; r.thrust = 0;
-  for (let i = 0; i < 160; i++) {
-    VV.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(80).addScaledVector(r.vel, 0.3);
-    emit(r.pos, VV, 1.5 + Math.random() * 2.5);
+// Subida automática: vertical → inclina para o leste (+X) com a altitude, corta o motor ao atingir o apoastro-alvo
+function ascent() {
+  const r = rocket, alt = altOf(r.pos), up = T1.copy(r.pos).sub(CENTER).normalize();
+  const hd = T2.set(1, 0, 0).addScaledVector(up, -up.x).normalize(), th = Math.min(1.5, Math.PI / 2 * Math.sqrt(clamp((alt - 800) / 50000, 0, 1)));
+  r.sas = 1; r.tgt.copy(up).multiplyScalar(Math.cos(th)).addScaledVector(hd, Math.sin(th)).normalize();
+  const o = orbit(); r.engineOn = true;
+  r.throttle = o && alt > 2000 ? clamp((110000 - o.ap) / 25000, 0.05, 1) : 1;
+  if (o && o.ap > 110000 && alt > 20000) { r.asc = false; r.engineOn = false; r.sas = 2; say('Apoastro de 110 km: motor cortado — circularize no apoastro (prógrado)'); }
+}
+function orbit() {
+  const r = rocket, rv = T3.copy(r.pos).sub(CENTER), rr = rv.length(), eps = r.vel.lengthSq() / 2 - GM / rr;
+  if (eps >= 0) return null;
+  const up = T4.copy(rv).divideScalar(rr), hv = WV.crossVectors(rv, r.vel), a = -GM / (2 * eps), e = WD.crossVectors(r.vel, hv).divideScalar(GM).addScaledVector(up, -1).length();
+  return { ap: a * (1 + e) - R, pe: a * (1 - e) - R, e };
+}
+
+function rocketFx(dt) {   // RCS, plasma de reentrada e paraquedas (usam o sistema de partículas de fogo)
+  const r = rocket, rnd = Math.random;
+  for (let i = 0; i < 3; i++) {
+    const t = r.rcsT[i]; if (Math.abs(t) < 40) continue;
+    WA.set(i === 0 ? 1 : 0, i === 1 ? 1 : 0, i === 2 ? 1 : 0);
+    for (let n = 0; n < 3; n++) {
+      const s = rnd() < 0.5 ? 1 : -1;
+      WR.set(i === 0 ? 0 : 1, 0, i === 0 ? 1 : 0).multiplyScalar(s);                // direção p̂ do propulsor (plano ⟂ eixo)
+      if (i === 2) WR.set(1, 0, 0).multiplyScalar(s);
+      WD.crossVectors(WA, WR).multiplyScalar(Math.sign(t));                          // força do propulsor
+      T1.copy(WR).multiplyScalar(0.5).add(T3.set(0, i === 1 ? 0 : 0.35 - r.cy, 0)).applyQuaternion(r.q).add(r.pos);
+      T2.copy(WD).multiplyScalar(-26).applyQuaternion(r.q).add(r.vel);
+      emitF(T1, T2, 0.12 + rnd() * 0.12, 0.05 + rnd() * 0.05, 0.6, 1.2);
+    }
   }
-  say('Foguete destruído — pressione R para reiniciar');
+  if (r.qh > 0.2) {   // plasma atrás do escudo térmico
+    const n = Math.min(120, 60 * r.qh) * dt * 60;
+    for (let i = 0; i < n; i++) {
+      T1.set(rnd() - 0.5, 0, rnd() - 0.5).multiplyScalar(1.1).sub(T2.set(0, r.cy + 0.05, 0)); T1.applyQuaternion(r.q).add(r.pos).addScaledVector(r.vel, -rnd() * dt);
+      T2.copy(r.vel).multiplyScalar(0.03).add(VV.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).multiplyScalar(6));
+      emitF(T1, T2, 0.4 + rnd() * 0.6, 0.5 + rnd() * 0.7, 0.55, 1.6);
+    }
+  }
+  r.light.color.setHex(r.qh > 0.2 && !r.thrust ? 0xff7a30 : 0xff9a50);
+  if (r.qh > 0.2 && !r.thrust) r.light.intensity = Math.min(9, r.qh * 4) * (0.85 + 0.3 * rnd());
+  r.ch.g.visible = r.chute === 1;
+  if (r.chute === 1) chuteStep(dt);
 }
 
-function doStage() {
+// Separa o tanque: ele vira um corpo livre (gravidade, arrasto, pousa/cai no relevo) e a cápsula passa a ter só o próprio motor
+function sepTank(why) {
+  const r = rocket; if (!r || r.dead) return;
+  if (!r.tank) return say('Não há tanque para separar');
+  const mc = r.dry + r.fuel + r.rcs, mt = TK.dry + r.tfuel, M = mc + mt, ax = new THREE.Vector3(0, 1, 0).applyQuaternion(r.q), wW = r.wb.clone().applyQuaternion(r.q);
+  const tp = new THREE.Vector3(0, TK.cm - r.cy, 0).applyQuaternion(r.q);
+  const tv = new THREE.Vector3().crossVectors(wW, tp).add(r.vel).addScaledVector(ax, -3 * mc / M);   // mola de separação: 3 m/s relativos (conserva momento)
+  const dg = new THREE.Group(); r.tankG.parent.remove(r.tankG); r.tankG.position.y = -TK.cm; dg.add(r.tankG);
+  dg.position.copy(r.pos).add(tp); dg.quaternion.copy(r.q); scene.add(dg);
+  debris.push({ g: dg, pos: dg.position, q: dg.quaternion, vel: tv, w: wW, m: mt, rest: false });
+  const np = new THREE.Vector3(0, SH.cy - r.cy, 0).applyQuaternion(r.q);
+  r.pos.add(np); r.vel.add(new THREE.Vector3().crossVectors(wW, np)).addScaledVector(ax, 3 * mt / M);
+  r.tank = false; r.cy = SH.cy; r.len = SH.len; r.ny = 0; r.landed = false; r.restT = 0; r.flame2.visible = false;
+  r.engineOn = false; r.inner.position.y = -SH.cy; r.group.position.copy(r.pos);
+  say(why + ' — ESPAÇO acende o motor da cápsula');
+}
+const DU = new THREE.Vector3(), DG = new THREE.Vector3(), DA = new THREE.Vector3(), DB = new THREE.Vector3();
+function stepDebris(dt) {
+  if (!debris.length) return;
+  const total = dt * WARPS[warpIdx], n = Math.min(Math.ceil(total / 0.05), 200), h = total / n;
+  for (const d of debris) {
+    for (let i = 0; i < n && !d.rest; i++) {
+      DU.copy(d.pos).sub(CENTER); const rr = DU.length(); DU.divideScalar(rr);
+      const alt = rr - R, rho = 1.2 * Math.exp(-Math.max(alt, 0) / ATM_SCALE), sp = d.vel.length();
+      gravAt(d.pos, DG);
+      d.vel.multiplyScalar(1 - Math.min(0.5, 0.5 * rho * sp * 0.8 * h / d.m)).addScaledVector(DG, h);
+      d.pos.addScaledVector(d.vel, h);
+      const wl = d.w.length(); if (wl > 1e-6) { Q2.setFromAxisAngle(DB.copy(d.w).divideScalar(wl), wl * h); d.q.premultiply(Q2).normalize(); }
+      DU.copy(d.pos).sub(CENTER); const r2 = DU.length(); DU.divideScalar(r2);
+      const th = terrainAt(DU);
+      if (r2 - R - th < 0.6) {   // bateu no chão: fica deitado sobre o relevo
+        d.pos.copy(CENTER).addScaledVector(DU, R + th + 0.55);
+        DA.set(0, 1, 0).applyQuaternion(d.q); DA.addScaledVector(DU, -DA.dot(DU));
+        if (DA.lengthSq() < 1e-6) DA.set(1, 0, 0).addScaledVector(DU, -DU.x);
+        DA.normalize(); DB.set(0, 1, 0).applyQuaternion(d.q); Q2.setFromUnitVectors(DB, DA); d.q.premultiply(Q2).normalize();
+        d.vel.set(0, 0, 0); d.w.set(0, 0, 0); d.rest = true;
+      }
+    }
+  }
+}
+function toggleEngine() {
+  const r = rocket; if (!r || r.dead) return;
+  if (r.engineOn) { r.engineOn = false; r.asc = false; say('Motor desligado'); }
+  else if (fuelNow(r) > 0) { r.engineOn = true; if (r.throttle < 0.05) r.throttle = 1; say('Ignição'); }
+}
+function chuteKey() {
   const r = rocket;
-  if (!r || r.dead) return;
-  if (r.stageN === 0) { r.stageN = 1; r.engineOn = true; r.active = 0; r.throttle = 1; say('Ignição'); }
+  if (r.chute === 0) {
+    if (r.tank) return say('Separe o tanque antes (B)');
+    if (altOf(r.pos) > 9000) return say('Alto demais para o paraquedas (máx. 9 km)');
+    if (r.vel.length() > 340) return say('Rápido demais para o paraquedas (máx. 340 m/s)');
+    r.chute = 1; r.chOpen = 0; chuteInit(r); say('Paraquedas aberto');
+  } else if (r.chute === 1) { r.chute = 2; r.chOpen = 0; say('Paraquedas cortado'); }
 }
 
 function updateRocket(dt) {
   msg.t -= dt;
+  stepDebris(dt);
   const r = rocket;
   if (!r || r.dead) return;
-  if (keys.ShiftLeft || keys.ShiftRight) r.throttle = Math.min(1, r.throttle + 0.6 * dt);
-  if (keys.ControlLeft || keys.ControlRight) r.throttle = Math.max(0, r.throttle - 0.6 * dt);
-  let wp = 1;
-  if (r.mode === 'ammo') {
-    ammoRead();
-    if (altOf(r.pos) > 600 || Math.hypot(r.pos.x, r.pos.z) > 450) {
-      removeSoftBalls(); softBallsActive = false;
-      physicsWorld.removeRigidBody(r.body); rigidBodies.splice(rigidBodies.indexOf(r.group), 1);
-      r.mode = 'js'; say('Voo livre: física em dupla precisão (bolas destacadas)');
-    }
-  } else {
-    wp = WARPS[warpIdx];
-    if (wp > 1 && (thrusting() || altOf(r.pos) < ATM_H)) { warpIdx = 0; wp = 1; }
-    const total = dt * wp, n = Math.min(Math.ceil(total / (wp > 1 ? 2 : 1 / 30)), 400), h = total / n;
-    for (let i = 0; i < n && !r.dead; i++) jsSub(h);
-    if (r.dead) return;
-    r.group.position.copy(r.pos); r.group.quaternion.copy(r.q);
-  }
-  // chama e fumaça
-  const on = r.thrust > 0, pr = Math.exp(-Math.max(altOf(r.pos), 0) / ATM_SCALE);
-  r.flame1.visible = on;
-  const fl = r.flame1;
-  if (fl.visible) fl.scale.set(1 + 0.2 * Math.random(), (2 + 2.5 * (1 - pr)) * Math.sqrt(r.throttle) * (0.85 + 0.3 * Math.random()), 1 + 0.2 * Math.random());
-  if (on && wp === 1) {
-    const axis = T1.set(0, 1, 0).applyQuaternion(r.q), ny = -r.cy;
-    r.emit += (60 + 140 * pr) * r.throttle * dt;
-    while (r.emit >= 1) {
-      r.emit--;
-      PV.copy(r.pos).addScaledVector(axis, ny - 0.5).add(T2.set(Math.random() - 0.5, 0, Math.random() - 0.5).multiplyScalar(0.4));
-      VV.copy(r.vel).addScaledVector(axis, -(35 + Math.random() * 30)).add(T3.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(8));
-      emit(PV, VV, 1.2 + Math.random() * 1.8);
-    }
-  }
+  if (keys.ShiftLeft || keys.ShiftRight) { r.throttle = Math.min(1, r.throttle + 0.6 * dt); r.asc = false; }
+  if (keys.ControlLeft || keys.ControlRight) { r.throttle = Math.max(0, r.throttle - 0.6 * dt); r.asc = false; }
+  if (r.asc && (keys.KeyW || keys.KeyS || keys.KeyA || keys.KeyD)) { r.asc = false; say('Subida automática desligada'); }
+  if (r.asc) ascent();
+  let wp = WARPS[warpIdx];
+  if (wp > 1 && (r.thrust > 0 || r.asc || r.chute === 1 || altOf(r.pos) < ATM_H)) { warpIdx = 0; wp = 1; }
+  const total = dt * wp, base = wp > 1 ? 2 : altOf(r.pos) < 30 ? 1 / 240 : 1 / 120, n = Math.min(Math.ceil(total / base), 400), h = total / n;
+  r.v0.copy(r.vel);
+  for (let i = 0; i < n && !r.dead; i++) jsSub(h);
+  if (r.dead) return;
+  r.aCap.copy(r.vel).sub(r.v0).divideScalar(dt); if (r.aCap.length() > 30) r.aCap.setLength(30);
+  r.group.position.copy(r.pos); r.group.quaternion.copy(r.q); r.inner.position.y = -r.cy;
+  exhaust(dt, wp);
+  if (wp === 1) rocketFx(dt);
 }
 
-// ---- Partículas (escapamento / explosão), relativas a uma âncora para manter precisão ----
-function initParticles() {
-  const geo = new THREE.BufferGeometry(), pp = new Float32Array(NP * 3), col = new Float32Array(NP * 4);
-  geo.setAttribute('position', new THREE.BufferAttribute(pp, 3).setUsage(THREE.DynamicDrawUsage));
-  geo.setAttribute('color', new THREE.BufferAttribute(col, 4).setUsage(THREE.DynamicDrawUsage));
-  const c = document.createElement('canvas'); c.width = c.height = 64;
-  const g = c.getContext('2d'), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.5, map: new THREE.CanvasTexture(c), vertexColors: true, transparent: true, depthWrite: false }));
-  pts.frustumCulled = false; scene.add(pts);
-  particles = { pts, geo, pos: pp, col, vel: new Float32Array(NP * 3), age: new Float32Array(NP).fill(99), life: new Float32Array(NP).fill(1), anchor: new THREE.Vector3(), next: 0 };
-}
-function emit(p, v, life) {
-  const P = particles, i = P.next; P.next = (i + 1) % NP;
-  P.pos[i * 3] = p.x - P.anchor.x; P.pos[i * 3 + 1] = p.y - P.anchor.y; P.pos[i * 3 + 2] = p.z - P.anchor.z;
-  P.vel[i * 3] = v.x; P.vel[i * 3 + 1] = v.y; P.vel[i * 3 + 2] = v.z;
-  P.age[i] = 0; P.life[i] = life;
-}
-function updateParticles(dt) {
-  const P = particles;
-  if (!P) return;
-  const f = rocket && !rocket.dead ? rocket.pos : null;
-  if (f && f.distanceTo(P.anchor) > 500) {
-    T1.copy(f).sub(P.anchor);
-    for (let i = 0; i < NP; i++) { P.pos[i * 3] -= T1.x; P.pos[i * 3 + 1] -= T1.y; P.pos[i * 3 + 2] -= T1.z; }
-    P.anchor.copy(f); P.pts.position.copy(f);
-  }
-  const k = Math.max(0, 1 - 1.2 * dt);
-  for (let i = 0; i < NP; i++) {
-    const a = P.age[i], c = i * 4;
-    if (a >= P.life[i]) { P.col[c + 3] = 0; continue; }
-    P.age[i] = a + dt;
-    for (let j = 0; j < 3; j++) { P.vel[i * 3 + j] *= k; P.pos[i * 3 + j] += P.vel[i * 3 + j] * dt; }
-    const t = a / P.life[i], s = Math.min(1, t * 3);
-    P.col[c] = 1 - 0.55 * s; P.col[c + 1] = 0.75 - 0.3 * s; P.col[c + 2] = 0.3 + 0.15 * s; P.col[c + 3] = 0.85 * (1 - t) * (1 - t);
-  }
-  P.geo.attributes.position.needsUpdate = true; P.geo.attributes.color.needsUpdate = true;
-}
-
-function dvEst() {
-  const r = rocket; let m = massNow(), dv = 0;
-  for (let i = 0; i < 1; i++) {
-    if (!r.has[i]) continue;
-    const f = r.fuel[i];
-    if (f > 0) dv += STAGES[i].ispVac * G0 * Math.log(m / (m - f));
-  }
-  return dv;
-}
 function hudText() {
-  const r = rocket, st = STAGES[r.active];
-  const rv = T1.copy(r.pos).sub(CENTER), rr = rv.length(), up = T2.copy(rv).divideScalar(rr);
-  const alt = rr - R, sp = r.vel.length(), vv = r.vel.dot(up);
-  const hv = T3.crossVectors(rv, r.vel), eps = sp * sp / 2 - GM / rr;
-  let orb = 'Órbita: trajetória de escape';
-  if (eps < 0) {
-    const a = -GM / (2 * eps), e = T4.crossVectors(r.vel, hv).divideScalar(GM).addScaledVector(up, -1).length();
-    orb = `Ap ${km(a * (1 + e) - R)} · Pe ${km(a * (1 - e) - R)} · e ${e.toFixed(2)}`;
-  }
-  const m = massNow(), pr = Math.exp(-Math.max(alt, 0) / ATM_SCALE);
-  const fmax = r.has[r.active] ? st.thrust * (pr * st.ispSL + (1 - pr) * st.ispVac) / st.ispVac : 0;
-  const stg = r.stageN === 0 ? 'na plataforma — ESPAÇO acende o motor' : 'em voo';
-  const fuel = r.has[r.active] ? Math.round(100 * r.fuel[r.active] / st.fuel) : 0;
+  const r = rocket, rv = T1.copy(r.pos).sub(CENTER), rr = rv.length(), up = T2.copy(rv).divideScalar(rr), alt = rr - R, sp = r.vel.length(), vv = r.vel.dot(up);
+  const o = orbit(), m = massNow(), pr = Math.exp(-Math.max(alt, 0) / ATM_SCALE);
+  const E = r.tank ? TK : SH, twr = E.thrust * (pr * E.ispSL + (1 - pr) * E.ispVac) / E.ispVac / (m * GM / (rr * rr));
+  const mc = r.dry + r.fuel + r.rcs, dvC = SH.ispVac * G0 * Math.log(mc / (mc - r.fuel)), dv = r.tank ? TK.ispVac * G0 * Math.log(m / (m - r.tfuel)) + dvC : dvC;
+  const st = r.landed ? (r.engineOn ? 'no chão' : 'no chão — ESPAÇO acende o motor') : 'em voo';
   return [
-    `ALT ${km(alt)}   VEL ${sp.toFixed(0)} m/s   V.VERT ${vv.toFixed(0)} m/s`,
-    orb,
-    `ACEL ${(r.throttle * 100).toFixed(0)}%   TWR ${(fmax / (m * GM / (rr * rr))).toFixed(2)}   COMB ${fuel}%   ΔV ${dvEst().toFixed(0)} m/s`,
-    `${stg}${r.sas ? '   SAS' : ''}${warpIdx ? '   WARP x' + WARPS[warpIdx] : ''}`,
+    `ALT ${km(alt)}   VEL ${sp.toFixed(0)} m/s   V.VERT ${vv.toFixed(0)} m/s   ${r.gl.toFixed(1)} g`,
+    o ? `Ap ${km(o.ap)} · Pe ${km(o.pe)} · e ${o.e.toFixed(2)}` : 'Órbita: trajetória de escape',
+    `ACEL ${(r.throttle * 100).toFixed(0)}%${r.engineOn ? ' ●' : ''}   TWR ${twr.toFixed(2)}   ${r.tank ? 'TANQUE ' + (100 * r.tfuel / TK.fuel).toFixed(0) + '%   ' : ''}COMB ${(100 * r.fuel / SH.fuel).toFixed(0)}%   RCS ${(100 * r.rcs / SH.rcs).toFixed(0)}%   Δv ${dv.toFixed(0)} m/s`,
+    `Q ${(r.qd / 1000).toFixed(1)} kPa   CALOR ${(r.heat * 100).toFixed(0)}%${r.qh > 0.2 ? ' ▲' : ''}   ${st}`,
+    `SAS ${SAS_NAMES[r.sas]}${r.asc ? '   SUBIDA AUTO' : ''}${r.chute === 1 ? '   PARAQUEDAS' : ''}${warpIdx ? '   WARP x' + WARPS[warpIdx] : ''}`,
     msg.t > 0 ? '» ' + msg.text : ''
   ].join('\n');
+}
+
+const PU = { uScale: { value: 900 } };
+const PVS = `
+attribute vec4 aCol; attribute float aSize;
+varying vec4 vC;
+uniform float uScale;
+#include <common>
+#include <logdepthbuf_pars_vertex>
+void main(){
+  vC = aCol;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * mv;
+  gl_PointSize = clamp(aSize * uScale / max(-mv.z, 0.05), 0.0, 256.0);
+  #include <logdepthbuf_vertex>
+}`;
+const PFS = `
+varying vec4 vC;
+#include <logdepthbuf_pars_fragment>
+void main(){
+  #include <logdepthbuf_fragment>
+  vec2 d = gl_PointCoord - 0.5;
+  float a = clamp(1.0 - dot(d, d)*4.0, 0.0, 1.0);
+  gl_FragColor = vec4(vC.rgb, vC.a*a*a);
+}`;
+function mkPS(N, additive) {
+  const geo = new THREE.BufferGeometry(), pos = new Float32Array(N * 3), col = new Float32Array(N * 4), siz = new Float32Array(N);
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute('aCol', new THREE.BufferAttribute(col, 4).setUsage(THREE.DynamicDrawUsage));
+  geo.setAttribute('aSize', new THREE.BufferAttribute(siz, 1).setUsage(THREE.DynamicDrawUsage));
+  const mat = new THREE.ShaderMaterial({ uniforms: { uScale: PU.uScale }, vertexShader: PVS, fragmentShader: PFS, transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending });
+  const pts = new THREE.Points(geo, mat); pts.frustumCulled = false; scene.add(pts);
+  const f = () => new Float32Array(N);
+  return { N, pts, geo, pos, col, siz, vel: new Float32Array(N * 3), bc: new Float32Array(N * 3), age: f().fill(99), life: f().fill(1), s0: f(), gr: f(), a0: f(), sd: f(), hk: f().fill(1), next: 0, idle: false };
+}
+function initParticles() { particles = { anchor: new THREE.Vector3(), fire: mkPS(NP, true), smoke: mkPS(NPS, false) }; }
+function put(P, p, v, life, size, alpha, grow, hk) {
+  const i = P.next, A = particles.anchor; P.next = (i + 1) % P.N;
+  P.pos[i * 3] = p.x - A.x; P.pos[i * 3 + 1] = p.y - A.y; P.pos[i * 3 + 2] = p.z - A.z;
+  P.vel[i * 3] = v.x; P.vel[i * 3 + 1] = v.y; P.vel[i * 3 + 2] = v.z;
+  P.age[i] = 0; P.life[i] = life; P.s0[i] = size; P.a0[i] = alpha; P.gr[i] = grow; P.sd[i] = Math.random(); P.hk[i] = hk === undefined ? 1 : hk;
+  return i;
+}
+function emitF(p, v, life, size, alpha, grow) { put(particles.fire, p, v, life, size, alpha, grow); }                 // chama / brasas (aditivo)
+function emitS(p, v, life, size, alpha, grow, r, g, b, hk) { const P = particles.smoke, i = put(P, p, v, life, size, alpha, grow, hk); P.bc[i * 3] = r; P.bc[i * 3 + 1] = g; P.bc[i * 3 + 2] = b; }   // fumaça / poeira (hk: 1 = nasce incandescente, 0 = nasce cinza)
+function emit(p, v, life) { emitF(p, v, life, 0.6 + Math.random() * 0.6, 0.8, 2); }                                  // explosão
+function stepFire(P, dt) {
+  const k = Math.max(0, 1 - 1.2 * dt);
+  let alive = 0;
+  for (let i = 0; i < P.N; i++) {
+    const a = P.age[i], c = i * 4, i3 = i * 3;
+    if (a >= P.life[i]) { P.col[c + 3] = 0; P.siz[i] = 0; continue; }
+    alive++; P.age[i] = a + dt;
+    const sd = P.sd[i];
+    P.vel[i3] = P.vel[i3] * k + Math.sin(sd * 40 + a * 23) * 2.5 * dt;        // redemoinho leve
+    P.vel[i3 + 1] *= k;
+    P.vel[i3 + 2] = P.vel[i3 + 2] * k + Math.cos(sd * 53 + a * 19) * 2.5 * dt;
+    P.pos[i3] += P.vel[i3] * dt; P.pos[i3 + 1] += P.vel[i3 + 1] * dt; P.pos[i3 + 2] += P.vel[i3 + 2] * dt;
+    groundHit(P, i3, dt, 4, 0.25);                           // brasas batem no chão e se apagam rente ao solo (não atravessam)
+    const t = a / P.life[i];
+    let r, g, b;
+    if (t < 0.25) { const u = t / 0.25; r = 1; g = 0.97 - 0.3 * u; b = 0.8 - 0.55 * u; }          // branco-amarelo
+    else { const u = (t - 0.25) / 0.75; r = 1 - 0.3 * u; g = 0.67 - 0.5 * u; b = 0.25 - 0.2 * u; }   // laranja -> vermelho escuro
+    P.col[c] = r; P.col[c + 1] = g; P.col[c + 2] = b;
+    P.col[c + 3] = P.a0[i] * (t < 0.08 ? t / 0.08 : 1) * (1 - t) * (1 - t);
+    P.siz[i] = P.s0[i] * (1 + P.gr[i] * t);
+  }
+  flushPS(P, alive);
+}
+const SMW = new THREE.Vector3(), SMN = new THREE.Vector3(), SMT = new THREE.Vector3(), SMJ = new THREE.Vector3();   // temporários: colisão do FOGO (brasas) com o solo — a fumaça do motor atravessa o chão de propósito
+// SOLO: em vez de atravessar o terreno, a partícula encosta, cancela a descida, escorrega rente à superfície e se dissipa
+function groundHit(P, i3, dt, frK, kickK) {
+  SMW.set(particles.anchor.x + P.pos[i3], particles.anchor.y + P.pos[i3 + 1], particles.anchor.z + P.pos[i3 + 2]).sub(CENTER);
+  const rr = SMW.length();
+  if (rr - R - HMAX >= 2) return;                            // fora da casca do relevo (voo alto): nem testa
+  SMN.copy(SMW).divideScalar(rr);
+  const alt = rr - R - terrainAt(SMN);
+  if (alt >= 0.2) return;
+  terrainNormal(SMN, SMT);
+  const push = 0.2 - alt;                                    // recoloca a partícula rente ao chão
+  P.pos[i3] += SMT.x * push; P.pos[i3 + 1] += SMT.y * push; P.pos[i3 + 2] += SMT.z * push;
+  const vn = P.vel[i3] * SMT.x + P.vel[i3 + 1] * SMT.y + P.vel[i3 + 2] * SMT.z;
+  if (vn < 0) {                                              // impacto: remove a componente que entra no solo (desliza na tangente)
+    P.vel[i3] -= SMT.x * vn; P.vel[i3 + 1] -= SMT.y * vn; P.vel[i3 + 2] -= SMT.z * vn;
+    const kk = Math.min(8, -vn * kickK);                     // chute lateral aleatório proporcional ao impacto: a nuvem se abre pelo chão
+    if (kk > 0.5) {
+      SMJ.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+      SMJ.addScaledVector(SMT, -SMJ.dot(SMT));
+      if (SMJ.lengthSq() > 1e-6) { SMJ.normalize().multiplyScalar(kk); P.vel[i3] += SMJ.x; P.vel[i3 + 1] += SMJ.y; P.vel[i3 + 2] += SMJ.z; }
+    }
+  }
+  const fr = Math.max(0, 1 - frK * dt);                      // atrito do solo: desacelera, fica rente e vai se dissipando
+  P.vel[i3] *= fr; P.vel[i3 + 1] *= fr; P.vel[i3 + 2] *= fr;
+}
+function stepSmoke(P, dt) {
+  const k = Math.max(0, 1 - 1.7 * dt), lit = 0.1 + 0.9 * THREE.MathUtils.smoothstep(sunDir.y, -0.05, 0.25);   // fumaça escurece à noite
+  let alive = 0;
+  for (let i = 0; i < P.N; i++) {
+    const a = P.age[i], c = i * 4, i3 = i * 3;
+    if (a >= P.life[i]) { P.col[c + 3] = 0; P.siz[i] = 0; continue; }
+    alive++; P.age[i] = a + dt;
+    P.vel[i3] *= k; P.vel[i3 + 1] *= k; P.vel[i3 + 2] *= k;
+    P.pos[i3] += P.vel[i3] * dt; P.pos[i3 + 1] += P.vel[i3 + 1] * dt; P.pos[i3 + 2] += P.vel[i3 + 2] * dt;   // fumaça atravessa o chão sem colidir (só o fogo bate no solo)
+    const t = a / P.life[i], hot = Math.max(0, 1 - t / 0.12) * P.hk[i];       // recém-saída do jato: incandescente (hk=0 → nasce cinza, sem vermelho)
+    P.col[c] = P.bc[i3] * lit * (1 - hot) + hot; P.col[c + 1] = P.bc[i3 + 1] * lit * (1 - hot) + 0.55 * hot; P.col[c + 2] = P.bc[i3 + 2] * lit * (1 - hot) + 0.2 * hot;
+    P.col[c + 3] = P.a0[i] * THREE.MathUtils.smoothstep(t, 0, 0.07) * Math.pow(1 - t, 1.4);
+    P.siz[i] = P.s0[i] * (1 + P.gr[i] * t);
+  }
+  flushPS(P, alive);
+}
+function flushPS(P, alive) {
+  if (alive === 0 && P.idle) return;   // nada vivo e buffers já zerados: não reenvia à GPU
+  P.idle = alive === 0;
+  P.geo.attributes.position.needsUpdate = true; P.geo.attributes.aCol.needsUpdate = true; P.geo.attributes.aSize.needsUpdate = true;
+}
+function updateParticles(dt) {
+  const Q = particles;
+  if (!Q) return;
+  const f = rocket && !rocket.dead ? rocket.pos : null;   // âncora segue o veículo ativo
+  if (f && f.distanceTo(Q.anchor) > 500) {
+    T1.copy(f).sub(Q.anchor);
+    for (const P of [Q.fire, Q.smoke]) for (let i = 0; i < P.N; i++) { P.pos[i * 3] -= T1.x; P.pos[i * 3 + 1] -= T1.y; P.pos[i * 3 + 2] -= T1.z; }
+    Q.anchor.copy(f); Q.fire.pts.position.copy(f); Q.smoke.pts.position.copy(f);
+  }
+  PU.uScale.value = renderer.domElement.height / (2 * Math.tan(camera.fov * Math.PI / 360));   // px por metro a 1 m de distância
+  stepFire(Q.fire, dt); stepSmoke(Q.smoke, dt);
+}
+
+// ---- Escapamento: pluma 3D + luz + faíscas + fumaça do escapamento (poeira do chão removida: só o fogo encosta no solo) ----
+const EX = { a: new THREE.Vector3(), n: new THREE.Vector3(), p: new THREE.Vector3(), v: new THREE.Vector3() };
+let exF = 0, exS = 0;
+function exhaust(dt, wp) {
+  const r = rocket, on = r.thrust > 0, thr = r.throttle, fl = r.tank ? r.flame2 : r.flame1, U = fl.userData.u, rnd = Math.random, EU = skyMat.uniforms;
+  const pr = Math.exp(-Math.max(altOf(r.pos), 0) / ATM_SCALE);
+  r.flame1.visible = on && !r.tank; r.flame2.visible = on && r.tank;
+  r.light.position.y = r.tank ? TK.ny - 0.4 : -0.4;
+  r.light.intensity = on ? 9 * thr * (0.85 + 0.3 * rnd()) : 0;           // a luz fica sempre na cena (intensidade 0 = apagada): não recompila shaders
+  EU.uEngI.value = on ? 5 * thr * (0.9 + 0.2 * rnd()) : 0;               // brilho do jato sobre o terreno
+  if (!on) return;
+  const axis = EX.a.set(0, 1, 0).applyQuaternion(r.q), nz = EX.n.copy(r.pos).addScaledVector(axis, -(r.cy - r.ny + 0.02));   // nz = bocal (mundo)
+  EU.uEngPos.value.copy(nz);
+  const kt = r.tank ? 1.8 : 1, w = (0.6 + 0.2 * thr) * (1 + 0.5 * (1 - pr)) * kt;                     // motor pequeno: pluma enxuta, abre pouco no vácuo
+  fl.scale.set(w, (0.9 + 1.6 * (1 - pr)) * (r.tank ? 1.5 : 1) * Math.sqrt(thr) * (0.93 + 0.14 * rnd()), w);
+  U.uTime.value = clock.elapsedTime; U.uPr.value = pr; U.uThr.value = thr;
+  if (wp !== 1) return;
+  const qf = [0.45, 0.75, 1, 1.4][curQ];
+  const P = EX.p, V = EX.v;
+  // faíscas / chama (aditivo)
+  exF += 1500 * thr * qf * dt * kt * kt;
+  while (exF >= 1) {
+    exF--;
+    P.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5); P.addScaledVector(axis, -P.dot(axis)).multiplyScalar(0.19 * kt);   // sai do disco do bocal (motor fino)
+    const sp = 0.04 + 0.2 * (1 - pr), ev = 11 + rnd() * 9;
+    V.copy(r.vel).addScaledVector(axis, -ev); V.x += (rnd() - 0.5) * 2 * sp * ev; V.y += (rnd() - 0.5) * 2 * sp * ev; V.z += (rnd() - 0.5) * 2 * sp * ev;
+    P.add(nz).addScaledVector(axis, -ev * rnd() * dt);                    // espalha ao longo do quadro (sem pulsos)
+    emitF(P, V, 0.22 + rnd() * 0.4, 0.13 + rnd() * 0.17, 0.55, 1.5);
+  }
+  if (curQ < 1) return;
+  // fumaça do escapamento (só onde há ar)
+  exS += 420 * thr * qf * Math.pow(pr, 0.6) * dt;
+  while (exS >= 1) {
+    exS--;
+    P.set(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5); P.addScaledVector(axis, -P.dot(axis)).multiplyScalar(0.17 * kt).add(nz);
+    V.copy(r.vel).multiplyScalar(0.25).addScaledVector(axis, -(7 + rnd() * 7)); V.x += (rnd() - 0.5) * 3; V.y += (rnd() - 0.5) * 3; V.z += (rnd() - 0.5) * 3;
+    const g = 0.78 + rnd() * 0.12;
+    emitS(P, V, 1.4 + rnd() * 1.8, 0.35 + rnd() * 0.35, 0.15, 6, g, g, g + 0.03);
+  }
+}
+
+// ---- Lens flare no sol (sobreposição 2D aditiva): brilho no sol + "fantasmas" na linha sol → centro da tela ----
+const flareEls = [];
+function initFlare() {
+  const root = document.createElement('div');
+  root.style.cssText = 'position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden';
+  const ring = (rgb, a) => `radial-gradient(circle,rgba(${rgb},0) 50%,rgba(${rgb},${a}) 66%,rgba(${rgb},0) 74%)`;
+  const mk = (size, bg, op, dist) => {
+    const e = document.createElement('div');
+    e.style.cssText = `position:absolute;left:0;top:0;width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;border-radius:50%;background:${bg};opacity:0;will-change:transform,opacity`;
+    root.appendChild(e); flareEls.push({ e, op, dist });
+  };
+  mk(700, 'radial-gradient(circle,rgba(255,250,235,1) 0%,rgba(255,214,150,.55) 7%,rgba(255,170,80,.18) 25%,rgba(255,150,60,0) 62%)', 1, 0);
+  
+  
+  
+  
+  document.body.appendChild(root);
+}
+function updateFlare() {
+  const W = innerWidth, H = innerHeight;
+  T1.copy(camera.position).addScaledVector(sunDir, 1000).project(camera);       // posição do sol na tela (NDC)
+  camera.getWorldDirection(T2);
+  let vis = T2.dot(sunDir) > 0 ? 1 : 0;                                          // sol atrás da câmera: some
+  T3.copy(camera.position).sub(CENTER);
+  const L = T3.length(), el = Math.asin(Math.max(-1, Math.min(1, T3.dot(sunDir) / L))), hd = Math.acos(Math.min(1, R / L));
+  vis *= THREE.MathUtils.smoothstep(el, -hd - 0.01, -hd + 0.03);                 // planeta tapa o sol (horizonte)
+  vis *= 1 - THREE.MathUtils.smoothstep(Math.max(Math.abs(T1.x), Math.abs(T1.y)), 1.0, 1.6);   // sol saindo da tela
+  if (rocket && !rocket.dead) {                                                   // foguete na frente do sol
+    T4.copy(rocket.pos).sub(camera.position); const dd = T4.length();
+    if (dd > 0.5) { const ang = Math.acos(Math.max(-1, Math.min(1, T4.dot(sunDir) / dd))), ra = Math.atan(1.0 / dd); vis *= THREE.MathUtils.smoothstep(ang, ra * 0.8, ra * 1.8); }
+  }
+  const cx = W / 2, cy = H / 2, sx = (T1.x * 0.5 + 0.5) * W, sy = (0.5 - T1.y * 0.5) * H, k = H / 900;
+  for (const f of flareEls) {
+    const x = cx + (sx - cx) * (1 - f.dist), y = cy + (sy - cy) * (1 - f.dist);
+    f.e.style.transform = `translate(${x}px,${y}px) scale(${k})`;
+    f.e.style.opacity = (vis * f.op).toFixed(3);
+  }
 }
 
 function onKey(e) {
   keys[e.code] = true;
   if (e.repeat) return;
-  const c = e.code;
-  if (c === 'Space') { e.preventDefault(); doStage(); }
-  else if (c === 'KeyT' && rocket) { rocket.sas = !rocket.sas; say('SAS ' + (rocket.sas ? 'ligado' : 'desligado')); }
+  const c = e.code, r = rocket, ok = r && !r.dead;
+  if (c === 'Space') { e.preventDefault(); toggleEngine(); }
+  else if (c === 'KeyT' && ok) { r.sas = (r.sas + 1) % 6; r.asc = false; r.tgt.set(0, 1, 0).applyQuaternion(r.q); say('SAS: ' + SAS_NAMES[r.sas]); }
+  else if (c === 'KeyM' && ok) { r.asc = !r.asc; if (r.asc) { r.engineOn = fuelNow(r) > 0; say('Subida automática ligada'); } else say('Subida automática desligada'); }
+  else if (c === 'KeyG' && ok) chuteKey();
+  else if (c === 'KeyB' && ok) sepTank('Tanque separado');
   else if (c === 'KeyP') timeRunning = !timeRunning;
   else if (c === 'KeyR') spawnRocket();
-  else if (c === 'KeyZ' && rocket) rocket.throttle = 1;
-  else if (c === 'KeyX' && rocket) rocket.throttle = 0;
+  else if (c === 'KeyZ' && ok) { r.throttle = 1; r.asc = false; }
+  else if (c === 'KeyX' && ok) { r.throttle = 0; r.asc = false; }
   else if (c === 'Period') warpIdx = Math.min(WARPS.length - 1, warpIdx + 1);
-  else if (c === 'KeyB') toggleSoftBalls();
   else if (c === 'Comma') warpIdx = Math.max(0, warpIdx - 1);
+  else if (c === 'KeyO') { adaptive = !adaptive; if (!adaptive) applyPR(prMax); say('Resolução adaptativa ' + (adaptive ? 'ligada' : 'desligada')); }
+  else if (c === 'Digit1') setQ(0, true);
+  else if (c === 'Digit2') setQ(1, true);
+  else if (c === 'Digit3') setQ(2, true);
+  else if (c === 'Digit4') setQ(3, true);
 }
 
-const showErr = m => { document.getElementById('hud').textContent = 'Erro: ' + m; console.error(m); };
+const showErr = m => { if (/setPointerCapture/.test(m)) return; document.getElementById('hud').textContent += '  ERRO: ' + m; console.error(m); };
 addEventListener('error', e => showErr(e.message));
-
-function startAmmo() {
-  Ammo().then(function (AmmoLib) {
-    window.Ammo = AmmoLib;
-    initPhysics();
-    createObjects();
-  }).catch(e => showErr('Ammo.js: ' + e));
-}
+addEventListener('unhandledrejection', e => showErr((e.reason && e.reason.message) || e.reason));
 
 function init() {
   initGraphics();
   renderer.debug.onShaderError = (gl, prog, vs, fs) => showErr('shader: ' + gl.getShaderInfoLog(fs) + gl.getShaderInfoLog(vs));
   initInput();
+  spawnRocket();
   renderer.setAnimationLoop(animate);
-  // o planeta renderiza mesmo se o Ammo demorar/falhar
-  if (typeof window.Ammo === 'function') startAmmo();
-  else {
-    addEventListener('ammo-ready', startAmmo);
-    setTimeout(() => { if (!physicsWorld) showErr('não foi possível carregar o Ammo.js (rede ou file://; use um servidor HTTP).'); }, 8000);
-  }
 }
-init();
+try { init(); } catch (e) { showErr(e.message || e); }
 
 function initGraphics() {
   container = document.getElementById('container');
 
   camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1e8);
-  camera.position.set(-25, 8, 35);
+  camera.position.set(-4, 1, 6);
 
   scene = new THREE.Scene();
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, powerPreference: 'high-performance' });
+  MAXANISO = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+  renderer.setPixelRatio(1);   // ajustado por setQ + resolução adaptativa
   renderer.setSize(innerWidth, innerHeight);
-  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;   // bordas suaves (sem serrilhado)
+  renderer.shadowMap.enabled = false;
+  renderer.debug.onShaderError = (gl, prog, vs, fs) => showErr('shader: ' + gl.getShaderInfoLog(fs) + gl.getShaderInfoLog(vs));
   container.appendChild(renderer.domElement);
+  renderer.domElement.addEventListener('webglcontextlost', () => showErr('a GPU perdeu o contexto WebGL (placa fraca ou ocupada)'));
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 2, 0);
   controls.enableDamping = true;
-  controls.minDistance = 3;
+  controls.minDistance = 1.5;
   controls.maxDistance = 4e7;
   controls.update();
   camera.updateMatrixWorld();
 
   // Planeta + atmosfera + céu: um único passe de ray-marching em tela cheia
+  buildTerrain();
   skyMat = new THREE.ShaderMaterial({
     uniforms: {
       uSun: { value: sunDir },
       uInvProj: { value: camera.projectionMatrixInverse },
       uCamWorld: { value: camera.matrixWorld },
       uR: { value: R }, uA: { value: ATM_H }, uH: { value: ATM_SCALE },
-      uInvLogFar: { value: 1 / Math.log2(camera.far + 1) }
+      uInvLogFar: { value: 1 / Math.log2(camera.far + 1) },
+      uSteps: { value: 16 }, uMarch: { value: 20 }, uTime: { value: 0 }, uHeight: { value: terrainTex }, uEngPos: { value: new THREE.Vector3(0, -1e6, 0) }, uEngI: { value: 0 }
     },
     vertexShader: document.getElementById('vs').textContent,
     fragmentShader: document.getElementById('fs').textContent,
@@ -799,14 +1305,17 @@ function initGraphics() {
   scene.add(hemi);
   sun = new THREE.DirectionalLight(0xffffff, 3);
   sun.castShadow = true;
-  const d = 60;
-  Object.assign(sun.shadow.camera, { left: -d, right: d, top: d, bottom: -d, near: 1, far: 400 });
+  const d = 8;   // área de sombra pequena em volta do foguete => muito mais nitidez por pixel
+  Object.assign(sun.shadow.camera, { left: -d, right: d, top: d, bottom: -d, near: 1, far: 300 });
+  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.012; sun.shadow.radius = 2;
   sun.shadow.mapSize.set(2048, 2048);
   scene.add(sun);
   scene.add(sun.target);
   updateSun(0);
+  setQ(2);
 
   addEventListener('resize', onWindowResize);
+  initFlare();
 }
 
 function updateSun(dt) {
@@ -822,136 +1331,31 @@ function updateSun(dt) {
   hemi.intensity = 0.05 + 0.6 * up;
 }
 
-function initPhysics() {
-  const collisionConfiguration = new Ammo.btSoftBodyRigidBodyCollisionConfiguration();
-  const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
-  const broadphase = new Ammo.btDbvtBroadphase();
-  const solver = new Ammo.btSequentialImpulseConstraintSolver();
-  const softBodySolver = new Ammo.btDefaultSoftBodySolver();
-  physicsWorld = new Ammo.btSoftRigidDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration, softBodySolver);
-  // Gravidade global desligada: a gravidade é radial (em direção ao centro do planeta), aplicada por corpo
-  physicsWorld.setGravity(new Ammo.btVector3(0, 0, 0));
-  physicsWorld.getWorldInfo().set_m_gravity(new Ammo.btVector3(0, -G0, 0)); // soft bodies: gravidade local do pad
-
-  transformAux1 = new Ammo.btTransform();
-  softBodyHelpers = new Ammo.btSoftBodyHelpers();
-  gTmp = new Ammo.btVector3(0, 0, 0);
-  fTmp = new Ammo.btVector3(0, 0, 0);
-  iTmp = new Ammo.btVector3(0, 0, 0);
-  rTmp = new Ammo.btVector3(0, 0, 0);
+// Qualidade: 0 baixa, 1 média, 2 alta, 3 ultra (teclas 1-4). A resolução é ADAPTATIVA:
+// cai sozinha se o FPS ficar baixo e sobe de volta quando há folga (tecla O liga/desliga).
+function applyPR(pr) {
+  prNow = pr; renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight);
 }
-
-function padTexture() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 512;
-  const g = c.getContext('2d');
-  g.fillStyle = '#8c8c88'; g.fillRect(0, 0, 512, 512);
-  for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(0,0,0,${Math.random() * 0.05})`; g.fillRect(Math.random() * 512, Math.random() * 512, 2, 2); }
-  g.strokeStyle = 'rgba(216,216,208,0.55)'; g.lineWidth = 1; g.strokeRect(0.5, 0.5, 511, 511);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(60, 60);
-  t.anisotropy = 16;
-  t.minFilter = THREE.LinearMipmapLinearFilter;
-  return t;
-}
-
-function createObjects() {
-  // Base de lançamento (1 km x 1 km), topo em y≈0.03
-  pos.set(0, -0.97, 0);
-  quat.set(0, 0, 0, 1);
-  const pad = createParalellepiped(1000, 2, 1000, 0, pos, quat, new THREE.MeshPhongMaterial({ map: padTexture() }));
-  pad.receiveShadow = true;
-
-  // Soft bodies de teste (como na demo): esfera e caixa inflável + rampa
-  const sphereGeometry = new THREE.SphereGeometry(1.5, 40, 25);
-  sphereGeometry.translate(5, 5, 0);
-  createSoftVolume(sphereGeometry, 15, 250, 0xff7043);
-
-  const boxGeometry = new THREE.BoxGeometry(1, 1, 5, 4, 4, 20);
-  boxGeometry.translate(-2, 5, 0);
-  createSoftVolume(boxGeometry, 15, 120, 0x42a5f5);
-
-  pos.set(3, 1, 0);
-  quat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 30 * Math.PI / 180);
-  const ramp = createParalellepiped(10, 1, 4, 0, pos, quat, new THREE.MeshPhongMaterial({ color: 0x606060 }));
-  ramp.castShadow = ramp.receiveShadow = true;
-
-  spawnRocket();
-}
-
-function createParalellepiped(sx, sy, sz, mass, pos, quat, material) {
-  const threeObject = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz, 1, 1, 1), material);
-  const shape = new Ammo.btBoxShape(new Ammo.btVector3(sx * 0.5, sy * 0.5, sz * 0.5));
-  shape.setMargin(margin);
-  createRigidBody(threeObject, shape, mass, pos, quat);
-  return threeObject;
-}
-
-function createRigidBody(threeObject, physicsShape, mass, pos, quat) {
-  threeObject.position.copy(pos);
-  threeObject.quaternion.copy(quat);
-
-  const transform = new Ammo.btTransform();
-  transform.setIdentity();
-  transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
-  transform.setRotation(new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w));
-  const motionState = new Ammo.btDefaultMotionState(transform);
-
-  const localInertia = new Ammo.btVector3(0, 0, 0);
-  physicsShape.calculateLocalInertia(mass, localInertia);
-
-  const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, physicsShape, localInertia);
-  const body = new Ammo.btRigidBody(rbInfo);
-
-  threeObject.userData.physicsBody = body;
-  scene.add(threeObject);
-
-  if (mass > 0) {
-    rigidBodies.push(threeObject);
-    body.setActivationState(4); // sem desativação
+function setQ(q, user) {
+  curQ = q;
+  if (user) adaptive = false;   // escolha manual = resolução fixa (senão a adaptativa desfazia a troca quando o FPS caía)
+  const steps = [6, 10, 20, 32][q], sh = q >= 2, ms = [1024, 1024, 2048, 4096][q];
+  prMax = PRS[q]; prMin = Math.max(0.5, prMax * 0.55);
+  applyPR(prMax);
+  skyMat.uniforms.uSteps.value = steps; skyMat.uniforms.uMarch.value = [8, 12, 24, 40][q];
+  sun.shadow.mapSize.set(ms, ms);
+  if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
+  if (renderer.shadowMap.enabled !== sh) {
+    renderer.shadowMap.enabled = sh; sun.castShadow = sh;
+    scene.traverse(o => { if (o.material && o.material.needsUpdate !== undefined) o.material.needsUpdate = true; });
   }
-  physicsWorld.addRigidBody(body);
-  return body;
+  say('Qualidade ' + ['baixa', 'média', 'alta', 'ultra'][q] + ' · ' + prMax.toFixed(2) + '×' + (user ? ' · fixa (O = adaptativa)' : ''));
 }
-
-// ---- Soft bodies (pronto para uso futuro, igual à demo) ----
-function processGeometry(bufGeometry) {
-  const posOnly = new THREE.BufferGeometry();
-  posOnly.setAttribute('position', bufGeometry.getAttribute('position'));
-  posOnly.setIndex(bufGeometry.getIndex());
-  const indexed = BufferGeometryUtils.mergeVertices(posOnly);
-  const v = bufGeometry.attributes.position.array, iv = indexed.attributes.position.array;
-  bufGeometry.ammoVertices = iv;
-  bufGeometry.ammoIndices = indexed.index.array;
-  bufGeometry.ammoIndexAssociation = [];
-  const eq = (a, b) => Math.abs(iv[a] - v[b]) < 1e-6 && Math.abs(iv[a + 1] - v[b + 1]) < 1e-6 && Math.abs(iv[a + 2] - v[b + 2]) < 1e-6;
-  for (let i = 0; i < iv.length / 3; i++) {
-    const assoc = [];
-    for (let j = 0; j < v.length / 3; j++) if (eq(i * 3, j * 3)) assoc.push(j * 3);
-    bufGeometry.ammoIndexAssociation.push(assoc);
-  }
-}
-
-function createSoftVolume(bufferGeom, mass, pressure, color = 0xffffff) {
-  processGeometry(bufferGeom);
-  const volume = new THREE.Mesh(bufferGeom, new THREE.MeshPhongMaterial({ color }));
-  volume.castShadow = volume.receiveShadow = true;
-  volume.frustumCulled = false;
-  scene.add(volume);
-  const sb = softBodyHelpers.CreateFromTriMesh(physicsWorld.getWorldInfo(), bufferGeom.ammoVertices, bufferGeom.ammoIndices, bufferGeom.ammoIndices.length / 3, true);
-  const cfg = sb.get_m_cfg();
-  cfg.set_viterations(40); cfg.set_piterations(40);
-  cfg.set_collisions(0x11); cfg.set_kDF(0.1); cfg.set_kDP(0.01); cfg.set_kPR(pressure);
-  sb.get_m_materials().at(0).set_m_kLST(0.9);
-  sb.get_m_materials().at(0).set_m_kAST(0.9);
-  sb.setTotalMass(mass, false);
-  Ammo.castObject(sb, Ammo.btCollisionObject).getCollisionShape().setMargin(margin);
-  physicsWorld.addSoftBody(sb, 1, -1);
-  volume.userData.physicsBody = sb;
-  sb.setActivationState(4);
-  softBodies.push(volume);
+function adaptRes(f) {   // chamada a cada ~0,2 s com o FPS medido
+  if (!adaptive || document.hidden) return;
+  if (adaptCool > 0) { adaptCool--; return; }
+  if (f < 40 && prNow > prMin + 0.01) { applyPR(Math.max(prMin, prNow * 0.88)); adaptCool = 4; }
+  else if (f >= 57 && prNow < prMax - 0.01) { applyPR(Math.min(prMax, prNow * 1.06)); adaptCool = 8; }
 }
 
 function initInput() {
@@ -968,113 +1372,36 @@ function initInput() {
   addEventListener('keyup', e => { keys[e.code] = false; });
 }
 
-function processClick() {
-  if (!clickRequest) return;
-  raycaster.setFromCamera(mouseCoords, camera);
-  const ballRadius = 0.4;
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(ballRadius, 18, 16), ballMaterial);
-  ball.castShadow = ball.receiveShadow = true;
-  const ballShape = new Ammo.btSphereShape(ballRadius);
-  ballShape.setMargin(margin);
-  pos.copy(raycaster.ray.direction).add(raycaster.ray.origin);
-  quat.set(0, 0, 0, 1);
-  const ballBody = createRigidBody(ball, ballShape, 3, pos, quat);
-  ballBody.setFriction(0.5);
-  pos.copy(raycaster.ray.direction).multiplyScalar(14);
-  ballBody.setLinearVelocity(new Ammo.btVector3(pos.x, pos.y, pos.z));
-  balls.push(ball);
-  if (balls.length > 30) {
-    const old = balls.shift();
-    physicsWorld.removeRigidBody(old.userData.physicsBody);
-    rigidBodies.splice(rigidBodies.indexOf(old), 1);
-    scene.remove(old);
-  }
-  clickRequest = false;
-}
-
 function onWindowResize() {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 }
 
-function updatePhysics(dt) {
-  accTime += dt;
-  let steps = 0;
-  while (accTime >= FIXED && steps < 4) { stepAmmo(); accTime -= FIXED; steps++; }
-  if (accTime > FIXED) accTime = 0;
-
-  for (const volume of softBodies) {
-    const geometry = volume.geometry;
-    const nodes = volume.userData.physicsBody.get_m_nodes();
-    const P = geometry.attributes.position.array, N = geometry.attributes.normal.array;
-    const assoc = geometry.ammoIndexAssociation;
-    for (let j = 0; j < assoc.length; j++) {
-      const node = nodes.at(j), p = node.get_m_x(), n = node.get_m_n();
-      for (const k of assoc[j]) {
-        P[k] = p.x(); P[k + 1] = p.y(); P[k + 2] = p.z();
-        N[k] = n.x(); N[k + 1] = n.y(); N[k + 2] = n.z();
-      }
-    }
-    geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.normal.needsUpdate = true;
-  }
-
-  // Rede de segurança anti-explosão: limita só a VELOCIDADE dos nós (sem mover posição,
-  // não injeta energia). Limita a 8 m/s: impossível um nó disparar.
-  const MAXV = 8;
-  for (const b of softBalls) {
-    const nodes = b.sb.get_m_nodes();
-    for (let j = 0; j < nodes.size(); j++) {
-      const nd = nodes.at(j), v = nd.get_m_v();
-      const vl = Math.hypot(v.x(), v.y(), v.z());
-      if (vl > MAXV) {
-        const k = MAXV / vl;
-        v.setValue(v.x() * k, v.y() * k, v.z() * k);
-      }
-    }
-  }
-
-  for (const o of rigidBodies) {
-    const ms = o.userData.physicsBody.getMotionState();
-    if (ms) {
-      ms.getWorldTransform(transformAux1);
-      const p = transformAux1.getOrigin(), q = transformAux1.getRotation();
-      o.position.set(p.x(), p.y(), p.z());
-      o.quaternion.set(q.x(), q.y(), q.z(), q.w());
-    }
-  }
-  updateStraps();   // cintas acompanham a cápsula (posição + rotação)
-}
-
 let fpsT = 0, fpsN = 0, fps = 0;
 function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);
-  const wp = rocket && rocket.mode === 'js' ? WARPS[warpIdx] : 1;
+  const wp = rocket && !rocket.dead ? WARPS[warpIdx] : 1;
   updateSun(dt * wp);
-  if (physicsWorld) { updatePhysics(dt); processClick(); }
+  skyMat.uniforms.uTime.value = clock.elapsedTime;
   updateRocket(dt);
   updateParticles(dt);
-
-  // câmera acompanha o foguete
   const focus = rocket && !rocket.dead ? rocket.pos : controls.target;
   T1.copy(focus).sub(controls.target);
   camera.position.add(T1); controls.target.copy(focus);
   controls.update();
   T2.copy(camera.position).sub(CENTER);
-  const cl = T2.length();
-  if (cl < R + 2) camera.position.copy(CENTER).addScaledVector(T2, (R + 2) / cl);
+  const cl = T2.length(), cmin = R + terrainAt(T3.copy(T2).divideScalar(cl)) + 2;
+  if (cl < cmin) camera.position.copy(CENTER).addScaledVector(T2, cmin / cl);
   camera.updateMatrixWorld();
-
-  // luz do sol acompanha o foguete (sombras)
+  updateFlare();
   sun.target.position.copy(focus);
   sun.position.copy(focus).addScaledVector(sunDir, 150);
   sun.target.updateMatrixWorld();
-
   fpsT += dt; fpsN++;
   if (fpsT > 0.2) {
-    fps = Math.round(fpsN / fpsT); fpsT = 0; fpsN = 0;
-    document.getElementById('fps').textContent = `Sol: ${(Math.asin(sunDir.y) * 57.3).toFixed(0)}° · ${fps} fps`;
+    fps = Math.round(fpsN / fpsT); fpsT = 0; fpsN = 0; adaptRes(fps);
+    document.getElementById('fps').textContent = `Sol: ${(Math.asin(sunDir.y) * 57.3).toFixed(0)}° · ${fps} fps · ${prNow.toFixed(2)}×`;
     if (rocket) document.getElementById('flight').textContent = hudText();
   }
   renderer.render(scene, camera);
